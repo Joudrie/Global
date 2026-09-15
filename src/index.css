@@ -28,6 +28,23 @@
   -webkit-tap-highlight-color: transparent;
 }
 
+html,
+body {
+  /* Phone-first: the page must never pan sideways. Horizontal rails scroll
+     inside themselves (each .carto-rail has its own overflow-x), and some of
+     them bleed to the screen edges with negative margins — so without this the
+     whole page could be dragged (or, once pinch-zoomed, flung) off to one side,
+     leaving content clipped at the left and blank space on the right. Clamp the
+     document to the viewport width and kill horizontal overscroll. Zoom itself
+     is locked in the viewport meta (index.html). */
+  overflow-x: hidden;
+  overscroll-behavior-x: none;
+  max-width: 100%;
+  /* Kill the double-tap-to-zoom gesture (and its 300ms click delay). Panning
+     and rail swiping still work; pinch-zoom is blocked in main.tsx. */
+  touch-action: manipulation;
+}
+
 body {
   background: linear-gradient(135deg, var(--bg-from) 0%, var(--bg-to) 100%);
   min-height: 100vh;
