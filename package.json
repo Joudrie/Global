@@ -5,7 +5,9 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc && vite build && node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/prerender.mjs",
+    "build": "tsc && npm run check:connections && vite build && node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/prerender.mjs",
+    "check:connections": "node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/check-connections.mjs",
+    "test": "node --experimental-strip-types --import ./scripts/ts-resolve.mjs --test scripts/connections.test.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {

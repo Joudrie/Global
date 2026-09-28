@@ -8,7 +8,7 @@ import {
   MapPinned, Waypoints, Gift, ScanSearch, VenetianMask,
   Building2, Signpost, FolderTree, Scale,
   ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Sparkles, Heart, TrendingUp, Pencil, Mail,
-  Pipette,
+  Pipette, Grid2x2,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -36,7 +36,7 @@ const MAP: Record<string, LucideIcon> = {
   bordermap: MapPinned, borderchain: Waypoints, gacha: Gift,
   symbolhunt: ScanSearch, twotruths: VenetianMask, forgery: ScanSearch,
   capitalmatch: Building2, oddborder: Signpost, continentsort: FolderTree, statclash: Scale,
-  worldcup: Trophy,
+  worldcup: Trophy, connections: Grid2x2,
 }
 
 export function LineIcon({ name, size = 21, strokeWidth = 1.6, color = "currentColor" }:
