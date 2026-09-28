@@ -24,11 +24,13 @@ import FlagImage from "./FlagImage"
  * so the flag's edges are always visible.
  */
 
-// Historical art lives on Wikimedia (same source the Historical screens use).
-const WM = (file: string) => `https://commons.wikimedia.org/wiki/Special:FilePath/${file}`
-const HOLY_ROMAN = WM("Banner_of_the_Holy_Roman_Emperor_with_haloes_(1430-1806).svg")
-const SOVIET = WM("Flag_of_the_Soviet_Union.svg")
-const RUSSIAN_EMPIRE = WM("Flag_of_the_Russian_Empire_(black-yellow-white).svg")
+// Historical art: our self-hosted copies of the Commons files (the paths
+// HOSTED_FLAGS / fp() in data/codex.ts resolve them to). Written out here rather
+// than importing codex.ts, which would pull ~600KB of flag tables into the
+// main bundle just for three posters.
+const HOLY_ROMAN = "/cf/5b943eb14de874a6.svg"     // Banner_of_the_Holy_Roman_Emperor_with_haloes_(1430-1806).svg
+const SOVIET = "/cf/69fdadd21e7883ae.svg"         // Flag_of_the_Soviet_Union.svg
+const RUSSIAN_EMPIRE = "/cf/9719488f5bdaab5d.svg" // Flag_of_the_Russian_Empire_(black-yellow-white).svg
 const DC_FLAG = "/flags/wm/flag-of-washington-d-c-388ae2.svg" // self-hosted
 
 const SLATE = "#1c2e36" // deep slate backdrop for map/landmark scenes
@@ -38,8 +40,14 @@ const subUrl = (code: string) => SUB_FLAGS.find(s => s.code === code)?.flagUrl
 const FILL: CSSProperties = { width: "100%", height: "100%", objectFit: "cover", display: "block" }
 const flag = (code: string, style: CSSProperties = {}) =>
   <FlagImage code={code} style={{ ...FILL, ...style }} />
-const urlImg = (src: string, style: CSSProperties = {}) =>
-  <img src={src} alt="" loading="lazy" decoding="async" style={{ ...FILL, ...style }} />
+// An image that falls back to a plain plate (not a broken-image icon) if it fails.
+function UrlImg({ src, style }: { src: string; style?: CSSProperties }) {
+  const [failed, setFailed] = useState(false)
+  useEffect(() => setFailed(false), [src])
+  if (failed) return <div aria-hidden style={{ ...FILL, ...style, background: T.surfaceHi }} />
+  return <img src={src} alt="" loading="lazy" decoding="async" style={{ ...FILL, ...style }} onError={() => setFailed(true)} />
+}
+const urlImg = (src: string, style: CSSProperties = {}) => <UrlImg src={src} style={style} />
 
 // A small framed flag "card" used inside composed scenes.
 function MiniFlag({ code, src, style }: { code?: string; src?: string; style?: CSSProperties }) {

@@ -5,6 +5,7 @@ import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon } from "./icons"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -158,7 +159,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             <input value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-              onKeyDown={e => { if (e.key === "Enter" && matches.length === 1) submit(matches[0]) }}
+              onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}
               placeholder="Type a country name or code…"
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
               style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />

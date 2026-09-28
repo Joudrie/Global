@@ -104,7 +104,7 @@ export default function QuizScreen({ questions, title, onFinish, onBack }: Props
               </div>
             ) : (
               <img src={q.target.flagUrl} alt="mystery flag" width={280} height={175}
-                className="object-cover" style={{ display: 'block' }} onError={() => setImgError(true)} />
+                className="object-contain" style={{ display: 'block', background: T.surfaceHi }} onError={() => setImgError(true)} />
             )}
           </div>
 

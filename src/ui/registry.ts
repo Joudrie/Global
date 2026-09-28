@@ -118,6 +118,13 @@ export const REGISTRY: Entry[] = [
   { id: "substats", title: "Subdivision Stats", subtitle: "Mastery by continent", icon: "📊", tab: "you", group: "Collection", size: "module", accent: "codex", progress: subProgress },
 ]
 
+// Every game a player can open: everything on Play (Beta Sandbox included) and
+// Today. The You tab's Collection pages are progress views, not games. This is
+// the one list/count used everywhere (app copy and the /games/ page), so the
+// numbers always match.
+export const GAMES: Entry[] = REGISTRY.filter(e => e.tab !== "you")
+export const GAME_COUNT = GAMES.length
+
 export function groupsFor(tab: TabKey): { group: string; entries: Entry[] }[] {
   const out: { group: string; entries: Entry[] }[] = []
   for (const e of REGISTRY.filter(r => r.tab === tab)) {

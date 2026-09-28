@@ -5,7 +5,7 @@ import type { AppState } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { openSupporter } from "../utils/supporterNav"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
+import { groupsFor, REGISTRY, GAME_COUNT, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
 import { LineIcon, FlameIcon, ChevronDownIcon, FlaskIcon, SearchIcon, ShuffleIcon, CompassIcon, SparklesIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon } from "./icons"
@@ -128,7 +128,7 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
 }) {
   const fotd = FLAGS[dayIdx % FLAGS.length]
   const dyk = FLAGS[(dayIdx * 7 + 3) % FLAGS.length]
-  const gameCount = REGISTRY.filter(r => r.tab === "play" && !r.sandbox).length
+  const gameCount = GAME_COUNT
   const todayResult = state.dailyHistory[todayString()]
   const dailyRituals = ["gacha", "funfact"].map(id => REGISTRY.find(r => r.id === id)).filter((e): e is Entry => !!e)
 

@@ -240,3 +240,30 @@ export function TabBar({ active, onChange }: { active: TabKey; onChange: (t: Tab
     </nav>
   )
 }
+
+/* ── Flag load failure: games re-roll a round whose flag image fails to load
+   (so no round is unwinnable). After MAX_FLAG_RETRIES failures in a row they
+   show this panel instead of a blank flag. ─────────────────────────────── */
+export const MAX_FLAG_RETRIES = 5
+
+export function FlagLoadFailed({ onRetry, onBack, accent = T.green }:
+  { onRetry: () => void; onBack: () => void; accent?: string }) {
+  return (
+    <div role="alert" className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ padding: 20, borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`, textAlign: "center" }}>
+        <div className="geo-display" style={{ fontWeight: 700, fontSize: 17, color: T.text }}>Couldn't load flags</div>
+        <p style={{ color: T.muted, fontSize: 13, lineHeight: 1.5, marginTop: 4 }}>
+          The flag images didn't load. Check your connection and try again.
+        </p>
+      </div>
+      <button onClick={onRetry} className="geo-tap"
+        style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: accent, color: T.onAccent }}>
+        Try again
+      </button>
+      <button onClick={onBack} className="geo-tap"
+        style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
+        ← Home
+      </button>
+    </div>
+  )
+}

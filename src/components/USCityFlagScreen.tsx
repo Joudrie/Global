@@ -2,6 +2,7 @@ import { useState } from "react"
 import { US_CITY_FLAGS } from "../data/usCityFlags"
 import type { CityFlag } from "../data/usCityFlags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { FlagLoadFailed, MAX_FLAG_RETRIES } from "./ui"
 
 interface Props { onBack: () => void }
 
@@ -10,15 +11,19 @@ const shuffle = <X,>(a: X[]): X[] => [...a].sort(() => Math.random() - 0.5)
 
 interface Round { target: CityFlag; choices: CityFlag[] }
 
+function buildRound(target: CityFlag): Round {
+  const others = shuffle(US_CITY_FLAGS.filter(c => c.id !== target.id)).slice(0, 3)
+  return { target, choices: shuffle([target, ...others]) }
+}
+
 function buildRounds(): Round[] {
-  return shuffle(US_CITY_FLAGS).slice(0, ROUNDS).map(target => {
-    const others = shuffle(US_CITY_FLAGS.filter(c => c.id !== target.id)).slice(0, 3)
-    return { target, choices: shuffle([target, ...others]) }
-  })
+  return shuffle(US_CITY_FLAGS).slice(0, ROUNDS).map(buildRound)
 }
 
 function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
-  const [rounds] = useState(buildRounds)
+  const [rounds, setRounds] = useState(buildRounds)
+  const [fails, setFails] = useState(0)
+  const [broken, setBroken] = useState<Set<string>>(() => new Set())
   const [idx, setIdx] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
   const [scores, setScores] = useState<boolean[]>([])
@@ -32,6 +37,25 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
     setPicked(id)
     setScores(s => [...s, id === round.target.id])
   }
+
+  // A flag that won't load makes the round unwinnable: swap in a different
+  // city (not counted as a guess). Give up after MAX_FLAG_RETRIES.
+  const reroll = (failed?: string) => {
+    const bad = new Set(broken)
+    if (failed) bad.add(failed)
+    setBroken(bad)
+    const used = new Set(rounds.map(r => r.target.id))
+    const pool = US_CITY_FLAGS.filter(c => !bad.has(c.id) && !used.has(c.id))
+    const fresh = pool.length ? pool : US_CITY_FLAGS.filter(c => c.id !== rounds[idx].target.id)
+    const target = fresh[Math.floor(Math.random() * fresh.length)]
+    setRounds(rs => rs.map((r, i) => (i === idx ? buildRound(target) : r)))
+  }
+  const onFlagError = () => {
+    if (answered) return
+    setFails(f => f + 1)
+    reroll(round.target.id)
+  }
+  const retry = () => { setFails(0); reroll() }
 
   const next = () => {
     if (idx + 1 >= rounds.length) { setDone(true); return }
@@ -68,14 +92,19 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         </div>
       </header>
 
+      {fails >= MAX_FLAG_RETRIES ? (
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "12px 18px 24px" }}>
+          <FlagLoadFailed onRetry={retry} onBack={onBack} accent={ACCENT.play} />
+        </div>
+      ) : (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "12px 18px 24px", gap: 16 }}>
         <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Which U.S. city flies this flag?</div>
 
         {/* flag — contain so nothing's cropped */}
         <div style={{ width: 260, height: 173, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: "#fff", boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
-          <img src={round.target.flagUrl} alt="city flag"
+          <img key={round.target.id} src={round.target.flagUrl} alt="city flag"
             style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }}
-            onError={e => { (e.target as HTMLImageElement).style.opacity = "0.25" }} />
+            onLoad={() => setFails(0)} onError={onFlagError} />
         </div>
 
         {answered && (
@@ -109,6 +138,7 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
           </button>
         )}
       </div>
+      )}
     </div>
   )
 }

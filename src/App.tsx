@@ -89,6 +89,7 @@ interface ActiveQuiz {
   isDaily: boolean
   setId: string
   setFlags: FlagRecord[]
+  backTo: Screen // where the quiz's back button goes: Flag Sets only when started there
 }
 
 // A failed lazy chunk (flaky network, stale deploy) used to white-screen the
@@ -227,29 +228,29 @@ export default function App() {
 
   const startDaily = useCallback(() => {
     const questions = buildDailyQuiz(todayString(), 10)
-    setActiveQuiz({ questions, title: "Daily Game", isDaily: true, setId: "daily", setFlags: FLAGS })
+    setActiveQuiz({ questions, title: "Daily Game", isDaily: true, setId: "daily", setFlags: FLAGS, backTo: "home" })
     setScreen("quiz")
   }, [])
 
-  const startSet = useCallback((setId: string, flags: FlagRecord[]) => {
+  const startSet = useCallback((setId: string, flags: FlagRecord[], backTo: Screen = "flags") => {
     const seed = `${setId}-${Date.now()}`
     const questions = buildSetQuiz(flags, seed, flags.length)
     const label = setId.charAt(0).toUpperCase() + setId.slice(1).replace(/-/g, " ")
-    setActiveQuiz({ questions, title: label, isDaily: false, setId, setFlags: flags })
+    setActiveQuiz({ questions, title: label, isDaily: false, setId, setFlags: flags, backTo })
     setScreen("quiz")
   }, [])
 
   const startQuickPlay = useCallback(() => {
     const seed = Date.now().toString()
     const questions = buildSetQuiz(FLAGS, seed, 10)
-    setActiveQuiz({ questions, title: "Quick Play", isDaily: false, setId: "quickplay", setFlags: FLAGS })
+    setActiveQuiz({ questions, title: "Quick Play", isDaily: false, setId: "quickplay", setFlags: FLAGS, backTo: "home" })
     setScreen("quiz")
   }, [])
 
   const startReverseQuiz = useCallback(() => {
     const seed = Date.now().toString()
     const questions = buildSetQuiz(FLAGS, seed, 10)
-    setActiveQuiz({ questions, title: "Flag ID Challenge", isDaily: false, setId: "reversequiz", setFlags: FLAGS })
+    setActiveQuiz({ questions, title: "Flag ID Challenge", isDaily: false, setId: "reversequiz", setFlags: FLAGS, backTo: "home" })
     setScreen("reversequiz")
   }, [])
 
@@ -290,7 +291,7 @@ export default function App() {
     if (!activeQuiz) return
     if (activeQuiz.setId === "quickplay") { startQuickPlay(); return }
     if (activeQuiz.setId === "reversequiz") { startReverseQuiz(); return }
-    startSet(activeQuiz.setId, activeQuiz.setFlags)
+    startSet(activeQuiz.setId, activeQuiz.setFlags, activeQuiz.backTo)
   }, [activeQuiz, startQuickPlay, startReverseQuiz, startSet])
 
   return (
@@ -336,13 +337,13 @@ export default function App() {
       )}
 
       {screen === "flags" && (
-        <FlagsScreen state={appState} onBack={() => setScreen("home")} onStartSet={startSet}
+        <FlagsScreen state={appState} onBack={() => setScreen("home")} onStartSet={(id, flags) => startSet(id, flags, "flags")}
           onStartHistorical={(region) => { setHistRegion(region); setScreen("historical") }}
           onGoIdentity={() => setScreen("identity")} />
       )}
 
       {screen === "flashcards" && (
-        <FlashcardsScreen onBack={() => setScreen("home")} onQuizSet={flags => startSet("flashcards-all", flags)} />
+        <FlashcardsScreen onBack={() => setScreen("home")} onQuizSet={flags => startSet("flashcards-all", flags, "home")} />
       )}
 
       {screen === "language" && <LanguageQuizScreen onBack={() => setScreen("home")} />}
@@ -414,7 +415,7 @@ export default function App() {
 
       {screen === "quiz" && activeQuiz && (
         <QuizScreen questions={activeQuiz.questions} title={activeQuiz.title}
-          onFinish={handleQuizFinish} onBack={() => setScreen(activeQuiz.isDaily ? "home" : "flags")} />
+          onFinish={handleQuizFinish} onBack={() => setScreen(activeQuiz.backTo)} />
       )}
 
       {screen === "reversequiz" && activeQuiz && (
