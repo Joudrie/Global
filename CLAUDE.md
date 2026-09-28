@@ -3,6 +3,12 @@
 React 19 + Vite + Tailwind v4 flag game at https://globalio.app. `npm run build` builds the app,
 then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap into `dist/`.
 
+## Merging
+
+- Sean never merges by hand. When a PR is ready (build passes, checks green), merge it yourself
+  (squash). Don't leave PRs waiting on him.
+- Merging is not deploying: `main` only goes live when he says "deploy".
+
 ## Deploys
 
 - Netlify hosts the site, but it is **not** linked to GitHub: pushes never deploy.
