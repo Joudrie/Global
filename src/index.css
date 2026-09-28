@@ -1,25 +1,9 @@
 @import "tailwindcss";
 
-:root {
-  --bg-from: #1A1033;
-  --bg-to: #2A1A4A;
-  --card-bg: #2D1F52;
-  --accent: #8B6CFF;
-  --accent-light: #A78BFA;
-  --text-muted: #B8A9E0;
-}
-
 @theme {
-  --color-space-deep: #1A1033;
-  --color-space-mid: #2A1A4A;
-  --color-card: #2D1F52;
-  --color-violet: #8B6CFF;
-  --color-violet-bright: #A78BFA;
   --color-correct: #34D399;
   --color-wrong: #F43F5E;
   --color-gold: #FBBF24;
-  --color-text: #F5F3FF;
-  --color-text-muted: #B8A9E0;
   --font-sans: 'Inter', sans-serif;
 }
 
@@ -29,9 +13,9 @@
 }
 
 body {
-  background: linear-gradient(135deg, var(--bg-from) 0%, var(--bg-to) 100%);
+  background: #FBF4E4;
   min-height: 100vh;
-  color: #F5F3FF;
+  color: #1F3A3C;
 }
 
 /* The floating Home pill only fits beside the app column once the gutters are
@@ -63,11 +47,6 @@ body {
 @keyframes spin-slow {
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
-}
-
-@keyframes pulse-glow {
-  0%, 100% { opacity: 1; filter: drop-shadow(0 0 8px #8B6CFF); }
-  50% { opacity: 0.7; filter: drop-shadow(0 0 24px #8B6CFF); }
 }
 
 @keyframes correct-bounce {
@@ -105,7 +84,6 @@ body {
 }
 
 .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-.animate-pulse-glow { animation: pulse-glow 2s ease-in-out infinite; }
 .animate-crown-pop { animation: crown-pop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards; }
 .animate-slide-up { animation: slide-up 0.3s ease-out forwards; }
 .animate-fade-in { animation: fade-in 0.4s ease-out forwards; }
@@ -113,61 +91,38 @@ body {
 .animate-wrong-shake { animation: wrong-shake 0.45s ease-in-out forwards; }
 
 /* ════════════════════════════════════════════════════════════════════════
-   TACTICAL GEO-CODEX — bespoke design layer (dashboard shell + collectathon)
-   Deep charcoal/navy surfaces · electric accents reserved for interaction ·
-   monospaced data font · topographic textures.
+   MODERN CARTOGRAPHER — the app's one look: warm parchment archive skin.
+   Classic serif headers · ink-teal text · watercolour washes · paper cards.
    ════════════════════════════════════════════════════════════════════════ */
 :root {
-  --geo-void:    #06080D;
-  --geo-bg:      #0A0E16;
-  --geo-surface: #0E1421;
-  --geo-surface-hi: #131C2B;
-  --geo-line:    #1E2A3D;
-  --geo-line-hi: #2B3D58;
-  --geo-text:    #E9EFF8;
-  --geo-muted:   #7E8DA6;
-  --geo-dim:     #4A5870;
-  --geo-amber:   #F5A524;
-  --geo-chartreuse: #BEF23A;
-  --geo-cyan:    #27D3DE;
-  --geo-warm:    #FF6A45;
-  --font-display: 'Space Grotesk', 'Inter', sans-serif;
-  --font-mono:    'JetBrains Mono', ui-monospace, 'SFMono-Regular', monospace;
+  --font-display: 'Playfair Display', Georgia, serif;
+  --font-mono: 'Inter', system-ui, sans-serif;
 }
 
 /* Monospaced, slightly condensed numerals for all data points / streaks */
 .geo-mono { font-family: var(--font-mono); font-variant-numeric: tabular-nums; letter-spacing: -0.02em; }
 .geo-display { font-family: var(--font-display); font-variant-numeric: lining-nums; font-feature-settings: "lnum" 1; }
-.geo-micro { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.22em; font-weight: 600; }
+.geo-micro { font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.18em; font-weight: 600; }
 
-/* Faint topographic grid + dot-matrix for shell backgrounds / empty states */
-.geo-grid {
-  background-color: var(--geo-bg);
-  background-image:
-    linear-gradient(var(--geo-line) 1px, transparent 1px),
-    linear-gradient(90deg, var(--geo-line) 1px, transparent 1px);
-  background-size: 30px 30px;
-  background-position: -1px -1px;
-}
+/* Faint dot-matrix texture for image cards */
 .geo-grid-soft {
   background-image:
     radial-gradient(circle at 1px 1px, rgba(126,141,166,0.10) 1px, transparent 0);
   background-size: 22px 22px;
 }
-.geo-vignette { background: radial-gradient(120% 80% at 50% -10%, rgba(39,211,222,0.06), transparent 60%); }
 
-/* Collectathon "mastered" foil: metallic gradient border + sweeping holo sheen */
+/* Collectathon "mastered" foil: aged-gold gradient border + sweeping sheen */
 .geo-foil {
   position: relative;
   border: 1px solid transparent;
   background:
-    linear-gradient(var(--geo-surface-hi), var(--geo-surface-hi)) padding-box,
-    linear-gradient(135deg, #6A7A93, #C9D6EA 25%, #6A7A93 50%, #9FE9C8 70%, #6A7A93) border-box;
+    linear-gradient(#FFFCF4, #FFFCF4) padding-box,
+    linear-gradient(135deg, #C0883A, #E7CE96 30%, #C0883A 55%, #9C7A33 80%) border-box;
   overflow: hidden;
 }
 .geo-foil::after {
   content: ""; position: absolute; inset: 0; pointer-events: none;
-  background: linear-gradient(115deg, transparent 30%, rgba(190,242,58,0.10) 45%, rgba(39,211,222,0.14) 50%, rgba(245,165,36,0.10) 55%, transparent 70%);
+  background: linear-gradient(115deg, transparent 38%, rgba(231,206,150,0.5) 50%, transparent 62%);
   transform: translateX(-120%);
   animation: geoFoil 4.5s ease-in-out infinite;
 }
@@ -179,16 +134,6 @@ body {
 /* Tab bar press feedback */
 .geo-tap { transition: transform 0.12s ease, opacity 0.12s ease; }
 .geo-tap:active { transform: scale(0.94); }
-
-/* ════════════════════════════════════════════════════════════════════════
-   MODERN CARTOGRAPHER — warm parchment archive skin (switchable aesthetic)
-   Classic serif headers · ink-teal text · watercolour washes · paper cards.
-   ════════════════════════════════════════════════════════════════════════ */
-body.aesthetic-carto {
-  --font-display: 'Playfair Display', Georgia, serif;
-  --font-mono: 'Inter', system-ui, sans-serif;
-}
-body.aesthetic-carto .geo-micro { letter-spacing: 0.18em; }
 
 /* Faded antique-map wash for the dashboard backdrop */
 .carto-paper {
@@ -219,18 +164,6 @@ body.aesthetic-carto .geo-micro { letter-spacing: 0.18em; }
   border-color: #C8B58C;
 }
 .carto-card:hover::before, .carto-card:focus-visible::before, .carto-card:active::before { opacity: 0.5; }
-
-/* Mastered collectible in parchment mode: aged-gold foil edge, no neon */
-body.aesthetic-carto .geo-foil {
-  background:
-    linear-gradient(#FFFCF4, #FFFCF4) padding-box,
-    linear-gradient(135deg, #C0883A, #E7CE96 30%, #C0883A 55%, #9C7A33 80%) border-box;
-}
-body.aesthetic-carto .geo-foil::after {
-  background: linear-gradient(115deg, transparent 38%, rgba(231,206,150,0.5) 50%, transparent 62%);
-}
-
-body.aesthetic-carto { background: #FBF4E4; }
 
 /* Streak pulse — counters celebrate (1 → 1.14, calm cadence) */
 @keyframes cartoPulse {
@@ -280,6 +213,6 @@ body.aesthetic-carto { background: #FBF4E4; }
 
 @media (prefers-reduced-motion: reduce) {
   .carto-pulse, .carto-slide-up, .carto-rise, .carto-stagger > *, .geo-foil::after,
-  .animate-spin-slow, .animate-pulse-glow { animation: none; }
+  .animate-spin-slow { animation: none; }
   .carto-card, .geo-tap { transition: none; }
 }

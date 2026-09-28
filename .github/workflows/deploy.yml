@@ -1,0 +1,33 @@
+# Deploys to Netlify (globalio.app) only when started by hand:
+# GitHub > Actions > "Deploy to Netlify" > Run workflow. Pushes never deploy.
+name: Deploy to Netlify
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: deploy
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run build
+      - name: Deploy dist/ to production
+        run: npx --yes netlify-cli@17 deploy --prod --dir=dist --site="$NETLIFY_SITE_ID" --message="${GITHUB_SHA::7} via GitHub Actions"
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 61e27621-3795-416a-b0d9-518d602849f2
+      - name: Check the live site
+        run: |
+          sleep 10
+          curl -fsS https://globalio.app/ads.txt | grep -q pub-2216954143093824
+          test "$(curl -s -o /dev/null -w '%{http_code}' https://globalio.app/about/)" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' https://globalio.app/no-such-page)" = 404

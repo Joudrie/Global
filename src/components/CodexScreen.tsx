@@ -704,8 +704,8 @@ function OtherFlagsResults({ query }: { query: string }) {
 
 // Per-category accent so each Identity subsection reads as its own colour —
 // pride red, pan-ethnic clay, indigenous ochre, separatist blue, micronations
-// green, civic plum. Palette tokens keep it legible across all three aesthetics
-// (raw red/yellow would vanish on the light parchment skin).
+// green, civic plum. Palette tokens keep it legible (raw red/yellow would vanish
+// on the light parchment skin).
 // Descending warm→cool spectrum across the whole Beyond-Countries list so no two
 // adjacent sections share a hue (and nothing repeats the orange of the country
 // continents above). Mega Codex = red, Peoples = orange, then the causes step

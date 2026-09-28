@@ -54,7 +54,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
     if (!canvas) return
     const ctx = canvas.getContext('2d')
     if (!ctx) return
-    // Opaque scratch cover — ink-dark in every aesthetic (game content, must hide the flag)
+    // Opaque scratch cover — ink-dark (game content, must hide the flag)
     ctx.fillStyle = T.text
     ctx.fillRect(0, 0, CANVAS_W, CANVAS_H)
   }, [])

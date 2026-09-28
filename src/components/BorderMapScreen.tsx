@@ -2,7 +2,7 @@ import { useState, useRef, useLayoutEffect, useMemo } from "react"
 import worldMap from "@svg-maps/world"
 import { FLAGS } from "../data/flags"
 import { neighborsOf, countriesWithBorders } from "../data/borders"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 
 interface Props { onBack: () => void }
@@ -14,7 +14,7 @@ const FULL_VB = (worldMap as { viewBox: string }).viewBox
 const hasPath = (code: string) => PATHS.has(code.toLowerCase())
 const NAME = (code: string) => FLAGS.find(f => f.code === code)?.name ?? code
 
-const SEA = () => (IS_CARTO ? "#E6E9DD" : "#0C1326")
+const SEA = () => "#E6E9DD"
 const PRIMARY_FILL = "#F4B740"
 const NEIGHBOR_FILL = "#F7D060"
 const MISS_FILL = "#C2735A"
@@ -107,17 +107,17 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               </filter>
             </defs>
             {/* hidden measuring path (also the primary fill) */}
-            <path ref={primRef} d={PATHS.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke={IS_CARTO ? "#B98A2E" : "#7A5A12"} strokeWidth={0.4} style={{ filter: "url(#bmglow)" }} />
+            <path ref={primRef} d={PATHS.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke="#B98A2E" strokeWidth={0.4} style={{ filter: "url(#bmglow)" }} />
             {drawn.filter(d => !d.isPrimary).map(d => (
               <path key={d.code} d={PATHS.get(d.code.toLowerCase())!} fill={d.fill}
-                stroke={IS_CARTO ? "#00000022" : "#00000055"} strokeWidth={0.4}
+                stroke="#00000022" strokeWidth={0.4}
                 style={{ filter: d.fill === NEIGHBOR_FILL ? "url(#bmglow)" : undefined }} />
             ))}
           </svg>
 
           {/* found / done overlay */}
           {done && (
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: IS_CARTO ? "#FBF4E4cc" : "#06080Dcc", textAlign: "center" }}>
+            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#FBF4E4cc", textAlign: "center" }}>
               <Confetti />
               <div style={{ fontSize: 40 }}>🎉</div>
               <div className="geo-display" style={{ fontWeight: 700, fontSize: 22, color: T.text }}>All {targets.length} neighbours!</div>

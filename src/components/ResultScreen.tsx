@@ -5,7 +5,7 @@ import ShareCard from './ShareCard'
 import AdBox from './AdBox'
 import { AD_SLOTS } from '../ads'
 import type { ShareResult } from '../utils/storage'
-import { T, ACCENT, FONT, tint, IS_CARTO } from '../ui/tokens'
+import { T, ACCENT, FONT, tint } from '../ui/tokens'
 
 interface Props {
   score: number
@@ -55,10 +55,8 @@ export default function ResultScreen({ score, total, answers, setLabel, streak, 
       <div className="w-full max-w-sm flex flex-col gap-4">
 
         {/* Score summary */}
-        <div className={`rounded-2xl p-5 text-center ${IS_CARTO ? 'carto-card' : ''}`}
-          style={IS_CARTO
-            ? { ['--wash' as string]: tint(accent, 0.4) }
-            : { background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 0 32px ${tint(accent, 0.13)}` }}>
+        <div className="rounded-2xl p-5 text-center carto-card"
+          style={{ ['--wash' as string]: tint(accent, 0.4) }}>
           <div className="mb-2 flex justify-center">
             <Icon size={44} color={iconColor} strokeWidth={1.6} absoluteStrokeWidth />
           </div>

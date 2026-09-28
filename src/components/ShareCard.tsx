@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { Globe2, Flame, Share2 } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import type { ShareResult } from "../utils/storage"
-import { T, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, FONT, tint } from "../ui/tokens"
 
 interface Props {
   result: ShareResult
@@ -13,16 +13,6 @@ function formatDate(iso: string): string {
   const [y, m, d] = iso.split('-').map(Number)
   const months = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
   return `${months[m - 1]} ${d}, ${y}`
-}
-
-function pctColor(grid: string[]): string {
-  if (!grid.length) return '#A78BFA'
-  const correct = grid.filter(e => e === '🟩').length
-  const pct = correct / grid.length
-  if (pct >= 0.9) return '#FBBF24'
-  if (pct >= 0.7) return '#34D399'
-  if (pct >= 0.5) return '#A78BFA'
-  return '#F87171'
 }
 
 export function shareText(result: ShareResult): string {
@@ -43,9 +33,8 @@ export function shareText(result: ShareResult): string {
 
 export default function ShareCard({ result, showCopyButton = true }: Props) {
   const { game, score, emojiGrid, date, streak } = result
-  // Cartographer: the card is parchment with ochre accents; the original skin
-  // keeps its score-graded deep-space accent.
-  const accent = IS_CARTO ? T.amber : pctColor(emojiGrid)
+  // The card is parchment with ochre accents.
+  const accent = T.amber
 
   const [busy, setBusy] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -97,25 +86,19 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
         id="share-card"
         style={{
           width: '100%', maxWidth: 320,
-          background: IS_CARTO
-            ? 'linear-gradient(160deg, #FBF4E4, #F3E8CE)'
-            : 'linear-gradient(145deg, #110728 0%, #1E0D42 40%, #2A1155 70%, #120930 100%)',
-          border: IS_CARTO ? `1px solid ${tint(accent, 0.45)}` : `1px solid ${accent}44`,
+          background: 'linear-gradient(160deg, #FBF4E4, #F3E8CE)',
+          border: `1px solid ${tint(accent, 0.45)}`,
           borderRadius: 20,
           padding: '20px 20px 18px',
-          boxShadow: IS_CARTO
-            ? `0 10px 28px -18px ${tint(T.text, 0.55)}, 0 0 0 1px ${tint(accent, 0.1)} inset`
-            : `0 0 40px ${accent}22, 0 0 0 1px #ffffff08 inset`,
+          boxShadow: `0 10px 28px -18px ${tint(T.text, 0.55)}, 0 0 0 1px ${tint(accent, 0.1)} inset`,
           position: 'relative',
           overflow: 'hidden',
         }}
       >
-        {/* subtle dot texture (stars on deep-space, stippling on parchment) */}
+        {/* subtle stippling texture on the parchment */}
         <div style={{
           position: 'absolute', inset: 0, pointerEvents: 'none',
-          backgroundImage: IS_CARTO
-            ? `radial-gradient(circle, ${tint(T.text, 0.1)} 1px, transparent 1px)`
-            : 'radial-gradient(circle, #ffffff18 1px, transparent 1px)',
+          backgroundImage: `radial-gradient(circle, ${tint(T.text, 0.1)} 1px, transparent 1px)`,
           backgroundSize: '24px 24px',
           opacity: 0.4,
         }} />
@@ -123,15 +106,13 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
         {/* Top row: logo + game name */}
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14, position: 'relative' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 7 }}>
-            {IS_CARTO
-              ? <Globe2 size={19} color={T.text} strokeWidth={1.6} absoluteStrokeWidth />
-              : <span style={{ fontSize: 20 }}>🌍</span>}
+            <Globe2 size={19} color={T.text} strokeWidth={1.6} absoluteStrokeWidth />
             <span style={{
-              color: IS_CARTO ? T.text : '#F5F3FF', fontWeight: 900, fontSize: 15, letterSpacing: '-0.3px',
-              ...(IS_CARTO ? { fontFamily: FONT.display, fontWeight: 800 } : {}),
+              color: T.text, fontSize: 15, letterSpacing: '-0.3px',
+              fontFamily: FONT.display, fontWeight: 800,
             }}>Globalio</span>
           </div>
-          <span style={{ color: IS_CARTO ? T.muted : '#B8A9E0', fontSize: 11, fontWeight: 600 }}>{formatDate(date)}</span>
+          <span style={{ color: T.muted, fontSize: 11, fontWeight: 600 }}>{formatDate(date)}</span>
         </div>
 
         {/* Game label */}
@@ -142,7 +123,7 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
           {game}
         </div>
 
-        {/* Answer grid (emoji on deep-space; ink-friendly dots on parchment) */}
+        {/* Answer grid (ink-friendly dots on parchment) */}
         {emojiGrid.length > 0 && (
           <div style={{
             display: 'flex', flexWrap: 'wrap', gap: 4, marginBottom: 14,
@@ -150,23 +131,21 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
             position: 'relative',
           }}>
             {emojiGrid.map((e, i) => (
-              IS_CARTO
-                ? <span key={i} style={{
-                    width: 20, height: 20, borderRadius: 5, display: 'inline-block',
-                    background: e === '🟩' ? T.green : T.danger,
-                    border: `1px solid ${tint(T.text, 0.15)}`,
-                  }} />
-                : <span key={i} style={{ fontSize: 22, lineHeight: 1 }}>{e}</span>
+              <span key={i} style={{
+                width: 20, height: 20, borderRadius: 5, display: 'inline-block',
+                background: e === '🟩' ? T.green : T.danger,
+                border: `1px solid ${tint(T.text, 0.15)}`,
+              }} />
             ))}
           </div>
         )}
 
         {/* Score */}
         <div style={{
-          fontSize: 32, fontWeight: 900, color: IS_CARTO ? T.text : '#F5F3FF',
+          fontSize: 32, fontWeight: 900, color: T.text,
           letterSpacing: '-1px', marginBottom: 4, position: 'relative',
-          textShadow: IS_CARTO ? 'none' : `0 0 20px ${accent}66`,
-          ...(IS_CARTO ? { fontFamily: FONT.mono } : {}),
+          textShadow: 'none',
+          fontFamily: FONT.mono,
         }}>
           {score}
         </div>
@@ -174,12 +153,10 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
         {/* Streak */}
         {streak ? (
           <div style={{
-            fontSize: 13, color: IS_CARTO ? T.amber : '#FBBF24', fontWeight: 700, marginBottom: 10, position: 'relative',
+            fontSize: 13, color: T.amber, fontWeight: 700, marginBottom: 10, position: 'relative',
             display: 'flex', alignItems: 'center', gap: 5,
           }}>
-            {IS_CARTO
-              ? <Flame size={14} color={T.amber} strokeWidth={1.6} absoluteStrokeWidth />
-              : <span>🔥</span>}
+            <Flame size={14} color={T.amber} strokeWidth={1.6} absoluteStrokeWidth />
             {streak} day streak
           </div>
         ) : <div style={{ marginBottom: 10 }} />}
@@ -187,12 +164,12 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
         {/* Divider */}
         <div style={{
           width: '100%', height: 1,
-          background: `linear-gradient(90deg, transparent, ${IS_CARTO ? tint(accent, 0.5) : `${accent}44`}, transparent)`,
+          background: `linear-gradient(90deg, transparent, ${tint(accent, 0.5)}, transparent)`,
           marginBottom: 10, position: 'relative',
         }} />
 
         {/* Footer */}
-        <div style={{ fontSize: 11, color: IS_CARTO ? T.muted : '#8B6CFF88', fontWeight: 600, letterSpacing: '0.05em', position: 'relative' }}>
+        <div style={{ fontSize: 11, color: T.muted, fontWeight: 600, letterSpacing: '0.05em', position: 'relative' }}>
           globalio.app
         </div>
       </div>
@@ -203,7 +180,7 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
           disabled={busy}
           className="w-full max-w-xs py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
           style={{
-            background: IS_CARTO ? T.amber : 'linear-gradient(135deg,#8B6CFF,#A78BFA)',
+            background: T.amber,
             color: T.onAccent, opacity: busy ? 0.7 : 1,
           }}
         >
