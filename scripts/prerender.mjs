@@ -32,7 +32,7 @@ const data = f => import(path.join(ROOT, 'src/data', f))
 
 const { FLAGS, REGIONS } = await data('flags.ts')
 const { CAPITALS } = await data('capitals.ts')
-const { CODEX } = await data('codex.ts')
+const { CODEX, fp } = await data('codex.ts')
 const { HISTORICAL_FLAGS } = await data('historicalFlags.ts')
 const { IDENTITY_FLAGS, IDENTITY_CATEGORIES } = await data('identityFlags.ts')
 const { TERRITORIES } = await data('territories.ts')
@@ -65,6 +65,16 @@ const NAV = [
   ['/about/', 'About'],
 ]
 
+// Flags that are hate symbols today. Pages that show them stay educational and
+// indexed, but carry no ads: AdSense restricts ads next to hateful imagery.
+const NO_AD_FLAGS = [
+  'Flag_of_the_German_Reich_(1935–1945).svg',
+  'Flag_of_the_Confederate_States_(1863–1865).svg',
+  'Flag_of_the_Confederate_States_(1865).svg',
+  'Battle_flag_of_the_Confederate_States_of_America_(1-1).svg',
+].map(fp)
+const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
+
 // Shared <head> + chrome so every generated page is self-contained and styled
 // in the app's "Modern Cartographer" look (parchment, ink-teal, terracotta).
 function page({ title, description, canonical, body, noindex = false }) {
@@ -87,7 +97,7 @@ ${canonical ? `<meta property="og:url" content="${canonical}" />` : ''}
 <meta property="og:image" content="${ORIGIN}/world-map.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <script src="/analytics.js"></script>
-<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2216954143093824" crossorigin="anonymous"></script>
+${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2216954143093824" crossorigin="anonymous"></script>'}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
