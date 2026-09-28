@@ -43,3 +43,10 @@ export const tint = (hex: string, alpha: number) => {
   const a = Math.round(alpha * 255).toString(16).padStart(2, "0")
   return `${hex}${a}`
 }
+
+// Connections group colours, easiest → hardest: ochre, sage, slate teal and
+// muted plum. Flat watercolour tones from the parchment palette (not the
+// newspaper's bright yellow/green/blue/purple); ink text reads at 6:1 or
+// better on each.
+export const GROUP_TONES = ["#E3C27A", "#AFC49A", "#A3BDC8", "#C4A6C0"] as const
+export const GROUP_TONE_NAMES = ["ochre", "sage", "slate", "plum"] as const

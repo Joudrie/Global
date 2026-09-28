@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react"
 import worldMap from "@svg-maps/world"
 import { Pointer, MousePointer2, Search, Speech, Check, X, ArrowUp, ArrowDown, Heart, Swords, Pencil } from "lucide-react"
 import { SUB_FLAGS } from "../data/subdivisions"
-import { T, tint } from "../ui/tokens"
+import { T, tint, GROUP_TONES } from "../ui/tokens"
 import { LineIcon } from "./icons"
 import FlagImage from "./FlagImage"
 
@@ -611,6 +611,17 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
             [T.green, T.green, T.green, T.green, T.green]].map((row, r) => (
             <div key={r} style={{ display: "flex", gap: hero ? 5 : 3 }}>
               {row.map((c, i) => <span key={i} style={{ width: hero ? 16 : 11, height: hero ? 16 : 11, borderRadius: 3, background: c }} />)}
+            </div>
+          ))}
+        </div>
+      ) }
+    case "connections":
+      // The board: one solved row in each group tone, above plain tiles.
+      return { bleed: false, node: (
+        <div style={{ ...box, background: wash, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: hero ? 5 : 3 }}>
+          {[0, 1, 2].map(r => (
+            <div key={r} style={{ display: "flex", gap: hero ? 5 : 3 }}>
+              {[0, 1, 2, 3].map(i => <span key={i} style={{ width: hero ? 22 : 14, height: hero ? 14 : 9, borderRadius: 3, background: r === 0 ? GROUP_TONES[0] : r === 1 ? GROUP_TONES[3] : tint(T.text, 0.18) }} />)}
             </div>
           ))}
         </div>

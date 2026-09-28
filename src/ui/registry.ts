@@ -51,6 +51,7 @@ export const REGISTRY: Entry[] = [
   // (Flag Gacha lives on the TODAY tab only — it's a daily ritual, not an
   //  arcade game, and the dev wants it off Play entirely.)
   { id: "gacha", title: "Flag Gacha", subtitle: "Daily pull · collect them all", icon: "🎁", tab: "today", group: "Daily Rituals", size: "tile", accent: "today" },
+  { id: "connections", title: "Connections", subtitle: "Daily · four groups of four countries", icon: "🧩", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
   { id: "funfact", title: "Fun Fact", subtitle: "Daily flag fact", icon: "💡", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
   { id: "flagbracket", title: "Flag Bracket", subtitle: "Vote your champion", icon: "🏆", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
   { id: "tierlist", title: "Tier List Maker", subtitle: "Rank flags S–F", icon: "🏆", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
