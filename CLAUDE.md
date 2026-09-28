@@ -9,6 +9,12 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
   (squash). Don't leave PRs waiting on him.
 - Merging is not deploying: `main` only goes live when he says "deploy".
 
+## Test site
+
+- Every push to `main` publishes https://joudrie.github.io/Global/ (`.github/workflows/test-site.yml`):
+  the same build under `/Global/`, with no ads or analytics and hidden from search. Sean and his
+  friends test there. Always merge finished work so it reaches the test site, and give Sean the link.
+
 ## Deploys
 
 - Netlify hosts the site, but it is **not** linked to GitHub: pushes never deploy.
