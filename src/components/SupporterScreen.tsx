@@ -1,4 +1,4 @@
-import { T, ACCENT, tint } from "../ui/tokens"
+import { T, tint } from "../ui/tokens"
 import EarthLogo from "./EarthLogo"
 
 interface Props {

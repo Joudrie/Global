@@ -2,7 +2,7 @@ import { useState, useRef, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon } from "./icons"
 
@@ -20,7 +20,7 @@ type Color = typeof ALL_COLORS[number]
 // chip would vanish, so "white" gets a readable warm grey there.
 const COLOR_HEX: Record<Color, string> = {
   red: "#F43F5E", blue: "#60A5FA", green: "#34D399",
-  yellow: "#FBBF24", white: IS_CARTO ? "#A89F8D" : "#F5F3FF", black: "#6B7280", orange: "#FB923C",
+  yellow: "#FBBF24", white: "#A89F8D", black: "#6B7280", orange: "#FB923C",
 }
 
 interface GuessResult {

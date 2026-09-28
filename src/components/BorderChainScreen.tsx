@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import { neighborsOf, countriesWithBorders, bfsDistances, shortestPath } from "../data/borders"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 
 interface Props { onBack: () => void }
@@ -147,7 +147,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         {/* current */}
         <div style={{ textAlign: "center" }}>
           <div className="geo-micro" style={{ fontSize: 9, color: T.muted, marginBottom: 6 }}>Name a country bordering</div>
-          <div style={{ width: 160, height: 107, margin: "0 auto", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, boxShadow: IS_CARTO ? "0 12px 28px -14px rgba(31,58,60,0.45)" : "0 0 30px rgba(0,0,0,0.4)" }}>
+          <div style={{ width: 160, height: 107, margin: "0 auto", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)" }}>
             <FlagImage code={current} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
           <div className="geo-display" style={{ fontWeight: 700, fontSize: 18, color: T.text, marginTop: 8 }}>{NAME(current)}</div>

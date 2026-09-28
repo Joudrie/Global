@@ -3,7 +3,7 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { FAKE_FLAGS, FAKE_CODES } from "../data/fakeFlags"
 import type { FakeFlag } from "../data/fakeFlags"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 
 interface Props { onBack: () => void }
@@ -207,7 +207,7 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             style={{
               position: "relative", zIndex: 2,
               width: 300, height: 200, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.lineHi}`,
-              boxShadow: IS_CARTO ? "0 14px 34px -16px rgba(31,58,60,0.5)" : "0 0 40px rgba(0,0,0,0.5)",
+              boxShadow: "0 14px 34px -16px rgba(31,58,60,0.5)",
               background: "#fff", cursor: "grab", touchAction: "pan-y",
               transform: cardTransform, transition: exit || !dragging.current ? "transform 0.24s ease" : "none",
             }}>
@@ -224,8 +224,8 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
         {/* tap fallbacks */}
         <div style={{ display: "flex", gap: 14, marginTop: 12 }}>
-          <button onClick={() => answer(false)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(T.warm, IS_CARTO ? 0.14 : 0.16), border: `1.5px solid ${tint(T.warm, 0.5)}`, color: T.warm }}>✂️</button>
-          <button onClick={() => answer(true)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(ACCENT.learn, IS_CARTO ? 0.14 : 0.16), border: `1.5px solid ${tint(ACCENT.learn, 0.5)}`, color: ACCENT.learn }}>✓</button>
+          <button onClick={() => answer(false)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(T.warm, 0.14), border: `1.5px solid ${tint(T.warm, 0.5)}`, color: T.warm }}>✂️</button>
+          <button onClick={() => answer(true)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(ACCENT.learn, 0.14), border: `1.5px solid ${tint(ACCENT.learn, 0.5)}`, color: ACCENT.learn }}>✓</button>
         </div>
       </div>
     </div>

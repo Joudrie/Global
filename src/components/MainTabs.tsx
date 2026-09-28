@@ -4,7 +4,7 @@ import { FLAGS } from "../data/flags"
 import type { AppState } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { openSupporter } from "../utils/supporterNav"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { groupsFor, REGISTRY, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
@@ -74,26 +74,25 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
   const learned = state.learnedFlags.length
 
   return (
-    <div className={IS_CARTO ? "carto-paper" : "geo-grid"} style={{ position: "fixed", inset: 0, maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", zIndex: 1, background: IS_CARTO ? T.bg : undefined }}>
-      {!IS_CARTO && <div className="geo-vignette" style={{ position: "absolute", inset: 0, pointerEvents: "none" }} />}
+    <div className="carto-paper" style={{ position: "fixed", inset: 0, maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", zIndex: 1, background: T.bg }}>
 
       {/* ── Shared header: wordmark · live streak · system actions ── */}
       <header style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <EarthLogo size={26} />
-          <span className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: IS_CARTO ? 22 : 18, letterSpacing: IS_CARTO ? "0.01em" : "0.02em" }}>
-            {IS_CARTO ? "Globalio" : "GLOBALIO"}
+          <span className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 22, letterSpacing: "0.01em" }}>
+            Globalio
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* The streak, small and always on top — Today's big celebration is gone */}
-          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: IS_CARTO ? 999 : 8, background: T.surface, border: `1px solid ${tint(T.amber, IS_CARTO ? 0.45 : 0.3)}` }}>
-            {IS_CARTO ? <FlameIcon size={13} color={T.amber} strokeWidth={1.7} /> : <span style={{ fontSize: 12 }}>🔥</span>}
-            <span style={{ fontFamily: FONT.mono, fontWeight: IS_CARTO ? 600 : 800, fontSize: 14, color: T.amber, letterSpacing: "-0.02em" }}>{state.currentStreak}</span>
+          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 999, background: T.surface, border: `1px solid ${tint(T.amber, 0.45)}` }}>
+            <FlameIcon size={13} color={T.amber} strokeWidth={1.7} />
+            <span style={{ fontFamily: FONT.mono, fontWeight: 600, fontSize: 14, color: T.amber, letterSpacing: "-0.02em" }}>{state.currentStreak}</span>
           </div>
           <button onClick={() => onNavigate("settings")} aria-label="Settings" className="geo-tap"
-            style={{ width: 44, height: 44, borderRadius: IS_CARTO ? 999 : 8, background: T.surface, border: `1px solid ${T.line}`, color: T.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            {IS_CARTO ? <LineIcon name="settings" size={18} color={T.muted} /> : "⚙"}
+            style={{ width: 44, height: 44, borderRadius: 999, background: T.surface, border: `1px solid ${T.line}`, color: T.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <LineIcon name="settings" size={18} color={T.muted} />
           </button>
         </div>
       </header>
@@ -147,7 +146,7 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
   )
 
   return (
-    <div className={IS_CARTO ? "carto-slide-up" : undefined} style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {/* Hero deck opens the page (the streak chip lives in the header above).
           Ordered to funnel into Play first, then the Codex, World Cup, Flag of
           the Day, an advertise slot and a daily fact. Swipe; it loops. */}
@@ -197,20 +196,17 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
         { accent: ACCENT.codex, eyebrow: `Flag of the Day · ${fotd.region}`, title: fotd.name,
           body: fotd.funFact, cta: "Read in the Codex", onClick: () => onGoCodex(fotd.code),
           cover: fotd.code },
-        { accent: T.gold, watermark: "today", eyebrow: "Advertise", title: "Your ad could be here",
-          body: "Reach flag fans around the world — and help keep Globalio free for everyone. Tap to get in touch.",
-          cta: "Get in touch", onClick: () => { window.location.href = "mailto:sjoudrie@gmail.com?subject=" + encodeURIComponent("Advertising on Globalio") } },
         { accent: ACCENT.learn, eyebrow: "Did you know?", title: dyk.name,
           body: dyk.funFact, cta: "More fun facts", onClick: () => onNavigate("funfact"),
           cover: dyk.code },
       ]} />
 
       {/* Quick Play — instant fun, charged up */}
-      <button onClick={dailyDone ? undefined : onStartDaily} className={`geo-tap ${IS_CARTO ? "carto-card" : ""}`}
+      <button onClick={dailyDone ? undefined : onStartDaily} className="geo-tap carto-card"
         style={{ display: "flex", alignItems: "center", gap: 14, padding: "15px 16px", borderRadius: 16, textAlign: "left",
           border: `1px solid ${tint(ACCENT.today, 0.4)}`,
           background: `linear-gradient(150deg, ${tint(ACCENT.today, 0.16)}, ${T.surface} 72%)`,
-          ...(IS_CARTO ? { ["--wash" as string]: tint(ACCENT.today, 0.45) } : {}) }}>
+          ["--wash" as string]: tint(ACCENT.today, 0.45) }}>
         <span style={{ position: "relative", width: 56, height: 42, flexShrink: 0 }}>
           {["ke", "in", "br"].map((c, k) => (
             <span key={c} style={{ position: "absolute", top: 6, left: 10, width: 36, height: 26, borderRadius: 5, overflow: "hidden",
@@ -240,11 +236,11 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
             const isGacha = e.id === "gacha"
             const accent = isGacha ? ACCENT.codex : ACCENT.learn
             return (
-              <button key={e.id} onClick={() => launch(e)} className={`geo-tap ${IS_CARTO ? "carto-card" : ""}`}
+              <button key={e.id} onClick={() => launch(e)} className="geo-tap carto-card"
                 style={{ position: "relative", overflow: "hidden", textAlign: "left", padding: "13px 14px", borderRadius: 16, minHeight: 104,
                   display: "flex", flexDirection: "column",
                   border: `1px solid ${tint(accent, 0.42)}`, background: `linear-gradient(155deg, ${tint(accent, 0.2)}, ${T.surface} 78%)`,
-                  ...(IS_CARTO ? { ["--wash" as string]: tint(accent, 0.5) } : {}) }}>
+                  ["--wash" as string]: tint(accent, 0.5) }}>
                 <span aria-hidden style={{ position: "absolute", top: -12, right: -10, opacity: 0.15, transform: "rotate(-12deg)", pointerEvents: "none" }}>
                   <LineIcon name={e.id} size={66} color={accent} strokeWidth={1.1} />
                 </span>
@@ -404,7 +400,7 @@ function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark,
     // the content ran tall, chopping text mid-glyph. Every caption row is
     // flexShrink:0 so nothing can ever be vertically crushed again.
     return (
-      <div className={IS_CARTO ? "carto-card" : ""}
+      <div className="carto-card"
         style={{ height: "100%", overflow: "hidden", borderRadius: 16, border: `1px solid ${tint(accent, 0.4)}`, background: T.surface, display: "flex", flexDirection: "column" }}>
         <div style={{ flex: 1, minHeight: 56, overflow: "hidden", background: T.surfaceHi, display: "flex", alignItems: "center", justifyContent: "center" }}>
           {/* contain (not cover) so the whole flag reads — no cropped edges/emblems. */}
@@ -428,12 +424,12 @@ function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark,
     )
   }
   return (
-    <div className={IS_CARTO ? "carto-card" : ""}
+    <div className="carto-card"
       style={{
         height: "100%", position: "relative", overflow: "hidden", padding: 18, borderRadius: 16, textAlign: "left",
         border: `1px solid ${tint(accent, 0.36)}`,
         background: `linear-gradient(150deg, ${tint(accent, 0.16)}, ${T.surface} 70%)`,
-        ...(IS_CARTO ? { ["--wash" as string]: tint(accent, 0.42) } : {}),
+        ["--wash" as string]: tint(accent, 0.42),
       }}>
       {watermark && (
         <div style={{ position: "absolute", right: -18, bottom: -22, opacity: 0.12, color: accent, pointerEvents: "none" }}>
@@ -529,7 +525,7 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
   const selectChip = (group: string | null) => { setActiveGroup(group); setQ("") }
 
   return (
-    <div className={IS_CARTO ? "carto-slide-up" : undefined} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Title + Surprise me (variable-reward shuffle across the whole catalogue) */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div>
@@ -678,7 +674,7 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
           <button onClick={() => setSandboxOpen(o => !o)} className="geo-tap" aria-expanded={sandboxOpen}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px",
               borderRadius: 12, background: T.surfaceHi, border: `1px dashed ${T.lineHi}`, textAlign: "left" }}>
-            <span style={{ display: "flex", color: T.muted }}>{IS_CARTO ? <FlaskIcon size={18} color={T.muted} strokeWidth={1.6} /> : <span style={{ fontSize: 16 }}>🧪</span>}</span>
+            <span style={{ display: "flex", color: T.muted }}><FlaskIcon size={18} color={T.muted} strokeWidth={1.6} /></span>
             <div style={{ flex: 1 }}>
               <div className="geo-display" style={{ fontWeight: 600, fontSize: 14, color: T.text }}>Beta Sandbox</div>
               <div style={{ color: T.muted, fontSize: 10.5, marginTop: 1 }}>{sandbox.length} experimental & niche games</div>
@@ -690,7 +686,7 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
           </button>
 
           {sandboxOpen && (
-            <div className={IS_CARTO ? "carto-slide-up" : undefined} style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
+            <div className="carto-slide-up" style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
               {sandbox.map(e => (
                 <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]} onClick={() => launch(e)} style={{ width: "100%" }} />
               ))}
@@ -912,7 +908,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
   const dailyDates = Object.keys(state.dailyHistory).sort().slice(-7)
 
   return (
-    <div className={IS_CARTO ? "carto-slide-up" : undefined} style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
       {/* Identity — tap the name to edit it (saved locally) */}
       <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "4px 2px" }}>
         <div style={{ width: 56, height: 56, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
@@ -947,7 +943,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
       </div>
 
       {/* World mastery — the ring plus the regional breakdown, one card */}
-      <div className={IS_CARTO ? "carto-card" : "geo-grid-soft"} style={{ padding: 18, borderRadius: 16, ...(IS_CARTO ? { ["--wash" as string]: tint(ACCENT.learn, 0.35) } : { background: T.surface, border: `1px solid ${T.line}` }) }}>
+      <div className="carto-card" style={{ padding: 18, borderRadius: 16, ["--wash" as string]: tint(ACCENT.learn, 0.35) }}>
         <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
           <ProgressRing done={learned} total={FLAGS.length} accent={ACCENT.learn} size={72} stroke={6} />
           <div>
@@ -1083,11 +1079,11 @@ const FEEDBACK_HREF =
 
 function FeedbackCard() {
   return (
-    <a href={FEEDBACK_HREF} className={`geo-tap ${IS_CARTO ? "carto-card" : ""}`}
+    <a href={FEEDBACK_HREF} className="geo-tap carto-card"
       style={{ display: "block", textDecoration: "none", borderRadius: 16, padding: 16, position: "relative", overflow: "hidden",
         border: `1px solid ${tint(ACCENT.learn, 0.36)}`,
         background: `linear-gradient(150deg, ${tint(ACCENT.learn, 0.14)}, ${T.surface} 75%)`,
-        ...(IS_CARTO ? { ["--wash" as string]: tint(ACCENT.learn, 0.42) } : {}) }}>
+        ["--wash" as string]: tint(ACCENT.learn, 0.42) }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
           background: tint(ACCENT.learn, 0.14), border: `1px solid ${tint(ACCENT.learn, 0.3)}`, color: ACCENT.learn }}>
@@ -1114,8 +1110,8 @@ function GachaInline({ onOpen }: { onOpen: () => void }) {
   return (
     // The whole card is one tap straight to the collection — no secondary
     // "open" button to hunt for.
-    <button onClick={onOpen} className={`geo-tap ${IS_CARTO ? "carto-card" : ""}`}
-      style={{ width: "100%", textAlign: "left", cursor: "pointer", padding: 11, borderRadius: 14, ...(IS_CARTO ? {} : { background: T.surface, border: `1px solid ${T.line}` }) }}>
+    <button onClick={onOpen} className="geo-tap carto-card"
+      style={{ width: "100%", textAlign: "left", cursor: "pointer", padding: 11, borderRadius: 14 }}>
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: flags.length ? 7 : 0 }}>
         <div className="geo-display" style={{ fontWeight: 700, fontSize: 13, color: T.text }}>
           Gacha Collection{flags.length ? <span style={{ color: T.dim, fontWeight: 600 }}> · {flags.length}/{FLAGS.length}</span> : null}

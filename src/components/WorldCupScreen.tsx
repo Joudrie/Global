@@ -2,7 +2,7 @@ import { useRef, useState } from "react"
 import { FLAGS } from "../data/flags"
 import { CODEX, CODEX_SUMMARIES } from "../data/codex"
 import { WORLD_CUP_2026, WC_NAME_OVERRIDE, WC_BLURB } from "../data/worldCup2026"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ChevronLeftIcon, LineIcon } from "./icons"
 import FlagImage from "./FlagImage"
@@ -66,7 +66,7 @@ export default function WorldCupScreen({ onBack, onOpenCodex }: Props) {
             if (horizontal && Math.abs(dx) > 60) go(dx < 0 ? 1 : -1); else setDx(0)
           }}
           onPointerCancel={() => { dragging.current = false; axis.current = null; setDx(0) }}>
-          <div className={IS_CARTO ? "carto-card" : ""} style={{
+          <div className="carto-card" style={{
             borderRadius: 18, overflow: "hidden", position: "relative",
             border: `1px solid ${tint(A, 0.4)}`, background: T.surface,
             transform: `translateX(${dx}px) rotate(${dx * 0.018}deg)`,
@@ -123,9 +123,8 @@ export default function WorldCupScreen({ onBack, onOpenCodex }: Props) {
             </div>
             <div className="carto-rail" style={{ display: "flex", gap: 10, overflowX: "auto", margin: "0 -16px", padding: "2px 16px 8px" }}>
               {history.map((h, k) => (
-                <button key={k} onClick={() => onOpenCodex(team.code)} className={`geo-tap ${IS_CARTO ? "carto-card" : ""}`}
-                  style={{ width: 132, flexShrink: 0, padding: 0, textAlign: "left", borderRadius: 10, overflow: "hidden",
-                    ...(IS_CARTO ? {} : { background: T.surface, border: `1px solid ${T.line}` }) }}>
+                <button key={k} onClick={() => onOpenCodex(team.code)} className="geo-tap carto-card"
+                  style={{ width: 132, flexShrink: 0, padding: 0, textAlign: "left", borderRadius: 10, overflow: "hidden" }}>
                   <div style={{ width: "100%", height: 84, overflow: "hidden", background: T.surfaceHi }}>
                     <img src={h.flagUrl} alt={h.label} loading="lazy" decoding="async"
                       style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }}

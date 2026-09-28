@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 
 interface Props { onBack: () => void }
@@ -72,7 +72,7 @@ function ContinentSortGame({ onBack, onReplay }: Props & { onReplay: () => void 
       </header>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "12px 18px 22px", gap: 16, alignItems: "center" }}>
-        <div style={{ width: 220, height: 146, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: T.surfaceHi, boxShadow: IS_CARTO ? "0 12px 28px -14px rgba(31,58,60,0.45)" : "0 0 30px rgba(0,0,0,0.4)" }}>
+        <div style={{ width: 220, height: 146, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: T.surfaceHi, boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)" }}>
           <FlagImage code={flag.code} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", padding: 8 }} />
         </div>
         <div className="geo-display" style={{ fontWeight: 700, fontSize: 18, color: T.text, marginTop: -6 }}>{flag.name}</div>
@@ -84,8 +84,8 @@ function ContinentSortGame({ onBack, onReplay }: Props & { onReplay: () => void 
             const isPick = picked === r
             let bg = T.surface, border = `2px solid ${T.line}`
             if (answered) {
-              if (isCorrect) { bg = tint(ACCENT.learn, IS_CARTO ? 0.12 : 0.16); border = `2px solid ${ACCENT.learn}` }
-              else if (isPick) { bg = tint(T.warm, IS_CARTO ? 0.1 : 0.14); border = `2px solid ${T.warm}` }
+              if (isCorrect) { bg = tint(ACCENT.learn, 0.12); border = `2px solid ${ACCENT.learn}` }
+              else if (isPick) { bg = tint(T.warm, 0.1); border = `2px solid ${T.warm}` }
             }
             return (
               <button key={r} onClick={() => choose(r)} disabled={answered} className="geo-tap"

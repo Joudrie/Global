@@ -4,7 +4,7 @@ import type { FlagRecord } from "../data/flags"
 import { CAPITALS } from "../data/capitals"
 import { neighborsOf } from "../data/borders"
 import { STATS } from "../data/countryStats"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 
 interface Props { onBack: () => void }
@@ -201,7 +201,7 @@ function TwoTruthsGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
       </header>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "10px 18px 22px", gap: 16 }}>
-        <div style={{ width: 220, height: 146, margin: "0 auto", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, boxShadow: IS_CARTO ? "0 12px 28px -14px rgba(31,58,60,0.45)" : "0 0 30px rgba(0,0,0,0.4)" }}>
+        <div style={{ width: 220, height: 146, margin: "0 auto", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)" }}>
           <FlagImage code={round.flag.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <p className="geo-display" style={{ textAlign: "center", color: T.text, fontWeight: 700, fontSize: 18 }}>{round.flag.name}</p>
@@ -212,7 +212,7 @@ function TwoTruthsGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             const isLie = i === round.falseIdx
             let border = `2px solid ${T.line}`, bg = T.surface
             if (answered) {
-              if (isLie) { border = `2px solid ${T.warm}`; bg = tint(T.warm, IS_CARTO ? 0.1 : 0.14) }
+              if (isLie) { border = `2px solid ${T.warm}`; bg = tint(T.warm, 0.1) }
               else if (i === picked) { border = `2px solid ${ACCENT.codex}` }
             }
             return (

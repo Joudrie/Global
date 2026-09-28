@@ -11,7 +11,7 @@ interface Chip { code: string; flagUrl: string; name: string }
 
 type TierId = 'S' | 'A' | 'B' | 'C' | 'D' | 'F'
 // Rank colours are game content (the classic S→F rainbow) — kept distinct,
-// dark ink label on top works on every hue in every aesthetic.
+// dark ink label on top works on every hue.
 const TIERS: { id: TierId; color: string }[] = [
   { id: 'S', color: '#F43F5E' },
   { id: 'A', color: '#FB923C' },

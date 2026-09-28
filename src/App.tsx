@@ -3,11 +3,9 @@ import type { ReactNode } from "react"
 import SplashScreen from "./components/SplashScreen"
 import Onboarding, { hasOnboarded } from "./components/Onboarding"
 import MainTabs from "./components/MainTabs"
-import HomeScreen from "./components/HomeScreen"
 import { REGISTRY } from "./ui/registry"
 import type { TabKey } from "./ui/registry"
-import { AESTHETIC, T } from "./ui/tokens"
-import StarField from "./components/StarField"
+import { T } from "./ui/tokens"
 import EarthLogo from "./components/EarthLogo"
 import type { HistoricalRegion } from "./data/historicalFlags"
 
@@ -73,9 +71,7 @@ const StatClashScreen = lazy(() => import("./components/StatClashScreen"))
 const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
-import AdBreakModal from "./components/AdBreakModal"
 import { setSupporterHandler } from "./utils/supporterNav"
-import { ADS_ENABLED } from "./ads"
 import { FLAGS } from "./data/flags"
 import type { FlagRecord } from "./data/flags"
 import { loadState, saveState, markFlagLearned, markSubLearned, recordDailyResult, awardCrown, saveShareResult, setPremium, recordGamePlayed } from "./utils/storage"
@@ -83,7 +79,6 @@ import type { AppState, ShareResult } from "./utils/storage"
 import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
-import { loadTheme } from "./components/SettingsScreen"
 
 type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter"
 
@@ -122,7 +117,7 @@ class ScreenErrorBoundary extends Component<{ children: ReactNode }, { failed: b
 // Brief placeholder while a code-split screen's chunk loads (usually a blink).
 function ScreenFallback() {
   return (
-    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: AESTHETIC === "original" ? "transparent" : T.bg }}>
+    <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: T.bg }}>
       <div style={{ opacity: 0.6, animation: "geoPulse 1s ease-in-out infinite" }}>
         <EarthLogo size={46} />
       </div>
@@ -153,8 +148,6 @@ export default function App() {
   const [tab, setTab] = useState<TabKey>("today")
   // Deep-link target for the full-screen Codex (e.g. from the World Cup explorer)
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
-  // The boxed "every 4th game" ad break, shown over the result screen.
-  const [adBreak, setAdBreak] = useState(false)
 
   // Persist on change — but SKIP the first run. The initial appState is exactly
   // what we just loaded, so re-saving it can only ever hurt: if that load hit a
@@ -283,12 +276,8 @@ export default function App() {
     const allLearned = activeQuiz.setFlags.every(f => newState.learnedFlags.includes(f.code))
     if (allLearned && !activeQuiz.isDaily) newState = awardCrown(newState, activeQuiz.setId)
     newState = recordGamePlayed(newState)
-    // Boxed ad break on game 1, then every 4th — only when ads are live and the
-    // player isn't a Supporter.
-    const showBreak = ADS_ENABLED && !newState.premium && newState.gamesPlayed % 4 === 1
     setAppState(newState)
     setLastResult({ score, total, answers })
-    setAdBreak(showBreak)
     setScreen("result")
   }, [activeQuiz, appState])
 
@@ -303,24 +292,8 @@ export default function App() {
     startSet(activeQuiz.setId, activeQuiz.setFlags)
   }, [activeQuiz, startQuickPlay, startReverseQuiz, startSet])
 
-  useEffect(() => {
-    document.body.classList.toggle("aesthetic-carto", AESTHETIC === "cartographer")
-    const t = loadTheme()
-    const r = document.documentElement.style
-    r.setProperty('--bg-from', t.bgFrom)
-    r.setProperty('--bg-to', t.bgTo)
-    r.setProperty('--card-bg', t.cardBg)
-    r.setProperty('--accent', t.accent)
-    r.setProperty('--accent-light', t.accentLight)
-    r.setProperty('--text-muted', t.muted)
-  }, [])
-
   return (
-    <div style={{ background: AESTHETIC === "original" ? 'linear-gradient(135deg,var(--bg-from) 0%,var(--bg-to) 100%)' : T.bg, minHeight: "100vh" }}>
-      {/* Space embers belong to the original deep-space skin only — on
-          parchment/tactical they rendered as a faint purple haze. */}
-      {screen !== "splash" && AESTHETIC === "original" && <StarField />}
-
+    <div style={{ background: T.bg, minHeight: "100vh" }}>
       {/* First-run intro — shows once after the splash, skippable */}
       {screen !== "splash" && showIntro && <Onboarding onDone={() => setShowIntro(false)} />}
 
@@ -339,14 +312,14 @@ export default function App() {
             position: "fixed", top: 10, right: 12, zIndex: 50,
             display: "flex", alignItems: "center", gap: 6,
             padding: "6px 12px 6px 8px", borderRadius: 999,
-            background: AESTHETIC === "original" ? "rgba(45,31,82,0.85)" : `${T.surface}EB`,
-            border: `1px solid ${AESTHETIC === "original" ? "#8B6CFF44" : T.line}`,
-            boxShadow: AESTHETIC === "original" ? "none" : "0 1px 2px rgba(31,58,60,0.05), 0 8px 20px -14px rgba(31,58,60,0.25)",
+            background: `${T.surface}EB`,
+            border: `1px solid ${T.line}`,
+            boxShadow: "0 1px 2px rgba(31,58,60,0.05), 0 8px 20px -14px rgba(31,58,60,0.25)",
             backdropFilter: "blur(6px)", cursor: "pointer",
           }}
         >
           <EarthLogo size={24} />
-          <span style={{ color: AESTHETIC === "original" ? "#F5F3FF" : T.text, fontWeight: 700, fontSize: 13 }}>Home</span>
+          <span style={{ color: T.text, fontWeight: 700, fontSize: 13 }}>Home</span>
         </button>
       )}
 
@@ -354,48 +327,7 @@ export default function App() {
 
       <ScreenErrorBoundary>
       <Suspense fallback={<ScreenFallback />}>
-      {screen === "home" && AESTHETIC === "original" && (
-        <HomeScreen state={appState} onStartDaily={startDaily}
-          onGoFlags={() => setScreen("flags")}
-          onGoAchievements={() => setScreen("achievements")}
-          onGoProfile={() => setScreen("profile")}
-          onGoFlashcards={() => setScreen("flashcards")}
-          onGoLanguage={() => setScreen("language")}
-          onQuickPlay={startQuickPlay}
-          onGoReverseQuiz={startReverseQuiz}
-          onGoCapitalQuiz={() => setScreen("capitalquiz")}
-          onGoChallenge={() => setScreen("challenge")}
-          onGoCodex={() => setScreen("codex")}
-          onGoGeo={() => setScreen("geo")}
-          onGoGauntlet={() => setScreen("gauntlet")}
-          onGoTierList={() => setScreen("tierlist")}
-          onGoSettings={() => setScreen("settings")}
-          onGoOddOneOut={() => setScreen("oddoneout")}
-          onGoTheCrop={() => setScreen("thecrop")}
-          onGoFlagDNA={() => setScreen("flagdna")}
-          onGoBuildFlag={() => setScreen("buildflag")}
-          onGoThePeel={() => setScreen("thepeel")}
-          onGoLookalikes={() => setScreen("lookalikes")}
-          onGoComposer={() => setScreen("composer")}
-          onGoSilhouette={() => setScreen("silhouette")}
-          onGoFlagFamilies={() => setScreen("flagfamilies")}
-          onGoFunFact={() => setScreen("funfact")}
-          onGoProgressMap={() => setScreen("progressmap")}
-          onGoHistorical={() => setScreen("historical")}
-          onGoIdentity={() => setScreen("identity")}
-          onGoProvinceRoulette={() => setScreen("provinceroulette")}
-          onGoSubStumper={() => setScreen("substumper")}
-          onGoLineage={() => setScreen("lineage")}
-          onGoSubStats={() => setScreen("substats")}
-          onGoFlagle={() => setScreen("flagle")}
-          onGoHigherLower={() => setScreen("higherlower")}
-          onGoDeadOrAlive={() => setScreen("deadoralive")}
-          onGoFrankenflag={() => setScreen("frankenflag")}
-          onGoDescribeIt={() => setScreen("describeit")}
-          onGoFlagBracket={() => setScreen("flagbracket")} />
-      )}
-
-      {screen === "home" && AESTHETIC !== "original" && (
+      {screen === "home" && (
         <MainTabs state={appState} tab={tab} onTab={setTab}
           onNavigate={(s) => setScreen(s as Screen)}
           onQuickPlay={startQuickPlay} onStartDaily={startDaily} onReverseQuiz={startReverseQuiz}
@@ -505,7 +437,6 @@ export default function App() {
       </ScreenErrorBoundary>
 
       {/* Boxed ad break over the result screen (dormant until ads are live) */}
-      {adBreak && <AdBreakModal onContinue={() => setAdBreak(false)} />}
     </div>
   )
 }

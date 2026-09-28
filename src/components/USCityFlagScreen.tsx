@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { US_CITY_FLAGS } from "../data/usCityFlags"
 import type { CityFlag } from "../data/usCityFlags"
-import { T, ACCENT, FONT, tint, IS_CARTO } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
 
 interface Props { onBack: () => void }
 
@@ -72,7 +72,7 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Which U.S. city flies this flag?</div>
 
         {/* flag — contain so nothing's cropped */}
-        <div style={{ width: 260, height: 173, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: IS_CARTO ? "#fff" : T.surfaceHi, boxShadow: IS_CARTO ? "0 12px 28px -14px rgba(31,58,60,0.45)" : "0 0 30px rgba(0,0,0,0.4)", display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
+        <div style={{ width: 260, height: 173, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: "#fff", boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
           <img src={round.target.flagUrl} alt="city flag"
             style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain", display: "block" }}
             onError={e => { (e.target as HTMLImageElement).style.opacity = "0.25" }} />
@@ -91,8 +91,8 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             const isChosen = picked === c.id
             let border = `2px solid ${T.line}`, bg = T.surface
             if (answered) {
-              if (isAnswer) { border = `2px solid ${ACCENT.codex}`; bg = tint(ACCENT.codex, IS_CARTO ? 0.1 : 0.14) }
-              else if (isChosen) { border = `2px solid ${T.warm}`; bg = tint(T.warm, IS_CARTO ? 0.1 : 0.14) }
+              if (isAnswer) { border = `2px solid ${ACCENT.codex}`; bg = tint(ACCENT.codex, 0.1) }
+              else if (isChosen) { border = `2px solid ${T.warm}`; bg = tint(T.warm, 0.1) }
             }
             return (
               <button key={c.id} onClick={() => choose(c.id)} disabled={answered} className="geo-tap"
