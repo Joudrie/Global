@@ -15,15 +15,14 @@
 export const ADSENSE_CLIENT = "ca-pub-2216954143093824"
 
 // One entry per placement. Leave a value empty to keep that slot off.
-// Every placement is a scroll-to-see bottom banner — never sticky, never
-// covering gameplay.
+// Every placement is a scroll-to-see bottom banner: never sticky, never in a
+// popup, never covering gameplay.
 export const AD_SLOTS = {
   todayFooter: "",  // bottom of the Today tab
   playFooter: "",   // bottom of Play, under Beta Sandbox
   codexFooter: "",  // under Mega Codex A–Z
   youFooter: "",    // bottom of the You tab
   resultFooter: "", // post-game result screen
-  adBreak: "",      // the boxed "every 4th game" break
 }
 
 export const ADS_ENABLED = ADSENSE_CLIENT.startsWith("ca-pub-")

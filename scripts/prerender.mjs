@@ -86,6 +86,7 @@ ${canonical ? `<meta property="og:url" content="${canonical}" />` : ''}
 <meta property="og:description" content="${esc(description)}" />
 <meta property="og:image" content="${ORIGIN}/world-map.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
+<script src="/analytics.js"></script>
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2216954143093824" crossorigin="anonymous"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />

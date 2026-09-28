@@ -2,12 +2,11 @@ import type { CSSProperties } from "react"
 import AdSlot from "./AdSlot"
 import { ADS_ENABLED } from "../ads"
 import { isSupporter } from "../utils/storage"
-import { openSupporter } from "../utils/supporterNav"
-import { T, tint, ACCENT, FONT } from "../ui/tokens"
+import { T, tint } from "../ui/tokens"
 
 /**
- * A framed ad container — a soft card with the "keeps Globalio free" line and a
- * Supporter link, with the ad inside. Always non-sticky: it sits inline at the
+ * A framed ad container: a soft card labelled "Advertisement" (one of the two
+ * labels AdSense allows), with the ad inside. Always non-sticky: it sits inline at the
  * bottom of a screen, so you only see it if you scroll to it.
  *
  * Renders nothing for Supporters or when AdSense isn't configured. In local dev
@@ -30,16 +29,7 @@ export default function AdBox({ slot, style }: { slot: string; style?: CSSProper
         ...style,
       }}
     >
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8, marginBottom: 8 }}>
-        <span style={{ fontSize: 11, color: T.muted }}>Ads keep Globalio free for everyone 💛</span>
-        <button
-          onClick={openSupporter}
-          className="geo-tap"
-          style={{ fontSize: 11, fontWeight: 700, color: ACCENT.today, background: "none", border: "none", cursor: "pointer", fontFamily: FONT.display, whiteSpace: "nowrap" }}
-        >
-          Remove ads →
-        </button>
-      </div>
+      <div style={{ fontSize: 11, color: T.muted, marginBottom: 8 }}>Advertisement</div>
       {showPlaceholder ? (
         <div style={{ height: 90, borderRadius: 10, border: `1px dashed ${T.lineHi}`, display: "flex", alignItems: "center", justifyContent: "center", color: T.dim, fontSize: 12 }}>
           Ad placeholder (set VITE/AdSense id to serve real ads)
