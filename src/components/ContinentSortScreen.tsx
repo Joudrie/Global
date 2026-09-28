@@ -67,7 +67,7 @@ function ContinentSortGame({ onBack, onReplay }: Props & { onReplay: () => void 
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
       <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
         <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 18, color: low ? T.danger : T.text, fontVariantNumeric: "tabular-nums" }}>0:{String(timeLeft).padStart(2, "0")}</div>
+        <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 18, color: low ? T.danger : T.text, fontVariantNumeric: "tabular-nums" }}>{Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}</div>
         <div style={{ fontFamily: FONT.mono, fontSize: 13, color: ACCENT.learn, fontWeight: 700 }}>{correct}<span style={{ color: T.dim }}> ✓</span></div>
       </header>
 

@@ -112,6 +112,8 @@ export default function SpotErrorScreen({ onBack }: Props) {
 
   const { pz, errorSlot, shown } = round
   const correct = picked === errorSlot
+  // Striped flags have bands; Nordic crosses and discs (Japan, Bangladesh) don't.
+  const part = pz.layout === "v3" || pz.layout === "h3" || pz.layout === "h2" ? "band" : "part"
 
   const pick = (slot: string) => { if (phase === "play") setPicked(slot) }
   const submit = () => {
@@ -127,7 +129,7 @@ export default function SpotErrorScreen({ onBack }: Props) {
 
       <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 gap-5">
         <p className="text-sm text-center" style={{ color: T.muted }}>
-          One band on the <span style={{ color: ACC, fontWeight: 800, fontFamily: FONT.display }}>{pz.name}</span> flag is the{" "}
+          One {part} of the <span style={{ color: ACC, fontWeight: 800, fontFamily: FONT.display }}>{pz.name}</span> flag is the{" "}
           <span style={{ color: T.text, fontWeight: 700 }}>wrong colour</span>. Tap it.
         </p>
 
@@ -142,7 +144,7 @@ export default function SpotErrorScreen({ onBack }: Props) {
             className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
             style={{ background: picked ? ACC : T.surface, border: picked ? "none" : `1px solid ${T.line}`,
               color: picked ? T.onAccent : T.dim, cursor: picked ? "pointer" : "not-allowed", fontFamily: FONT.display }}>
-            {picked ? "Lock it in →" : "Tap the wrong band"}
+            {picked ? "Lock it in →" : `Tap the wrong ${part}`}
           </button>
         ) : (
           <div className="w-full max-w-sm flex flex-col gap-3">
@@ -151,7 +153,7 @@ export default function SpotErrorScreen({ onBack }: Props) {
                 {correct ? "Correct!" : "Not quite"}
               </div>
               <div className="text-xs mt-1" style={{ color: T.muted }}>
-                The flag was now corrected — that band should be{" "}
+                The flag is now corrected. That {part} should be{" "}
                 <span style={{ color: T.text, fontWeight: 700 }}>{colorName(pz.colors[errorSlot])}</span>.
               </div>
             </div>

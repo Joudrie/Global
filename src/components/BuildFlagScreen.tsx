@@ -3,6 +3,7 @@ import { PUZZLES } from "../data/buildFlagPuzzles"
 import type { BuildPuzzle, Piece } from "../data/buildFlagPuzzles"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { hexToRgb } from "../utils/color"
 import { Palette as PaletteIcon, Brush } from "lucide-react"
 
 const ACC = ACCENT.play
@@ -208,6 +209,13 @@ function makeDealer() {
   }
 }
 const dealPuzzle = makeDealer()
+
+// Piece labels sat in dark grey on every swatch, so "Red", "Blue" and "Black"
+// were unreadable. Pick dark or light text from the swatch's luminance.
+function isLight(hex: string): boolean {
+  const [r, g, b] = hexToRgb(hex)
+  return 0.299 * r + 0.587 * g + 0.114 * b > 150
+}
 
 export default function BuildFlagScreen({ onBack }: Props) {
   const [puzzle, setPuzzle]  = useState<BuildPuzzle>(dealPuzzle)
@@ -419,7 +427,7 @@ export default function BuildFlagScreen({ onBack }: Props) {
                     userSelect: 'none',
                   }}>
                   {!isPlaced && (
-                    <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.45)', fontWeight: 700, textShadow: '0 1px 2px rgba(255,255,255,0.4)' }}>
+                    <span style={{ fontSize: 9, fontWeight: 700, color: isLight(piece.color) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.92)' }}>
                       {piece.label}
                     </span>
                   )}

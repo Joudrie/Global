@@ -4,6 +4,7 @@ import SplashScreen from "./components/SplashScreen"
 import Onboarding, { hasOnboarded } from "./components/Onboarding"
 import MainTabs from "./components/MainTabs"
 import HomeScreen from "./components/HomeScreen"
+import { REGISTRY } from "./ui/registry"
 import type { TabKey } from "./ui/registry"
 import { AESTHETIC, T } from "./ui/tokens"
 import StarField from "./components/StarField"
@@ -130,6 +131,18 @@ function ScreenFallback() {
   )
 }
 
+// Deep link straight into a game: globalio.app/?play=realorbot (any registry
+// id), ?play=daily or ?play=quickplay. Lets a social post or bio link drop a
+// new player into the exact game they just saw instead of the dashboard.
+function readDeepLink(): string | null {
+  try {
+    const id = new URLSearchParams(window.location.search).get("play")?.toLowerCase()
+    if (!id) return null
+    if (id === "daily" || id === "quickplay") return id
+    return REGISTRY.some(r => r.id === id) ? id : null
+  } catch { return null }
+}
+
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash")
   const [appState, setAppState] = useState<AppState>(() => loadState())
@@ -246,6 +259,16 @@ export default function App() {
     setScreen("reversequiz")
   }, [])
 
+  const finishSplash = useCallback(() => {
+    const link = readDeepLink()
+    // Drop the param so a later refresh lands on the dashboard, not the game again.
+    if (link) try { window.history.replaceState(null, "", window.location.pathname) } catch { /* ignore */ }
+    if (link === "daily") startDaily()
+    else if (link === "quickplay") startQuickPlay()
+    else if (link === "reversequiz") startReverseQuiz()
+    else setScreen(link ? link as Screen : "home")
+  }, [startDaily, startQuickPlay, startReverseQuiz])
+
   const handleQuizFinish = useCallback((answers: ("correct" | "wrong")[]) => {
     if (!activeQuiz) return
     const score = answers.filter(a => a === "correct").length
@@ -301,13 +324,17 @@ export default function App() {
       {/* First-run intro — shows once after the splash, skippable */}
       {screen !== "splash" && showIntro && <Onboarding onDone={() => setShowIntro(false)} />}
 
-      {/* Persistent home logo — fixed top-left on every screen except splash/home.
-          Tapping it always jumps back to the home page. */}
+      {/* Persistent home logo — fixed top-right on every screen except splash/home.
+          Tapping it always jumps back to the home page. On phones it's hidden
+          (see .geo-home-pill in index.css): it sat on top of the score, round
+          counter and best score in most game headers, and every game already
+          has its own back button that goes home. */}
       {screen !== "splash" && screen !== "home" && screen !== "megacodex" && screen !== "flagdiag" && (
         <button
           onClick={() => setScreen("home")}
           aria-label="Home"
           title="Home"
+          className="geo-home-pill"
           style={{
             position: "fixed", top: 10, right: 12, zIndex: 50,
             display: "flex", alignItems: "center", gap: 6,
@@ -323,7 +350,7 @@ export default function App() {
         </button>
       )}
 
-      {screen === "splash" && <SplashScreen onDone={() => setScreen("home")} />}
+      {screen === "splash" && <SplashScreen onDone={finishSplash} />}
 
       <ScreenErrorBoundary>
       <Suspense fallback={<ScreenFallback />}>
