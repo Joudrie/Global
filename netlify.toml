@@ -7,7 +7,6 @@
 [build.environment]
   NODE_VERSION = "22"
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# No catch-all SPA redirect: the app has no client-side routes (deep links use
+# ?play=), so unknown paths fall through to the generated 404.html and return a
+# real 404 instead of the homepage.

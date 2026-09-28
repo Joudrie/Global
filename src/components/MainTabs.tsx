@@ -265,7 +265,26 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
 
       {/* Scroll-to-see ad at the very bottom of Today (never on first view) */}
       <AdBox slot={AD_SLOTS.todayFooter} />
+
+      <SiteLinks />
     </div>
+  )
+}
+
+/* ── Site links: plain links to the static flag archive and site pages, so
+   visitors (and search engines rendering the app) can reach them. ─────────── */
+const SITE_LINKS: [string, string][] = [
+  ["/flags/", "Country flags"], ["/historical/", "Historical flags"], ["/identity/", "Identity flags"],
+  ["/games/", "All games"], ["/about/", "About"], ["/contact/", "Contact"],
+  ["/privacy.html", "Privacy"], ["/terms.html", "Terms"],
+]
+function SiteLinks() {
+  return (
+    <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 14px", padding: "8px 0 4px", fontSize: 12 }}>
+      {SITE_LINKS.map(([href, label]) => (
+        <a key={href} href={href} style={{ color: T.muted, textDecoration: "underline" }}>{label}</a>
+      ))}
+    </nav>
   )
 }
 
