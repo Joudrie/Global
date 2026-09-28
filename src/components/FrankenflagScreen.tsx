@@ -4,6 +4,7 @@ import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon } from "./icons"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -53,7 +54,7 @@ function FlagInput({ placeholder, onPick, disabled }: {
       <input value={input} autoComplete="off"
         onChange={e => { setInput(e.target.value); setShow(true) }}
         onFocus={() => setShow(true)} onBlur={() => setTimeout(() => setShow(false), 150)}
-        onKeyDown={e => { if (e.key === "Enter" && matches.length === 1) { onPick(matches[0]); setInput("") } }}
+        onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) { onPick(pick); setInput("") } } }}
         placeholder={placeholder}
         className="w-full px-4 py-3 rounded-xl outline-none font-semibold"
         style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 14 }} />

@@ -7,6 +7,7 @@ import { shareOrCopy } from "../utils/share"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { Share2 } from "lucide-react"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -52,6 +53,8 @@ function compare(guess: FlagRecord, target: FlagRecord): Record<string, Tile> {
     region: guess.region === target.region ? "hit" : "miss",
   }
 }
+
+const TILE_GRID = `repeat(${COLS.length}, 1fr)`
 
 interface Guess { flag: FlagRecord; tiles: Record<string, Tile> }
 
@@ -99,33 +102,34 @@ export default function FlagleScreen({ onBack }: Props) {
 
       <div className="flex flex-col items-center px-4 gap-3">
         {/* Column legend */}
-        <div className="grid w-full max-w-sm items-center" style={{ gridTemplateColumns: `1.4fr repeat(${COLS.length}, 1fr)`, gap: 3 }}>
-          <div className="text-xs font-semibold" style={{ color: ACC }}>Guess</div>
+        <div className="grid w-full max-w-sm items-center" style={{ gridTemplateColumns: TILE_GRID, gap: 4 }}>
           {COLS.map(c => <div key={c.key} className="text-center text-xs font-bold" style={{ color: ACC }}>{c.label}</div>)}
         </div>
 
         {/* Guess rows */}
+        {/* Guess rows: the name gets its own full-width line so it's never cut off on a phone */}
         {guesses.map((g, gi) => (
-          <div key={gi} className="grid w-full max-w-sm items-center" style={{ gridTemplateColumns: `1.4fr repeat(${COLS.length}, 1fr)`, gap: 3 }}>
-            <div className="flex items-center gap-1.5 min-w-0">
-              <img src={g.flag.flagUrl} alt="" style={{ width: 22, height: 14, objectFit: "cover", borderRadius: 2, flexShrink: 0 }} />
-              <span title={g.flag.name} style={{ color: T.text, fontSize: 10, fontWeight: 600, lineHeight: 1.1, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{g.flag.name}</span>
+          <div key={gi} className="w-full max-w-sm flex flex-col" style={{ gap: 4 }}>
+            <div className="flex items-center gap-2 min-w-0">
+              <img src={g.flag.flagUrl} alt="" style={{ width: 22, height: 14, objectFit: "contain", borderRadius: 2, flexShrink: 0 }} />
+              <span style={{ color: T.text, fontSize: 12, fontWeight: 600, lineHeight: 1.25, overflowWrap: "anywhere" }}>{g.flag.name}</span>
             </div>
+            <div className="grid items-center" style={{ gridTemplateColumns: TILE_GRID, gap: 4 }}>
             {COLS.map(c => (
               <div key={c.key} style={{
-                aspectRatio: "1", borderRadius: 4, background: TILE_BG[g.tiles[c.key]],
+                height: 28, borderRadius: 4, background: TILE_BG[g.tiles[c.key]],
                 display: "flex", alignItems: "center", justifyContent: "center",
                 fontSize: 9, color: T.onAccent, fontWeight: 700,
               }}>{g.tiles[c.key] === "hit" ? "" : g.tiles[c.key] === "near" ? "~" : ""}</div>
             ))}
+            </div>
           </div>
         ))}
 
         {/* Empty rows */}
         {!finished && Array.from({ length: MAX_GUESSES - guesses.length }).map((_, i) => (
-          <div key={i} className="grid w-full max-w-sm" style={{ gridTemplateColumns: `1.4fr repeat(${COLS.length}, 1fr)`, gap: 3 }}>
-            <div />
-            {COLS.map(c => <div key={c.key} style={{ aspectRatio: "1", borderRadius: 4, background: T.surface, border: `1px solid ${T.line}` }} />)}
+          <div key={i} className="grid w-full max-w-sm" style={{ gridTemplateColumns: TILE_GRID, gap: 4 }}>
+            {COLS.map(c => <div key={c.key} style={{ height: 28, borderRadius: 4, background: T.surface, border: `1px solid ${T.line}` }} />)}
           </div>
         ))}
 
@@ -135,7 +139,7 @@ export default function FlagleScreen({ onBack }: Props) {
             <input value={input} autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-              onKeyDown={e => { if (e.key === "Enter" && matches.length === 1) submit(matches[0]) }}
+              onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}
               placeholder="Guess a country…"
               className="w-full px-4 py-3 rounded-xl outline-none font-semibold"
               style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />

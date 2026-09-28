@@ -38,7 +38,7 @@ const { IDENTITY_FLAGS, IDENTITY_CATEGORIES } = await data('identityFlags.ts')
 const { TERRITORIES } = await data('territories.ts')
 const { UK_NATIONS } = await data('ukNations.ts')
 const { CHALLENGE_CONTINENTS } = await data('challenges.ts')
-const { REGISTRY } = await import(path.join(ROOT, 'src/ui/registry.ts'))
+const { GAMES, GAME_COUNT } = await import(path.join(ROOT, 'src/ui/registry.ts'))
 
 const CAPITAL = new Map(CAPITALS.map(c => [c.code, c.capital]))
 const BY_CODE = new Map(FLAGS.map(f => [f.code, f]))
@@ -261,7 +261,7 @@ country's current flag, how to recognise it, and every flag that has flown there
 through history, plus its territories and regional flags.</p>
 <p>Looking for flags that aren't national? See <a href="/historical/">historical flags</a> of vanished
 states and empires, or <a href="/identity/">identity flags</a> for pride, indigenous, separatist and
-micronation flags. When you're ready, test yourself in <a href="/games/">50+ flag games</a>.</p>
+micronation flags. When you're ready, test yourself in <a href="/games/">${GAME_COUNT} flag games</a>.</p>
 ${byRegion.map(({ region, flags }) => `
 <h2>${esc(region)} <span class="muted" style="font-size:15px;font-weight:400">(${flags.length})</span></h2>
 <div class="grid">
@@ -460,7 +460,7 @@ const GAME_DESC = {
 }
 
 function gamesPage() {
-  const games = REGISTRY.filter(e => e.tab !== 'you')
+  const games = GAMES
   const groups = [...new Set(games.map(e => e.sandbox ? 'Beta Sandbox' : e.group))]
   const body = `
 <div class="crumbs"><a href="/">Home</a> › Games</div>
@@ -502,7 +502,7 @@ flags, indigenous and ethnic flags, separatist movements and micronations.</p>
 government websites and the flag community to find the correct, current version of each flag,
 and to write a short description of what it means and where it came from.</p>
 <h2>What you can do here</h2>
-<p><b><a href="/games/">Play ${REGISTRY.filter(e => e.tab !== 'you').length} games.</a></b> Quizzes, drawing and colouring games,
+<p><b><a href="/games/">Play ${GAME_COUNT} games.</a></b> Quizzes, drawing and colouring games,
 lookalike spotting, map and border puzzles, a language game and daily challenges. Each one teaches
 something different.</p>
 <p><b>Read the archive.</b> Every <a href="/flags/">country page</a> tells the story of that country's flags

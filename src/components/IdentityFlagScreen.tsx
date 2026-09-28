@@ -14,12 +14,14 @@ const A = ACCENT.learn
 // The pride rainbow and maritime blue gradients are content (they evoke the
 // flags themselves); the movements deck uses the screen accent.
 type ModeId = "lgbtq" | "identity" | "signal"
+// Entries with no flag (noFlag, or an empty flagUrl) can't be shown — keep them out of every pool.
+const withFlag = (pool: IdentityFlag[]) => pool.filter(f => f.flagUrl && !f.noFlag)
 const MODES: { id: ModeId; label: string; emoji: string; pool: IdentityFlag[]; gradient: string }[] = [
-  { id: "lgbtq",    label: "Pride & LGBTQ+",      emoji: "🏳️‍🌈", pool: LGBTQ_FLAGS,
+  { id: "lgbtq",    label: "Pride & LGBTQ+",      emoji: "🏳️‍🌈", pool: withFlag(LGBTQ_FLAGS),
     gradient: "linear-gradient(90deg,#FF5E5E,#FFD93D,#6BCB77,#4D96FF,#B66DFF)" },
-  { id: "identity", label: "Movements & Identity", emoji: "🏴", pool: OTHER_IDENTITY_FLAGS,
+  { id: "identity", label: "Movements & Identity", emoji: "🏴", pool: withFlag(OTHER_IDENTITY_FLAGS),
     gradient: A },
-  { id: "signal",   label: "Maritime Signal Flags", emoji: "⚓", pool: SIGNAL_FLAGS,
+  { id: "signal",   label: "Maritime Signal Flags", emoji: "⚓", pool: withFlag(SIGNAL_FLAGS),
     gradient: "linear-gradient(90deg,#1C6DD0,#3CC4D0)" },
 ]
 

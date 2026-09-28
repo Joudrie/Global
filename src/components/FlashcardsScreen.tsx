@@ -126,14 +126,14 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
 
   const lgbtqCards: StudyCard[] = (() => {
     if (deckType !== 'lgbtq') return []
-    return shuffleWithSeed(LGBTQ_FLAGS, sessionSeed + 'lgbtq').map(f => ({
+    return shuffleWithSeed(LGBTQ_FLAGS.filter(f => f.flagUrl && !f.noFlag), sessionSeed + 'lgbtq').map(f => ({
       key: f.id, flagUrl: f.flagUrl, name: f.name, subtitle: f.category, funFact: f.note,
     }))
   })()
 
   const identityCards: StudyCard[] = (() => {
     if (deckType !== 'identity') return []
-    return shuffleWithSeed(OTHER_IDENTITY_FLAGS, sessionSeed + 'ident').map(f => ({
+    return shuffleWithSeed(OTHER_IDENTITY_FLAGS.filter(f => f.flagUrl && !f.noFlag), sessionSeed + 'ident').map(f => ({
       key: f.id, flagUrl: f.flagUrl, name: f.name, subtitle: f.category, funFact: f.note,
     }))
   })()
@@ -427,7 +427,7 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
                 padding: 24, gap: 16, minHeight: 300,
               }}>
                 <img src={card.flagUrl} alt="flag"
-                  style={{ width: '100%', height: 180, objectFit: 'cover', borderRadius: 12, border: `2px solid ${T.line}` }}
+                  style={{ width: '100%', height: 180, objectFit: 'contain', background: T.surfaceHi, borderRadius: 12, border: `2px solid ${T.line}` }}
                   onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden' }} />
                 <p style={{ color: ACCENT.learn, fontSize: 14, margin: 0 }}>Tap to reveal · Swipe to skip</p>
               </div>
@@ -441,7 +441,7 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                   <img src={card.flagUrl} alt={card.name}
-                    style={{ width: 56, height: 36, objectFit: 'cover', borderRadius: 6, border: `1.5px solid ${T.line}`, flexShrink: 0 }}
+                    style={{ width: 56, height: 36, objectFit: 'contain', background: T.surfaceHi, borderRadius: 6, border: `1.5px solid ${T.line}`, flexShrink: 0 }}
                     onError={e => { (e.target as HTMLImageElement).style.visibility = 'hidden' }} />
                   <div>
                     <div className="geo-display" style={{ color: T.text, fontWeight: 800, fontSize: 20 }}>{card.name}</div>

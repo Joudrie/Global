@@ -2,7 +2,7 @@ import { useState } from "react"
 import { SUB_FLAGS } from "../data/subdivisions"
 import type { SubFlag } from "../data/subdivisions"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { ScreenHeader } from "./ui"
+import { ScreenHeader, FlagLoadFailed, MAX_FLAG_RETRIES } from "./ui"
 
 interface Props { onBack: () => void; onSubLearned: (code: string) => void }
 
@@ -12,8 +12,7 @@ function shuffle<X>(a: X[]): X[] { return [...a].sort(() => Math.random() - 0.5)
 
 interface Round { target: SubFlag; choices: string[] }
 
-function buildRounds(): Round[] {
-  return shuffle(SUB_FLAGS).slice(0, ROUNDS).map(target => {
+function buildRound(target: SubFlag): Round {
     const sameCont = Array.from(new Set(
       SUB_FLAGS.filter(s => s.continent === target.continent && s.countryName !== target.countryName).map(s => s.countryName)
     ))
@@ -23,11 +22,16 @@ function buildRounds(): Round[] {
       distract = shuffle([...distract, ...extra.filter(c => !distract.includes(c))]).slice(0, 3)
     }
     return { target, choices: shuffle([target.countryName, ...distract]) }
-  })
+}
+
+function buildRounds(): Round[] {
+  return shuffle(SUB_FLAGS).slice(0, ROUNDS).map(buildRound)
 }
 
 function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props & { onReplay: () => void }) {
-  const [rounds] = useState(buildRounds)
+  const [rounds, setRounds] = useState(buildRounds)
+  const [fails, setFails] = useState(0)
+  const [broken, setBroken] = useState<Set<string>>(() => new Set())
   const [idx, setIdx] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
   const [scores, setScores] = useState<boolean[]>([])
@@ -43,6 +47,25 @@ function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props
     if (ok) onSubLearned(round.target.code)
     setScores(s => [...s, ok])
   }
+
+  // A flag that won't load makes the round unwinnable: swap in a different
+  // subdivision (not counted as a guess). Give up after MAX_FLAG_RETRIES.
+  const reroll = (failed?: string) => {
+    const bad = new Set(broken)
+    if (failed) bad.add(failed)
+    setBroken(bad)
+    const used = new Set(rounds.map(r => r.target.code))
+    const pool = SUB_FLAGS.filter(s => !bad.has(s.code) && !used.has(s.code))
+    const fresh = pool.length ? pool : SUB_FLAGS.filter(s => s.code !== rounds[idx].target.code)
+    const target = fresh[Math.floor(Math.random() * fresh.length)]
+    setRounds(rs => rs.map((r, i) => (i === idx ? buildRound(target) : r)))
+  }
+  const onFlagError = () => {
+    if (answered) return
+    setFails(f => f + 1)
+    reroll(round.target.code)
+  }
+  const retry = () => { setFails(0); reroll() }
 
   const next = () => {
     if (idx + 1 >= rounds.length) { setDone(true); return }
@@ -79,10 +102,15 @@ function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props
           </div>
         } />
 
+      {fails >= MAX_FLAG_RETRIES ? (
+        <div className="flex flex-col items-center px-5 gap-4">
+          <FlagLoadFailed onRetry={retry} onBack={onBack} />
+        </div>
+      ) : (
       <div className="flex flex-col items-center px-5 gap-4">
         <div style={{ width: 280, height: 186, borderRadius: 14, overflow: "hidden", border: `2px solid ${tint(A, 0.3)}`, boxShadow: `0 6px 18px -10px ${tint(T.text, 0.5)}`, background: T.surfaceHi }}>
-          <img src={round.target.flagUrl} alt="subdivision flag" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
-            onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
+          <img key={round.target.code} src={round.target.flagUrl} alt="subdivision flag" style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
+            onLoad={() => setFails(0)} onError={onFlagError} />
         </div>
         {/* answer sits right under the flag once you've guessed */}
         {answered
@@ -115,6 +143,7 @@ function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props
           </button>
         )}
       </div>
+      )}
     </div>
   )
 }

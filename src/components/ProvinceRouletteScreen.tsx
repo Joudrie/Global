@@ -2,7 +2,7 @@ import { useState } from "react"
 import { SUB_FLAGS, SUB_CONTINENTS } from "../data/subdivisions"
 import type { SubFlag } from "../data/subdivisions"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { ScreenHeader } from "./ui"
+import { ScreenHeader, FlagLoadFailed, MAX_FLAG_RETRIES } from "./ui"
 
 interface Props { onBack: () => void; onSubLearned: (code: string) => void }
 
@@ -46,8 +46,10 @@ function buildSteps(target: SubFlag): Step[] {
 }
 
 function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props & { onReplay: () => void }) {
-  const [target] = useState<SubFlag>(() => pick(SUB_FLAGS))
-  const [steps] = useState<Step[]>(() => buildSteps(target))
+  const [target, setTarget] = useState<SubFlag>(() => pick(SUB_FLAGS))
+  const [steps, setSteps] = useState<Step[]>(() => buildSteps(target))
+  const [fails, setFails] = useState(0)
+  const [broken, setBroken] = useState<Set<string>>(() => new Set())
   const [stepIdx, setStepIdx] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
   const [results, setResults] = useState<boolean[]>([])
@@ -61,6 +63,27 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
     setPicked(c)
     setResults(r => [...r, c === step.answer])
   }
+
+  // A flag that won't load makes the round unwinnable: swap in a different
+  // subdivision and start over (nothing is scored). Give up after MAX_FLAG_RETRIES.
+  const reroll = (failed?: string) => {
+    const bad = new Set(broken)
+    if (failed) bad.add(failed)
+    setBroken(bad)
+    const pool = SUB_FLAGS.filter(s => !bad.has(s.code) && s.code !== target.code)
+    const t = pick(pool.length ? pool : SUB_FLAGS.filter(s => s.code !== target.code))
+    setTarget(t)
+    setSteps(buildSteps(t))
+    setStepIdx(0)
+    setPicked(null)
+    setResults([])
+  }
+  const onFlagError = () => {
+    if (results.length > 0 || answered) return
+    setFails(f => f + 1)
+    reroll(target.code)
+  }
+  const retry = () => { setFails(0); reroll() }
 
   const next = () => {
     if (stepIdx + 1 >= steps.length) {
@@ -117,11 +140,16 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
           </div>
         } />
 
+      {fails >= MAX_FLAG_RETRIES ? (
+        <div className="flex flex-col items-center px-5 gap-4">
+          <FlagLoadFailed onRetry={retry} onBack={onBack} accent={A} />
+        </div>
+      ) : (
       <div className="flex flex-col items-center px-5 gap-4">
         <div style={{ width: 280, height: 186, borderRadius: 14, overflow: "hidden", border: `2px solid ${tint(A, 0.3)}`, boxShadow: `0 6px 18px -10px ${tint(T.text, 0.5)}`, background: T.surfaceHi }}>
-          <img src={target.flagUrl} alt="subdivision flag"
+          <img key={target.code} src={target.flagUrl} alt="subdivision flag"
             style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", padding: 8 }}
-            onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
+            onLoad={() => setFails(0)} onError={onFlagError} />
         </div>
         <div className="text-sm font-semibold" style={{ color: A }}>{step.label}</div>
 
@@ -150,6 +178,7 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
           </button>
         )}
       </div>
+      )}
     </div>
   )
 }

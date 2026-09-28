@@ -5,6 +5,7 @@ import type { ChallengeContinent, ChallengeCountry, SubRegion } from "../data/ch
 import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { LineIcon } from "./icons"
 
 interface Props { onBack: () => void }
 
@@ -38,6 +39,10 @@ interface ChallengeQ {
   correctIndex: number
 }
 
+// Only regions with a real flag image can be quizzed.
+const flaggedRegions = (country: ChallengeCountry) => country.subRegions.filter(s => s.flagUrl && !s.noFlag)
+const isPlayable = (country: ChallengeCountry) => !country.locked && flaggedRegions(country).length >= 4
+
 function buildQuiz(subRegions: SubRegion[]): ChallengeQ[] {
   if (subRegions.length < 4) return []
   const count = Math.min(10, subRegions.length)
@@ -68,9 +73,9 @@ export default function ChallengeScreen({ onBack }: Props) {
   }
 
   const handleCountryClick = (country: ChallengeCountry) => {
-    if (country.locked || country.subRegions.length < 4) return
+    if (!isPlayable(country)) return
     setActiveCountry(country)
-    const qs = buildQuiz(country.subRegions)
+    const qs = buildQuiz(flaggedRegions(country))
     setQuestions(qs)
     setIdx(0)
     setAnswers([])
@@ -144,7 +149,7 @@ export default function ChallengeScreen({ onBack }: Props) {
                   {c.locked
                     ? <div className="text-xs" style={{ color: T.muted }}>Coming soon</div>
                     : <div className="text-xs" style={{ color: ACC }}>
-                        {c.countries.filter(co => !co.locked && co.subRegions.length >= 4).length} countries available
+                        {(n => `${n} ${n === 1 ? "country" : "countries"} available`)(c.countries.filter(isPlayable).length)}
                       </div>
                   }
                 </div>
@@ -165,23 +170,28 @@ export default function ChallengeScreen({ onBack }: Props) {
         <ScreenHeader title={activeContinent.name} subtitle="Select a country"
           onBack={() => setPhase("continents")} />
         <div className="px-5 pb-10 space-y-3" style={{ zIndex: 1, position: "relative" }}>
-          {activeContinent.countries.map(country => (
+          {/* playable countries first, unavailable ones after (stable order within each) */}
+          {[...activeContinent.countries].sort((a, b) => Number(!isPlayable(a)) - Number(!isPlayable(b))).map(country => {
+            const off = !isPlayable(country)
+            const reason = country.locked ? "Coming soon" : "Not enough region flags yet"
+            return (
             <button key={country.code} onClick={() => handleCountryClick(country)}
-              disabled={country.locked || country.subRegions.length < 4}
-              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all ${(country.locked || country.subRegions.length < 4) ? "opacity-40 cursor-not-allowed" : "active:scale-[0.98] hover:brightness-95"}`}
-              style={{ background: T.surface, border: `1px solid ${(country.locked || country.subRegions.length < 4) ? T.line : tint(ACC, 0.35)}` }}>
-              <div className="flex items-center gap-3">
+              disabled={off} aria-disabled={off}
+              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all ${off ? "cursor-not-allowed" : "active:scale-[0.98] hover:brightness-95"}`}
+              style={{ background: off ? T.bg : T.surface, border: `1px ${off ? "dashed" : "solid"} ${off ? T.line : tint(ACC, 0.35)}` }}>
+              <div className="flex items-center gap-3" style={{ opacity: off ? 0.5 : 1 }}>
                 <CountryFlag code={country.code} name={country.name} />
                 <div className="text-left">
                   <div className="font-bold" style={{ color: T.text, fontFamily: FONT.display }}>{country.name}</div>
-                  <div className="text-xs" style={{ color: T.muted }}>{country.subTitle}</div>
+                  <div className="text-xs" style={{ color: T.muted }}>{off ? reason : country.subTitle}</div>
                 </div>
               </div>
-              <span style={{ color: (country.locked || country.subRegions.length < 4) ? T.dim : ACC, display: "flex" }}>
-                {(country.locked || country.subRegions.length < 4) ? <Lock size={16} strokeWidth={1.6} absoluteStrokeWidth /> : "›"}
+              <span style={{ color: off ? T.dim : ACC, display: "flex" }}>
+                {off ? <Lock size={16} strokeWidth={1.6} absoluteStrokeWidth /> : "›"}
               </span>
             </button>
-          ))}
+            )
+          })}
         </div>
       </div>
     )
@@ -248,12 +258,14 @@ export default function ChallengeScreen({ onBack }: Props) {
         <div className="flex-1 flex flex-col items-center px-5 py-4" style={{ zIndex: 1 }}>
           <div className="mb-4">
             <div className="rounded-2xl overflow-hidden" style={{ border: `2px solid ${T.line}`, boxShadow: `0 8px 24px -10px ${tint(T.text, 0.35)}` }}>
-              {imgError[q.target.code] ? (
+              {imgError[q.target.code] || !q.target.flagUrl ? (
                 <div className="flex items-center justify-center text-4xl"
-                  style={{ width: 280, height: 175, background: T.surface, color: T.muted }}>🏳️</div>
+                  style={{ width: 280, height: 175, background: T.surface, color: T.muted }}>
+                  <LineIcon name="flags" size={48} color={T.muted} />
+                </div>
               ) : (
                 <img src={q.target.flagUrl} alt="flag" width={280} height={175}
-                  className="object-cover" style={{ display: "block" }}
+                  className="object-contain" style={{ display: "block", background: T.surfaceHi }}
                   onError={() => setImgError(e => ({ ...e, [q.target.code]: true }))} />
               )}
             </div>

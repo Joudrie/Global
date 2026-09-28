@@ -5,6 +5,7 @@ import type { FlagRecord } from "../data/flags"
 import FlagImage from "./FlagImage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -66,7 +67,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length === 1) submitGuess(matches[0])
+    if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submitGuess(pick) }
     if (e.key === "Escape") { setInput(""); setShowDrop(false) }
   }
 

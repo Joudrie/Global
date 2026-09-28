@@ -4,6 +4,7 @@ import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { PartyPopper, Frown } from "lucide-react"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
 
@@ -203,7 +204,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
               value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onKeyDown={e => {
-                if (e.key === "Enter" && matches.length === 1) handleGuess(matches[0])
+                if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) handleGuess(pick) }
                 if (e.key === "Escape") { setInput(""); setShowDrop(false) }
               }}
               onFocus={() => setShowDrop(true)}
