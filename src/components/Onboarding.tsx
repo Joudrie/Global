@@ -7,7 +7,12 @@ import FlagImage from "./FlagImage"
 
 export const ONBOARDED_KEY = "globalio_onboarded"
 
+// Crawlers (Google, AdSense's reviewer) see the page itself, not the first-run
+// intro slides laid over it.
+const BOT_UA = /bot|crawl|spider|slurp|Mediapartners|AdsBot|Google-InspectionTool|Lighthouse/i
+
 export function hasOnboarded(): boolean {
+  if (typeof navigator !== "undefined" && BOT_UA.test(navigator.userAgent)) return true
   try { return localStorage.getItem(ONBOARDED_KEY) === "1" } catch { return true }
 }
 function markOnboarded() {
