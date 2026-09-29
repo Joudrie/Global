@@ -26,3 +26,7 @@ export const AD_SLOTS = {
 }
 
 export const ADS_ENABLED = ADSENSE_CLIENT.startsWith("ca-pub-")
+
+// The $2 Supporter unlock stays hidden until real checkout exists, so nothing
+// on the site reads as unfinished ("Checkout coming soon") during ad review.
+export const SUPPORTER_LIVE = false
