@@ -1,4 +1,5 @@
 import { useState, useRef, lazy, Suspense } from "react"
+import { LAST_UPDATED, formatDate } from "../data/changelog"
 import type { ReactNode } from "react"
 import { FLAGS } from "../data/flags"
 import type { AppState } from "../utils/storage"
@@ -288,16 +289,21 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
    visitors (and search engines rendering the app) can reach them. ─────────── */
 const SITE_LINKS: [string, string][] = [
   ["/flags/", "Country flags"], ["/historical/", "Historical flags"], ["/identity/", "Identity flags"],
-  ["/games/", "All games"], ["/about/", "About"], ["/contact/", "Contact"],
+  ["/games/", "All games"], ["/whats-new/", "What's new"], ["/about/", "About"], ["/contact/", "Contact"],
   ["/privacy.html", "Privacy"], ["/terms.html", "Terms"],
 ]
 function SiteLinks() {
   return (
-    <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 14px", padding: "8px 0 4px", fontSize: 12 }}>
-      {SITE_LINKS.map(([href, label]) => (
-        <a key={href} href={href} style={{ color: T.muted, textDecoration: "underline" }}>{label}</a>
-      ))}
-    </nav>
+    <>
+      <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 14px", padding: "8px 0 4px", fontSize: 12 }}>
+        {SITE_LINKS.map(([href, label]) => (
+          <a key={href} href={href} style={{ color: T.muted, textDecoration: "underline" }}>{label}</a>
+        ))}
+      </nav>
+      <p style={{ textAlign: "center", fontSize: 11, color: T.dim, margin: "4px 0 8px" }}>
+        Last updated {formatDate(LAST_UPDATED)} · New games every month
+      </p>
+    </>
   )
 }
 
