@@ -24,15 +24,11 @@ export interface ChallengeContinent {
   countries: ChallengeCountry[]
 }
 
-import { LOCAL_FLAGS } from "./localFlags"
+import { commonsFlag } from "./flagUrl"
 
-// Self-hosted local copy when available (see LOCAL_FLAGS); empty string = dead
-// link with no replacement; otherwise fall back to the live Commons redirect.
-const wiki = (file: string): string => {
-  const key = file.replace(/ /g, '_')
-  const local = LOCAL_FLAGS[key]
-  return local !== undefined ? local : `https://commons.wikimedia.org/wiki/Special:FilePath/${key}`
-}
+// Self-hosted copy when available (LOCAL_FLAGS, then HOSTED_FLAGS under /cf/);
+// empty string = dead link with no replacement; otherwise the live Commons redirect.
+const wiki = (file: string): string => commonsFlag(file.replace(/ /g, '_'))
 
 // ── UNITED STATES (50 states) ─────────────────────────────────────────────────
 const US_STATES: SubRegion[] = [

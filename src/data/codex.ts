@@ -1,5 +1,4 @@
-import { LOCAL_FLAGS } from "./localFlags"
-import { HOSTED_FLAGS } from "./hostedFlags"
+import { commonsFlag } from "./flagUrl"
 
 export interface HistoricalFlag {
   fromYear: number
@@ -21,19 +20,9 @@ export interface CodexEntry {
   flagHistory: HistoricalFlag[]
 }
 
-/** Wikimedia Commons file → a stable image URL. Self-hosted copies (see
- *  LOCAL_FLAGS) are served locally; an empty string marks a dead link with no
- *  replacement; anything unmapped falls back to the live Commons redirect. */
-export const fp = (file: string): string => {
-  const key = file.replace(/ /g, "_")
-  // LOCAL_FLAGS wins (it encodes repairs and "no flag" empties); then our
-  // self-hosted copies; finally the live Commons hotlink as a safe fallback.
-  const local = LOCAL_FLAGS[key]
-  if (local !== undefined) return local
-  const hosted = HOSTED_FLAGS[key]
-  if (hosted !== undefined) return hosted
-  return `https://commons.wikimedia.org/wiki/Special:FilePath/${file}`
-}
+/** Wikimedia Commons file → a stable image URL: LOCAL_FLAGS repair/copy, then
+ *  our /cf/ copy (HOSTED_FLAGS), else the live Commons hotlink. See flagUrl.ts. */
+export const fp = (file: string): string => commonsFlag(file)
 
 const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
   CA: [

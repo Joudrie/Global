@@ -21,10 +21,11 @@ function markOnboarded() {
 
 // Two visually-distinct "vanity" flags flank the Codex slide — the Estelada
 // Blava (Catalan independence) and the Kanaka Maoli (Native Hawaiian) flag.
-// Commons FilePath always resolves, so no extra data module is pulled into the
-// first-run path.
-const ESTELADA = "https://commons.wikimedia.org/wiki/Special:FilePath/Estelada_blava.svg"
-const KANAKA = "https://commons.wikimedia.org/wiki/Special:FilePath/Kanaka_Maoli_flag.svg"
+// Our self-hosted copies (what fp() resolves Estelada_blava.svg and
+// Kanaka_Maoli_flag.svg to), written out so no flag table is pulled into the
+// first-run path. scripts/bundle.test.mjs checks they match fp().
+const ESTELADA = "/flags/wm/estelada-blava.svg"
+const KANAKA = "/cf/cd525d0600b2308d.svg"
 
 const FLANK: CSSProperties = {
   width: 36, height: 24, objectFit: "cover", borderRadius: 4,
