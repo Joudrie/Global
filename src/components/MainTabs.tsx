@@ -131,6 +131,7 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
   const gameCount = GAME_COUNT
   const todayResult = state.dailyHistory[todayString()]
   const dailyRituals = ["gacha", "funfact"].map(id => REGISTRY.find(r => r.id === id)).filter((e): e is Entry => !!e)
+  const connections = REGISTRY.find(r => r.id === "connections")
 
   // A small fan of flags — the arcade slide's poster art.
   const flagFan = (
@@ -257,6 +258,22 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
             )
           })}
         </div>
+        {connections && (
+          <button onClick={() => launch(connections)} className="geo-tap carto-card"
+            style={{ marginTop: 10, width: "100%", display: "flex", alignItems: "center", gap: 12, padding: 8, paddingRight: 14, borderRadius: 16, textAlign: "left",
+              border: `1px solid ${tint(ACCENT.today, 0.42)}`, background: T.surface, ["--wash" as string]: tint(ACCENT.today, 0.45) }}>
+            <span style={{ position: "relative", width: 112, aspectRatio: "140 / 72", flexShrink: 0, borderRadius: 10, overflow: "hidden", border: `1px solid ${T.line}` }}>
+              <GamePoster id="connections" accent={ACCENT.today} />
+            </span>
+            <span style={{ flex: 1, minWidth: 0 }}>
+              <span className="geo-display" style={{ display: "block", fontWeight: 800, fontSize: 15, color: T.text, letterSpacing: "-0.01em" }}>{connections.title}</span>
+              <span style={{ display: "block", color: T.muted, fontSize: 11, marginTop: 2, lineHeight: 1.35 }}>Sort 16 countries into four groups</span>
+              <span style={{ display: "inline-flex", gap: 4, marginTop: 6, fontFamily: FONT.display, fontWeight: 700, fontSize: 11.5, color: ACCENT.today }}>
+                Today's puzzle <span>→</span>
+              </span>
+            </span>
+          </button>
+        )}
       </div>
 
       {/* Scroll-to-see ad at the very bottom of Today (never on first view) */}

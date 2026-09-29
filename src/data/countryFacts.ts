@@ -65,6 +65,30 @@ export const FACTS = {
   tropicCancer: { yes: ['MX', 'BS', 'MR', 'ML', 'DZ', 'NE', 'LY', 'EG', 'SA', 'AE', 'OM', 'IN', 'BD', 'MM', 'CN', 'TW'] },
   tropicCapricorn: { yes: ['CL', 'AR', 'PY', 'BR', 'NA', 'BW', 'ZA', 'MZ', 'MG', 'AU'], maybe: ['TO'] },
 
+  // Regions, by the usual definitions. `maybe` = sometimes counted in.
+  southAmerica: { yes: ['AR', 'BO', 'BR', 'CL', 'CO', 'EC', 'GY', 'PY', 'PE', 'SR', 'UY', 'VE'], maybe: ['FR', 'TT', 'PA'] },
+  centralAmerica: { yes: ['BZ', 'CR', 'SV', 'GT', 'HN', 'NI', 'PA'], maybe: ['MX'] },
+  nordic: { yes: ['DK', 'FI', 'IS', 'NO', 'SE'] },
+  // Bahrain is an island just off it; Iraq and Jordan reach its northern edge.
+  arabianPeninsula: { yes: ['SA', 'YE', 'OM', 'AE', 'QA', 'KW'], maybe: ['BH', 'IQ', 'JO'] },
+  southeastAsia: { yes: ['BN', 'KH', 'ID', 'LA', 'MY', 'MM', 'PH', 'SG', 'TH', 'VN', 'TL'], maybe: ['PG'] },
+  // Island countries in the Caribbean Sea (the Bahamas are in the Atlantic, but often counted).
+  caribbeanIsland: { yes: ['CU', 'JM', 'HT', 'DO', 'BB', 'TT', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'], maybe: ['BS'] },
+  hornOfAfrica: { yes: ['SO', 'ET', 'ER', 'DJ'], maybe: ['KE', 'SD', 'SS', 'UG'] },
+  // The Sahara covers part of their land (Morocco through Western Sahara).
+  sahara: { yes: ['DZ', 'LY', 'EG', 'SD', 'TD', 'NE', 'ML', 'MR', 'TN'], maybe: ['MA'] },
+  blackSea: { yes: ['TR', 'BG', 'RO', 'UA', 'RU', 'GE'] },
+  balticSea: { yes: ['DE', 'PL', 'LT', 'LV', 'EE', 'RU', 'FI', 'SE', 'DK'] },
+  // Land in both Europe and Asia, or Africa and Asia. `maybe`: through islands,
+  // overseas territories or a disputed line.
+  transcontinental: {
+    yes: ['RU', 'TR', 'EG', 'KZ'],
+    maybe: ['AZ', 'GE', 'AM', 'CY', 'ID', 'PA', 'ES', 'FR', 'US', 'DK', 'NL', 'PT', 'IT', 'GR', 'YE', 'IS', 'CL', 'GB', 'TL', 'PG'],
+  },
+  // A compass point in the English name. Timor-Leste is "East Timor";
+  // the Central African Republic names a middle, not a direction.
+  compassName: { yes: ['KP', 'KR', 'ZA', 'SS', 'MK'], maybe: ['TL', 'CF'] },
+
   // ── History ───────────────────────────────────────────────────────────────
   soviet: { yes: ['RU', 'UA', 'BY', 'MD', 'EE', 'LV', 'LT', 'GE', 'AM', 'AZ', 'KZ', 'KG', 'TJ', 'TM', 'UZ'] },
   yugoslavia: { yes: ['SI', 'HR', 'BA', 'RS', 'ME', 'MK', 'XK'] },
@@ -130,6 +154,11 @@ export const FACTS = {
     ],
   },
 
+  // The Group of Seven.
+  g7: { yes: ['US', 'CA', 'GB', 'FR', 'DE', 'IT', 'JP'] },
+  // Joined the Commonwealth without ever being ruled by Britain (Cameroon was partly British).
+  commonwealthNeverBritish: { yes: ['MZ', 'RW', 'GA', 'TG'], maybe: ['CM'] },
+
   // ── Sport ─────────────────────────────────────────────────────────────────
   summerOlympics: { yes: ['GR', 'FR', 'US', 'GB', 'SE', 'BE', 'NL', 'DE', 'FI', 'AU', 'IT', 'JP', 'MX', 'CA', 'RU', 'KR', 'ES', 'CN', 'BR'] },
   // Hosted (or co-hosted) the men's FIFA World Cup, up to and including 2026.
@@ -186,6 +215,22 @@ export const FACTS = {
     maybe: ['SV', 'EC', 'BO', 'PE', 'VE', 'AF', 'PY', 'SM', 'MD', 'CR', 'DM', 'IR', 'NI', 'ME', 'ZM'],
   },
 
+  // A star of any kind (five-pointed, Star of David, pentagram, many-pointed)
+  // on the flag. `maybe`: small stars inside a coat of arms, or a sun or moon
+  // some people read as a star.
+  flagStar: {
+    yes: [
+      'BA', 'XK', 'SI',
+      'DZ', 'AO', 'BF', 'BI', 'CM', 'CV', 'CF', 'KM', 'CD', 'DJ', 'GQ', 'ET', 'GH', 'GW', 'LR', 'LY', 'MR', 'MA', 'MZ',
+      'ST', 'SN', 'SO', 'SS', 'TG', 'TN', 'ZW',
+      'AZ', 'CN', 'MY', 'MM', 'KP', 'PK', 'PH', 'SG', 'TJ', 'TL', 'TM', 'UZ', 'VN',
+      'IL', 'JO', 'SY', 'TR',
+      'BR', 'CL', 'CU', 'DM', 'GD', 'HN', 'PA', 'PY', 'KN', 'SR', 'US', 'VE',
+      'AU', 'MH', 'FM', 'NR', 'NZ', 'PG', 'WS', 'SB', 'TV',
+    ],
+    maybe: ['BO', 'EC', 'SV', 'NI', 'TW', 'HR', 'NP'],
+  },
+
   // ── Capitals ──────────────────────────────────────────────────────────────
   // The capital is named after (or is) the country.
   capitalSameName: { yes: ['MX', 'GT', 'PA', 'KW', 'SG', 'MC', 'VA', 'SM', 'LU', 'DJ', 'AD', 'ST', 'GW'], maybe: ['BR', 'TN', 'DZ', 'SV'] },
@@ -198,6 +243,36 @@ export const FACTS = {
   capitalAfterPerson: {
     yes: ['US', 'LR', 'NZ', 'CG', 'SC', 'GY', 'MU', 'MT'],
     maybe: ['BS', 'VC', 'JM', 'GR', 'IT', 'KN', 'AG', 'GD', 'LC', 'DM', 'ST', 'CL', 'AR', 'PY', 'CR', 'SV', 'DO', 'KZ', 'PH', 'ZW'],
+  },
+  // The capital stands on the Danube.
+  capitalDanube: { yes: ['AT', 'SK', 'HU', 'RS'] },
+
+  // ── Names ─────────────────────────────────────────────────────────────────
+  // Named after a person. `maybe`: a saint, a biblical figure, a dynasty, a
+  // chief or a people's founder, where the story is disputed or indirect.
+  namedAfterPerson: {
+    yes: ['CO', 'BO', 'PH', 'SA', 'MU', 'SC', 'MH'],
+    maybe: ['US', 'SV', 'KN', 'LC', 'VC', 'ST', 'DO', 'DM', 'SB', 'IL', 'IE', 'CN', 'GE', 'KR', 'KP', 'UZ', 'NI', 'KI'],
+  },
+  // Named after a river. `maybe`: a lake, a river of the old colony, or a
+  // disputed story.
+  namedAfterRiver: {
+    yes: ['GM', 'NE', 'NG', 'ZM', 'PY', 'UY', 'SN', 'CG', 'CD', 'IN', 'JO'],
+    maybe: ['MD', 'CM', 'SR', 'AR', 'TD', 'PK'],
+  },
+  // The English name is also an everyday English word.
+  englishWord: { yes: ['TR', 'CN', 'TD', 'GN'], maybe: ['JP', 'BR', 'IN', 'MA', 'PA', 'SE', 'TG', 'CL'] },
+  // The English name is also a common first name.
+  firstName: { yes: ['TD', 'JO', 'GE', 'KE'], maybe: ['IN', 'IL', 'SL', 'TT', 'DM', 'US', 'ML', 'CN', 'OM', 'SY', 'IR'] },
+  // Had a famous older name in the 20th century (Siam, Persia, Ceylon, Burma).
+  // Every other renamed country is `maybe`, so none can sit beside them.
+  oldName: {
+    yes: ['TH', 'IR', 'LK', 'MM'],
+    maybe: [
+      'SZ', 'ZW', 'GH', 'BJ', 'BF', 'CD', 'KH', 'TZ', 'BZ', 'GY', 'SR', 'MW', 'ZM', 'BW', 'LS', 'NA', 'TL', 'CI', 'CV', 'MK',
+      'CZ', 'TR', 'BD', 'ET', 'IE', 'BY', 'MD', 'KG', 'TM', 'MY', 'VU', 'KI', 'TV', 'CF', 'BI', 'RW', 'DJ', 'JO', 'GW', 'GQ',
+      'TG', 'CM', 'ML', 'YE', 'SA', 'NL', 'CG', 'TW', 'LA', 'MN', 'KP', 'KR', 'VN', 'JP', 'CN', 'RU', 'EG', 'SY', 'LY', 'MG',
+    ],
   },
 } satisfies Record<string, Fact>
 
@@ -243,6 +318,7 @@ export const OFFICIAL: Record<string, Fact> = {
 export const DISPUTED_BORDERS: [string, string][] = [
   ['ES', 'MA'], ['GB', 'ES'], ['GB', 'CY'], ['FR', 'BR'], ['FR', 'SR'], ['FR', 'NL'],
   ['IN', 'AF'], ['MA', 'MR'], ['CY', 'TR'],
+  ['CA', 'DK'], // Hans Island, split between them since 2022
 ]
 
 // Capitals that are split or often confused. The first one is the official

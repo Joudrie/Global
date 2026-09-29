@@ -15,6 +15,7 @@ export type Rule =
   | { type: "borders"; code: string }
   | { type: "neighbours"; n: number }            // exactly n land neighbours
   | { type: "capitalStarts"; letter: string }
+  | { type: "capitalSameLetter" }                // capital starts with the country's first letter
   | { type: "popAbove"; m: number }              // population above m million
   | { type: "areaTop"; n: number }               // among the n largest by area
   | { type: "nameStarts"; text: string }
@@ -23,6 +24,7 @@ export type Rule =
   | { type: "nameLength"; n: number }            // letters only
   | { type: "containsCountry" }                  // name contains another country's name
   | { type: "sameEnds" }                         // first letter = last letter
+  | { type: "nameStartsEnds"; letter: string }   // starts and ends with this letter
   | { type: "manual" }                           // wordplay/trivia checked by eye
 
 export type Verdict = "yes" | "maybe" | "no"
@@ -64,6 +66,13 @@ export function evaluate(rule: Rule, code: string): Verdict {
       if (main.startsWith(l)) return others.some(o => !o.startsWith(l)) ? "maybe" : "yes"
       return others.some(o => o.startsWith(l)) ? "maybe" : "no"
     }
+    case "capitalSameLetter": {
+      const l = letters(name)[0]
+      const main = letters(CAPITAL.get(code) ?? "")[0] === l
+      const others = (OTHER_CAPITALS[code] ?? []).map(o => letters(o)[0] === l)
+      if (main) return others.some(o => !o) ? "maybe" : "yes"
+      return others.some(o => o) ? "maybe" : "no"
+    }
     case "popAbove": {
       const p = STATS[code]?.pop
       if (p == null) return "maybe"
@@ -87,6 +96,10 @@ export function evaluate(rule: Rule, code: string): Verdict {
     case "sameEnds": {
       const l = letters(name)
       return l.length > 1 && l[0] === l[l.length - 1] ? "yes" : "no"
+    }
+    case "nameStartsEnds": {
+      const l = letters(name), x = rule.letter.toLowerCase()
+      return l.startsWith(x) && l.endsWith(x) ? "yes" : "no"
     }
     case "manual": return "no"
   }

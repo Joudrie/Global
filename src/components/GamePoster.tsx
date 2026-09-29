@@ -624,14 +624,17 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
         </div>
       ) }
     case "connections":
-      // The board: one solved row in each group tone, above plain tiles.
+      // A solved board in miniature: four rows of four tiles, one row per
+      // group tone, easiest (ochre) to hardest (plum), on a paper card.
       return { bleed: false, node: (
-        <div style={{ ...box, background: wash, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: hero ? 5 : 3 }}>
-          {[0, 1, 2].map(r => (
-            <div key={r} style={{ display: "flex", gap: hero ? 5 : 3 }}>
-              {[0, 1, 2, 3].map(i => <span key={i} style={{ width: hero ? 22 : 14, height: hero ? 14 : 9, borderRadius: 3, background: r === 0 ? GROUP_TONES[0] : r === 1 ? GROUP_TONES[3] : tint(T.text, 0.18) }} />)}
-            </div>
-          ))}
+        <div style={{ ...box, background: wash, display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div aria-hidden style={{ display: "grid", gridTemplateColumns: "repeat(4, auto)", gap: hero ? 4 : 3, padding: hero ? 8 : 5,
+            borderRadius: hero ? 8 : 6, background: T.surface, border: `1px solid ${T.line}` }}>
+            {GROUP_TONES.flatMap((tone, r) => [0, 1, 2, 3].map(i => (
+              <span key={`${r}-${i}`} style={{ width: hero ? 24 : 18, height: hero ? 14 : 9, borderRadius: 2, background: tone,
+                boxShadow: `inset 0 0 0 1px ${tint(T.text, 0.12)}` }} />
+            )))}
+          </div>
         </div>
       ) }
     case "uscityflags":
