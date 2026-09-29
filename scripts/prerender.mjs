@@ -38,6 +38,7 @@ const { IDENTITY_FLAGS, IDENTITY_CATEGORIES } = await data('identityFlags.ts')
 const { TERRITORIES } = await data('territories.ts')
 const { UK_NATIONS } = await data('ukNations.ts')
 const { CHALLENGE_CONTINENTS } = await data('challenges.ts')
+const { CHANGELOG, LAST_UPDATED, formatDate } = await data('changelog.ts')
 const { GAMES, GAME_COUNT } = await import(path.join(ROOT, 'src/ui/registry.ts'))
 
 const CAPITAL = new Map(CAPITALS.map(c => [c.code, c.capital]))
@@ -160,8 +161,9 @@ ${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndica
 ${body}
 <footer>
   <p><a href="/">Play Globalio</a><a href="/flags/">Country flags</a><a href="/historical/">Historical flags</a><a href="/identity/">Identity flags</a><a href="/games/">Games</a></p>
-  <p><a href="/about/">About</a><a href="/contact/">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></p>
+  <p><a href="/whats-new/">What's new</a><a href="/about/">About</a><a href="/contact/">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></p>
   <p>© Globalio. Flags, names and dates are researched from Wikipedia, Wikimedia Commons and official sources. Spot a mistake? <a href="/contact/">Tell us</a>.</p>
+  <p class="muted">Last updated ${formatDate(LAST_UPDATED)}. New games every month.</p>
 </footer>
 </div>
 </body>
@@ -545,6 +547,25 @@ are usually fixed within a few days.</p>
   })
 }
 
+function whatsNewPage() {
+  const body = `
+<div class="crumbs"><a href="/">Home</a> › What's new</div>
+<h1>What's new</h1>
+<p class="lead">Globalio gets new games, flags and fixes every month. Here's what changed recently.</p>
+${CHANGELOG.map(e => `
+<h2>${esc(e.title)}</h2>
+<p class="muted">${formatDate(e.date)}</p>
+<ul>${e.items.map(i => `<li>${esc(i)}</li>`).join('')}</ul>`).join('')}
+<p>Have an idea for a game or found a mistake? <a href="/contact/">Tell us</a>.</p>
+`
+  return page({
+    title: "What's new on Globalio | Globalio",
+    description: 'Recent updates to Globalio: new flag games, new flags and fixes, updated every month.',
+    canonical: `${ORIGIN}/whats-new/`,
+    body,
+  })
+}
+
 function notFoundPage() {
   const body = `
 <h1>Page not found</h1>
@@ -565,6 +586,7 @@ for (const c of ID_CATS) emit(`/identity/${slug(c)}/`, identityPage(c))
 emit('/games/', gamesPage())
 emit('/about/', aboutPage())
 emit('/contact/', contactPage())
+emit('/whats-new/', whatsNewPage())
 
 function sitemap() {
   const urls = [

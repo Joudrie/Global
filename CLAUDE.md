@@ -23,6 +23,12 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
   It builds on GitHub, deploys `dist/`, then checks ads.txt, /about/ and a 404 on the live site.
 - Don't spend deploys on work in progress. Batch fixes, then deploy once.
 
+## What's new
+
+- Every change that players will notice gets an entry at the top of `src/data/changelog.ts`.
+  It feeds /whats-new/ and the "Last updated" line on the home screen and every content page,
+  which show Google the site is maintained. The site promises new games every month.
+
 ## Ads
 
 - AdSense publisher `ca-pub-2216954143093824`; `public/ads.txt` must stay served at the root.
