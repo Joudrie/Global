@@ -1,7 +1,6 @@
 import { useState, useRef } from "react"
-import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
-import { BOT_FLAGS } from "../data/botFlags"
+import { BOT_FLAGS, pickRealFlag } from "../data/botFlags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 
@@ -14,11 +13,29 @@ const saveBest = (n: number) => { try { localStorage.setItem(BEST_KEY, String(n)
 // A card is either a real country flag or a synthetic "bot" flag.
 interface Card { real: boolean; flag?: FlagRecord; botSrc?: string }
 
-function makeCard(): Card {
-  // ~52% real; the rest are bots. (Independent draws keep it unpredictable —
-  // you can hit several real ones in a row.)
-  if (Math.random() < 0.52) return { real: true, flag: FLAGS[Math.floor(Math.random() * FLAGS.length)] }
+// Cards shown lately, so the same flag doesn't come straight back.
+const recent: string[] = []
+const RECENT_MAX = 24
+
+function drawCard(): Card {
+  // 50/50 real or bot, drawn independently so a run can't be predicted — you
+  // can hit several real ones in a row. Real flags come from REAL_POOL, which
+  // leaves out the coat-of-arms giveaways (see botFlags.ts).
+  if (Math.random() < 0.5) return { real: true, flag: pickRealFlag() }
   return { real: false, botSrc: BOT_FLAGS[Math.floor(Math.random() * BOT_FLAGS.length)] }
+}
+
+function makeCard(): Card {
+  let c = drawCard()
+  for (let i = 0; i < 8; i++) {
+    const key = c.real ? c.flag!.code : c.botSrc!
+    if (!recent.includes(key)) break
+    // Redraw within the same side so the 50/50 split stays exact.
+    c = c.real ? { real: true, flag: pickRealFlag() } : { real: false, botSrc: BOT_FLAGS[Math.floor(Math.random() * BOT_FLAGS.length)] }
+  }
+  recent.push(c.real ? c.flag!.code : c.botSrc!)
+  if (recent.length > RECENT_MAX) recent.shift()
+  return c
 }
 
 function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
