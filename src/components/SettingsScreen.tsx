@@ -3,6 +3,7 @@ import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon } from "./icons"
 import { openSupporter } from "../utils/supporterNav"
+import { SUPPORTER_LIVE } from "../ads"
 import { loadState, saveState, setPremium, isSupporter } from "../utils/storage"
 import { exportProgress, importProgress } from "../utils/backup"
 
@@ -75,12 +76,12 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
       <ScreenHeader title="Settings" subtitle="Progress, support & feedback" onBack={onBack} />
 
       <div className="px-5 pb-10">
-        {/* Support Globalio — opens the Supporter screen (reachable even ad-free) */}
-        <button onClick={openSupporter}
+        {/* Support Globalio — opens the Supporter screen (hidden until checkout is live) */}
+        {SUPPORTER_LIVE && <button onClick={openSupporter}
           className="w-full mt-2 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 block text-center"
           style={{ background: tint(T.gold, 0.12), border: `1px solid ${tint(T.gold, 0.4)}`, color: T.gold }}>
           <span className="inline-flex items-center justify-center gap-2">💛 Support Globalio</span>
-        </button>
+        </button>}
 
         {/* Your data — back up / restore progress (no account needed) */}
         <h2 className="text-xs font-semibold uppercase tracking-widest mt-8 mb-3" style={{ color: T.muted }}>Your Progress</h2>

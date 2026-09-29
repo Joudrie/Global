@@ -14,7 +14,7 @@ import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
 import AdBox from "./AdBox"
-import { AD_SLOTS } from "../ads"
+import { AD_SLOTS, SUPPORTER_LIVE } from "../ads"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
 // Lazy so the dashboard bundle stays lean — same chunk App.tsx already splits.
@@ -81,9 +81,9 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
       <header style={{ position: "relative", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
         <div style={{ display: "flex", alignItems: "center", gap: 9 }}>
           <EarthLogo size={26} />
-          <span className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 22, letterSpacing: "0.01em" }}>
-            Globalio
-          </span>
+          <h1 className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 22, letterSpacing: "0.01em", margin: 0 }}>
+            Globalio<span style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }}>: learn every flag in the world</span>
+          </h1>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* The streak, small and always on top — Today's big celebration is gone */}
@@ -277,11 +277,44 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
         )}
       </div>
 
+      <AboutGlobalio />
+
       {/* Scroll-to-see ad at the very bottom of Today (never on first view) */}
       <AdBox slot={AD_SLOTS.todayFooter} />
 
       <SiteLinks />
     </div>
+  )
+}
+
+/* ── About Globalio: a short written introduction at the bottom of Today, so
+   first-time visitors (and reviewers) read what the site is and where the
+   flag archive lives, not only game tiles. ─────────────────────────────── */
+function AboutGlobalio() {
+  const link = { color: ACCENT.today, fontWeight: 600, textDecoration: "underline" } as const
+  const p = { color: T.muted, fontSize: 13, lineHeight: 1.6, margin: "0 0 10px" } as const
+  return (
+    <section style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${T.line}` }}>
+      <h2 className="geo-display" style={{ fontSize: 18, fontWeight: 800, color: T.text, margin: "0 0 10px" }}>
+        About Globalio
+      </h2>
+      <p style={p}>
+        Globalio is a free flag and geography game made by one person who loves flags. Learn the flags of all
+        197 countries through quick daily games: quizzes, a daily Connections puzzle, drawing and colouring
+        games, lookalike spotting, map and border puzzles, and Real or Bot, where you tell real flags from
+        computer-made ones.
+      </p>
+      <p style={p}>
+        Behind the games is a hand-researched flag archive. Every <a href="/flags/" style={link}>country page</a> tells
+        the story of its flag through history, the <a href="/historical/" style={link}>historical archive</a> covers
+        hundreds of vanished states and empires, and the <a href="/identity/" style={link}>identity archive</a> covers
+        pride, indigenous, regional and micronation flags. See <a href="/games/" style={link}>every game</a>, or
+        read <a href="/whats-new/" style={link}>what's new</a>.
+      </p>
+      <p style={{ ...p, margin: 0 }}>
+        No account or sign-up. Your progress stays on your device.
+      </p>
+    </section>
   )
 }
 
@@ -1068,7 +1101,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
       <GachaInline onOpen={() => onNavigate("gacha")} />
 
       {/* Support Globalio — a gentle, non-naggy CTA shown only to non-supporters */}
-      {!state.premium && (
+      {SUPPORTER_LIVE && !state.premium && (
         <button onClick={openSupporter}
           style={{ display: "block", width: "100%", textAlign: "left", cursor: "pointer", borderRadius: 18, padding: 16,
             border: `1px solid ${tint(T.gold, 0.45)}`,
@@ -1077,7 +1110,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
             <span style={{ fontSize: 26, lineHeight: 1 }}>💛</span>
             <div style={{ flex: 1 }}>
               <div style={{ color: T.gold, fontWeight: 800, fontSize: 15 }}>Support Globalio</div>
-              <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>One-time $1.99 — remove ads & back a one-person project.</div>
+              <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>One-time $2 — remove ads & back a one-person project.</div>
             </div>
             <span style={{ color: T.gold, fontSize: 18, flexShrink: 0 }}>›</span>
           </div>
