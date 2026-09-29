@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, ReactNode } from "react"
-import worldMap from "@svg-maps/world"
 import { Pointer, MousePointer2, Search, Speech, Check, X, ArrowUp, ArrowDown, Heart, Swords, Pencil } from "lucide-react"
-import { SUB_FLAGS } from "../data/subdivisions"
+import { POSTER_SHAPES, POSTER_MAP_VIEWBOX, POSTER_SUB_URLS } from "../data/posterShapes"
 import { T, tint, GROUP_TONES } from "../ui/tokens"
 import { LineIcon } from "./icons"
 import FlagImage from "./FlagImage"
@@ -35,7 +34,7 @@ const DC_FLAG = "/flags/wm/flag-of-washington-d-c-388ae2.svg" // self-hosted
 
 const SLATE = "#1c2e36" // deep slate backdrop for map/landmark scenes
 
-const subUrl = (code: string) => SUB_FLAGS.find(s => s.code === code)?.flagUrl
+const subUrl = (code: string): string | undefined => POSTER_SUB_URLS[code]
 
 const FILL: CSSProperties = { width: "100%", height: "100%", objectFit: "cover", display: "block" }
 const flag = (code: string, style: CSSProperties = {}) =>
@@ -63,8 +62,7 @@ function MapShape({ loc, fill = "none", stroke, dashed = false }:
   { loc: string; fill?: string; stroke?: string; dashed?: boolean }) {
   const ref = useRef<SVGPathElement>(null)
   const [vb, setVb] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
-  const map = worldMap as { viewBox: string; locations: { id: string; path: string }[] }
-  const shape = map.locations.find(l => l.id === loc)
+  const shape = POSTER_SHAPES[loc]
   useEffect(() => {
     if (!ref.current) return
     const b = ref.current.getBBox()
@@ -74,9 +72,9 @@ function MapShape({ loc, fill = "none", stroke, dashed = false }:
   if (!shape) return null
   const sw = vb ? vb.w * 0.014 : 1
   return (
-    <svg viewBox={vb ? `${vb.x} ${vb.y} ${vb.w} ${vb.h}` : map.viewBox} preserveAspectRatio="xMidYMid meet"
+    <svg viewBox={vb ? `${vb.x} ${vb.y} ${vb.w} ${vb.h}` : POSTER_MAP_VIEWBOX} preserveAspectRatio="xMidYMid meet"
       style={{ width: "100%", height: "100%", display: "block", opacity: vb ? 1 : 0 }}>
-      <path ref={ref} d={shape.path} fill={fill} stroke={stroke} strokeWidth={stroke ? sw : 0}
+      <path ref={ref} d={shape} fill={fill} stroke={stroke} strokeWidth={stroke ? sw : 0}
         strokeDasharray={dashed ? `${sw * 2.6} ${sw * 1.8}` : undefined} strokeLinejoin="round" />
     </svg>
   )
@@ -89,8 +87,7 @@ function MapShape({ loc, fill = "none", stroke, dashed = false }:
 // map's 1010×666 space) — Portugal's path includes the Azores far out in the
 // Atlantic, so any auto-fit zooms out to open ocean.
 function BordersScene() {
-  const map = worldMap as { viewBox: string; locations: { id: string; path: string }[] }
-  const path = (id: string) => map.locations.find(l => l.id === id)?.path
+  const path = (id: string): string | undefined => POSTER_SHAPES[id]
   const es = path("es"), pt = path("pt"), fr = path("fr")
   if (!es || !pt || !fr) return null
   return (

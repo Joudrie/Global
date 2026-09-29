@@ -1,6 +1,5 @@
 import type { AppState } from "../utils/storage"
 import { FLAGS } from "../data/flags"
-import { SUB_FLAGS } from "../data/subdivisions"
 import type { AccentKey } from "./tokens"
 
 export type TabKey = "today" | "play" | "codex" | "you"
@@ -27,7 +26,11 @@ export interface Entry {
 }
 
 const flagProgress = (s: AppState) => ({ done: s.learnedFlags.length, total: FLAGS.length })
-const subProgress = (s: AppState) => ({ done: s.learnedSubs.length, total: SUB_FLAGS.length })
+// Number of guessable subdivision flags (SUB_FLAGS.length in data/subdivisions.ts).
+// A constant so the home screen does not load every subdivision table just to
+// show a progress total; scripts/bundle.test.mjs fails if it drifts.
+export const SUB_FLAG_COUNT = 1579
+const subProgress = (s: AppState) => ({ done: s.learnedSubs.length, total: SUB_FLAG_COUNT })
 
 // Single source of truth. Adding a destination (or a whole new regional set)
 // is one entry here — tabs, sections, accents and progress all derive from it.
