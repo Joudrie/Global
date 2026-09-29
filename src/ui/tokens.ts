@@ -15,9 +15,9 @@ interface Palette {
 const CARTOGRAPHER: Palette = {
   void: "#EFE3C8", bg: "#FBF4E4", surface: "#FFFCF4", surfaceHi: "#FCF6E7",
   line: "#DDCEAF", lineHi: "#C8B58C",
-  text: "#1F3A3C", muted: "#5F726D", dim: "#A09074", onAccent: "#FFFCF4",
-  amber: "#C0883A", chartreuse: "#C2735A" /* play=terracotta */, cyan: "#5C8CA8" /* learn=sky */,
-  warm: "#A85440" /* challenge=clay */, gold: "#C0883A", green: "#5C8A6B",
+  text: "#1F3A3C", muted: "#5F726D", dim: "#7A6C56", onAccent: "#FFFCF4",
+  amber: "#946620", chartreuse: "#C2735A" /* play=terracotta */, cyan: "#5C8CA8" /* learn=sky */,
+  warm: "#A85440" /* challenge=clay */, gold: "#946620", green: "#5C8A6B",
   violet: "#7A5C86" /* muted plum, fits parchment */,
   danger: "#B4452F" /* rust */,
 }

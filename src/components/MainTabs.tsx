@@ -369,6 +369,17 @@ function SoccerBall({ size = 18, color = "currentColor" }: { size?: number; colo
   )
 }
 
+function DeckArrow({ dir, onClick }: { dir: -1 | 1; onClick: () => void }) {
+  return (
+    <button aria-label={dir < 0 ? "Previous" : "Next"} onClick={onClick} className="geo-tap"
+      style={{ width: 28, height: 28, margin: dir < 0 ? "0 8px 0 0" : "0 0 0 8px", borderRadius: 999,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: T.surface, border: `1px solid ${T.line}`, color: T.muted, fontSize: 16, lineHeight: 1, cursor: "pointer" }}>
+      {dir < 0 ? "‹" : "›"}
+    </button>
+  )
+}
+
 function HeroDeck({ slides }: { slides: SlideData[] }) {
   const n = slides.length
   const [idx, setIdx] = useState(0)
@@ -420,24 +431,14 @@ function HeroDeck({ slides }: { slides: SlideData[] }) {
         }}>
           <DeckSlide {...cur} />
         </div>
-        {/* Mouse users can't swipe naturally — give them arrows (desktop only). */}
-        {HAS_MOUSE && [-1, 1].map(dir => (
-          <button key={dir} aria-label={dir < 0 ? "Previous" : "Next"}
-            onClick={() => commit(dir)} onPointerDown={e => e.stopPropagation()}
-            className="geo-tap"
-            style={{ position: "absolute", top: "50%", transform: "translateY(-50%)",
-              [dir < 0 ? "left" : "right"]: 6, zIndex: 5,
-              width: 32, height: 32, borderRadius: 999, display: "flex", alignItems: "center", justifyContent: "center",
-              background: `${T.surface}E6`, border: `1px solid ${T.line}`, color: T.muted,
-              boxShadow: `0 2px 8px -3px ${tint(T.text, 0.5)}`, fontSize: 18, lineHeight: 1 }}>
-            {dir < 0 ? "‹" : "›"}
-          </button>
-        ))}
       </div>
-      <div style={{ display: "flex", justifyContent: "center", gap: 6, marginTop: 12 }} aria-hidden>
+      <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 6, marginTop: 12 }}>
+        {/* Mouse users can't swipe naturally: arrows sit beside the dots, never over the slide text. */}
+        {HAS_MOUSE && <DeckArrow dir={-1} onClick={() => commit(-1)} />}
         {slides.map((_, i) => (
-          <span key={i} style={{ width: i === idx ? 18 : 6, height: 6, borderRadius: 3, background: i === idx ? cur.accent : T.line, transition: "width 0.25s, background 0.2s" }} />
+          <span key={i} aria-hidden style={{ width: i === idx ? 18 : 6, height: 6, borderRadius: 3, background: i === idx ? cur.accent : T.line, transition: "width 0.25s, background 0.2s" }} />
         ))}
+        {HAS_MOUSE && <DeckArrow dir={1} onClick={() => commit(1)} />}
       </div>
     </div>
   )
