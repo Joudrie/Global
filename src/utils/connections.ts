@@ -7,7 +7,8 @@ export interface Group { name: string; why: string; words: string[] }
 export interface Puzzle { groups: Group[] }
 
 export const SIZE = 4
-export const MISTAKES = 4
+export const MISTAKES = 6
+export const HINTS = 3
 export const MAX_WORD = 40
 const MAX_TEXT = 120
 
@@ -105,13 +106,46 @@ export function rows(p: Puzzle, history: string[][]): number[][] {
   return out
 }
 
+// ── Hints ────────────────────────────────────────────────────────────────
+// Up to HINTS per puzzle, free (they never cost a mistake). The first hint
+// names the easiest unsolved group; the next two each mark one of its
+// countries. If that group gets solved in between, the next hint starts over
+// on the easiest group still unsolved.
+export interface Hint { group: number; word?: string }
+
+export function nextHint(p: Puzzle, history: string[][], hints: Hint[]): Hint | null {
+  const s = state(p, history)
+  if (s.over || hints.length >= HINTS) return null
+  const open = [0, 1, 2, 3].filter(g => !s.solved.includes(g))
+  const last = hints[hints.length - 1]
+  const group = last && open.includes(last.group) ? last.group : open[0]
+  if (!hints.some(h => h.group === group && !h.word)) return { group }
+  const marked = new Set(hints.filter(h => h.group === group && h.word).map(h => key(h.word!)))
+  const word = p.groups[group].words.find(w => !marked.has(key(w)))
+  return word ? { group, word } : null
+}
+
+// Keep only well-formed hints for this puzzle (they come back from storage).
+export function validHints(p: Puzzle, raw: unknown): Hint[] {
+  if (!Array.isArray(raw)) return []
+  const out: Hint[] = []
+  for (const h of raw.slice(0, HINTS)) {
+    const g = (h as Hint)?.group, w = (h as Hint)?.word
+    if (!Number.isInteger(g) || g < 0 || g >= SIZE) break
+    if (w !== undefined && groupOf(p, String(w)) !== g) break
+    out.push(w === undefined ? { group: g } : { group: g, word: String(w) })
+  }
+  return out
+}
+
 // One row of colour squares per guess, as in the original's share text.
 const SQUARES = ["\u{1F7E8}", "\u{1F7E9}", "\u{1F7E6}", "\u{1F7EA}"]
-export function shareText(p: Puzzle, history: string[][], title: string, url?: string): string {
+export function shareText(p: Puzzle, history: string[][], title: string, url?: string, hints = 0): string {
   const s = state(p, history)
-  const summary = s.won
-    ? `Solved with ${s.mistakes} ${s.mistakes === 1 ? "mistake" : "mistakes"}`
-    : `Found ${s.solved.length} of ${SIZE} groups`
+  const plural = (n: number, one: string) => `${n} ${n === 1 ? one : one + "s"}`
+  const summary = (s.won
+    ? `Solved with ${plural(s.mistakes, "mistake")}`
+    : `Found ${s.solved.length} of ${SIZE} groups`) + (hints ? `, ${plural(hints, "hint")}` : ", no hints")
   const grid = rows(p, history).map(r => r.map(g => SQUARES[g]).join(""))
   return [title, summary, ...grid, url].filter(Boolean).join("\n")
 }

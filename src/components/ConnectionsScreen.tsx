@@ -2,10 +2,11 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { CSSProperties } from "react"
 import { flushSync } from "react-dom"
 import { PUZZLES, PUZZLE_COUNT } from "../data/connectionsPuzzles"
-import { SIZE, MISTAKES, check, state, rows, shareText, groupOf, puzzleIndex, shuffle } from "../utils/connections"
+import { SIZE, MISTAKES, HINTS, check, state, rows, shareText, groupOf, puzzleIndex, shuffle, nextHint, validHints } from "../utils/connections"
+import type { Hint, Puzzle } from "../utils/connections"
 import { todayString, shuffleWithSeed } from "../utils/prng"
 import { shareOrCopy } from "../utils/share"
-import { T, FONT, GROUP_TONES, GROUP_TONE_NAMES } from "../ui/tokens"
+import { T, FONT, GROUP_TONES, GROUP_TONE_NAMES, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 
 interface Props { onBack: () => void; onFinish?: () => void }
@@ -16,15 +17,16 @@ const EASE = "cubic-bezier(.2,.8,.2,1)"
 const SHARE_URL = "https://globalio.app/?play=connections"
 const STORE_KEY = "globalio_connections_v1"
 
-interface Saved { date: string; n: number; history: string[][] }
+interface Saved { date: string; n: number; history: string[][]; hints?: Hint[] }
+interface Progress { history: string[][]; hints: Hint[] }
 
 // Storage can be missing or throw (private windows); the game works without it.
-function load(date: string, n: number): string[][] {
+function load(date: string, n: number, p: Puzzle): Progress {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null") as Saved | null
-    if (!s || s.date !== date || s.n !== n || !Array.isArray(s.history)) return []
-    return s.history.filter(h => Array.isArray(h) && h.length === SIZE)
-  } catch { return [] }
+    if (!s || s.date !== date || s.n !== n || !Array.isArray(s.history)) return { history: [], hints: [] }
+    return { history: s.history.filter(h => Array.isArray(h) && h.length === SIZE), hints: validHints(p, s.hints) }
+  } catch { return { history: [], hints: [] } }
 }
 function save(v: Saved) {
   try { localStorage.setItem(STORE_KEY, JSON.stringify(v)) } catch { /* not saved */ }
@@ -70,7 +72,9 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
   const n = idx + 1
   const P = PUZZLES[idx]
 
-  const [history, setHistory] = useState<string[][]>(() => load(date, n))
+  const [saved] = useState(() => load(date, n, P))
+  const [history, setHistory] = useState<string[][]>(saved.history)
+  const [hints, setHints] = useState<Hint[]>(saved.hints)
   const s = useMemo(() => state(P, history), [P, history])
   const [order, setOrder] = useState<string[]>(() =>
     shuffleWithSeed(P.groups.flatMap(g => g.words), `connections-${date}`))
@@ -84,6 +88,11 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
   const toastTimer = useRef(0)
 
   const unsolved = order.filter(w => !s.solved.includes(groupOf(P, w)))
+  // What the hints have shown so far, for groups still on the board.
+  const hintedGroup = [...hints].reverse().find(h => !h.word && !s.solved.includes(h.group))?.group
+  const hintedWords = new Set(hints.filter(h => h.word && !s.solved.includes(h.group)).map(h => h.word!))
+  const hint = nextHint(P, history, hints)
+  const hintsLeft = HINTS - hints.length
   // Found groups in the order found; on a loss, the rest follow, easiest first.
   const shown = s.lost ? [...s.solved, ...[0, 1, 2, 3].filter(g => !s.solved.includes(g))] : s.solved
 
@@ -171,7 +180,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     if (r.result === "repeat") { say("Already guessed."); return }
     const nextHistory = [...history, pick]
     const after = state(P, nextHistory)
-    save({ date, n, history: nextHistory })
+    save({ date, n, history: nextHistory, hints })
     say("")
     setBusy(true)
     await hop(pick)
@@ -195,8 +204,16 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     if (after.over) onFinish?.()
   }
 
+  function takeHint() {
+    if (busy || !hint) return
+    const next = [...hints, hint]
+    setHints(next)
+    save({ date, n, history, hints: next })
+    say(hint.word ? `${hint.word} is in that group.` : "")
+  }
+
   async function share() {
-    const text = shareText(P, history, `Globalio Connections #${n}`, SHARE_URL)
+    const text = shareText(P, history, `Globalio Connections #${n}`, SHARE_URL, hints.length)
     const how = await shareOrCopy(text)
     setShareMsg(how === "copied" ? "Copied. Paste it anywhere." : how === "shared" ? "Shared." : "")
   }
@@ -253,19 +270,31 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
           </ol>
         )}
 
+        {!s.over && hintedGroup !== undefined && (
+          <p role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 8, fontSize: 14, textAlign: "center",
+            background: T.surface, border: `1px solid ${T.line}`, borderLeft: `4px solid ${GROUP_TONES[hintedGroup]}` }}>
+            <span style={{ color: T.muted }}>Hint: one group is </span>
+            <strong style={{ fontWeight: 700 }}>{P.groups[hintedGroup].name}</strong>
+          </p>
+        )}
+
         {!s.over && (
           <div role="group" aria-label="Countries" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
             {unsolved.map(w => {
               const on = picked.includes(w)
+              const marked = hintedWords.has(w)
+              const tone = GROUP_TONES[groupOf(P, w)]
               return (
                 <button key={w} type="button" className="cx-tile" aria-pressed={on} disabled={busy}
+                  aria-label={marked ? `${w} (hinted)` : undefined} data-hinted={marked || undefined}
                   ref={el => { if (el) tileRefs.current.set(w, el); else tileRefs.current.delete(w) }}
                   onClick={() => toggle(w)}
                   style={{
                     position: "relative", minHeight: 64, minWidth: 0, borderRadius: 8, overflow: "hidden",
                     display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
                     fontFamily: FONT.mono, fontWeight: 600, lineHeight: 1.15, overflowWrap: "normal", wordBreak: "normal",
-                    border: `1px solid ${on ? T.text : T.line}`, background: on ? T.text : T.surfaceHi, color: on ? T.surface : T.text,
+                    border: `${marked && !on ? 2 : 1}px solid ${on ? T.text : marked ? T.text : T.line}`,
+                    background: on ? T.text : marked ? tint(tone, 0.55) : T.surfaceHi, color: on ? T.surface : T.text,
                     cursor: busy ? "default" : "pointer",
                   }}>
                   {halve(w)}
@@ -296,18 +325,29 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
               <button type="button" className="cx-btn cx-primary" style={pill(true, !busy && picked.length === SIZE)} disabled={busy || picked.length !== SIZE}
                 onClick={submit}>Submit</button>
             </div>
+            <div style={{ display: "flex", justifyContent: "center" }}>
+              <button type="button" className="cx-btn" disabled={busy || !hint} onClick={takeHint}
+                style={{ ...pill(false, !busy && !!hint), ...(hint ? {} : { borderStyle: "dashed", background: T.surfaceHi }) }}>
+                {hint ? `Hint (${hintsLeft} left)` : "No hints left"}
+              </button>
+            </div>
+            <p style={{ margin: 0, fontSize: 13, color: T.muted, textAlign: "center" }}>
+              Hints are free: the first names a group, the next two each mark one of its countries.
+            </p>
           </>
         )}
 
         {s.over && (
           <section aria-labelledby="cx-end" style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 12, padding: 16, display: "grid", gap: 12, justifyItems: "center", textAlign: "center" }}>
             <h2 id="cx-end" className="geo-display" style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
-              {s.won ? (s.mistakes === 0 ? "Perfect" : "Solved") : "Out of mistakes"}
+              {s.won ? (s.mistakes === 0 && hints.length === 0 ? "Perfect" : "Solved") : "Out of mistakes"}
             </h2>
             <p style={{ margin: 0, fontSize: 14, color: T.muted }}>
               {s.won
-                ? `All four groups with ${s.mistakes} ${s.mistakes === 1 ? "mistake" : "mistakes"}.`
-                : `You found ${s.solved.length} of 4 groups. The rest are shown above.`}
+                ? `All four groups with ${s.mistakes} ${s.mistakes === 1 ? "mistake" : "mistakes"}`
+                : `You found ${s.solved.length} of 4 groups`}
+              {hints.length ? `${s.won ? " and" : ", using"} ${hints.length} ${hints.length === 1 ? "hint" : "hints"}.` : s.won ? " and no hints." : "."}
+              {s.lost && " The rest are shown above."}
             </p>
             <div aria-label="Your guesses, one row each" role="img" style={{ display: "grid", gap: 4 }}>
               {rows(P, history).map((r, i) => (
