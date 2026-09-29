@@ -1,0 +1,87 @@
+# Downloads the Wikimedia flags the app still hotlinks into public/cf/ and
+# pushes them to the `selfhost-flags-data` branch (never to main). Run it by
+# hand from the Actions tab; re-run until the summary says nothing is left,
+# then open a PR from selfhost-flags-data to main. Each run continues from the
+# branch's last state, so nothing is downloaded twice.
+name: Self-host flags
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "Max files to download this run"
+        default: "1500"
+        required: true
+
+permissions:
+  contents: write
+
+concurrency:
+  group: selfhost-flags
+  cancel-in-progress: false
+
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    env:
+      BRANCH: selfhost-flags-data
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Start from the data branch (or main)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          if git fetch origin "+refs/heads/$BRANCH:refs/remotes/origin/$BRANCH" 2>/dev/null; then
+            echo "LEASE=$(git rev-parse "origin/$BRANCH")" >> "$GITHUB_ENV"
+            git checkout -B "$BRANCH" "origin/$BRANCH"
+            if ! git merge --no-edit origin/main; then
+              echo "::warning::$BRANCH conflicts with main; starting again from main"
+              git merge --abort
+              git checkout -B "$BRANCH" origin/main
+            fi
+          else
+            git checkout -B "$BRANCH" origin/main
+          fi
+
+      - run: npm ci
+
+      - name: Collect every hotlinked flag into files.txt
+        run: node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/flags/cf/collect.mjs
+
+      - name: Download (2 at a time, backs off on 429, resumable)
+        env:
+          LIMIT: ${{ inputs.limit }}
+        run: node scripts/flags/cf/download.mjs
+
+      - name: Regenerate src/data/hostedFlags.ts
+        run: node scripts/flags/cf/genhosted.mjs
+
+      - name: Check the app still builds
+        run: npm run build && npm test
+
+      - name: Commit and push to the data branch
+        run: |
+          git add public/cf scripts/flags/cf/files.txt scripts/flags/cf/manifest.json scripts/flags/cf/missing.json src/data/hostedFlags.ts
+          if git diff --cached --quiet; then
+            echo "Nothing new to commit."
+          else
+            git commit -q -m "Self-host $(git diff --cached --name-only -- public/cf | wc -l) more flags"
+          fi
+          if [ "$(git rev-parse HEAD)" != "$(git rev-parse origin/main)" ]; then
+            if [ -n "$LEASE" ]; then
+              git push --force-with-lease="$BRANCH:$LEASE" origin "$BRANCH"
+            else
+              git push origin "$BRANCH"
+            fi
+            echo "Pushed \`$BRANCH\`. Open a PR: https://github.com/${{ github.repository }}/compare/main...$BRANCH" >> "$GITHUB_STEP_SUMMARY"
+          fi

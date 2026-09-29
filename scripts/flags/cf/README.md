@@ -1,19 +1,18 @@
-# Self-hosting the gallery flags (public/cf)
+# Self-hosting the Wikimedia flags (public/cf)
 
-These flags were hot-linked from Wikimedia Commons; we self-host them under
+Flags that were hot-linked from Wikimedia Commons are self-hosted under
 `public/cf/` so the app serves them same-origin (no 429 rate-limits) and to
-improve our licensing posture. `fp()` (src/data/codex.ts) resolves
-`HOSTED_FLAGS` (src/data/hostedFlags.ts) → falls back to the live Commons
-hotlink for anything not yet hosted, so a partial set is always safe.
+improve our licensing posture. Every Commons flag goes through one resolver,
+`commonsFlag()` in `src/data/flagUrl.ts` (used by `fp()` in codex.ts and
+`wiki()` in challenges.ts): LOCAL_FLAGS → `HOSTED_FLAGS` (src/data/hostedFlags.ts)
+→ the live Commons hotlink, so a partial set is always safe.
 
-- `files.txt`     — every Commons filename the app references (target set).
-- `manifest.json` — filename → /cf/<sha1>.<ext> for files already downloaded.
-- `download.mjs`  — gentle, resumable downloader (skips files already in the
-                    manifest). Wikimedia throttles bulk pulls, so run it in
-                    multiple passes; it resumes where it left off.
-- `genhosted.mjs` — regenerates src/data/hostedFlags.ts from the manifest.
+- `collect.mjs`   — finds every flag the app still hotlinks (data modules + src/ scan) and adds it to `files.txt`.
+- `download.mjs`  — polite, resumable downloader (2 at a time, backoff on 429, skips `manifest.json` and `missing.json`).
+- `genhosted.mjs` — regenerates src/data/hostedFlags.ts from the manifest (canonical filename keys).
 
-## Finish the remaining ~840
-    node scripts/flags/cf/download.mjs        # resumes; re-run until counts stop rising
-    node scripts/flags/cf/genhosted.mjs       # rebuild the map
-    npm run build && git add public/cf src/data/hostedFlags.ts && git commit && git push
+## Flow
+1. Actions → **Self-host flags** → Run workflow (limit per run, default 1500). It runs collect → download → genhosted → build/test and pushes to the `selfhost-flags-data` branch.
+2. Re-run until the run summary says "Still to host: 0" (each run resumes from that branch).
+3. Open a PR `selfhost-flags-data` → `main` and merge it; screens switch to `/cf/…` automatically.
+4. Locally: `node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/flags/cf/collect.mjs --dry` prints what is still hotlinked, by source.

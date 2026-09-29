@@ -34,3 +34,17 @@ test('poster shapes match @svg-maps/world', async () => {
     assert.equal(d, world.locations.find(l => l.id === id)?.path, id)
   }
 })
+
+test('onboarding flags match fp()', async () => {
+  const { fp } = await src('data/codex.ts')
+  const text = fs.readFileSync(path.join(ROOT, 'src/components/Onboarding.tsx'), 'utf8')
+  const val = name => text.match(new RegExp(`const ${name} = "([^"]+)"`))?.[1]
+  assert.equal(val('ESTELADA'), fp('Estelada_blava.svg'))
+  assert.equal(val('KANAKA'), fp('Kanaka_Maoli_flag.svg'))
+})
+
+test('GamePoster historical art matches fp()', async () => {
+  const { fp } = await src('data/codex.ts')
+  const text = fs.readFileSync(path.join(ROOT, 'src/components/GamePoster.tsx'), 'utf8')
+  for (const m of text.matchAll(/= "(\/cf\/[^"]+)"\s*\/\/ (\S+)/g)) assert.equal(m[1], fp(m[2]), m[2])
+})
