@@ -310,7 +310,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   },
   {
     id: "texas-republic", name: "Republic of Texas", era: "1839–1845", region: "Americas",
-    flagUrl: fp("Flag_of_the_Republic_of_Texas.svg"), relatedCode: "US",
+    flagUrl: fp("Flag_of_Texas.svg"), relatedCode: "US",
     note: "The 1839 Lone Star flag became the US state flag of Texas unchanged. Its predecessor, the 'Burnet flag', was a plain gold star on blue.",
   },
   {
@@ -793,7 +793,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   },
   {
     id: "far", name: "Federation of Arab Republics", era: "1972–1977", region: "Africa & Middle East", relatedCode: "EG",
-    flagUrl: fp("Flag_of_the_Federation_of_Arab_Republics.svg"),
+    flagUrl: fp("Flag_of_Egypt_(1972–1984).svg"),
     note: "The red-white-black Arab Liberation tricolor with a golden Hawk of Quraish, flown simultaneously as the national flag of all three members — Egypt, Libya, and Syria.",
   },
   {
