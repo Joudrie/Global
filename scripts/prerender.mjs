@@ -124,7 +124,7 @@ ${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndica
   h3{font-size:18px;font-weight:700;margin:0 0 4px}
   p{margin:0 0 14px}
   .muted{color:#5F726D}
-  .eyebrow{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#C0883A;margin-bottom:6px}
+  .eyebrow{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#8F6320;margin-bottom:6px}
   .lead{font-size:17px}
   .hero{width:100%;max-width:360px;border-radius:10px;border:1px solid #DDCEAF;background:#fff;display:block;margin:18px 0}
   .facts{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
@@ -134,9 +134,9 @@ ${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndica
          box-shadow:0 1px 2px rgba(31,58,60,0.05),0 8px 20px -14px rgba(31,58,60,0.25)}
   .entry .thumb{width:96px;flex-shrink:0}
   .entry p{margin:4px 0 0;font-size:15px}
-  .entry .when{font-size:13px;color:#C0883A;font-weight:600}
+  .entry .when{font-size:13px;color:#8F6320;font-weight:600}
   .thumb{width:40px;height:auto;border-radius:4px;border:1px solid #DDCEAF;background:#fff;display:block}
-  .noflag{display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;font-size:11px;color:#A09074;background:#FCF6E7}
+  .noflag{display:flex;align-items:center;justify-content:center;aspect-ratio:3/2;font-size:11px;color:#7A6C56;background:#FCF6E7}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:8px;margin:10px 0 4px}
   .card{display:flex;align-items:center;gap:9px;background:#FFFCF4;border:1px solid #DDCEAF;border-radius:10px;padding:8px 10px;font-size:14px;color:#1F3A3C;text-decoration:none}
   a.card:hover{border-color:#C8B58C;color:#1F3A3C}
@@ -145,7 +145,7 @@ ${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndica
   .game{background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:12px 14px}
   .game h3 a{color:#1F3A3C;text-decoration:none}
   .game p{margin:2px 0 0;font-size:15px}
-  .cta{display:inline-block;margin:24px 0 4px;background:#C2735A;color:#FFFCF4;font-weight:700;padding:13px 22px;border-radius:12px;text-decoration:none}
+  .cta{display:inline-block;margin:24px 0 4px;background:#A85440;color:#FFFCF4;font-weight:700;padding:13px 22px;border-radius:12px;text-decoration:none}
   .cta:hover{color:#FFFCF4;filter:brightness(1.06)}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid #DDCEAF;font-size:13px;color:#5F726D}
   footer a{margin-right:14px;color:#5F726D}
