@@ -55,7 +55,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   {
     id: "nazi-germany", name: "Nazi Germany", era: "1935–1945", region: "Europe",
     flagUrl: fp("Flag_of_the_German_Reich_(1935–1945).svg"), relatedCode: "DE",
-    note: "The swastika flag became Germany's sole national flag in 1935. It was outlawed after WWII, and Germany returned to the black-red-gold of the Weimar era.",
+    note: "The swastika flag of the Nazi regime, which started the Second World War in Europe and carried out the Holocaust, became Germany's sole national flag in 1935. It was banned after the regime's defeat in 1945; its public display is banned in Germany outside education, art and research, and the country returned to the black-red-gold of the Weimar era.",
   },
   {
     id: "east-germany", name: "East Germany (GDR)", era: "1959–1990", region: "Europe",
@@ -321,7 +321,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   {
     id: "confederate", name: "Confederate States", era: "1861–1865", region: "Americas",
     flagUrl: fp("Flag_of_the_Confederate_States_(1861–1863).svg"), relatedCode: "US",
-    note: "The first national 'Stars and Bars' was so easily confused with the US flag in battle smoke that the separate square Battle Flag was created for the field.",
+    note: "The Confederate States were formed by eleven slave states that seceded from the United States in 1860–61 to preserve slavery. Their first national flag, the 'Stars and Bars', was so easily confused with the US flag in battle smoke that a separate square Battle Flag was created for the field.",
   },
   {
     id: "vermont-republic", name: "Vermont Republic", era: "1777–1791", region: "Americas",
@@ -1313,7 +1313,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   {
     id: "confederate-stainless", name: "Confederate States (Stainless Banner)", era: "1863–1865", region: "Americas",
     flagUrl: fp("Flag_of_the_Confederate_States_(1863–1865).svg"), relatedCode: "US",
-    note: "The Confederacy's second national flag placed the square Battle Flag canton on a white field. Critics warned that when hanging limp it could be mistaken for a flag of surrender.",
+    note: "The Confederacy's second national flag placed the square Battle Flag canton on a white field; its designer openly described the white as standing for white supremacy. Critics warned that when hanging limp it could be mistaken for a flag of surrender.",
   },
   {
     id: "confederate-bloodstained", name: "Confederate States (Blood-Stained Banner)", era: "1865", region: "Americas",
@@ -1323,7 +1323,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   {
     id: "confederate-battle", name: "Confederate Battle Flag", era: "1861–1865", region: "Americas",
     flagUrl: fp("Battle_flag_of_the_Confederate_States_of_America_(1-1).svg"), relatedCode: "US",
-    note: "The square blue Saint Andrew's cross with thirteen stars was carried by the Army of Northern Virginia. Never an official national flag, it later became the basis of the rectangular 'rebel flag'.",
+    note: "The square blue Saint Andrew's cross with thirteen stars was carried by the Army of Northern Virginia. Never an official national flag, it later became the basis of the rectangular 'rebel flag', which segregationists took up in the 20th century to oppose civil rights; it is widely seen today as a symbol of racism.",
   },
   {
     id: "second-mexican-empire", name: "Second Mexican Empire", era: "1864–1867", region: "Americas",

@@ -40,8 +40,19 @@ const { UK_NATIONS } = await data('ukNations.ts')
 const { CHALLENGE_CONTINENTS } = await data('challenges.ts')
 const { CHANGELOG, LAST_UPDATED, formatDate } = await data('changelog.ts')
 const { GAMES, GAME_COUNT } = await import(path.join(ROOT, 'src/ui/registry.ts'))
+const { FLAG_MEANINGS } = await data('flagMeanings.ts')
+const { FLAG_DETAILS } = await data('flagDetails.ts')
+const { neighborsOf } = await data('borders.ts')
+const { STATS } = await data('countryStats.ts')
+const { FLAG_ATTRIBS } = await data('flagAttribs.ts')
+const { FACTS } = await data('countryFacts.ts')
 
 const CAPITAL = new Map(CAPITALS.map(c => [c.code, c.capital]))
+const missingMeaning = FLAGS.filter(f => !FLAG_MEANINGS[f.code]).map(f => f.code)
+if (missingMeaning.length) {
+  console.error(`[prerender] no flag meaning in src/data/flagMeanings.ts for: ${missingMeaning.join(', ')}`)
+  process.exit(1)
+}
 const BY_CODE = new Map(FLAGS.map(f => [f.code, f]))
 const SUBREGIONS = new Map()
 for (const cont of CHALLENGE_CONTINENTS)
@@ -56,6 +67,16 @@ const years = (from, to) => to == null ? `${from}–present` : from === to ? `${
 const img = (src, alt, cls = 'thumb') => src
   ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" />`
   : `<span class="${cls} noflag">No flag</span>`
+// Rounded figures from src/data/countryStats.ts (millions of people, thousand km²).
+const people = m => m >= 10 ? `about ${Math.round(m)} million`
+  : m >= 1 ? `about ${String(Math.round(m * 10) / 10)} million`
+  : `about ${Number((m * 1e6).toPrecision(2)).toLocaleString('en')}`
+const km2 = a => {
+  const k = a * 1000
+  const r = k >= 100000 ? Math.round(k / 1000) * 1000 : k >= 1000 ? Math.round(k / 100) * 100 : Math.round(k)
+  return `about ${r.toLocaleString('en')} km²`
+}
+const list = xs => xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`
 const words = html => html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
 
 const NAV = [
@@ -78,7 +99,11 @@ const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
 
 // Shared <head> + chrome so every generated page is self-contained and styled
 // in the app's "Modern Cartographer" look (parchment, ink-teal, terracotta).
-function page({ title, description, canonical, body, noindex = false }) {
+// `ads: false` for utility pages (contact, 404) where an ad would sit on a page
+// with little content of its own; hate-symbol pages never get the script.
+const FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap'
+function page({ title, description, canonical, body, noindex = false, ads = true }) {
+  const adScript = ads && !noindex && !showsHateSymbol(body)
   return `<!doctype html>
 <html lang="en">
 <head>
@@ -98,10 +123,11 @@ ${canonical ? `<meta property="og:url" content="${canonical}" />` : ''}
 <meta property="og:image" content="${ORIGIN}/world-map.jpg" />
 <meta name="twitter:card" content="summary_large_image" />
 <script src="/analytics.js"></script>
-${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2216954143093824" crossorigin="anonymous"></script>'}
+${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2216954143093824" crossorigin="anonymous"></script>' : ''}
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap" rel="stylesheet" />
+<link rel="preload" as="style" href="${FONTS}" onload="this.onload=null;this.rel='stylesheet'" />
+<noscript><link rel="stylesheet" href="${FONTS}" /></noscript>
 <style>
   *{box-sizing:border-box}
   body{margin:0;font-family:Inter,system-ui,-apple-system,sans-serif;color:#1F3A3C;line-height:1.65;
@@ -124,10 +150,12 @@ ${showsHateSymbol(body) ? '' : '<script async src="https://pagead2.googlesyndica
   h3{font-size:18px;font-weight:700;margin:0 0 4px}
   p{margin:0 0 14px}
   .muted{color:#5F726D}
+  .small{font-size:13px}
+  .index{font-size:14px;line-height:1.9}
   .eyebrow{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#8F6320;margin-bottom:6px}
   .lead{font-size:17px}
   .hero{width:100%;max-width:360px;border-radius:10px;border:1px solid #DDCEAF;background:#fff;display:block;margin:18px 0}
-  .facts{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+  .facts{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
   .facts li{background:#FFFCF4;border:1px solid #DDCEAF;border-radius:10px;padding:9px 13px;font-size:14px}
   .facts b{display:block;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5F726D;font-weight:600}
   .entry{display:flex;gap:16px;align-items:flex-start;background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:14px;margin:0 0 12px;
@@ -196,9 +224,18 @@ function countryPage(flag) {
   const related = HISTORICAL_FLAGS.filter(h => h.relatedCode === flag.code || h.relatedCodes?.includes(flag.code))
   const territories = TERRITORIES[flag.code] ?? []
   const subs = (SUBREGIONS.get(flag.code) ?? []).filter(s => s.flagUrl && !s.noFlag)
+  const neighbours = neighborsOf(flag.code).map(c => BY_CODE.get(c)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name))
+  const stat = STATS[flag.code]
+  const colours = FLAG_ATTRIBS[flag.code]?.colors ?? []
+  const colourKey = c => [...(FLAG_ATTRIBS[c]?.colors ?? [])].sort().join('+')
+  const sameColours = colours.length ? FLAGS.filter(f => f.code !== flag.code && colourKey(f.code) === colourKey(flag.code))
+    .sort((a, b) => a.name.localeCompare(b.name)) : []
+  const current = history.find(h => h.toYear == null)
+  const geography = FACTS.landlocked.yes.includes(flag.code) ? 'Landlocked'
+    : FACTS.island.yes.includes(flag.code) ? 'Island nation' : null
   const title = `Flag of ${flag.name}: history, meaning & facts | Globalio`
   const description = (codex?.summary
-    ? `The flag of ${flag.name} and its history. ${codex.summary}`
+    ? `The flag of ${flag.name}, what it means and its history. ${codex.summary}`
     : `The flag of ${flag.name}: ${flag.distinguishingTip}`).slice(0, 300)
 
   const body = `
@@ -208,11 +245,19 @@ function countryPage(flag) {
 ${codex?.summary ? `<p class="lead">${esc(codex.summary)}</p>` : ''}
 <img class="hero" src="${esc(flag.flagUrl)}" width="360" height="240" alt="Flag of ${esc(flag.name)}" />
 <ul class="facts">
-  <li><b>Country</b>${esc(flag.name)}</li>
-  <li><b>Region</b>${esc(flag.region)}</li>
   ${capital ? `<li><b>Capital</b>${esc(capital)}</li>` : ''}
+  <li><b>Region</b>${esc(flag.region)}</li>
+  ${current ? `<li><b>Current flag since</b>${esc(current.fromYear)}</li>` : ''}
+  ${colours.length ? `<li><b>Main colours</b>${esc(colours.map(c => c[0].toUpperCase() + c.slice(1)).join(', '))}</li>` : ''}
+  ${stat ? `<li><b>Population</b>${esc(people(stat.pop))}</li><li><b>Area</b>${esc(km2(stat.area))}</li>` : ''}
+  ${geography ? `<li><b>Geography</b>${geography}</li>` : ''}
   ${history.length ? `<li><b>Flags in history</b>${history.length}</li>` : ''}
 </ul>
+${stat ? '<p class="muted small">Population and area are rounded.</p>' : ''}
+<h2>What the flag of ${esc(flag.name)} means</h2>
+<p>${esc(FLAG_MEANINGS[flag.code])}</p>
+${FLAG_DETAILS[flag.code] ? `<h2>More about the flag</h2>
+<p>${esc(FLAG_DETAILS[flag.code])}</p>` : ''}
 <h2>How to recognise it</h2>
 <p>${esc(flag.distinguishingTip)}</p>
 <h2>Did you know?</h2>
@@ -243,6 +288,16 @@ ${subs.length ? `<h2>Regional flags of ${esc(flag.name)}</h2>
 <p class="muted">The ${subs.length} states, provinces and regions of ${esc(flag.name)} with their own flags.</p>
 <div class="grid">
 ${subs.map(s => `<div class="card">${img(s.flagUrl, `Flag of ${s.name}`)} ${esc(s.name)}</div>`).join('\n')}
+</div>` : ''}
+${neighbours.length ? `<h2>Neighbouring countries</h2>
+<p class="muted">${esc(flag.name)} shares a land border with ${neighbours.length === 1 ? 'one country' : `${neighbours.length} countries`}: ${esc(list(neighbours.map(n => n.name)))}.</p>
+<div class="grid">
+${neighbours.map(c => `<a class="card" href="/flags/${slug(c.code)}/">${img(c.flagUrl, `Flag of ${c.name}`)} ${esc(c.name)}</a>`).join('\n')}
+</div>` : ''}
+${sameColours.length ? `<h2>Other flags in ${esc(list(colours))}</h2>
+<p class="muted">${sameColours.length === 1 ? 'One other national flag uses' : `${sameColours.length} other national flags use`} the same main colours as ${esc(flag.name)}'s.</p>
+<div class="grid">
+${sameColours.map(c => `<a class="card" href="/flags/${slug(c.code)}/">${img(c.flagUrl, `Flag of ${c.name}`)} ${esc(c.name)}</a>`).join('\n')}
 </div>` : ''}
 <a class="cta" href="/">Play Globalio and learn ${esc(flag.name)}'s flag</a>
 `
@@ -322,13 +377,16 @@ states that no longer exist, from medieval kingdoms and colonial empires to Cold
 that lasted only a few years.</p>
 <p>For the flags each modern country has flown over time, open that country's page in the
 <a href="/flags/">country flag index</a>.</p>
-<div class="games">
+<p>Each entry gives the years the state existed, the flag it flew and a short note on what happened to it,
+with links to the modern countries that cover its territory today. Some of these flags belonged to
+regimes responsible for war, slavery or genocide. They are included because they are part of history,
+and their notes say so plainly. Pages that show flags now used as hate symbols, such as the Nazi swastika
+flag and the Confederate battle flag, carry no advertising.</p>
 ${HIST_REGIONS.map(r => {
     const items = HISTORICAL_FLAGS.filter(h => h.region === r)
-    return `<div class="game"><h3><a href="/historical/${slug(r)}/">${esc(r)}</a></h3>
-<p>${items.length} states, including ${items.slice(0, 4).map(h => esc(h.name)).join(', ')} and more.</p></div>`
+    return `<h2><a href="/historical/${slug(r)}/">${esc(r)}</a> <span class="muted" style="font-size:15px;font-weight:400">(${items.length})</span></h2>
+<p class="index">${items.map(h => `<a href="/historical/${slug(r)}/#${esc(h.id)}">${esc(h.name)}</a>`).join(' · ')}</p>`
   }).join('\n')}
-</div>
 <a class="cta" href="/?play=historical">Play the historical flags quiz</a>
 `
   return page({
@@ -380,10 +438,15 @@ function identityHub() {
 <h1>Identity flags</h1>
 <p class="lead">Not every flag belongs to a country. These ${IDENTITY_FLAGS.length} flags represent communities,
 peoples, movements and would-be nations.</p>
-<div class="games">
-${ID_CATS.map(c => `<div class="game"><h3><a href="/identity/${slug(c)}/">${esc(c)}</a></h3>
-<p>${esc(ID_INTRO[c] ?? '')} (${IDENTITY_FLAGS.filter(f => f.category === c).length} flags)</p></div>`).join('\n')}
-</div>
+<p>Each flag comes with a short note on who flies it and what its colours and symbols stand for. Including
+a flag here describes it; it does not endorse the cause behind it. Separatist and micronation flags are
+listed whether or not any government recognises them.</p>
+${ID_CATS.map(c => {
+    const items = IDENTITY_FLAGS.filter(f => f.category === c).sort(byTier)
+    return `<h2><a href="/identity/${slug(c)}/">${esc(c)}</a> <span class="muted" style="font-size:15px;font-weight:400">(${items.length})</span></h2>
+<p>${esc(ID_INTRO[c] ?? '')}</p>
+<p class="index">${items.map(f => `<a href="/identity/${slug(c)}/#${esc(f.id)}">${esc(f.name)}</a>`).join(' · ')}</p>`
+  }).join('\n')}
 <a class="cta" href="/?play=identity">Play the identity flags quiz</a>
 `
   return page({
@@ -404,7 +467,7 @@ const GROUP_INTRO = {
   'Sharp Recall': 'Fast-paced quizzes that test what you remember.',
   'Loremaster': 'History, language and trivia for people who want to go deeper.',
   'Challenge': 'Long-form tests for when you think you know them all.',
-  'Beta Sandbox': 'Newer and experimental games that are still being polished.',
+  'More games': 'Quick extra games, from the daily Flagle puzzle to American city flags.',
 }
 const GAME_DESC = {
   flags: 'Browse and study flag sets for every country, plus historical states and identity flags, and track which ones you have mastered.',
@@ -463,7 +526,7 @@ const GAME_DESC = {
 
 function gamesPage() {
   const games = GAMES
-  const groups = [...new Set(games.map(e => e.sandbox ? 'Beta Sandbox' : e.group))]
+  const groups = [...new Set(games.map(e => e.sandbox ? 'More games' : e.group))]
   const body = `
 <div class="crumbs"><a href="/">Home</a> › Games</div>
 <h1>Every Globalio game</h1>
@@ -473,7 +536,7 @@ ${groups.map(g => `
 <h2>${esc(g)}</h2>
 <p class="muted">${esc(GROUP_INTRO[g] ?? '')}</p>
 <div class="games">
-${games.filter(e => (e.sandbox ? 'Beta Sandbox' : e.group) === g).map(e => `<div class="game">
+${games.filter(e => (e.sandbox ? 'More games' : e.group) === g).map(e => `<div class="game">
   <h3><a href="/?play=${esc(e.id)}">${esc(e.title)}</a></h3>
   <p>${esc(GAME_DESC[e.id] ?? e.subtitle)}</p>
 </div>`).join('\n')}
@@ -495,7 +558,8 @@ function aboutPage() {
   const body = `
 <div class="crumbs"><a href="/">Home</a> › About</div>
 <h1>About Globalio</h1>
-<p class="lead">Globalio is a free flag and geography game made by one person who loves flags.</p>
+<p class="lead">Globalio is a free flag and geography game made by Sean Joudrie, an independent developer
+in the United States who loves flags.</p>
 <p>It started as a way to learn every country's flag and grew into something much bigger. Today
 Globalio covers the flags of all ${FLAGS.length} countries, ${totalSubs.toLocaleString('en')} state, province and regional
 flags, ${HISTORICAL_FLAGS.length} historical states and empires, and ${IDENTITY_FLAGS.length} identity flags, including pride
@@ -510,17 +574,31 @@ something different.</p>
 <p><b>Read the archive.</b> Every <a href="/flags/">country page</a> tells the story of that country's flags
 through history. The <a href="/historical/">historical</a> and <a href="/identity/">identity</a> archives cover
 flags you won't find on a list of countries.</p>
+<h2>How the archive is made</h2>
+<p>Each country page brings together the current flag, a note on what its colours and symbols mean, the
+flags that flew there before it, the historical states that once covered its land, its territories and
+its regional flags. The descriptions are written for Globalio, and facts are checked against Wikipedia,
+Wikimedia Commons and official government sources. Where a meaning is only traditional or popular rather than official, the page says so.</p>
+<p>Flag images come from Wikimedia Commons and are served from Globalio's own server, so pages load
+quickly and don't break when a file is renamed upstream. The archive grows every month; the
+<a href="/whats-new/">what's new</a> page lists each change.</p>
+<h2>Difficult flags</h2>
+<p>Some historical flags belonged to regimes responsible for war, slavery or genocide, and a few, such as
+the Nazi swastika flag and the Confederate battle flag, are used as hate symbols today. They appear only
+in their historical context, with notes that say what they stood for, and pages that show them carry no
+advertising. Identity and separatist flags are described, not endorsed.</p>
 <h2>Accuracy</h2>
 <p>We do our best to get every flag, name and date right, but we're not an official reference and
 mistakes can slip through. If you spot one, please <a href="/contact/">let us know</a> and we'll fix it.</p>
 <h2>Free to play</h2>
-<p>Globalio is free, with no account or sign-up. It may show ads to cover its running costs.
-See the <a href="/privacy.html">privacy policy</a> for details.</p>
+<p>Globalio is free, with no account or sign-up, and your progress is saved only on your own device.
+It may show ads to cover its running costs. Ads appear only as labelled banners in the page, never in
+pop-ups or over a game. See the <a href="/privacy.html">privacy policy</a> for details.</p>
 <a class="cta" href="/">Play Globalio</a>
 `
   return page({
     title: 'About Globalio | Globalio',
-    description: 'Globalio is a free flag and geography game made by one person, covering every country, regional, historical and identity flag.',
+    description: 'Globalio is a free flag and geography game made by Sean Joudrie, covering every country, regional, historical and identity flag, with how the archive is researched.',
     canonical: `${ORIGIN}/about/`,
     body,
   })
@@ -531,19 +609,26 @@ function contactPage() {
 <div class="crumbs"><a href="/">Home</a> › Contact</div>
 <h1>Contact</h1>
 <p class="lead">Questions, ideas, bug reports or a flag we got wrong: we'd love to hear from you.</p>
-<p>Email <a href="mailto:${CONTACT_EMAIL}?subject=Globalio">${CONTACT_EMAIL}</a>. Globalio is run by one person
-who reads every message.</p>
+<p>Email <a href="mailto:${CONTACT_EMAIL}?subject=Globalio">${CONTACT_EMAIL}</a>. Globalio is made by Sean Joudrie,
+an independent developer in the United States, who reads every message himself.</p>
 <h2>Reporting a flag correction</h2>
-<p>Please include the flag's name, what looks wrong, and a link to a source if you have one. Corrections
-are usually fixed within a few days.</p>
+<p>Please include the flag's name, the page or game where you saw it, what looks wrong, and a link to a
+source if you have one, such as a government website or the flag's Wikipedia article. Corrections are
+usually fixed within a few days and listed on the <a href="/whats-new/">what's new</a> page.</p>
+<h2>Bugs and game ideas</h2>
+<p>If a game misbehaves, say which game it was, what you tapped, and which phone or browser you were
+using; a screenshot helps. Ideas for new games, flags or archive pages are always welcome.</p>
 <h2>Privacy requests</h2>
-<p>For anything about your data, see the <a href="/privacy.html">privacy policy</a> or email the address above.</p>
+<p>Globalio has no accounts, so there is no profile to look up: your game progress lives only in your own
+browser. For anything about cookies, ads or analytics, see the <a href="/privacy.html">privacy policy</a>
+or email the address above.</p>
 `
   return page({
     title: 'Contact Globalio | Globalio',
-    description: 'Get in touch with Globalio: questions, ideas, bug reports and flag corrections.',
+    description: 'Get in touch with Globalio: questions, game ideas, bug reports, flag corrections and privacy requests. Email sjoudrie@gmail.com.',
     canonical: `${ORIGIN}/contact/`,
     body,
+    ads: false,
   })
 }
 

@@ -512,7 +512,7 @@ const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
       toYear: 1945,
       flagUrl: fp('Flag_of_the_German_Reich_(1935–1945).svg'),
       label: 'Nazi Germany',
-      note: 'The 1935 Reich Flag Law made the swastika banner the sole national flag of Nazi Germany. A dark chapter of history, it was abolished by the Allies after the regime\'s defeat in 1945.',
+      note: 'The 1935 Reich Flag Law made the swastika banner the sole national flag of Nazi Germany, the regime that started the Second World War in Europe and carried out the Holocaust. The Allies abolished it after the regime\'s defeat in 1945, and its public display is banned in Germany today outside education, art and research.',
     },
     {
       fromYear: 1933,
@@ -1660,16 +1660,22 @@ const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
 
   SY: [
     {
-      fromYear: 1980, toYear: null,
+      fromYear: 2024, toYear: null,
       flagUrl: '/flags/sy.svg',
       label: 'Syrian Arab Republic (current)',
-      note: 'Syria\'s current flag — red, white, and black horizontal stripes with two green stars — was readopted in 1980 after Syria\'s federation with Egypt and Libya ended. The two stars represent Syria and Egypt, a nod to the failed United Arab Republic of 1958–1961. This flag is simultaneously a symbol of Ba\'athist Arab nationalism and — because it was also used by the independence-era republic — was adopted by opposition forces during the 2011 civil war as an alternative to the Ba\'ath flag.',
+      note: 'The green-white-black independence flag with three red stars returned as Syria\'s national flag after the fall of Bashar al-Assad in December 2024, and was confirmed by the constitutional declaration of March 2025. Opposition forces had flown it since the 2011 uprising as the flag of the pre-Ba\'ath republic.',
     },
     {
-      fromYear: 1963, toYear: 1980,
+      fromYear: 1980, toYear: 2024,
+      flagUrl: fp('Flag_of_the_United_Arab_Republic_(1958–1971),_Flag_of_Syria_(1980–2024).svg'),
+      label: 'Ba\'athist Syria (two stars)',
+      note: 'In 1980, after the Federation of Arab Republics with Egypt and Libya ended, Syria readopted the red-white-black flag with two green stars first used by the United Arab Republic of 1958–1961, when the stars stood for Syria and Egypt. It flew under Hafez and Bashar al-Assad until the regime fell in December 2024.',
+    },
+    {
+      fromYear: 1963, toYear: 1972,
       flagUrl: fp('Flag_of_Syria_(1963–1972).svg'),
       label: 'Ba\'ath Party Syria',
-      note: 'After the Ba\'ath coup of 1963, Syria adopted a pan-Arab tricolor with three red stars representing the hoped-for union of Syria, Egypt, and Iraq. Between 1972 and 1980, Syria joined a Federation of Arab Republics with Egypt and Libya, using a flag with the Hawk of Quraish. When that federation dissolved, Syria returned to the two-star design now in use.',
+      note: 'After the Ba\'ath coup of 1963, Syria adopted a pan-Arab tricolor with three red stars representing the hoped-for union of Syria, Egypt, and Iraq. Between 1972 and 1980, Syria joined a Federation of Arab Republics with Egypt and Libya, using a flag with the Hawk of Quraish. When that federation dissolved, Syria returned to the two-star design of the United Arab Republic.',
     },
     {
       fromYear: 1958, toYear: 1961,
@@ -1681,7 +1687,7 @@ const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
       fromYear: 1946, toYear: 1958,
       flagUrl: fp('Flag_of_Syria_(1930–1958,_1961–1963).svg'),
       label: 'Syrian Republic (independence era)',
-      note: 'When France\'s League of Nations mandate ended and Syria gained full independence in 1946, it flew this green-white-black tricolor with three red stars representing the three territories united as Syria: Damascus, Aleppo, and Deir ez-Zor (the Jabal al-Druze). This was Syria\'s flag at the time of independence and remained so until the ill-fated union with Egypt.',
+      note: 'When France\'s League of Nations mandate ended and Syria gained full independence in 1946, it flew this green-white-black tricolor with three red stars, first used under the mandate in 1932; the stars originally stood for three regions of the country. This was Syria\'s flag at the time of independence and remained so until the union with Egypt, and it returned from 1961 to 1963 and again in 2024.',
     },
     {
       fromYear: 1920, toYear: 1920,
@@ -1696,7 +1702,7 @@ const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
       fromYear: 2011, toYear: null,
       flagUrl: '/flags/ly.svg',
       label: 'Restored Independence Flag',
-      note: 'After Muammar Gaddafi\'s regime fell in the 2011 civil war, Libya restored the flag of the original Kingdom of Libya — a black-red-green horizontal tricolor with a white crescent and star at the centre. The black represents the Cyrenaica region, red the blood of martyrs, and green the Fezzan region. Adopted originally in 1951, this flag had been suppressed for 42 years by Gaddafi\'s all-green design.',
+      note: 'After Muammar Gaddafi\'s regime fell in the 2011 civil war, Libya restored the flag of the original Kingdom of Libya — a red-black-green horizontal tricolour with a white crescent and star at the centre. The black centre band comes from the banner of the Senussi order of Cyrenaica, and the three bands are often linked to the regions of Fezzan (red), Cyrenaica (black) and Tripolitania (green). Adopted originally in 1951, this flag had been suppressed for 42 years by Gaddafi\'s all-green design.',
     },
     {
       fromYear: 1977, toYear: 2011,
@@ -4304,6 +4310,33 @@ const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
       note: "A Barbary corsair pirate republic on the Atlantic coast, run by Moriscos expelled from Spain who raided shipping across the seas.",
     },
   ],
+  TW: [
+    {
+      fromYear: 1945, toYear: null,
+      flagUrl: '/flags/tw.svg',
+      label: 'Flag of the Republic of China',
+      note: 'The Republic of China adopted the "Blue Sky, White Sun and a Wholly Red Earth" as its national flag in 1928. It has flown over Taiwan since the island was handed to the Republic of China at the end of the Second World War in 1945, and the government moved there in 1949 after losing the Chinese Civil War.',
+    },
+    {
+      fromYear: 1895, toYear: 1945,
+      flagUrl: '/flags/jp.svg',
+      label: 'Japanese rule',
+      note: 'After its defeat in the First Sino-Japanese War, the Qing dynasty ceded Taiwan to Japan in the Treaty of Shimonoseki of 1895. The island was a Japanese colony for fifty years, until Japan\'s surrender in 1945.',
+    },
+    {
+      fromYear: 1895, toYear: 1895,
+      flagUrl: fp('Flag_of_the_Republic_of_Formosa_(1895).svg'),
+      label: 'Republic of Formosa',
+      note: 'Local officials declared the Republic of Formosa in May 1895 to resist the handover to Japan, under a blue flag with a yellow tiger. Japanese forces took the island and the republic collapsed that October.',
+    },
+    {
+      fromYear: 1889, toYear: 1895,
+      flagUrl: fp('Flag_of_the_Qing_dynasty_(1889-1912).svg'),
+      label: 'Qing dynasty',
+      note: 'Taiwan was made a province of the Qing Empire in 1887. The rectangular Yellow Dragon Flag, a blue dragon chasing a red pearl, became the Qing national flag in 1889 and flew until the island was ceded to Japan.',
+    },
+  ],
+
   MR: [
     {
       fromYear: 2017,

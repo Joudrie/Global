@@ -131,7 +131,7 @@ export const FLAG_ATTRIBS: Record<string, FlagAttribs> = {
   PS: a(['black','white','green','red'], false, false, false, false, false ), // Palestine
   QA: a(['red','white'],               false, false, false, false, false ), // Qatar
   SA: a(['green','white'],             false, false, false, true,  false ), // Saudi Arabia
-  SY: a(['red','white','black','green'], true, false, true,  false, false ), // Syria
+  SY: a(['green','white','black','red'], true, false, true,  false, false ), // Syria
   TR: a(['red','white'],               false, false, true,  true,  false ), // Turkey
   AE: a(['red','green','white','black'], false, false, false, false, false ), // UAE
   YE: a(['red','white','black'],       true,  false, false, false, false ), // Yemen
