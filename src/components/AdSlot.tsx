@@ -2,9 +2,10 @@ import { useEffect, useRef } from "react"
 import { ADSENSE_CLIENT, ADS_ENABLED } from "../ads"
 import { isSupporter } from "../utils/storage"
 
-// The AdSense library is loaded globally from index.html's <head>. If for some
-// reason it isn't present (e.g. a page without that tag), inject it once — and
-// never add a duplicate if it's already there.
+// The app's index.html deliberately doesn't load the AdSense library, so Auto
+// ads never place anything inside a game. The first configured slot injects it
+// once, without the ?client= parameter that would switch on Auto ads for the
+// whole page: only these labelled, inline units show.
 let scriptRequested = false
 function ensureAdScript() {
   if (scriptRequested || typeof document === "undefined") return
@@ -12,7 +13,7 @@ function ensureAdScript() {
   if (document.querySelector('script[src*="adsbygoogle.js"]')) return
   const s = document.createElement("script")
   s.async = true
-  s.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${ADSENSE_CLIENT}`
+  s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"
   s.crossOrigin = "anonymous"
   document.head.appendChild(s)
 }
