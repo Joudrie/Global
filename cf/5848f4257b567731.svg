@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="900" height="600">
+<clipPath id="co">
+<path id="q1" d="M-125,-125H125V125H-125z"/>
+<use xlink:href="#q1" transform="rotate(45)"/>
+</clipPath>
+<clipPath id="cw">
+<circle cx="45.5" r="42" transform="rotate(30)"/>
+</clipPath>
+<rect width="900" height="600" fill="#007fff"/>
+<path d="M0,300H900M450,0V600" stroke="#eba857" stroke-width="75"/>
+<path d="M0,300H900M450,0V600" stroke="#150d4d" stroke-width="25"/>
+<g transform="translate(450,300)">
+<path d="M-150,-150H150V150H-150z" fill="#eba857"/>
+<path id="q2" d="M-120,-120H120V120H-120z" fill="#fff"/>
+<use xlink:href="#q2" transform="rotate(45)"/>
+<g clip-path="url(#co)" fill="none" stroke="#150d4d" stroke-width="25">
+<path id="qr" d="M-112.5,-112.5H112.5V112.5H-112.5z"/>
+<use xlink:href="#qw" transform="rotate(45)"/>
+<use xlink:href="#qr" transform="rotate(45)"/>
+<path id="qw" d="M10,-112.5H80M112.5,10V80M-10,112.5H-80M-112.5,-10V-80" stroke="#fff" stroke-width="30"/>
+<path d="M0,-112.5H90M112.5,0V90M0,112.5H-90M-112.5,0V-90"/>
+</g>
+<g id="w4" fill="#eba857">
+<path id="w" d="M0,0A42,42 0 1,0 84,0V70H-10V0z" clip-path="url(#cw)"/>
+<use xlink:href="#w" transform="rotate(90)"/>
+<use xlink:href="#w" transform="rotate(180)"/>
+<use xlink:href="#w" transform="rotate(270)"/>
+</g>
+<use xlink:href="#w4" transform="rotate(45)"/>
+</g>
+</svg>

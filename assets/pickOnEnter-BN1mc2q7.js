@@ -1,0 +1,1 @@
+function e(e,t){let n=t.trim().toLowerCase();if(n)return e.find(e=>e.name.toLowerCase()===n)??(e.length===1?e[0]:void 0)}export{e as t};

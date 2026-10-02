@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="800"
+   height="500"
+   viewBox="0 0 750.00002 468.74998"
+   id="svg4145"
+   version="1.1"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   sodipodi:docname="Kachin_People_Flag.svg"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs4147" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.70710678"
+     inkscape:cx="176.06959"
+     inkscape:cy="248.19448"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     units="px"
+     inkscape:window-width="1536"
+     inkscape:window-height="792"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:document-rotation="0"
+     inkscape:pagecheckerboard="0" />
+  <metadata
+     id="metadata4150">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(0,-909.36218)">
+    <path
+       id="rect3220"
+       style="fill:#e51717;stroke-width:13.3446;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
+       d="M 0,909.36218 H 750 V 1378.1122 H 0 Z" />
+    <path
+       id="rect3218"
+       style="fill:#088130;stroke-width:9.41243;stroke-linecap:round;stroke-linejoin:round;fill-opacity:1"
+       d="m 0,1143.7372 h 750 v 234.375 H 0 Z" />
+    <path
+       id="path1533-8"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:2.79767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 240.58732,979.67463 215.3341,227.19407 5.93,-5.9301 3.9691,15.8293 53.4562,53.456 19.7858,3.9727 -33.6032,33.6031 -3.9725,-19.7858 -53.4562,-53.4562 -15.8291,-3.9692 5.93,-5.93 -227.19404,-215.3339 c 14.53384,-4.4618 26.00845,-15.88257 29.64984,-29.64997 z"
+       sodipodi:nodetypes="ccccccccccccc" />
+    <path
+       id="path1533"
+       style="fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:2.79767px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       d="m 509.41264,979.67463 -215.33408,227.19407 -5.92996,-5.9301 -3.96917,15.8293 -53.45617,53.456 -19.78576,3.9727 33.60317,33.6031 3.97249,-19.7858 53.4562,-53.4562 15.8291,-3.9692 -5.92997,-5.93 227.19401,-215.3339 c -14.53385,-4.4618 -26.00846,-15.88257 -29.64986,-29.64997 z"
+       sodipodi:nodetypes="ccccccccccccc" />
+  </g>
+</svg>

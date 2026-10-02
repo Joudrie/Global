@@ -1,0 +1,14 @@
+<?xml version="1.0" standalone="no"?>
+<!DOCTYPE svg>
+<svg 
+	version="1.1" 
+	baseProfile="full" 
+	xmlns:ev="http://www.w3.org/2001/xml-events" 
+	xmlns:xlink="http://www.w3.org/1999/xlink" 
+	xmlns="http://www.w3.org/2000/svg" 
+  id="Flag of Burgundy"
+  width="900" height="600">
+	<rect height="200" width="900" x="0" y="0" style="fill:#ed0d0d" />
+	<rect height="200" width="900" x="0" y="200" style="fill:white" />
+	<rect height="200" width="900" x="0" y="400" style="fill:#ed0d0d" />
+</svg>

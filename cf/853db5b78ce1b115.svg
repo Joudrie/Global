@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg width="1200" height="800" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+ <rect width="1200" height="800" fill="#d7141a"/>
+ <rect y="100" width="1200" height="600" fill="#fff"/>
+ <rect y="200" width="1200" height="400" fill="#11457e"/>
+ <g id="b">
+  <path id="a" d="m757.43 428 18.069-56 18.069 56-47.569-35h59" fill="#fff"/>
+  <use transform="translate(-175 -100)" xlink:href="#a"/>
+ </g>
+ <use transform="translate(-175 100)" xlink:href="#b"/>
+</svg>

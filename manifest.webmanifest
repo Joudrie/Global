@@ -1,0 +1,17 @@
+{
+  "name": "Globalio — Learn Every Flag in the World",
+  "short_name": "Globalio",
+  "description": "A beautiful flag & geography game with 50+ ways to play — daily challenges, quizzes, and a 2,000-flag codex.",
+  "start_url": "/Global/",
+  "scope": "/Global/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FBF4E4",
+  "theme_color": "#FBF4E4",
+  "categories": ["games", "education", "trivia"],
+  "icons": [
+    { "src": "/Global/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" },
+    { "src": "/Global/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
+    { "src": "/Global/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}
