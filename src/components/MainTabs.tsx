@@ -9,7 +9,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { groupsFor, REGISTRY, GAME_COUNT, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
-import { LineIcon, FlameIcon, ChevronDownIcon, FlaskIcon, SearchIcon, ShuffleIcon, CompassIcon, SparklesIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon } from "./icons"
+import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, SparklesIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon } from "./icons"
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
@@ -29,6 +29,8 @@ interface Props {
   onStartDaily: () => void
   onReverseQuiz: () => void
   onSetUsername: (name: string) => void
+  /** First-run welcome card, shown at the top of Today until dismissed. */
+  intro?: ReactNode
 }
 
 const dayIdx = Math.floor(Date.now() / 86400000)
@@ -55,7 +57,7 @@ function pushRecent(id: string) {
   } catch { /* ignore */ }
 }
 
-export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, onStartDaily, onReverseQuiz, onSetUsername }: Props) {
+export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, onStartDaily, onReverseQuiz, onSetUsername, intro }: Props) {
   const today = todayString()
   const dailyDone = state.lastDailyDate === today
   // Deep-link target for the embedded Codex (e.g. Flag of the Day → its entry).
@@ -102,7 +104,7 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
         {tab === "today" && (
           <TodayTab state={state} dailyDone={dailyDone} launch={launch}
             onNavigate={onNavigate} onGoCodex={goCodex} onGoPlay={() => onTab("play")}
-            onStartDaily={onStartDaily} />
+            onStartDaily={onStartDaily} intro={intro} />
         )}
         {tab === "play" && <PlayTab launch={launch} state={state} />}
         {tab === "codex" && (
@@ -123,9 +125,10 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
    Flag of the Day · the Arcade · a daily fact), then a charged-up Quick Play,
    the two daily rituals as poster tiles, jump-back-in, and the learning
    resume. Every road leads to Play — or the Codex. ───────────────────────── */
-function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, onStartDaily }: {
+function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, onStartDaily, intro }: {
   state: AppState; dailyDone: boolean; launch: (e: Entry) => void
   onNavigate: (s: string) => void; onGoCodex: (code?: string) => void; onGoPlay: () => void; onStartDaily: () => void
+  intro?: ReactNode
 }) {
   const fotd = FLAGS[dayIdx % FLAGS.length]
   const dyk = FLAGS[(dayIdx * 7 + 3) % FLAGS.length]
@@ -149,6 +152,8 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
 
   return (
     <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+      {intro}
+
       {/* Hero deck opens the page (the streak chip lives in the header above).
           Ordered to funnel into Play first, then the Codex, World Cup, Flag of
           the Day, an advertise slot and a daily fact. Swipe; it loops. */}
@@ -156,7 +161,7 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
         { accent: ACCENT.challenge, eyebrow: "The Arcade", title: `${gameCount} games await`,
           body: "A swipeable trending deck, fresh picks daily, every shelf one tap from play.",
           cta: "Open the Arcade", onClick: onGoPlay, art: flagFan },
-        { accent: T.cyan, eyebrow: "The Codex", title: "Explore 4,000+ flags",
+        { accent: T.cyan, eyebrow: "The Codex", title: "Explore 4,500+ flags",
           body: "Every country, region, historical and identity flag — tap any one to dig into its story.",
           cta: "Open the Codex", onClick: () => onGoCodex(),
           art: (
@@ -731,12 +736,11 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
           <button onClick={() => setSandboxOpen(o => !o)} className="geo-tap" aria-expanded={sandboxOpen}
             style={{ width: "100%", display: "flex", alignItems: "center", gap: 10, padding: "12px 14px",
               borderRadius: 12, background: T.surfaceHi, border: `1px dashed ${T.lineHi}`, textAlign: "left" }}>
-            <span style={{ display: "flex", color: T.muted }}><FlaskIcon size={18} color={T.muted} strokeWidth={1.6} /></span>
+            <span style={{ display: "flex", color: T.muted }}><ShuffleIcon size={18} color={T.muted} strokeWidth={1.6} /></span>
             <div style={{ flex: 1 }}>
-              <div className="geo-display" style={{ fontWeight: 600, fontSize: 14, color: T.text }}>Beta Sandbox</div>
-              <div style={{ color: T.muted, fontSize: 10.5, marginTop: 1 }}>{sandbox.length} experimental & niche games</div>
+              <div className="geo-display" style={{ fontWeight: 600, fontSize: 14, color: T.text }}>More games</div>
+              <div style={{ color: T.muted, fontSize: 10.5, marginTop: 1 }}>{sandbox.length} more quick games</div>
             </div>
-            <span className="geo-micro" style={{ fontSize: 8, color: T.muted, padding: "3px 8px", borderRadius: 999, border: `1px solid ${T.lineHi}` }}>beta</span>
             <span style={{ display: "flex", color: T.muted, transform: sandboxOpen ? "rotate(180deg)" : "none", transition: "transform 0.28s cubic-bezier(0.2,0.7,0.2,1)" }}>
               <ChevronDownIcon size={18} color={T.muted} strokeWidth={1.6} />
             </span>

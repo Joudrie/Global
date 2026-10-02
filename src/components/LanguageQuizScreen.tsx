@@ -13,6 +13,18 @@ type Phase = "menu" | "quiz" | "result"
 
 const ACC = ACCENT.play
 
+// Historic-script webfonts (cuneiform, hieroglyphs, Gothic, Coptic) so ancient
+// languages render on every device. Only this game needs them, so they load
+// here, once, instead of on every page of the site.
+const HISTORIC_FONTS = "https://fonts.googleapis.com/css2?family=Noto+Sans+Cuneiform&family=Noto+Sans+Egyptian+Hieroglyphs&family=Noto+Sans+Gothic&family=Noto+Sans+Coptic&display=swap"
+function loadHistoricFonts() {
+  if (document.querySelector(`link[href="${HISTORIC_FONTS}"]`)) return
+  const link = document.createElement("link")
+  link.rel = "stylesheet"
+  link.href = HISTORIC_FONTS
+  document.head.appendChild(link)
+}
+
 // Build 3 distractors. We pull from ALL languages and strongly prefer the SAME writing
 // system as the target, so you can't win just by recognising the alphabet.
 function getChoices(target: LanguageRecord, all: LanguageRecord[], seed: string): LanguageRecord[] {
@@ -61,6 +73,7 @@ export default function LanguageQuizScreen({ onBack }: Props) {
   const [answers, setAnswers] = useState<("correct" | "wrong")[]>([])
   const [selected, setSelected] = useState<number | null>(null)
   const [showRoman, setShowRoman] = useState(false)
+  useEffect(loadHistoricFonts, [])
 
   const TOTAL = 10
 

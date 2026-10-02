@@ -1,6 +1,5 @@
-﻿import { useState, useCallback, useEffect, useRef, lazy, Suspense, Component } from "react"
+﻿import { useState, useCallback, useEffect, useLayoutEffect, useRef, lazy, Suspense, Component } from "react"
 import type { ReactNode } from "react"
-import SplashScreen from "./components/SplashScreen"
 import Onboarding, { hasOnboarded } from "./components/Onboarding"
 import MainTabs from "./components/MainTabs"
 import { REGISTRY } from "./ui/registry"
@@ -264,6 +263,16 @@ export default function App() {
     else setScreen(link ? link as Screen : "home")
   }, [startDaily, startQuickPlay, startReverseQuiz])
 
+  // Open straight onto the dashboard (or a ?play= deep link) before the first
+  // paint. There used to be a 1.6-second logo splash here; it held back the
+  // page for every visitor and crawler, so it's gone.
+  const booted = useRef(false)
+  useLayoutEffect(() => {
+    if (booted.current) return
+    booted.current = true
+    finishSplash()
+  }, [finishSplash])
+
   const handleQuizFinish = useCallback((answers: ("correct" | "wrong")[]) => {
     if (!activeQuiz) return
     const score = answers.filter(a => a === "correct").length
@@ -296,9 +305,6 @@ export default function App() {
 
   return (
     <div style={{ background: T.bg, minHeight: "100vh" }}>
-      {/* First-run intro — shows once after the splash, skippable */}
-      {screen !== "splash" && showIntro && <Onboarding onDone={() => setShowIntro(false)} />}
-
       {/* Persistent home logo — fixed top-right on every screen except splash/home.
           Tapping it always jumps back to the home page. On phones it's hidden
           (see .geo-home-pill in index.css): it sat on top of the score, round
@@ -325,12 +331,11 @@ export default function App() {
         </button>
       )}
 
-      {screen === "splash" && <SplashScreen onDone={finishSplash} />}
-
       <ScreenErrorBoundary>
       <Suspense fallback={<ScreenFallback />}>
       {screen === "home" && (
         <MainTabs state={appState} tab={tab} onTab={setTab}
+          intro={showIntro ? <Onboarding onDone={() => setShowIntro(false)} /> : null}
           onNavigate={(s) => setScreen(s as Screen)}
           onQuickPlay={startQuickPlay} onStartDaily={startDaily} onReverseQuiz={startReverseQuiz}
           onSetUsername={name => setAppState(s => ({ ...s, username: name }))} />

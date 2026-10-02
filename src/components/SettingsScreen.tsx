@@ -9,6 +9,18 @@ import { exportProgress, importProgress } from "../utils/backup"
 
 interface Props { onBack: () => void; onMegaCodex: () => void; onFlagCheck: () => void }
 
+// The creator's own tools (the ad-free unlock and the flag QA list) stay out of
+// sight for players: they show in dev builds, or after opening the site once
+// with ?creator in the address, which this device then remembers.
+const CREATOR_KEY = "globalio_creator"
+function creatorTools(): boolean {
+  if (import.meta.env.DEV) return true
+  try {
+    if (new URLSearchParams(window.location.search).has("creator")) localStorage.setItem(CREATOR_KEY, "1")
+    return localStorage.getItem(CREATOR_KEY) === "1"
+  } catch { return false }
+}
+
 // Creator unlock — typing the passcode flips on the Supporter flag locally,
 // which hides every ad on this device. Reloads so ad components re-read it.
 function CreatorUnlock() {
@@ -71,6 +83,7 @@ function restoreProgress() {
 }
 
 export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Props) {
+  const [creator] = useState(creatorTools)
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
       <ScreenHeader title="Settings" subtitle="Progress, support & feedback" onBack={onBack} />
@@ -102,13 +115,13 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
         </div>
 
         {/* Creator unlock — enter the passcode to turn ads off on this device */}
-        <CreatorUnlock />
+        {creator && <CreatorUnlock />}
 
         {/* Replay the first-run intro (clears the flag and reloads) */}
         <button onClick={() => { try { localStorage.removeItem("globalio_onboarded") } catch { /* ignore */ } window.location.reload() }}
           className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
           style={{ background: 'transparent', border: `1px dashed ${T.line}`, color: T.dim }}>
-          <span className="inline-flex items-center justify-center gap-2">🌍 Replay intro</span>
+          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="intro" size={14} color={T.dim} /> Replay intro</span>
         </button>
 
         {/* Feedback — opens the user's mail app, pre-addressed to the dev */}
@@ -118,7 +131,7 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
           <span className="inline-flex items-center justify-center gap-2"><LineIcon name="historical" size={15} color={ACCENT.learn} /> Send feedback or ideas</span>
         </a>
         <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
-          i'm a one-man operation, so i genuinely read every message — thanks for playing, and i'll do my best to make it happen 💛
+          i'm a one-man operation, so i genuinely read every message — thanks for playing, and i'll do my best to make it happen
         </div>
 
         {/* Legal — required for ad networks & app stores */}
@@ -145,11 +158,11 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
         </button>
 
         {/* temporary flag-QA list */}
-        <button onClick={onFlagCheck}
+        {creator && <button onClick={onFlagCheck}
           className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
           style={{ background: 'transparent', border: `1px dashed ${T.line}`, color: T.dim }}>
           <span className="inline-flex items-center justify-center gap-2"><LineIcon name="flags" size={14} color={T.dim} /> Flag Check (QA)</span>
-        </button>
+        </button>}
       </div>
     </div>
   )

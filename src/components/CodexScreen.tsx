@@ -98,11 +98,11 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
     <div className={embedded ? 'carto-rise' : 'min-h-screen flex flex-col'} style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
       {embedded || !onBack ? (
         <header style={{ padding: '14px 16px 10px' }}>
-          <h1 className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 20, letterSpacing: '-0.01em', lineHeight: 1.1, margin: 0 }}>Codex</h1>
-          <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>{FLAGS.length} countries · flag histories in beta</div>
+          <h2 className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 20, letterSpacing: '-0.01em', lineHeight: 1.1, margin: 0 }}>Codex</h2>
+          <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>{FLAGS.length} countries · flags, facts and histories</div>
         </header>
       ) : (
-        <ScreenHeader title="Codex" subtitle={`${FLAGS.length} countries · flag histories in beta`} onBack={onBack} />
+        <ScreenHeader title="Codex" subtitle={`${FLAGS.length} countries · flags, facts and histories`} onBack={onBack} />
       )}
 
       {/* Search */}
@@ -318,10 +318,6 @@ function CountryDetail({ flag }: { flag: FlagRecord }) {
         >
           <div className="flex items-center gap-2">
             <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: ACCENT.codex }}>Flag History</h2>
-            <span className="text-xs px-2 py-0.5 rounded-full font-semibold"
-              style={{ background: tint(T.gold, 0.12), color: T.gold, border: `1px solid ${tint(T.gold, 0.3)}` }}>
-              Beta
-            </span>
             {hasHistory && (
               <span className="text-xs" style={{ color: T.muted, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>{history.length} flags</span>
             )}
@@ -335,8 +331,7 @@ function CountryDetail({ flag }: { flag: FlagRecord }) {
               <div className="rounded-2xl p-5 text-center"
                 style={{ background: T.surface, border: `1px solid ${T.line}` }}>
                 <div className="mb-2 flex justify-center"><LineIcon name="flags" size={30} color={T.dim} /></div>
-                <p className="text-sm" style={{ color: T.muted }}>Flag history for {flag.name} is coming soon.</p>
-                <p className="text-xs mt-1" style={{ color: T.dim }}>This feature is in beta — we're adding countries one by one.</p>
+                <p className="text-sm" style={{ color: T.muted }}>No earlier national flags are recorded for {flag.name}.</p>
               </div>
             ) : (
               <div>

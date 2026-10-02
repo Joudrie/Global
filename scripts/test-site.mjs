@@ -29,6 +29,7 @@ for (const file of walk(DIST)) {
   s = s.replace(/"(start_url|scope)": "\/"/g, `"$1": "${BASE}"`)
   if (file.endsWith('.html')) {
     s = s.replace(/\s*<script[^>]*adsbygoogle\.js[^>]*><\/script>/g, '')
+    s = s.replace(/\s*<meta name="google-adsense-account"[^>]*>/g, '')
     s = s.replace(/\s*<script src="[^"]*analytics\.js"><\/script>/g, '')
     s = s.replace(/<meta name="robots"[^>]*>/g, '')
     s = s.replace('<head>', '<head>\n<meta name="robots" content="noindex, nofollow" />')
