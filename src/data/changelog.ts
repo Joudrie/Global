@@ -4,12 +4,25 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-02",
+    title: "What every flag means",
+    items: [
+      "Every country page now explains what its flag means: where the colours and symbols come from, who designed it and when it was adopted.",
+      "Country pages also list the capital, population, area, flag colours and neighbouring countries, with links to their flags.",
+      "Syria's page and games now describe its current green-white-black flag, and Taiwan has a full flag history.",
+      "Fixed flag descriptions for Mauritania, Japan, Comoros, Antigua and Barbuda, and Guyana.",
+      "Globalio opens straight to the home screen, and the welcome tips sit at the top of Today instead of covering it.",
+    ],
+  },
+  {
     date: "2026-09-29",
     title: "Connections, and a much harder Real or Bot",
     items: [
       "New daily game: Connections. Find four groups of four countries, with a new puzzle every day.",
       "Connections gives you six mistakes and three free hints.",
       "Real or Bot now has 900 computer-made flags, and fewer real flags with giveaway crests.",
+      "The first visit loads much less: about 0.4 MB of code instead of 1.9 MB.",
+      "Every flag image is now served by Globalio itself, so flags no longer go missing when Wikimedia is slow.",
       "Privacy policy and terms updated for visitors in Europe and US states.",
     ],
   },
