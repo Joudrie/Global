@@ -170,28 +170,22 @@ export default function ChallengeScreen({ onBack }: Props) {
         <ScreenHeader title={activeContinent.name} subtitle="Select a country"
           onBack={() => setPhase("continents")} />
         <div className="px-5 pb-10 space-y-3" style={{ zIndex: 1, position: "relative" }}>
-          {/* playable countries first, unavailable ones after (stable order within each) */}
-          {[...activeContinent.countries].sort((a, b) => Number(!isPlayable(a)) - Number(!isPlayable(b))).map(country => {
-            const off = !isPlayable(country)
-            const reason = country.locked ? "Coming soon" : "Not enough region flags yet"
-            return (
+          {/* Only countries with a full round of region flags are listed; the
+              rest stay hidden rather than showing as locked tiles. */}
+          {activeContinent.countries.filter(isPlayable).map(country => (
             <button key={country.code} onClick={() => handleCountryClick(country)}
-              disabled={off} aria-disabled={off}
-              className={`w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all ${off ? "cursor-not-allowed" : "active:scale-[0.98] hover:brightness-95"}`}
-              style={{ background: off ? T.bg : T.surface, border: `1px ${off ? "dashed" : "solid"} ${off ? T.line : tint(ACC, 0.35)}` }}>
-              <div className="flex items-center gap-3" style={{ opacity: off ? 0.5 : 1 }}>
+              className="w-full flex items-center justify-between px-5 py-4 rounded-2xl transition-all active:scale-[0.98] hover:brightness-95"
+              style={{ background: T.surface, border: `1px solid ${tint(ACC, 0.35)}` }}>
+              <div className="flex items-center gap-3">
                 <CountryFlag code={country.code} name={country.name} />
                 <div className="text-left">
                   <div className="font-bold" style={{ color: T.text, fontFamily: FONT.display }}>{country.name}</div>
-                  <div className="text-xs" style={{ color: T.muted }}>{off ? reason : country.subTitle}</div>
+                  <div className="text-xs" style={{ color: T.muted }}>{country.subTitle}</div>
                 </div>
               </div>
-              <span style={{ color: off ? T.dim : ACC, display: "flex" }}>
-                {off ? <Lock size={16} strokeWidth={1.6} absoluteStrokeWidth /> : "›"}
-              </span>
+              <span style={{ color: ACC, display: "flex" }}>›</span>
             </button>
-            )
-          })}
+          ))}
         </div>
       </div>
     )

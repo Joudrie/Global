@@ -7,12 +7,9 @@ import FlagImage from "./FlagImage"
 
 export const ONBOARDED_KEY = "globalio_onboarded"
 
-// Crawlers (Google, AdSense's reviewer) see the page itself, not the first-run
-// intro slides laid over it.
-const BOT_UA = /bot|crawl|spider|slurp|Mediapartners|AdsBot|Google-InspectionTool|Lighthouse/i
-
+// The welcome card sits inside the page instead of over it, so crawlers and
+// people get exactly the same page; there is no special case for bots.
 export function hasOnboarded(): boolean {
-  if (typeof navigator !== "undefined" && BOT_UA.test(navigator.userAgent)) return true
   try { return localStorage.getItem(ONBOARDED_KEY) === "1" } catch { return true }
 }
 function markOnboarded() {
@@ -36,19 +33,19 @@ type Slide = { center: ReactNode; left?: ReactNode; right?: ReactNode; title: st
 
 const SLIDES: Slide[] = [
   {
-    center: <EarthLogo size={92} />,
+    center: <EarthLogo size={64} />,
     left: <FlagImage code="br" style={FLANK} />,
     right: <FlagImage code="vu" style={FLANK} />,
     title: "Welcome to Globalio",
-    body: "Learn every flag in the world through 50+ quick games — and a flag codex that doubles as a real reference tool.",
+    body: "Learn every flag in the world through 50 quick games, and a flag codex that doubles as a real reference tool.",
   },
   {
-    center: <Compass size={62} strokeWidth={1.5} color={ACCENT.codex} absoluteStrokeWidth />,
+    center: <Compass size={44} strokeWidth={1.5} color={ACCENT.codex} absoluteStrokeWidth />,
     title: "A new challenge daily",
     body: "Daily quizzes and Flagle-style puzzles. Build a streak, beat your best, and share your score with one tap.",
   },
   {
-    center: <BookOpen size={58} strokeWidth={1.5} color={ACCENT.codex} absoluteStrokeWidth />,
+    center: <BookOpen size={42} strokeWidth={1.5} color={ACCENT.codex} absoluteStrokeWidth />,
     left: <img src={ESTELADA} alt="" style={FLANK} />,
     right: <img src={KANAKA} alt="" style={FLANK} />,
     title: "Explore the Codex",
@@ -56,8 +53,8 @@ const SLIDES: Slide[] = [
   },
 ]
 
-// Lightweight first-run intro. Rendered above the app on first launch; skippable
-// instantly, and dismissing (Skip or Start) sets the onboarded flag for good.
+// Lightweight first-run intro, shown as a card at the top of Today on a first
+// visit; skippable instantly, and dismissing (Skip or Start) sets the onboarded flag for good.
 export default function Onboarding({ onDone }: { onDone: () => void }) {
   const [i, setI] = useState(0)
   const last = i === SLIDES.length - 1
@@ -78,42 +75,41 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
     if (dx < 0) next(); else prev()
   }
 
+  // An inline welcome card at the top of Today, not an overlay: the page
+  // underneath stays readable and scrollable the whole time.
   return (
-    <div style={{ position: "fixed", inset: 0, zIndex: 3000, background: tint(T.bg, 0.97),
-      display: "flex", alignItems: "center", justifyContent: "center", padding: 24 }}>
-      <div onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
-        style={{ width: "100%", maxWidth: 360, display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", gap: 0, touchAction: "pan-y" }}>
-        <button onClick={finish} aria-label="Skip"
-          style={{ position: "absolute", top: 16, right: 18, background: "transparent", border: "none", color: T.muted, fontSize: 14, fontWeight: 600, cursor: "pointer" }}>
-          Skip
-        </button>
+    <section aria-label="Welcome to Globalio" onTouchStart={onTouchStart} onTouchEnd={onTouchEnd}
+      style={{ position: "relative", padding: 16, borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`,
+        display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center", touchAction: "pan-y" }}>
+      <button onClick={finish}
+        style={{ position: "absolute", top: 8, right: 8, padding: "8px 12px", background: "transparent", border: "none", color: T.muted, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
+        Skip
+      </button>
 
-        <div key={i} className="carto-onb-slide" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 18, minHeight: 92, marginBottom: 22 }}>
-            {s.left && <div style={{ transform: "rotate(-8deg)" }}>{s.left}</div>}
-            <div style={{ lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>{s.center}</div>
-            {s.right && <div style={{ transform: "rotate(8deg)" }}>{s.right}</div>}
-          </div>
-          <h1 className="geo-display" style={{ color: T.text, fontWeight: 800, fontSize: 26, margin: 0, marginBottom: 12, fontFamily: FONT.display }}>{s.title}</h1>
-          <p style={{ color: T.muted, fontSize: 15, lineHeight: 1.55, margin: 0, marginBottom: 28 }}>{s.body}</p>
+      <div key={i} className="carto-onb-slide" style={{ width: "100%", display: "flex", flexDirection: "column", alignItems: "center" }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 16, minHeight: 64, marginBottom: 12 }}>
+          {s.left && <div style={{ transform: "rotate(-8deg)" }}>{s.left}</div>}
+          <div style={{ lineHeight: 1, display: "flex", alignItems: "center", justifyContent: "center" }}>{s.center}</div>
+          {s.right && <div style={{ transform: "rotate(8deg)" }}>{s.right}</div>}
         </div>
-        <style>{`.carto-onb-slide{animation:onbSlide .28s ease}@keyframes onbSlide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}@media (prefers-reduced-motion:reduce){.carto-onb-slide{animation:none}}`}</style>
-
-        {/* progress dots */}
-        <div style={{ display: "flex", gap: 7, marginBottom: 26 }}>
-          {SLIDES.map((_, k) => (
-            <span key={k} style={{ width: k === i ? 22 : 8, height: 8, borderRadius: 999,
-              background: k === i ? ACCENT.codex : tint(T.muted, 0.4), transition: "width 0.2s ease" }} />
-          ))}
-        </div>
-
-        <button onClick={next}
-          className="active:scale-95"
-          style={{ width: "100%", padding: "14px", borderRadius: 14, border: "none", cursor: "pointer",
-            background: ACCENT.codex, color: T.onAccent, fontWeight: 800, fontSize: 15, transition: "transform 0.1s ease" }}>
-          {last ? "Start playing" : "Next"}
-        </button>
+        <h2 className="geo-display" style={{ color: T.text, fontWeight: 800, fontSize: 20, margin: 0, marginBottom: 8, fontFamily: FONT.display }}>{s.title}</h2>
+        <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.55, margin: 0, marginBottom: 16, maxWidth: 360 }}>{s.body}</p>
       </div>
-    </div>
+      <style>{`.carto-onb-slide{animation:onbSlide .28s ease}@keyframes onbSlide{from{opacity:0;transform:translateX(12px)}to{opacity:1;transform:translateX(0)}}@media (prefers-reduced-motion:reduce){.carto-onb-slide{animation:none}}`}</style>
+
+      {/* progress dots */}
+      <div style={{ display: "flex", gap: 8, marginBottom: 16 }}>
+        {SLIDES.map((_, k) => (
+          <span key={k} style={{ width: k === i ? 20 : 8, height: 8, borderRadius: 999,
+            background: k === i ? ACCENT.codex : tint(T.muted, 0.4) }} />
+        ))}
+      </div>
+
+      <button onClick={next}
+        style={{ width: "100%", maxWidth: 360, padding: 12, borderRadius: 12, border: "none", cursor: "pointer",
+          background: ACCENT.codex, color: T.onAccent, fontWeight: 800, fontSize: 15 }}>
+        {last ? "Start playing" : "Next"}
+      </button>
+    </section>
   )
 }
