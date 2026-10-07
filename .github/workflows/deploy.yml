@@ -24,7 +24,7 @@ jobs:
         run: npx --yes netlify-cli@17 deploy --prod --dir=dist --site="$NETLIFY_SITE_ID" --message="${GITHUB_SHA::7} via GitHub Actions"
         env:
           NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
-          NETLIFY_SITE_ID: 61e27621-3795-416a-b0d9-518d602849f2
+          NETLIFY_SITE_ID: 125c7649-0172-4ac0-b0ed-70c656040c8f
       - name: Check the live site
         run: |
           sleep 10

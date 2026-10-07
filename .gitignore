@@ -38,3 +38,4 @@ scripts/flags/cf/fails.txt
 scripts/flags/verify*.mjs
 scripts/flags/verify*.cjs
 scripts/flags/staging-*.txt
+.netlify/
