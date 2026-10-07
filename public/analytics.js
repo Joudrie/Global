@@ -9,7 +9,7 @@
 //   copy the Measurement ID ("G-XXXXXXXXXX") into GA4_ID. Link it to Google
 //   Ads and AdSense from GA4 > Admin > Product links.
 (function () {
-  var GOATCOUNTER_CODE = ""
+  var GOATCOUNTER_CODE = "globalio"
   var GA4_ID = ""
 
   if (GOATCOUNTER_CODE) {
