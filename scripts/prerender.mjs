@@ -592,8 +592,7 @@ advertising. Identity and separatist flags are described, not endorsed.</p>
 mistakes can slip through. If you spot one, please <a href="/contact/">let us know</a> and we'll fix it.</p>
 <h2>Free to play</h2>
 <p>Globalio is free, with no account or sign-up, and your progress is saved only on your own device.
-It may show ads to cover its running costs. Ads appear only as labelled banners in the page, never in
-pop-ups or over a game. See the <a href="/privacy.html">privacy policy</a> for details.</p>
+Ads from Google help cover its running costs. See the <a href="/privacy.html">privacy policy</a> for details.</p>
 <a class="cta" href="/">Play Globalio</a>
 `
   return page({
