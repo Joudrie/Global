@@ -297,12 +297,13 @@ function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, o
    flag archive lives, not only game tiles. ─────────────────────────────── */
 function AboutGlobalio() {
   const link = { color: ACCENT.today, fontWeight: 600, textDecoration: "underline" } as const
-  const p = { color: T.muted, fontSize: 13, lineHeight: 1.6, margin: "0 0 10px" } as const
+  const p = { color: T.muted, fontSize: 12.5, lineHeight: 1.6, margin: "8px 0 0" } as const
   return (
-    <section style={{ marginTop: 28, paddingTop: 20, borderTop: `1px solid ${T.line}` }}>
-      <h2 className="geo-display" style={{ fontSize: 18, fontWeight: 800, color: T.text, margin: "0 0 10px" }}>
-        About Globalio
-      </h2>
+    <details style={{ marginTop: 24, paddingTop: 14, borderTop: `1px solid ${T.line}` }}>
+      <summary style={{ cursor: "pointer", listStyle: "revert", color: T.text, fontSize: 13, fontWeight: 700 }}>
+        <h2 style={{ display: "inline", fontSize: 13, fontWeight: 700, margin: 0 }}>About Globalio</h2>
+        <span style={{ fontWeight: 400, color: T.muted }}> · free flag games and a hand-researched flag archive</span>
+      </summary>
       <p style={p}>
         Globalio is a free flag and geography game made by one person who loves flags. Learn the flags of all
         197 countries through quick daily games: quizzes, a daily Connections puzzle, drawing and colouring
@@ -313,13 +314,9 @@ function AboutGlobalio() {
         Behind the games is a hand-researched flag archive. Every <a href="/flags/" style={link}>country page</a> tells
         the story of its flag through history, the <a href="/historical/" style={link}>historical archive</a> covers
         hundreds of vanished states and empires, and the <a href="/identity/" style={link}>identity archive</a> covers
-        pride, indigenous, regional and micronation flags. See <a href="/games/" style={link}>every game</a>, or
-        read <a href="/whats-new/" style={link}>what's new</a>.
+        pride, indigenous, regional and micronation flags. No account or sign-up; your progress stays on your device.
       </p>
-      <p style={{ ...p, margin: 0 }}>
-        No account or sign-up. Your progress stays on your device.
-      </p>
-    </section>
+    </details>
   )
 }
 
@@ -333,12 +330,12 @@ const SITE_LINKS: [string, string][] = [
 function SiteLinks() {
   return (
     <>
-      <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "6px 14px", padding: "8px 0 4px", fontSize: 12 }}>
+      <nav style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "2px 10px", padding: "10px 0 2px", fontSize: 11 }}>
         {SITE_LINKS.map(([href, label]) => (
-          <a key={href} href={href} style={{ color: T.muted, textDecoration: "underline" }}>{label}</a>
+          <a key={href} href={href} style={{ color: T.dim, textDecoration: "none" }}>{label}</a>
         ))}
       </nav>
-      <p style={{ textAlign: "center", fontSize: 11, color: T.dim, margin: "4px 0 8px" }}>
+      <p style={{ textAlign: "center", fontSize: 10.5, color: T.dim, margin: "2px 0 8px" }}>
         Last updated {formatDate(LAST_UPDATED)} · New games every month
       </p>
     </>
