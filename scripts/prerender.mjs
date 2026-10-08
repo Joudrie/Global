@@ -492,6 +492,7 @@ const GAME_DESC = {
   thecrop: 'Start from a tight crop of a flag and zoom out until you can name it.',
   thepeel: 'Scratch away the cover to reveal a flag bit by bit, and guess it as early as you can.',
   composer: 'A flag is hidden under a grid of tiles. Each guess flips a tile, and closer guesses reveal better ones.',
+  flagstudio: 'Make your own flag. Start from any real flag or a blank layout, recolour any part, add stars, suns and crescents, then download it as a PNG or share a link.',
   buildflag: 'Put a flag together from its stripes and bands in the right order.',
   geopaint: 'Colour in a blank flag and see how close you got to the real thing.',
   sketchflag: 'Draw a flag from memory, then compare your sketch with the real flag.',

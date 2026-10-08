@@ -28,6 +28,8 @@ body {
     max-width: 720px;
     margin: 0 auto;
   }
+  /* Flag Studio is the one screen that uses the whole desktop window. */
+  html.fs-wide #root { max-width: none; }
 }
 
 /* Desktop rails: touch swiping doesn't exist, the scrollbar is hidden, and a
