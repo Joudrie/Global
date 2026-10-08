@@ -96,7 +96,7 @@ function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   if (over) {
     return (
-      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, overflowX: "clip" }}>
         <ScreenHeader title="Real or Bot" subtitle="Run over" onBack={onBack} />
         <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <ResultCard>
@@ -117,7 +117,7 @@ function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+    <div className="min-h-screen flex flex-col" style={{ background: T.bg, overflowX: "clip" }}>
       <ScreenHeader title="Real or Bot" subtitle={`Best ${best}`} onBack={onBack}
         right={<HeaderStat label="Streak" accent={ACCENT.play}>{streak}</HeaderStat>} />
 

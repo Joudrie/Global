@@ -620,8 +620,8 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
           const on = c.group === null ? activeGroup === null && !query : activeGroup === c.group
           return (
             <button key={c.label} onClick={() => selectChip(c.group)} aria-pressed={on} className="geo-tap"
-              style={{ flexShrink: 0, padding: "4px 11px", minHeight: 28, borderRadius: 999, whiteSpace: "nowrap",
-                fontFamily: FONT.display, fontWeight: 600, fontSize: 11.5,
+              style={{ flexShrink: 0, padding: "6px 13px", minHeight: 36, borderRadius: 999, whiteSpace: "nowrap",
+                fontFamily: FONT.display, fontWeight: 600, fontSize: 12.5,
                 background: on ? ACCENT.play : T.surface, color: on ? T.onAccent : T.muted,
                 border: `1px solid ${on ? ACCENT.play : T.line}` }}>
               {c.label}
