@@ -5,6 +5,17 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "Flag Studio: build a crest, add your own pictures",
+    items: [
+      "Build your own coat of arms: six blank shields, a crown, a mural crown, a scroll, a fleur-de-lis, a tower, an anchor, a sword and a cross pattée. Add a shield first and the other pieces fit around it.",
+      "Upload your own picture, like a logo or a drawing, and put it on your flag. Pictures stay on your device.",
+      "New symbols: mountains and waves.",
+      "Saudi Arabia's emblem no longer leaves green specks on other flags.",
+      "Selection boxes now hug each shape, Escape always deselects, and dragging the colour picker is one undo step.",
+    ],
+  },
+  {
+    date: "2026-10-08",
     title: "Bug fixes",
     items: [
       "Geography no longer skips a question or crashes when you switch between Choices and Type-in after answering, and Play again deals new countries.",
