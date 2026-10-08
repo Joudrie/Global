@@ -15,16 +15,21 @@ export type SymbolKind =
   | "star5" | "star6" | "star7" | "sun" | "disc" | "ring" | "crescent"
   | "cross" | "triangle" | "diamond" | "square" | "stripe" | "heart"
   | "star4" | "maple" | "shamrock" | "laurel" | "chevron" | "nordic" | "saltire" | "crescentstar" | "wheel"
+  | "mountains" | "waves"
+  | "shield" | "shieldround" | "shieldfrench" | "shieldcurved" | "cartouche" | "shieldborder"
+  | "crown" | "muralcrown" | "scroll" | "fleur" | "tower" | "anchor" | "sword" | "pattee"
 
 export interface Overlay {
   id: string
-  kind: SymbolKind | "emblem"
+  kind: SymbolKind | "emblem" | "image"
   emblem?: string // emblem code when kind is "emblem"
+  src?: string    // an uploaded picture (data URL) when kind is "image"
+  ratio?: number  // the uploaded picture's width / height
   x: number     // centre, in flag units (the flag is always 1000 wide)
   y: number
   size: number  // diameter in flag units
   rot: number   // degrees
-  color: string // for an emblem, "" keeps its own colours
+  color: string // for an emblem or image, "" keeps its own colours
 }
 
 export interface PartColor { f?: string; s?: string } // fill / stroke override
@@ -166,6 +171,35 @@ function laurel(): string {
   return out.join("")
 }
 
+// Heraldic pieces: blank shields to fill, crowns, a scroll and classic charges.
+const heater = (k: number) => `M${f3(-.8 * k)} ${f3(-.95 * k)}H${f3(.8 * k)}V${f3(-.1 * k)}C${f3(.8 * k)} ${f3(.45 * k)} ${f3(.38 * k)} ${f3(.8 * k)} 0 ${f3(k)}C${f3(-.38 * k)} ${f3(.8 * k)} ${f3(-.8 * k)} ${f3(.45 * k)} ${f3(-.8 * k)} ${f3(-.1 * k)}Z`
+function mural(): string {
+  // A band of battlements: five merlons on a wall.
+  let d = "M-.9 .55V-.15"
+  const xs = [-.9, -.54, -.18, .18, .54]
+  xs.forEach(x => { d += `H${f3(x)}V-.5H${f3(x + .2)}V-.15` })
+  return d + "H.9V.55Z" + "M-.9 .62H.9V.8H-.9Z"
+}
+function pattee(): string {
+  const arm: [number, number][] = [[-.1, -.12], [-.36, -1], [.36, -1], [.1, -.12]]
+  return [0, 1, 2, 3].map(q => {
+    const a = q * Math.PI / 2, c = Math.cos(a), s = Math.sin(a)
+    return polyPath(arm.map(([x, y]) => [x * c - y * s, x * s + y * c] as [number, number]))
+  }).join("") + "M-.14 -.14H.14V.14H-.14Z"
+}
+function waves(): string {
+  // Three wavy bands, like the sea on a coat of arms.
+  const band = (y: number) => {
+    const top: string[] = [], bot: string[] = []
+    for (let i = 0; i <= 24; i++) {
+      const x = -1 + i / 12, w = Math.sin(i / 24 * Math.PI * 6) * .09
+      top.push(`${f3(x)} ${f3(y + w)}`); bot.push(`${f3(x)} ${f3(y + w + .16)}`)
+    }
+    return `M${top.join("L")}L${bot.reverse().join("L")}Z`
+  }
+  return band(-.5) + band(-.08) + band(.34)
+}
+
 // A wheel with 24 spokes (12 bars through the hub) inside a ring.
 function wheel(): string {
   const bars: string[] = []
@@ -176,7 +210,7 @@ function wheel(): string {
   return circleAt(0, 0, 1) + circleAt(0, 0, 0.88, true) + bars.join("") + circleAt(0, 0, 0.16)
 }
 
-export const SYMBOLS: { kind: SymbolKind; name: string; d: string; evenOdd?: boolean }[] = [
+export const SYMBOLS: { kind: SymbolKind; name: string; d: string; evenOdd?: boolean; group?: "basic" | "crest" }[] = [
   { kind: "star5", name: "Star", d: starPath(5, 0.382) },
   { kind: "star6", name: "Six-point star", d: starPath(6, 0.577) },
   { kind: "star7", name: "Seven-point star", d: starPath(7, 0.45) },
@@ -200,15 +234,36 @@ export const SYMBOLS: { kind: SymbolKind; name: string; d: string; evenOdd?: boo
   { kind: "nordic", name: "Nordic cross", d: "M-1 -.1H1V.1H-1Z" + "M-.44 -.6667H-.24V.6667H-.44Z" },
   { kind: "saltire", name: "Saltire", d: "M-1 -.6667L-.86 -.6667L1 .5733L1 .6667L.86 .6667L-1 -.5733Z" + "M1 -.6667L.86 -.6667L-1 .5733L-1 .6667L-.86 .6667L1 -.5733Z" },
 ]
+for (const s of SYMBOLS) s.group = "basic"
+SYMBOLS.push(
+  { kind: "mountains", name: "Mountains", d: "M-1 .6L-.42 -.45L-.12 .02L.25 -.68L1 .6Z", group: "basic" },
+  { kind: "waves", name: "Waves", d: waves(), group: "basic" },
+  { kind: "shield", name: "Shield", d: heater(1), group: "crest" },
+  { kind: "shieldround", name: "Round shield", d: "M-.8 -.95H.8V.2A.8 .8 0 0 1 -.8 .2Z", group: "crest" },
+  { kind: "shieldfrench", name: "French shield", d: "M-.8 -.95H.8V.62Q.8 .82 .58 .82H.16L0 1L-.16 .82H-.58Q-.8 .82 -.8 .62Z", group: "crest" },
+  { kind: "shieldcurved", name: "Curved shield", d: "M-.8 -.82Q0 -1.05 .8 -.82V.05C.8 .55 .38 .85 0 1C-.38 .85 -.8 .55 -.8 .05Z", group: "crest" },
+  { kind: "cartouche", name: "Oval", d: "M-.7 0A.7 1 0 1 0 .7 0A.7 1 0 1 0 -.7 0Z", group: "crest" },
+  { kind: "shieldborder", name: "Shield border", d: heater(1) + heater(.84), evenOdd: true, group: "crest" },
+  { kind: "crown", name: "Crown", d: "M-.88 .5L-.95 -.32L-.5 .06L-.25 -.58L0 -.08L.25 -.58L.5 .06L.95 -.32L.88 .5Z" + "M-.9 .58H.9V.82H-.9Z" + circleAt(-.95, -.42, .11) + circleAt(-.25, -.68, .11) + circleAt(.25, -.68, .11) + circleAt(.95, -.42, .11) + circleAt(0, -.18, .1), group: "crest" },
+  { kind: "muralcrown", name: "Mural crown", d: mural(), group: "crest" },
+  { kind: "scroll", name: "Scroll", d: "M-1 -.16H-.72V-.3H.72V-.16H1L.86 .06L1 .28H.72V.14H-.72V.28H-1L-.86 .06Z", group: "crest" },
+  { kind: "fleur", name: "Fleur-de-lis", d: "M0 -1C.24 -.72 .26 -.36 0 -.04C-.26 -.36 -.24 -.72 0 -1Z" + "M.08 -.04C.24 -.46 .74 -.58 .86 -.22C.94 .04 .66 .2 .54 .04C.7 0 .72 -.2 .6 -.25C.44 -.3 .26 -.12 .16 .1Z" + "M-.08 -.04C-.24 -.46 -.74 -.58 -.86 -.22C-.94 .04 -.66 .2 -.54 .04C-.7 0 -.72 -.2 -.6 -.25C-.44 -.3 -.26 -.12 -.16 .1Z" + "M-.46 .06H.46V.22H-.46Z" + "M-.1 .22H.1L.2 .7C.08 .58 -.08 .58 -.2 .7Z" + "M-.2 .7C-.3 .9 -.46 .9 -.5 .78C-.38 .82 -.3 .72 -.24 .6Z" + "M.2 .7C.3 .9 .46 .9 .5 .78C.38 .82 .3 .72 .24 .6Z", group: "crest" },
+  { kind: "tower", name: "Tower", d: "M-.55 1V-.45H-.72V-.88H-.44V-.68H-.14V-.88H.14V-.68H.44V-.88H.72V-.45H.55V1Z" + "M-.18 1V.56A.18 .18 0 0 1 .18 .56V1Z" + "M-.32 -.22H-.16V.04H-.32Z" + "M.16 -.22H.32V.04H.16Z", evenOdd: true, group: "crest" },
+  { kind: "anchor", name: "Anchor", d: circleAt(0, -.82, .17) + circleAt(0, -.82, .08, true) + "M-.07 -.66H.07V.86H-.07Z" + "M-.44 -.52H.44V-.39H-.44Z" + "M-.78 .25A.8 .8 0 0 0 .78 .25L.64 .27A.66 .66 0 0 1 -.64 .27Z" + "M-.94 .08L-.6 .2L-.84 .44Z" + "M.94 .08L.6 .2L.84 .44Z", group: "crest" },
+  { kind: "sword", name: "Sword", d: "M0 -1L.07 -.86V.44H-.07V-.86Z" + "M-.36 .44H.36V.56H-.36Z" + "M-.05 .56H.05V.86H-.05Z" + circleAt(0, .92, .08), group: "crest" },
+  { kind: "pattee", name: "Cross pattée", d: pattee(), group: "crest" },
+)
+
 /** Symbols that span the whole flag start at full width. */
 export const FULL_WIDTH_SYMBOLS = new Set<SymbolKind>(["stripe", "nordic", "saltire"])
-export const symbolOf = (k: SymbolKind | "emblem") => SYMBOLS.find(s => s.kind === k) ?? SYMBOLS[0]
+export const symbolOf = (k: Overlay["kind"]) => SYMBOLS.find(s => s.kind === k) ?? SYMBOLS[0]
 
 export const overlayTransform = (o: Overlay, scaled = true) =>
   `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) rotate(${o.rot})${scaled ? ` scale(${(o.size / 2).toFixed(2)})` : ""}`
 
 export function overlayMarkup(o: Overlay): string {
   if (o.kind === "emblem") return `<g transform="${overlayTransform(o, false)}">${emblemInner(o)}</g>`
+  if (o.kind === "image") return `<g transform="${overlayTransform(o, false)}">${imageInner(o)}</g>`
   const s = symbolOf(o.kind)
   return `<path d="${s.d}" fill="${o.color}"${s.evenOdd ? ' fill-rule="evenodd"' : ""} transform="${overlayTransform(o)}"/>`
 }
@@ -270,9 +325,65 @@ export function emblemInner(o: Overlay): string {
     const kept = attrs.replace(/\s(width|height|x|y|preserveAspectRatio)="[^"]*"/g, "")
     return `<svg${kept} x="${(-w / 2).toFixed(1)}" y="${(-h / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}">`
   })
+  return tinted(o, body)
+}
+
+// A one-colour silhouette of any artwork, for emblems and uploaded pictures.
+const tinted = (o: Overlay, body: string) => {
   if (!o.color) return body
   const fid = `tint-${o.id}`
   return `<filter id="${fid}" x="-5%" y="-5%" width="110%" height="110%"><feFlood flood-color="${o.color}"/><feComposite in2="SourceAlpha" operator="in"/></filter><g filter="url(#${fid})">${body}</g>`
+}
+
+// ── Uploaded pictures ──────────────────────────────────────────────────────
+
+/** Width and height of any overlay's artwork in flag units. */
+export function overlaySize(o: Overlay): { w: number; h: number } {
+  if (o.kind === "emblem") return emblemSize(o)
+  if (o.kind === "image") {
+    const r = o.ratio && o.ratio > 0 ? o.ratio : 1
+    return r >= 1 ? { w: o.size, h: o.size / r } : { w: o.size * r, h: o.size }
+  }
+  return { w: o.size, h: o.size }
+}
+
+const escAttr = (s: string) => s.replace(/&/g, "&amp;").replace(/"/g, "&quot;").replace(/</g, "&lt;")
+
+export function imageInner(o: Overlay): string {
+  if (!o.src || !/^data:image\/(png|jpeg|webp|gif);base64,/.test(o.src)) return ""
+  const { w, h } = overlaySize(o)
+  return tinted(o, `<image href="${escAttr(o.src)}" x="${(-w / 2).toFixed(1)}" y="${(-h / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" preserveAspectRatio="none"/>`)
+}
+
+/** Shrink an uploaded picture to at most `max` pixels and turn it into a
+ *  data URL, so it fits in the device's storage alongside the design. */
+export async function prepareUpload(file: File, max = 640): Promise<{ src: string; ratio: number }> {
+  if (!/^image\/(png|jpeg|webp|gif|svg\+xml)$/.test(file.type)) throw new Error("type")
+  if (file.size > 20 * 1024 * 1024) throw new Error("size")
+  const url = URL.createObjectURL(file)
+  try {
+    const img = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const i = new Image()
+      i.onload = () => resolve(i)
+      i.onerror = () => reject(new Error("load"))
+      i.src = url
+    })
+    const w0 = img.naturalWidth || 512, h0 = img.naturalHeight || 512
+    const encode = (limit: number) => {
+      const k = Math.min(1, limit / Math.max(w0, h0))
+      const c = document.createElement("canvas")
+      c.width = Math.max(1, Math.round(w0 * k))
+      c.height = Math.max(1, Math.round(h0 * k))
+      c.getContext("2d")!.drawImage(img, 0, 0, c.width, c.height)
+      const png = c.toDataURL("image/png")
+      if (png.length < 450_000) return png
+      const webp = c.toDataURL("image/webp", 0.85)
+      return webp.startsWith("data:image/webp") && webp.length < png.length ? webp : png
+    }
+    let src = encode(max)
+    if (src.length > 700_000) src = encode(Math.round(max * 0.6))
+    return { src, ratio: w0 / h0 }
+  } finally { URL.revokeObjectURL(url) }
 }
 
 // ── Colours ────────────────────────────────────────────────────────────────
@@ -543,7 +654,7 @@ export function encodeDesign(d: Design): string {
     n: d.name.slice(0, 60),
     b: d.base,
     p: d.parts,
-    o: d.overlays.map(o => [o.kind, Math.round(o.x), Math.round(o.y), Math.round(o.size), Math.round(o.rot), o.color, ...(o.emblem ? [o.emblem] : [])]),
+    o: d.overlays.filter(o => o.kind !== "image").map(o => [o.kind, Math.round(o.x), Math.round(o.y), Math.round(o.size), Math.round(o.rot), o.color, ...(o.emblem ? [o.emblem] : [])]),
     ...(d.ratio ? { r: +d.ratio.toFixed(4) } : {}),
     ...(d.stripes ? { s: { d: d.stripes.dir, w: d.stripes.w.map(n => +n.toFixed(3)) } } : {}),
     ...(d.motto ? { m: d.motto.slice(0, 80) } : {}),
@@ -605,8 +716,10 @@ export function loadStore(): Store {
   return { current: null, saved: [] }
 }
 
-export function saveStore(s: Store) {
+/** False when the device's storage is full or blocked. */
+export function saveStore(s: Store): boolean {
   try {
     localStorage.setItem(STORE_KEY, JSON.stringify({ current: s.current, saved: s.saved.slice(0, MAX_SAVED) }))
-  } catch { /* storage full or blocked: the design still works for this visit */ }
+    return true
+  } catch { return false /* the design still works for this visit */ }
 }

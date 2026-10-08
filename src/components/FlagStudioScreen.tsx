@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from "react"
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react"
-import { Undo2, Redo2, Shuffle, Download, Link2, Trash2, Copy, ArrowUp, ArrowDown, Search, Dices, Minus, Plus } from "lucide-react"
+import { Undo2, Redo2, Shuffle, Download, Link2, Trash2, Copy, ArrowUp, ArrowDown, Search, Dices, Minus, Plus, ImagePlus } from "lucide-react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { BackButton } from "./ui"
 import FlagImage from "./FlagImage"
@@ -10,7 +10,7 @@ import {
   FLAG_W, LAYOUTS, SYMBOLS, FLAG_PALETTE, RATIOS, layoutSvg, symbolOf, overlayTransform,
   newDesign, newId, loadBase, composeBase, composeFull, svgDataUri, svgToPng, downloadBlob,
   fileSlug, encodeDesign, decodeDesign, loadStore, saveStore, toHex,
-  loadEmblem, ensureEmblems, emblemInner, emblemPng, emblemSize,
+  loadEmblem, ensureEmblems, emblemInner, emblemPng, imageInner, overlaySize, prepareUpload,
   countryBase, stripesDesign, randomDesign, baseTextSync, svgOwnRatio, FULL_WIDTH_SYMBOLS,
 } from "../utils/flagStudio"
 import { nationCard, canvasBlob } from "../utils/nationCard"
@@ -37,6 +37,41 @@ const colorDistance = (a: string, b: string) => {
   const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16)
   return Math.abs((x >> 16) - (y >> 16)) + Math.abs(((x >> 8) & 255) - ((y >> 8) & 255)) + Math.abs((x & 255) - (y & 255))
 }
+
+// A symbol's real outline in its own unit coordinates, measured once by the
+// browser, so the selection box hugs a scroll or a crown instead of a square.
+const symbolBoxes = new Map<string, { x: number; y: number; w: number; h: number }>()
+function symbolBox(kind: string, d: string) {
+  let b = symbolBoxes.get(kind)
+  if (b) return b
+  b = { x: -1, y: -1, w: 2, h: 2 }
+  try {
+    const ns = "http://www.w3.org/2000/svg"
+    const svg = document.createElementNS(ns, "svg")
+    svg.setAttribute("style", "position:absolute;width:0;height:0;visibility:hidden")
+    const path = document.createElementNS(ns, "path")
+    path.setAttribute("d", d)
+    svg.appendChild(path)
+    document.body.appendChild(svg)
+    const bb = path.getBBox()
+    svg.remove()
+    if (bb.width > 0 && bb.height > 0) b = { x: bb.x, y: bb.y, w: bb.width, h: bb.height }
+  } catch { /* keep the square */ }
+  symbolBoxes.set(kind, b)
+  return b
+}
+
+/** An overlay's box in its own (unrotated) frame, centred on its position. */
+function overlayBox(o: Overlay) {
+  if (o.kind === "emblem" || o.kind === "image") {
+    const { w, h } = overlaySize(o)
+    return { x: -w / 2, y: -h / 2, w, h }
+  }
+  const b = symbolBox(o.kind, symbolOf(o.kind).d), k = o.size / 2
+  return { x: b.x * k, y: b.y * k, w: b.w * k, h: b.h * k }
+}
+
+const SHIELDS = new Set(["shield", "shieldround", "shieldfrench", "shieldcurved", "cartouche", "shieldborder"])
 
 function useWide() {
   const q = "(min-width: 1000px)"
@@ -189,9 +224,15 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     [design, saved],
   )
 
+  const storageWarned = useRef(false)
   // Autosave, lightly debounced so dragging doesn't hammer storage.
   useEffect(() => {
-    const t = window.setTimeout(() => saveStore({ current: design, saved: library }), 250)
+    const t = window.setTimeout(() => {
+      if (!saveStore({ current: design, saved: library }) && !storageWarned.current) {
+        storageWarned.current = true
+        setNotice("Your device's storage is full, so changes aren't being saved. Delete a few flags in My flags, or use smaller pictures.")
+      }
+    }, 250)
     return () => window.clearTimeout(t)
   }, [design, library])
 
@@ -247,14 +288,22 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   const randomize = () => switchTo(randomDesign(EMBLEMS.map(e => e.code)))
 
+  // Dragging around the custom colour picker fires many changes a second;
+  // changes to the same target close together count as one undo step.
+  const lastColor = useRef<{ key: string; at: number }>({ key: "", at: 0 })
   const applyColor = (hex: string) => {
     hex = hex.toLowerCase()
     if (!sel) { setNotice("Tap part of the flag, or a colour in the strip, first."); return }
+    const key = sel.k === "part" ? `p${sel.i}${sel.prop}` : sel.k === "ov" ? `o${sel.id}` : "c"
+    const now = Date.now()
+    const merge = key === lastColor.current.key && now - lastColor.current.at < 700 && key !== "c"
+    lastColor.current = { key, at: now }
+    const put = (next: Design) => (merge ? setDesign({ ...next, edited: true, updated: now }) : commit(next))
     if (sel.k === "part") {
       const prev = design.parts[sel.i] ?? {}
-      commit({ ...design, parts: { ...design.parts, [sel.i]: { ...prev, [sel.prop]: hex } } })
+      put({ ...design, parts: { ...design.parts, [sel.i]: { ...prev, [sel.prop]: hex } } })
     } else if (sel.k === "ov") {
-      commit({ ...design, overlays: design.overlays.map(o => (o.id === sel.id ? { ...o, color: hex } : o)) })
+      put({ ...design, overlays: design.overlays.map(o => (o.id === sel.id ? { ...o, color: hex } : o)) })
     } else {
       const from = sel.hex
       const parts = { ...design.parts }
@@ -285,14 +334,54 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     const color = strip.length
       ? candidates.map(c => ({ c, d: Math.min(...strip.map(x => colorDistance(c, x.hex))) })).sort((a, b) => b.d - a.d)[0].c
       : "#ffffff"
-    const o: Overlay = {
+    let o: Overlay = {
       id: newId(), kind, x: FLAG_W / 2, y: flagH / 2,
-      size: FULL_WIDTH_SYMBOLS.has(kind) ? FLAG_W : Math.round(flagH * (kind === "square" ? 0.5 : 0.4)),
+      size: FULL_WIDTH_SYMBOLS.has(kind) ? FLAG_W : kind === "scroll" || kind === "waves" || kind === "mountains" ? Math.round(FLAG_W * 0.6)
+        : Math.round(flagH * (kind === "square" ? 0.5 : SYMBOLS.find(x => x.kind === kind)?.group === "crest" ? 0.5 : 0.4)),
       rot: 0, color,
     }
-    commit({ ...design, overlays: [...design.overlays, o] })
+    // Building a crest: pieces added after a shield fit around it. A crown
+    // sits on top, a scroll underneath, a laurel around, a charge inside.
+    const sh = [...design.overlays].reverse().find(x => SHIELDS.has(x.kind))
+    if (sh && !SHIELDS.has(kind) && !FULL_WIDTH_SYMBOLS.has(kind)) {
+      const sb = overlayBox(sh)
+      const top = sh.y + sb.y, bottom = sh.y + sb.y + sb.h
+      const contrast = (bg: string) => candidates.map(c => ({ c, d: colorDistance(c, bg) })).sort((a, b) => b.d - a.d)[0].c
+      if (kind === "crown" || kind === "muralcrown") {
+        const size = sb.w * 0.62
+        const cb = symbolBox(kind, symbolOf(kind).d)
+        o = { ...o, x: sh.x, size: Math.round(size), y: top - (cb.y + cb.h) * size / 2 + size * 0.06, color: o.color === sh.color ? contrast(sh.color) : o.color }
+      } else if (kind === "scroll") {
+        const size = sb.w * 1.35
+        o = { ...o, x: sh.x, size: Math.round(size), y: bottom + size * 0.1 }
+      } else if (kind === "laurel") {
+        o = { ...o, x: sh.x, y: sh.y + sb.y + sb.h * 0.55, size: Math.round(Math.max(sb.w, sb.h) * 1.3) }
+      } else {
+        o = { ...o, x: sh.x, y: sh.y + sb.y + sb.h * 0.45, size: Math.round(Math.min(sb.w, sb.h) * 0.55), color: contrast(sh.color) }
+      }
+    }
+    const list = [...design.overlays]
+    const at = sh && kind === "laurel" ? list.indexOf(sh) : list.length
+    list.splice(at, 0, o) // a wreath goes behind the shield it wraps
+    commit({ ...design, overlays: list })
     setSel({ k: "ov", id: o.id })
     if (!wide) setTab("edit")
+  }
+
+  const fileRef = useRef<HTMLInputElement>(null)
+  const addImage = async (file: File | undefined) => {
+    if (!file) return
+    try {
+      const { src, ratio } = await prepareUpload(file)
+      const h = flagH * 0.5
+      const o: Overlay = { id: newId(), kind: "image", src, ratio, x: FLAG_W / 2, y: flagH / 2, size: Math.round(ratio > 1 ? h * ratio : h), rot: 0, color: "" }
+      commit({ ...design, overlays: [...design.overlays, o] })
+      setSel({ k: "ov", id: o.id })
+      if (!wide) setTab("edit")
+    } catch (e) {
+      setNotice((e as Error).message === "type" ? "That file isn't a picture. Try a PNG, JPG, WebP or SVG."
+        : (e as Error).message === "size" ? "That picture is too big. Try one under 20 MB." : "That picture couldn't be read. Try a PNG or JPG.")
+    }
   }
 
   const addEmblem = (code: string) => {
@@ -340,7 +429,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   const selOverlay = sel?.k === "ov" ? design.overlays.find(o => o.id === sel.id) : undefined
   const overlayName = (o: Overlay) =>
-    o.kind === "emblem" ? `${EMBLEMS.find(e => e.code === o.emblem)?.name ?? "Emblem"} emblem` : symbolOf(o.kind).name
+    o.kind === "emblem" ? `${EMBLEMS.find(e => e.code === o.emblem)?.name ?? "Emblem"} emblem` : o.kind === "image" ? "Your picture" : symbolOf(o.kind).name
 
   const updateOverlay = (id: string, patch: Partial<Overlay>) =>
     live(d => ({ ...d, overlays: d.overlays.map(o => (o.id === id ? { ...o, ...patch } : o)) }))
@@ -501,6 +590,8 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       const t = e.target as HTMLElement
+      // Escape always lets go of the selection, even from a slider or a box.
+      if (e.key === "Escape") { setSel(null); if (t && t.tagName === "INPUT") t.blur(); return }
       if (t && (t.tagName === "INPUT" || t.tagName === "TEXTAREA" || t.isContentEditable)) return
       const mod = e.metaKey || e.ctrlKey
       if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo() }
@@ -542,7 +633,9 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     setShareUrl(url)
     try {
       await navigator.clipboard.writeText(url)
-      setNotice("Link copied. Anyone who opens it sees your flag and can remix it.")
+      setNotice(design.overlays.some(o => o.kind === "image")
+        ? "Link copied. Uploaded pictures stay on your device, so they aren't in the link."
+        : "Link copied. Anyone who opens it sees your flag and can remix it.")
     } catch {
       setNotice("Copy the link below to share your flag.")
     }
@@ -627,12 +720,12 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                 {design.overlays.map(o => {
                   const s = symbolOf(o.kind)
                   const on = (sel?.k === "ov" && sel.id === o.id) || (sel?.k === "color" && inGroup(o.color.toLowerCase(), sel.hex))
-                  if (o.kind === "emblem") return (
-                    <g key={o.id} transform={overlayTransform(o, false)} className={on ? "fs-sel" : undefined}
-                      onPointerDown={e => onOverlayDown(e, o)} dangerouslySetInnerHTML={{ __html: emblemInner(o) }} />
+                  if (o.kind === "emblem" || o.kind === "image") return (
+                    <g key={o.id} data-ov={o.id} transform={overlayTransform(o, false)} className={on ? "fs-sel" : undefined}
+                      onPointerDown={e => onOverlayDown(e, o)} dangerouslySetInnerHTML={{ __html: o.kind === "emblem" ? emblemInner(o) : imageInner(o) }} />
                   )
                   return (
-                    <path key={o.id} d={s.d} fill={o.color} fillRule={s.evenOdd ? "evenodd" : undefined}
+                    <path key={o.id} data-ov={o.id} d={s.d} fill={o.color} fillRule={s.evenOdd ? "evenodd" : undefined}
                       transform={overlayTransform(o)} className={on ? "fs-sel" : undefined}
                       onPointerDown={e => onOverlayDown(e, o)} />
                   )
@@ -645,26 +738,26 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                 )}
                 {selOverlay && (() => {
                   const o = selOverlay
-                  const { w, h } = o.kind === "emblem" ? emblemSize(o) : { w: o.size, h: o.size * (FULL_WIDTH_SYMBOLS.has(o.kind as never) && o.kind !== "stripe" ? 2 / 3 : o.kind === "stripe" ? 0.12 : 1) }
-                  const hw = w / 2, hh = h / 2
+                  const b = overlayBox(o)
                   const r = 8 * upp, hit = 18 * upp
+                  const x0 = b.x, y0 = b.y, x1 = b.x + b.w, y1 = b.y + b.h, cx = b.x + b.w / 2
                   return (
                     <g transform={`translate(${o.x} ${o.y}) rotate(${o.rot})`}>
-                      <rect className="fs-box" x={-hw} y={-hh} width={w} height={h} />
-                      <line className="fs-box" x1={0} y1={-hh} x2={0} y2={-hh - 30 * upp} />
+                      <rect className="fs-box" x={x0} y={y0} width={b.w} height={b.h} />
+                      <line className="fs-box" x1={cx} y1={y0} x2={cx} y2={y0 - 30 * upp} />
                       <g className="fs-handle" onPointerDown={e => onHandleDown(e, o, "rotate")}>
-                        <circle cx={0} cy={-hh - 30 * upp} r={hit} fill="rgba(0,0,0,0)" />
-                        <circle cx={0} cy={-hh - 30 * upp} r={r} className="fs-knob round" />
+                        <circle cx={cx} cy={y0 - 30 * upp} r={hit} fill="rgba(0,0,0,0)" />
+                        <circle cx={cx} cy={y0 - 30 * upp} r={r} className="fs-knob round" />
                       </g>
                       <g className="fs-handle del" role="button" aria-label={`Delete ${overlayName(o)}`}
                         onPointerDown={e => { e.stopPropagation(); removeOverlay(o.id) }}>
-                        <circle cx={-hw} cy={-hh} r={hit} fill="rgba(0,0,0,0)" />
-                        <circle cx={-hw} cy={-hh} r={r * 1.25} className="fs-del" />
-                        <path d={`M${-hw - r * 0.5} ${-hh - r * 0.5}L${-hw + r * 0.5} ${-hh + r * 0.5}M${-hw + r * 0.5} ${-hh - r * 0.5}L${-hw - r * 0.5} ${-hh + r * 0.5}`} className="fs-del-x" />
+                        <circle cx={x0} cy={y0} r={hit} fill="rgba(0,0,0,0)" />
+                        <circle cx={x0} cy={y0} r={r * 1.25} className="fs-del" />
+                        <path d={`M${x0 - r * 0.5} ${y0 - r * 0.5}L${x0 + r * 0.5} ${y0 + r * 0.5}M${x0 + r * 0.5} ${y0 - r * 0.5}L${x0 - r * 0.5} ${y0 + r * 0.5}`} className="fs-del-x" />
                       </g>
                       <g className="fs-handle resize" onPointerDown={e => onHandleDown(e, o, "resize")}>
-                        <circle cx={hw} cy={hh} r={hit} fill="rgba(0,0,0,0)" />
-                        <rect x={hw - r} y={hh - r} width={2 * r} height={2 * r} rx={2 * upp} className="fs-knob" />
+                        <circle cx={x1} cy={y1} r={hit} fill="rgba(0,0,0,0)" />
+                        <rect x={x1 - r} y={y1 - r} width={2 * r} height={2 * r} rx={2 * upp} className="fs-knob" />
                       </g>
                     </g>
                   )
@@ -702,7 +795,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
               <b style={{ fontSize: 14, color: T.text }}>
                 {sel.k === "part" ? "This shape" : sel.k === "color" ? `Every part in this colour` : selOverlay ? overlayName(selOverlay) : ""}
               </b>
-              <span style={{ fontSize: 12, color: T.muted }}>{selectedHex?.toUpperCase() ?? (selOverlay?.kind === "emblem" ? "Its own colours" : "Pattern")}</span>
+              <span style={{ fontSize: 12, color: T.muted }}>{selectedHex?.toUpperCase() ?? (selOverlay?.kind === "emblem" || selOverlay?.kind === "image" ? "Its own colours" : "Pattern")}</span>
             </div>
           </>
         ) : (
@@ -723,7 +816,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
       {selOverlay && (
         <div style={{ display: "grid", gap: 12, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
           <h2 className="fs-h">{overlayName(selOverlay)}</h2>
-          {selOverlay.kind === "emblem" && selOverlay.color && (
+          {(selOverlay.kind === "emblem" || selOverlay.kind === "image") && selOverlay.color && (
             <button className="fs-secondary" onClick={() => commit({ ...design, overlays: design.overlays.map(o => (o.id === selOverlay.id ? { ...o, color: "" } : o)) })}>
               Back to its own colours
             </button>
@@ -739,7 +832,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
             <IconBtn label="Delete" text="Delete" onClick={() => removeOverlay(selOverlay.id)}><Trash2 size={15} /></IconBtn>
           </div>
           <span style={{ fontSize: 12, color: T.muted }}>
-            {selOverlay.kind === "emblem" ? "Drag the emblem to move it. Pick a colour to make it one colour." : "Drag the symbol on the flag to move it."}
+            {selOverlay.kind === "emblem" || selOverlay.kind === "image" ? "Drag it to move it. Pick a colour to make it one colour." : "Drag the symbol on the flag to move it."}
           </span>
         </div>
       )}
@@ -826,18 +919,29 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     </div>
   )
 
+  const symbolGrid = (group: "basic" | "crest") => (
+    <div className="fs-symbols">
+      {SYMBOLS.filter(x => x.group === group).map(x => (
+        <button key={x.kind} className="fs-card fs-sym" onClick={() => addSymbol(x.kind)} aria-label={`Add ${x.name}`}>
+          <svg viewBox="-1.15 -1.15 2.3 2.3" aria-hidden="true"><path d={x.d} fill={T.text} fillRule={x.evenOdd ? "evenodd" : undefined} /></svg>
+          <span>{x.name}</span>
+        </button>
+      ))}
+    </div>
+  )
   const symbolsPanel = (
     <div className="fs-panel">
-      <h2 className="fs-h">Add a symbol</h2>
-      <div className="fs-symbols">
-        {SYMBOLS.map(s => (
-          <button key={s.kind} className="fs-card fs-sym" onClick={() => addSymbol(s.kind)} aria-label={`Add ${s.name}`}>
-            <svg viewBox="-1.15 -1.15 2.3 2.3" aria-hidden="true"><path d={s.d} fill={T.text} fillRule={s.evenOdd ? "evenodd" : undefined} /></svg>
-            <span>{s.name}</span>
-          </button>
-        ))}
-      </div>
-      <span style={{ fontSize: 12, color: T.muted }}>Symbols land in the middle of the flag. Drag them anywhere, then resize, rotate or recolour.</span>
+      <h2 className="fs-h">Your own picture</h2>
+      <button className="fs-secondary" onClick={() => fileRef.current?.click()}><ImagePlus size={17} /> Upload a picture</button>
+      <input ref={fileRef} id="fs-upload" type="file" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml" hidden
+        onChange={e => { void addImage(e.target.files?.[0]); e.target.value = "" }} />
+      <span style={{ fontSize: 12, color: T.muted }}>A logo, a drawing or a crest you made. Transparent PNGs work best. Pictures stay on your device.</span>
+      <h2 className="fs-h" style={{ marginTop: 4 }}>Symbols</h2>
+      {symbolGrid("basic")}
+      <h2 className="fs-h" style={{ marginTop: 4 }}>Build a crest</h2>
+      <span style={{ fontSize: 12, color: T.muted, marginTop: -4 }}>Start with a shield. Add a crown and it sits on top, a scroll goes underneath, a laurel goes around, and any symbol goes inside.</span>
+      {symbolGrid("crest")}
+      <span style={{ fontSize: 12, color: T.muted }}>Everything lands in the middle of the flag. Drag it anywhere, then resize, rotate or recolour.</span>
     </div>
   )
 
@@ -1068,8 +1172,19 @@ function DesignThumb({ design }: { design: Design }) {
 // ── Small controls ─────────────────────────────────────────────────────────
 
 function TabBar({ tabs, tab, onTab }: { tabs: [Tab, string][]; tab: Tab; onTab: (t: Tab) => void }) {
+  // Keep the active tab in view when the studio switches tabs by itself
+  // (adding a symbol jumps to Edit), scrolling only the tab row sideways.
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const row = ref.current
+    const on = row?.querySelector<HTMLElement>("[aria-selected='true']")
+    if (!row || !on) return
+    const left = on.offsetLeft - row.offsetLeft, right = left + on.offsetWidth
+    if (left < row.scrollLeft) row.scrollTo({ left: left - 8, behavior: "smooth" })
+    else if (right > row.scrollLeft + row.clientWidth) row.scrollTo({ left: right - row.clientWidth + 8, behavior: "smooth" })
+  }, [tab])
   return (
-    <div className="fs-tabs" role="tablist">
+    <div className="fs-tabs" role="tablist" ref={ref}>
       {tabs.map(([t, label]) => (
         <button key={t} role="tab" aria-selected={tab === t} className={tab === t ? "on" : ""} onClick={() => onTab(t)}>{label}</button>
       ))}
