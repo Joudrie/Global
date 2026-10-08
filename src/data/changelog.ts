@@ -38,6 +38,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       "New symbols: mountains and waves.",
       "Saudi Arabia's emblem no longer leaves green specks on other flags.",
       "Selection boxes now hug each shape, Escape always deselects, and dragging the colour picker is one undo step.",
+      "Much smoother on phones: dragging a symbol no longer redraws the whole flag, and a pinch works with your fingers on the symbol.",
+      "Real flags show their true colours in the colour strip (no more stray black on the US, UK, Nepal or Brazil), and tapping picks the part under your finger.",
+      "Changing the flag's shape keeps a crest together, undo keeps your flag's name and motto, and taps that change nothing no longer fill the undo list.",
+      "Downloads wait for emblems, the nation card no longer puts a white box behind Nepal, edits save when you switch apps, and a broken flag link says so.",
     ],
   },
   {
