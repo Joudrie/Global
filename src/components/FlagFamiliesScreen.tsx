@@ -3,48 +3,47 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { Tags, ThumbsUp, BookOpen } from "lucide-react"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
 interface Family {
   id: string
   label: string
-  emoji: string
   codes: string[]
 }
 
 const FAMILY_DEFS: Family[] = [
   // ── Structure / layout ───────────────────────────────────────────────────
-  { id: 'nordic',     label: 'Nordic Cross',        emoji: '✚',  codes: ['DK','NO','SE','FI','IS'] },
-  { id: 'cross-mid',  label: 'Centered Cross',      emoji: '✝️', codes: ['CH','GE','DO','TO'] },
-  { id: 'v-tricolor', label: 'Vertical Tricolor',   emoji: '┃',  codes: ['FR','IT','IE','BE','RO','NG','ML','SN','CI','GN','CM','TD'] },
-  { id: 'h-tricolor', label: 'Horizontal Tricolor', emoji: '═',  codes: ['DE','NL','RU','HU','BG','LT','EE','AM','GA','SL'] },
-  { id: 'bicolor',    label: 'Two-Band Bicolor',    emoji: '▭',  codes: ['ID','MC','PL','UA','SM'] },
-  { id: 'hoist-tri',  label: 'Hoist Triangle',      emoji: '◢',  codes: ['CZ','PH','ER','DJ','BS','GY','MZ','ZA','SS','JO','PS','SD','KW','VU'] },
-  { id: 'diagonal',   label: 'Diagonal Band',       emoji: '╱',  codes: ['CD','CG','TZ','NA','TT','BN','SC','SB'] },
-  { id: 'white-mid',  label: 'White Center Band',   emoji: '⬜', codes: ['NG','PE','CA','AT','LV','LB','IR','TJ','MX'] },
-  { id: 'uk-ensign',  label: 'Union Jack Canton',   emoji: '🇬🇧', codes: ['AU','NZ','FJ','TV','CK'] },
+  { id: 'nordic',     label: 'Nordic Cross',        codes: ['DK','NO','SE','FI','IS'] },
+  { id: 'cross-mid',  label: 'Centered Cross',      codes: ['CH','GE','DO','TO'] },
+  { id: 'v-tricolor', label: 'Vertical Tricolor',   codes: ['FR','IT','IE','BE','RO','NG','ML','SN','CI','GN','CM','TD'] },
+  { id: 'h-tricolor', label: 'Horizontal Tricolor', codes: ['DE','NL','RU','HU','BG','LT','EE','AM','GA','SL'] },
+  { id: 'bicolor',    label: 'Two-Band Bicolor',    codes: ['ID','MC','PL','UA','SM'] },
+  { id: 'hoist-tri',  label: 'Hoist Triangle',      codes: ['CZ','PH','ER','DJ','BS','GY','MZ','ZA','SS','JO','PS','SD','KW','VU'] },
+  { id: 'diagonal',   label: 'Diagonal Band',       codes: ['CD','CG','TZ','NA','TT','BN','SC','SB'] },
+  { id: 'white-mid',  label: 'White Center Band',   codes: ['NG','PE','CA','AT','LV','LB','IR','TJ','MX'] },
+  { id: 'uk-ensign',  label: 'Union Jack Canton',   codes: ['AU','NZ','FJ','TV','CK'] },
   // ── Colour palette ───────────────────────────────────────────────────────
-  { id: 'rwb',        label: 'Red, White & Blue',   emoji: '🔵', codes: ['US','GB','FR','NL','RU','NO','IS','CZ','LU','TH','PY','CL','CU','CR','PA'] },
-  { id: 'red-white',  label: 'Red & White Only',    emoji: '🔴', codes: ['AT','PL','MC','ID','BH','QA','CA','PE','MT','SG'] },
-  { id: 'blue-white', label: 'Blue & White Only',   emoji: '🔷', codes: ['AR','GR','FI','IL','NI','SV','HN','SO','UY','GT'] },
-  { id: 'pan-african',label: 'Pan-African Colours', emoji: '🌍', codes: ['ET','GH','ML','GN','KE','ZM','TZ','BJ','BF','CG','CM','GW','TG','ZW'] },
-  { id: 'pan-arab',   label: 'Pan-Arab Colours',    emoji: '🟥', codes: ['EG','IQ','SY','YE','JO','KW','AE','PS','SD'] },
-  { id: 'green-dom',  label: 'Green-Dominant',      emoji: '🟢', codes: ['SA','PK','NG','BD','TM','MR','ZM'] },
-  { id: 'yellow-dom', label: 'Yellow-Dominant',     emoji: '🟡', codes: ['BN','CO','EC','VE','BT'] },
-  { id: 'has-black',  label: 'Contains Black',      emoji: '⬛', codes: ['DE','EG','SY','YE','KE','AF','SS','BE','AO','BW','JM','PG','MW','UG','TZ','ZW','VU','TT','EE'] },
+  { id: 'rwb',        label: 'Red, White & Blue',   codes: ['US','GB','FR','NL','RU','NO','IS','CZ','LU','TH','PY','CL','CU','CR','PA'] },
+  { id: 'red-white',  label: 'Red & White Only',    codes: ['AT','PL','MC','ID','BH','QA','CA','PE','MT','SG'] },
+  { id: 'blue-white', label: 'Blue & White Only',   codes: ['AR','GR','FI','IL','NI','SV','HN','SO','UY','GT'] },
+  { id: 'pan-african',label: 'Pan-African Colours', codes: ['ET','GH','ML','GN','KE','ZM','TZ','BJ','BF','CG','CM','GW','TG','ZW'] },
+  { id: 'pan-arab',   label: 'Pan-Arab Colours',    codes: ['EG','IQ','SY','YE','JO','KW','AE','PS','SD'] },
+  { id: 'green-dom',  label: 'Green-Dominant',      codes: ['SA','PK','NG','BD','TM','MR','ZM'] },
+  { id: 'yellow-dom', label: 'Yellow-Dominant',     codes: ['BN','CO','EC','VE','BT'] },
+  { id: 'has-black',  label: 'Contains Black',      codes: ['DE','EG','SY','YE','KE','AF','SS','BE','AO','BW','JM','PG','MW','UG','TZ','ZW','VU','TT','EE'] },
   // ── Emblems ──────────────────────────────────────────────────────────────
-  { id: 'crescent',   label: 'Crescent & Star',     emoji: '☪️', codes: ['TR','PK','MY','TN','DZ','AZ','TM','MV','MR','LY','KM','SG'] },
-  { id: 'disc',       label: 'Disc / Circle',       emoji: '⭕', codes: ['JP','BD','LA','PW','NE','KR'] },
-  { id: 'sun',        label: 'Sun Emblem',          emoji: '☀️', codes: ['AR','UY','MK','TW','PH','KI','AG','RW','NP'] },
-  { id: 'one-star',   label: 'Single Star',         emoji: '⭐', codes: ['VN','MA','SO','GH','SN','BF','CM','LR','TG'] },
-  { id: 'south-cross',label: 'Southern Cross',      emoji: '✦',  codes: ['AU','NZ','PG','WS','SB'] },
-  { id: 'arms',       label: 'Coat of Arms',        emoji: '🛡️', codes: ['ES','PT','ME','MX','EC','BO','HR','AD','MD','GT','FJ','SZ','LS','BZ','DM'] },
-  { id: 'eagle2',     label: 'Double-Headed Eagle', emoji: '🦅', codes: ['AL','ME','RS'] },
-  { id: 'eagle1',     label: 'Single Eagle',        emoji: '🦅', codes: ['EG','MX','ZM','KZ','MD'] },
-  { id: 'bird',       label: 'Bird (not eagle)',    emoji: '🕊️', codes: ['UG','PG','ZW','KI','DM'] },
-  { id: 'map',        label: 'Map of the Country',  emoji: '🗺️', codes: ['CY','XK'] },
+  { id: 'crescent',   label: 'Crescent & Star',     codes: ['TR','PK','MY','TN','DZ','AZ','TM','MV','MR','LY','KM','SG'] },
+  { id: 'disc',       label: 'Disc / Circle',       codes: ['JP','BD','LA','PW','NE','KR'] },
+  { id: 'sun',        label: 'Sun Emblem',          codes: ['AR','UY','MK','TW','PH','KI','AG','RW','NP'] },
+  { id: 'one-star',   label: 'Single Star',         codes: ['VN','MA','SO','GH','SN','BF','CM','LR','TG'] },
+  { id: 'south-cross',label: 'Southern Cross',      codes: ['AU','NZ','PG','WS','SB'] },
+  { id: 'arms',       label: 'Coat of Arms',        codes: ['ES','PT','ME','MX','EC','BO','HR','AD','MD','GT','FJ','SZ','LS','BZ','DM'] },
+  { id: 'eagle2',     label: 'Double-Headed Eagle', codes: ['AL','ME','RS'] },
+  { id: 'eagle1',     label: 'Single Eagle',        codes: ['EG','MX','ZM','KZ','MD'] },
+  { id: 'bird',       label: 'Bird (not eagle)',    codes: ['UG','PG','ZW','KI','DM'] },
+  { id: 'map',        label: 'Map of the Country',  codes: ['CY','XK'] },
 ]
 
 interface Round {
@@ -167,36 +166,16 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
   if (done || rounds.length === 0) {
     const correct = scores.filter(Boolean).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 12px 32px -14px ${tint(T.text, 0.45)}` }}>
-            <div className="mb-3 flex justify-center" style={{ color: correct === scores.length ? T.gold : correct >= 2 ? T.green : ACCENT_A }}>
-              {correct === scores.length
-                ? <Tags size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                : correct >= 2
-                  ? <ThumbsUp size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <BookOpen size={44} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-6xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct}/{scores.length}</div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>rounds sorted correctly</div>
-            <div className="flex justify-center gap-2">
-              {scores.map((ok, i) => <span key={i} style={{ width: 16, height: 16, borderRadius: 4, display: 'inline-block', background: ok ? T.green : T.danger }} />)}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACCENT_A, color: T.onAccent, fontFamily: FONT.display }}>
-              Play Again
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
+        <ScreenHeader title="Flag Families" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={correct === scores.length ? "trophy" : correct >= 2 ? "check" : "codex"} accent={correct === scores.length ? T.gold : correct >= 2 ? T.green : ACCENT_A}
+              title={`${correct} of ${scores.length} sorted`} score="Rounds sorted into the right families" />
+            <ResultDots results={scores} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT_A}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -248,17 +227,8 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
 
-      <ScreenHeader title="Flag Families" subtitle={`Round ${idx + 1} / ${rounds.length}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5">
-            {Array.from({ length: rounds.length }).map((_, i) => (
-              <div key={i} style={{
-                width: 7, height: 7, borderRadius: '50%',
-                background: i < scores.length ? (scores[i] ? T.green : T.danger) : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title="Flag Families" subtitle={`${scores.filter(Boolean).length} sorted so far`} onBack={onBack}
+        right={<HeaderStat accent={ACCENT_A}>{idx + 1} / {rounds.length}</HeaderStat>} />
 
       <div className="mx-5 h-1.5 rounded-full overflow-hidden mb-4" style={{ background: T.line }}>
         <div className="h-full rounded-full transition-all duration-500"
@@ -290,9 +260,7 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
             cursor: selected && !checked ? 'pointer' : 'default',
           }}>
           <div className="flex items-center gap-2 mb-2">
-            {checked
-              ? <span style={{ fontSize: 18 }}>{(revealSwap ? round.familyB : round.familyA).emoji}</span>
-              : <span style={{ width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT_A, 0.15), color: ACCENT_A, fontSize: 11, fontWeight: 800 }}>A</span>}
+            <span style={{ width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT_A, 0.15), color: ACCENT_A, fontSize: 11, fontWeight: 800 }}>A</span>
             <span className="text-sm font-bold" style={{ color: checked ? T.text : ACCENT_A, fontFamily: FONT.display }}>{checked ? (revealSwap ? round.familyB : round.familyA).label : 'Group A'}</span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -317,9 +285,7 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
             cursor: selected && !checked ? 'pointer' : 'default',
           }}>
           <div className="flex items-center gap-2 mb-2">
-            {checked
-              ? <span style={{ fontSize: 18 }}>{(revealSwap ? round.familyA : round.familyB).emoji}</span>
-              : <span style={{ width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT_B, 0.15), color: ACCENT_B, fontSize: 11, fontWeight: 800 }}>B</span>}
+            <span style={{ width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT_B, 0.15), color: ACCENT_B, fontSize: 11, fontWeight: 800 }}>B</span>
             <span className="text-sm font-bold" style={{ color: checked ? T.text : ACCENT_B, fontFamily: FONT.display }}>{checked ? (revealSwap ? round.familyA : round.familyB).label : 'Group B'}</span>
           </div>
           <div className="flex flex-wrap gap-2">
@@ -361,22 +327,13 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
         )}
 
         {!checked ? (
-          <button onClick={handleCheck} disabled={!allAssigned}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{
-              background: allAssigned ? ACCENT_A : T.surface,
-              color: allAssigned ? T.onAccent : T.dim,
-              border: allAssigned ? 'none' : `1px solid ${T.line}`,
-              fontFamily: FONT.display,
-            }}>
+          <PrimaryButton onClick={handleCheck} disabled={!allAssigned} accent={ACCENT_A} style={{ maxWidth: 384 }}>
             Check →
-          </button>
+          </PrimaryButton>
         ) : (
-          <button onClick={handleNext}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: ACCENT_A, color: T.onAccent, fontFamily: FONT.display }}>
-            {idx + 1 >= rounds.length ? "See Results →" : "Next Round →"}
-          </button>
+          <PrimaryButton onClick={handleNext} accent={ACCENT_A} style={{ maxWidth: 384 }}>
+            {idx + 1 >= rounds.length ? "See results →" : "Next Round →"}
+          </PrimaryButton>
         )}
       </div>
     </div>

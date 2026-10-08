@@ -4,6 +4,9 @@ import { STATS, STAT_CODES } from "../data/countryStats"
 import { neighborsOf } from "../data/borders"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { LineIcon } from "./icons"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -82,19 +85,20 @@ function StatClashGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   if (reveal && !reveal.correct) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 22, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 38 }}>📉</div>
-            <div className="geo-display" style={{ fontWeight: 700, fontSize: 18, color: T.text, marginTop: 4 }}>{NAME(winner)} had {q.metric === "pop" ? "more people" : q.metric === "area" ? "more land" : q.metric === "borders" ? "more neighbours" : "higher density"}</div>
-            <div style={{ color: T.muted, fontSize: 12, marginTop: 6 }}>{NAME(q.a)}: {fmt(q.metric, q.a)}<br />{NAME(q.b)}: {fmt(q.metric, q.b)}</div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: 16 }}>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 28, color: ACCENT.play }}>{streak}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>streak</div></div>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 28, color: T.amber }}>{best}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>best</div></div>
-            </div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>Go again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Stat Clash" subtitle="Run over" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="trending-down" accent={ACCENT.play}
+              title={`${NAME(winner)} had ${q.metric === "pop" ? "more people" : q.metric === "area" ? "more land" : q.metric === "borders" ? "more neighbours" : "higher density"}`}
+              score={<>{NAME(q.a)}: {fmt(q.metric, q.a)}<br />{NAME(q.b)}: {fmt(q.metric, q.b)}</>} />
+            <ResultStats stats={[
+              { label: "Streak", value: streak, accent: ACCENT.play },
+              { label: "Best", value: best, accent: T.amber },
+            ]} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Go again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -119,7 +123,7 @@ function StatClashGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
         <div style={{ padding: "9px 8px" }}>
           <div className="geo-display" style={{ fontWeight: 700, fontSize: 14, color: T.text }}>{NAME(code)}</div>
-          {reveal && <div className="geo-mono" style={{ fontSize: 10, color: isWinner ? ACCENT.codex : T.muted, marginTop: 2 }}>{fmt(q.metric, code)}</div>}
+          {reveal && <div className="geo-mono" style={{ fontSize: 11, color: isWinner ? ACCENT.codex : T.muted, marginTop: 2 }}>{fmt(q.metric, code)}</div>}
         </div>
       </button>
     )
@@ -127,18 +131,15 @@ function StatClashGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Stat Clash</div>
-          <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 18, color: ACCENT.play }}>{streak}</div>
-        </div>
-        <div style={{ textAlign: "right" }}><div className="geo-micro" style={{ fontSize: 8, color: T.dim }}>best</div><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 14, color: T.amber }}>{best}</div></div>
-      </header>
+      <ScreenHeader title="Stat Clash" subtitle={`Best ${best}`} onBack={onBack}
+        right={<HeaderStat label="Streak" accent={ACCENT.play}>{streak}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", justifyContent: "center", padding: "0 18px 30px", gap: 16 }}>
         <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: q.metric === "pop" ? ACCENT.learn : ACCENT.codex }}>{q.metric === "pop" ? "👥 Population" : q.metric === "area" ? "🗺 Land area" : q.metric === "borders" ? "🧭 Land borders" : "🏙 Density"}</div>
+          <div className="geo-micro" style={{ fontSize: 11, color: q.metric === "pop" ? ACCENT.learn : ACCENT.codex, display: "inline-flex", alignItems: "center", gap: 6 }}>
+            <LineIcon name={q.metric === "pop" ? "users" : q.metric === "area" ? "map" : q.metric === "borders" ? "compass" : "building"} size={14} />
+            {q.metric === "pop" ? "Population" : q.metric === "area" ? "Land area" : q.metric === "borders" ? "Land borders" : "Density"}
+          </div>
           <div className="geo-display" style={{ fontWeight: 700, fontSize: 21, color: T.text, marginTop: 2 }}>Which has {prompt}</div>
         </div>
         <div style={{ display: "flex", gap: 12, alignItems: "stretch" }}>

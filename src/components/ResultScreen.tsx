@@ -1,11 +1,12 @@
 import { useEffect } from 'react'
-import { Trophy, Star, ThumbsUp, BookOpen, RotateCcw } from 'lucide-react'
 import { todayString } from '../utils/prng'
 import ShareCard from './ShareCard'
 import AdBox from './AdBox'
 import { AD_SLOTS } from '../ads'
 import type { ShareResult } from '../utils/storage'
-import { T, ACCENT, FONT, tint } from '../ui/tokens'
+import { T, ACCENT } from '../ui/tokens'
+import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props {
   score: number
@@ -24,14 +25,14 @@ export default function ResultScreen({ score, total, answers, setLabel, streak, 
   const accent = ACCENT.play
 
   const getMessage = () => {
-    if (pct === 100) return { Icon: Trophy, iconColor: T.gold, text: 'Perfect score! Incredible!' }
-    if (pct >= 80)  return { Icon: Star, iconColor: T.gold, text: 'Fantastic! You really know your flags.' }
-    if (pct >= 60)  return { Icon: ThumbsUp, iconColor: T.green, text: 'Solid! A few sneaky ones tripped you up.' }
-    if (pct >= 40)  return { Icon: BookOpen, iconColor: accent, text: "Room to grow — but that's the fun part!" }
-    return { Icon: RotateCcw, iconColor: T.muted, text: "Flags are hard! You'll get them next time." }
+    if (pct === 100) return { icon: 'trophy', iconColor: T.gold, text: 'Perfect score! Incredible!' }
+    if (pct >= 80)  return { icon: 'star', iconColor: T.gold, text: 'Fantastic! You really know your flags.' }
+    if (pct >= 60)  return { icon: 'check', iconColor: T.green, text: 'Solid! A few sneaky ones tripped you up.' }
+    if (pct >= 40)  return { icon: 'codex', iconColor: accent, text: "Room to grow — but that's the fun part!" }
+    return { icon: 'target', iconColor: T.muted, text: "Flags are hard! You'll get them next time." }
   }
 
-  const { Icon, iconColor, text } = getMessage()
+  const { icon, iconColor, text } = getMessage()
 
   const shareResult: ShareResult = {
     game: setLabel,
@@ -49,26 +50,19 @@ export default function ResultScreen({ score, total, answers, setLabel, streak, 
   }, [])
 
   return (
-    <div className="min-h-screen flex flex-col items-center px-5 py-8"
-      style={{ background: T.bg, minHeight: '100vh', color: T.text, overflowY: 'auto' }}>
+    <div className="min-h-screen flex flex-col" style={{ background: T.bg, minHeight: '100vh', color: T.text, overflowY: 'auto' }}>
+      <ScreenHeader title={setLabel} subtitle="Results" onBack={onHome} />
 
-      <div className="w-full max-w-sm flex flex-col gap-4">
+      <div className="w-full max-w-sm mx-auto flex flex-col gap-4 px-5 pb-8">
 
         {/* Score summary */}
-        <div className="rounded-2xl p-5 text-center carto-card"
-          style={{ ['--wash' as string]: tint(accent, 0.4) }}>
-          <div className="mb-2 flex justify-center">
-            <Icon size={44} color={iconColor} strokeWidth={1.6} absoluteStrokeWidth />
-          </div>
-          <div className="text-6xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, letterSpacing: '-0.04em' }}>{score}/{total}</div>
-          <div className="text-sm mb-2" style={{ color: T.muted }}>{setLabel}</div>
-          <p className="text-base font-semibold mb-3" style={{ color: accent, fontFamily: FONT.display }}>{text}</p>
+        <ResultCard>
+          <ResultHeader icon={icon} accent={iconColor} title={text} score={`${score} / ${total} correct · ${pct}%`} />
           <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: T.line }}>
             <div className="h-full rounded-full transition-all duration-700"
               style={{ width: `${pct}%`, background: pct === 100 ? T.gold : T.green }} />
           </div>
-          <div className="text-xs mt-1" style={{ color: T.muted }}>{pct}% correct</div>
-        </div>
+        </ResultCard>
 
         {/* Shareable card */}
         <ShareCard result={shareResult} showCopyButton />
@@ -79,19 +73,8 @@ export default function ResultScreen({ score, total, answers, setLabel, streak, 
 
         {/* Buttons */}
         <div className="flex flex-col gap-3">
-          {onRetry && (
-            <button onClick={onRetry}
-              className="w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-95 flex items-center justify-center gap-2"
-              style={{ background: T.surface, border: `1px solid ${tint(accent, 0.3)}`, color: accent }}>
-              <RotateCcw size={16} color={accent} strokeWidth={1.6} absoluteStrokeWidth />
-              Play Again
-            </button>
-          )}
-          <button onClick={onHome}
-            className="w-full py-3.5 rounded-xl font-bold text-base transition-all active:scale-95"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-            ← Home
-          </button>
+          {onRetry && <PrimaryButton onClick={onRetry} accent={accent}>Play again</PrimaryButton>}
+          <SecondaryButton onClick={onHome}>Home</SecondaryButton>
         </div>
       </div>
     </div>

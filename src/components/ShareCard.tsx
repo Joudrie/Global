@@ -3,6 +3,7 @@ import { Globe2, Flame, Share2 } from 'lucide-react'
 import { toPng } from 'html-to-image'
 import type { ShareResult } from "../utils/storage"
 import { T, FONT, tint } from "../ui/tokens"
+import { SecondaryButton } from "./gameUi"
 
 interface Props {
   result: ShareResult
@@ -175,18 +176,10 @@ export default function ShareCard({ result, showCopyButton = true }: Props) {
       </div>
 
       {showCopyButton && (
-        <button
-          onClick={handleShare}
-          disabled={busy}
-          className="w-full max-w-xs py-3 rounded-xl font-bold text-sm transition-all active:scale-95 flex items-center justify-center gap-2"
-          style={{
-            background: T.amber,
-            color: T.onAccent, opacity: busy ? 0.7 : 1,
-          }}
-        >
-          <Share2 size={15} color={T.onAccent} strokeWidth={1.6} absoluteStrokeWidth />
+        <SecondaryButton onClick={handleShare} disabled={busy}>
+          <Share2 size={16} color={T.amber} strokeWidth={1.6} absoluteStrokeWidth />
           {busy ? 'Sharing…' : copied ? 'Copied! ✓' : 'Share result'}
-        </button>
+        </SecondaryButton>
       )}
       <p style={{ fontSize: 11, color: T.dim, textAlign: 'center' }}>
         Shares the card image — or screenshot it

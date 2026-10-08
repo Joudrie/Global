@@ -6,7 +6,8 @@ import { HISTORICAL_FLAGS } from '../data/historicalFlags'
 import { LGBTQ_FLAGS, OTHER_IDENTITY_FLAGS } from '../data/identityFlags'
 import { shuffleWithSeed } from '../utils/prng'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
-import { ScreenHeader } from './ui'
+import { ScreenHeader } from "./ui"
+import { PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from './icons'
 import { Brain, ChevronLeft, ChevronRight } from 'lucide-react'
 
@@ -253,14 +254,10 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
             )}
 
             <div className="flex-1 flex flex-col items-center justify-center px-5 gap-5" style={{ zIndex: 1, position: 'relative' }}>
-              <button onClick={startLearn}
-                className="geo-tap w-full max-w-sm py-4 rounded-2xl font-bold text-lg transition-all active:scale-95"
-                style={{ background: ACCENT.learn, color: T.onAccent, boxShadow: `0 4px 20px ${tint(ACCENT.learn, 0.33)}`, fontFamily: FONT.display }}>
-                <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                  <LineIcon name="codex" size={19} color={T.onAccent} /> Learn
-                </span>
-                <div className="text-xs font-normal mt-0.5 opacity-75">Swipe through flags & facts</div>
-              </button>
+              <PrimaryButton onClick={startLearn} accent={ACCENT.learn} style={{ maxWidth: 384 }}>
+                <LineIcon name="codex" size={19} color={T.onAccent} /> Learn
+              </PrimaryButton>
+              <div className="text-xs" style={{ color: T.muted, marginTop: -12 }}>Swipe through flags &amp; facts</div>
               <button onClick={() => onQuizSet(sourceFlags)}
                 className="geo-tap w-full max-w-sm py-4 rounded-2xl font-bold text-lg transition-all active:scale-95"
                 style={{ background: T.surface, border: `1px solid ${tint(ACCENT.learn, 0.3)}`, color: ACCENT.learn, fontFamily: FONT.display }}>
@@ -288,7 +285,6 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
                       className="w-full flex items-center justify-between px-4 py-3"
                       style={{ background: 'transparent', cursor: 'pointer' }}>
                       <span style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                        <span style={{ fontSize: 20 }}>{cont.emoji}</span>
                         <span className="geo-display" style={{ fontWeight: 800, color: T.text }}>{cont.name}</span>
                         <span style={{ fontSize: 11, color: T.muted }}>{eligible.length} countries</span>
                       </span>
@@ -339,14 +335,10 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
                     <div className="text-xs mt-1" style={{ color: T.muted }}>{d.blurb}</div>
                     <div className="text-xs mt-2" style={{ color: ACCENT.learn, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>{cards.length} cards</div>
                   </div>
-                  <button onClick={startLearn}
-                    className="geo-tap w-full max-w-sm py-4 rounded-2xl font-bold text-lg transition-all active:scale-95"
-                    style={{ background: ACCENT.learn, color: T.onAccent, boxShadow: `0 4px 20px ${tint(ACCENT.learn, 0.33)}`, fontFamily: FONT.display }}>
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <LineIcon name="codex" size={19} color={T.onAccent} /> Learn
-                    </span>
-                    <div className="text-xs font-normal mt-0.5 opacity-75">Swipe through flags & facts</div>
-                  </button>
+                  <PrimaryButton onClick={startLearn} accent={ACCENT.learn} style={{ maxWidth: 384 }}>
+                    <LineIcon name="codex" size={19} color={T.onAccent} /> Learn
+                  </PrimaryButton>
+                  <div className="text-xs" style={{ color: T.muted, marginTop: -12 }}>Swipe through flags &amp; facts</div>
                 </>
               )
             })()}
@@ -362,8 +354,7 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
       <div className="min-h-screen flex flex-col items-center justify-center px-5 gap-4"
         style={{ background: T.bg, color: T.text }}>
         <p style={{ color: T.muted }}>No flags to study here yet.</p>
-        <button onClick={() => setMode('menu')} className="geo-tap px-6 py-3 rounded-2xl font-bold"
-          style={{ background: T.surface, border: `1px solid ${tint(ACCENT.learn, 0.3)}`, color: ACCENT.learn }}>‹ Back</button>
+        <SecondaryButton onClick={() => setMode('menu')} style={{ maxWidth: 240 }}>Back</SecondaryButton>
       </div>
     )
   }

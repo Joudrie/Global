@@ -2,9 +2,10 @@ import { useState, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { LineIcon } from "./icons"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+
 import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
@@ -85,31 +86,17 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   if (done) {
     const total = scores.reduce((a, b) => a + b, 0)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-            <div className="mb-3 flex justify-center"><LineIcon name="describeit" size={44} color={ACCENT.play} /></div>
-            <div className="text-5xl font-black mb-1"
-              style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em" }}>
-              {total.toLocaleString()}
-            </div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>pts · {scores.filter(s => s > 0).length}/{ROUNDS} solved</div>
-            <div className="flex justify-center gap-2">
-              {scores.map((s, i) => (
-                <span key={i} style={{ width: 14, height: 14, borderRadius: 4, display: "inline-block", background: s > 0 ? T.green : T.danger }} />
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-              style={{ background: ACCENT.play, color: T.onAccent, fontFamily: FONT.display }}>Play Again</button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Describe-It" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon="describeit" accent={ACCENT.play}
+              title={`${total.toLocaleString()} pts`}
+              score={`${scores.filter(s => s > 0).length} of ${ROUNDS} solved`} />
+            <ResultDots results={scores.map(s => s > 0)} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -117,7 +104,8 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-      <ScreenHeader title="Describe-It" subtitle={`Round ${idx + 1} / ${ROUNDS}`} onBack={onBack} />
+      <ScreenHeader title="Describe-It" subtitle="Name the flag from its clues" onBack={onBack}
+        right={<HeaderStat accent={ACCENT.play}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div className="flex flex-col items-center px-5 gap-4">
         <p className="text-xs text-center" style={{ color: T.muted }}>No image — name the flag from its description. Each wrong guess reveals another clue.</p>
@@ -148,11 +136,9 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                 {result.correct ? `✓ ${round.target.name} — +${scores[scores.length - 1]}` : `✗ It was ${round.target.name}`}
               </p>
             </div>
-            <button onClick={next}
-              className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-              style={{ background: ACCENT.play, color: T.onAccent, fontFamily: FONT.display }}>
-              {idx + 1 >= ROUNDS ? "See Results →" : "Next →"}
-            </button>
+            <PrimaryButton onClick={next} accent={ACCENT.play} style={{ maxWidth: 384 }}>
+              {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
+            </PrimaryButton>
           </>
         ) : (
           <div className="w-full max-w-sm relative">

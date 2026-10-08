@@ -3,6 +3,8 @@ import { FLAGS } from "../data/flags"
 import { neighborsOf, countriesWithBorders } from "../data/borders"
 import { T, ACCENT, FONT } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -51,15 +53,16 @@ function OddBorderGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   if (done) {
     const correct = scores.filter(Boolean).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>🧭</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 38, color: ACCENT.learn }}>{correct}<span style={{ color: T.dim, fontSize: 20 }}>/{ROUNDS}</span></div>
-            <div style={{ color: T.muted, fontSize: 12 }}>impostors spotted</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Odd Border Out" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="oddborder" accent={ACCENT.learn}
+              title={`${correct} of ${ROUNDS} impostors spotted`}
+              score="Countries that don't share the border" />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -67,11 +70,8 @@ function OddBorderGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Odd Border Out</div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 13, color: T.dim }}>{idx + 1}/{ROUNDS}</div>
-      </header>
+      <ScreenHeader title="Odd Border Out" subtitle="Spot the non-neighbour" onBack={onBack}
+        right={<HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "12px 18px 22px", gap: 14, alignItems: "center" }}>
         <p style={{ textAlign: "center", color: T.muted, fontSize: 13 }}>Which one does <b style={{ color: T.text }}>NOT</b> border</p>
@@ -101,9 +101,9 @@ function OddBorderGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
 
         {answered && (
-          <button onClick={next} className="geo-tap" style={{ marginTop: "auto", width: "100%", maxWidth: 360, padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>
+          <PrimaryButton onClick={next} accent={ACCENT.learn} style={{ marginTop: "auto", maxWidth: 360 }}>
             {idx + 1 >= ROUNDS ? "See result →" : "Next →"}
-          </button>
+          </PrimaryButton>
         )}
       </div>
     </div>

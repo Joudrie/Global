@@ -145,7 +145,7 @@ export default function TierListScreen({ onBack }: Props) {
             }}>
             {flagsIn(POOL).map(f => <FlagChip key={f.code} code={f.code} url={f.flagUrl} name={f.name} />)}
             {flagsIn(POOL).length === 0 && (
-              <div style={{ color: T.dim, fontSize: 13, padding: 8 }}>Every flag has been ranked! 🎉</div>
+              <div style={{ color: T.dim, fontSize: 13, padding: 8 }}>Every flag has been ranked.</div>
             )}
           </div>
         </div>

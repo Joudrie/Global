@@ -1,10 +1,10 @@
 import { useState, useMemo, useRef } from "react"
-import { Target, Frown } from "lucide-react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import FlagImage from "./FlagImage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
 import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
@@ -83,16 +83,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
               : solved ? "Identified!" : "Better luck next time"}
           </span>
         }
-        right={
-          <div className="flex gap-1.5 items-center">
-            {Array.from({ length: SCALES.length - 1 }).map((_, i) => (
-              <div key={i} style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: i < wrongGuesses ? T.danger : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+        right={<HeaderStat label="Misses" accent={ACC}>{wrongGuesses} / {SCALES.length - 1}</HeaderStat>} />
 
       <div className="flex flex-col items-center px-5 gap-4">
 
@@ -147,30 +138,13 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         {/* Result card */}
         {phase === "result" ? (
           <div className="w-full max-w-sm flex flex-col gap-3">
-            <div className="rounded-xl p-4 text-center"
-              style={{ background: T.surface, border: `1px solid ${tint(solved ? T.green : T.danger, 0.4)}` }}>
-              <div className="mb-1 flex justify-center" style={{ color: solved ? T.green : T.danger }}>
-                {solved
-                  ? <Target size={28} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <Frown size={28} strokeWidth={1.6} absoluteStrokeWidth />}
-              </div>
-              <div className="font-bold text-lg" style={{ color: T.text, fontFamily: FONT.display }}>{target.name}</div>
-              <div className="text-xs mt-1" style={{ color: T.muted }}>
-                {solved
-                  ? `Found in ${wrongGuesses + 1} guess${wrongGuesses + 1 !== 1 ? "es" : ""}!`
-                  : "Fully revealed — better luck next time."}
-              </div>
-            </div>
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              New Flag
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <ResultCard>
+              <ResultHeader icon={solved ? "target" : "x"} accent={solved ? T.green : T.danger}
+                title={target.name}
+                score={solved ? `Found in ${wrongGuesses + 1} guess${wrongGuesses + 1 !== 1 ? "es" : ""}!` : "Fully revealed. Better luck next time."} />
+            </ResultCard>
+            <PrimaryButton onClick={onReplay} accent={ACC}>New flag</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         ) : (
           /* Type-in */

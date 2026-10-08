@@ -4,6 +4,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-08",
+    title: "A cleaner look across every game",
+    items: [
+      "Every game now has the same header: a round back button, the game's name and your score or round in one place.",
+      "Next, Play again and the other main buttons look and feel the same in every game, and end screens share one clear layout.",
+      "Emoji icons are gone from the game screens, replaced by simple line icons that match the rest of Globalio.",
+    ],
+  },
+  {
     date: "2026-10-02",
     title: "What every flag means",
     items: [

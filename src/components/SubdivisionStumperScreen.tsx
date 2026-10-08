@@ -1,8 +1,9 @@
 import { useState } from "react"
 import { SUB_FLAGS } from "../data/subdivisions"
 import type { SubFlag } from "../data/subdivisions"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { ScreenHeader, FlagLoadFailed, MAX_FLAG_RETRIES } from "./ui"
+import { T, ACCENT, tint } from "../ui/tokens"
+import { ScreenHeader } from "./ui"
+import { FlagLoadFailed, MAX_FLAG_RETRIES, HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void; onSubLearned: (code: string) => void }
 
@@ -76,18 +77,17 @@ function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props
   if (done) {
     const correct = scores.filter(Boolean).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4" style={{ background: T.surface, border: `1px solid ${tint(T.green, 0.3)}` }}>
-            <div className="text-5xl mb-3">{correct >= ROUNDS * 0.8 ? "🗺️" : correct >= ROUNDS * 0.5 ? "📍" : "🧭"}</div>
-            <div className="text-5xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct} / {ROUNDS}</div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>subdivisions placed</div>
-            <div className="flex justify-center gap-2 flex-wrap">{scores.map((s, i) => <span key={i} style={{ fontSize: 22 }}>{s ? "🟩" : "🟥"}</span>)}</div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay} className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95" style={{ background: T.green, color: T.onAccent, fontFamily: FONT.display }}>Play Again</button>
-            <button onClick={onBack} className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95" style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Subdivision Stumper" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={correct >= ROUNDS * 0.8 ? "map" : correct >= ROUNDS * 0.5 ? "pin" : "compass"} accent={T.green}
+              title={`${correct} of ${ROUNDS} placed`}
+              score="Subdivision flags matched to their country" />
+            <ResultDots results={scores} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={T.green}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -95,12 +95,8 @@ function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-      <ScreenHeader title="Subdivision Stumper" subtitle={`Round ${idx + 1} / ${ROUNDS}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5">
-            {rounds.map((_, i) => (<div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i < scores.length ? (scores[i] ? T.green : T.danger) : T.line }} />))}
-          </div>
-        } />
+      <ScreenHeader title="Subdivision Stumper" subtitle={`${scores.filter(Boolean).length} correct so far`} onBack={onBack}
+        right={<HeaderStat accent={A}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       {fails >= MAX_FLAG_RETRIES ? (
         <div className="flex flex-col items-center px-5 gap-4">
@@ -138,9 +134,9 @@ function SubdivisionStumperScreenGame({ onBack, onSubLearned , onReplay }: Props
         </div>
 
         {answered && (
-          <button onClick={next} className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95" style={{ background: T.green, color: T.onAccent, fontFamily: FONT.display }}>
-            {idx + 1 >= ROUNDS ? "See Results →" : "Next →"}
-          </button>
+          <PrimaryButton onClick={next} accent={T.green} style={{ maxWidth: 384 }}>
+            {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
+          </PrimaryButton>
         )}
       </div>
       )}

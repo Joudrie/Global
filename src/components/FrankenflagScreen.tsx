@@ -1,9 +1,10 @@
 import { useState, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { LineIcon } from "./icons"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+
 import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
@@ -101,26 +102,15 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
   if (done) {
     const total = scores.reduce((a, b) => a + b, 0)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-            <div className="mb-3 flex justify-center"><LineIcon name="frankenflag" size={44} color={ACCENT.play} /></div>
-            <div className="text-6xl font-black mb-1"
-              style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", letterSpacing: "-0.03em" }}>
-              {total}/{ROUNDS}
-            </div>
-            <div className="text-sm" style={{ color: T.muted }}>halves identified</div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-              style={{ background: ACCENT.play, color: T.onAccent, fontFamily: FONT.display }}>Play Again</button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Frankenflag" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon="frankenflag" accent={ACCENT.play}
+              title={`${total} of ${ROUNDS} halves named`} score="Two flags stitched together, one half at a time" />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -173,18 +163,13 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
         </div>
 
         {!checked ? (
-          <button onClick={check} disabled={!topGuess && !botGuess}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-            style={{ background: (topGuess || botGuess) ? ACCENT.play : T.surface,
-              color: (topGuess || botGuess) ? T.onAccent : T.dim, border: `1px solid ${T.line}`, fontFamily: FONT.display }}>
+          <PrimaryButton onClick={check} disabled={!topGuess && !botGuess} accent={ACCENT.play} style={{ maxWidth: 384 }}>
             Check →
-          </button>
+          </PrimaryButton>
         ) : (
-          <button onClick={next}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-            style={{ background: ACCENT.play, color: T.onAccent, fontFamily: FONT.display }}>
-            {idx + 1 >= ROUNDS ? "See Results →" : "Next →"}
-          </button>
+          <PrimaryButton onClick={next} accent={ACCENT.play} style={{ maxWidth: 384 }}>
+            {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
+          </PrimaryButton>
         )}
       </div>
     </div>

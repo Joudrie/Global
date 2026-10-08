@@ -1,8 +1,10 @@
 import { useState, useRef, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import { neighborsOf, countriesWithBorders, bfsDistances, shortestPath } from "../data/borders"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, FONT } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -62,8 +64,8 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   const Endpoint = ({ code, label, glow }: { code: string; label: string; glow: string }) => (
     <div style={{ textAlign: "center", flex: 1 }}>
-      <div className="geo-micro" style={{ fontSize: 8, color: T.dim, marginBottom: 4 }}>{label}</div>
-      <div style={{ width: 84, height: 56, margin: "0 auto", borderRadius: 10, overflow: "hidden", border: `2px solid ${glow}`, boxShadow: `0 0 14px ${tint(glow, 0.5)}` }}>
+      <div className="geo-micro" style={{ fontSize: 11, color: T.dim, marginBottom: 4 }}>{label}</div>
+      <div style={{ width: 84, height: 56, margin: "0 auto", borderRadius: 10, overflow: "hidden", border: `2px solid ${glow}` }}>
         <FlagImage code={code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
       </div>
       <div className="geo-display" style={{ fontWeight: 700, fontSize: 13, color: T.text, marginTop: 5 }}>{NAME(code)}</div>
@@ -75,35 +77,34 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     const win = outcome === "win"
     const perfect = win && hops === puzzle.par
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 22, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>{perfect ? "🏆" : win ? "🧭" : "🛑"}</div>
-            <div className="geo-display" style={{ fontWeight: 700, fontSize: 19, color: T.text, marginTop: 6 }}>
-              {win ? (perfect ? "Perfect route!" : "Connected!") : "Gave up"}
-            </div>
-            <div style={{ color: T.muted, fontSize: 12, marginTop: 6 }}>
-              {NAME(puzzle.start)} → {NAME(puzzle.target)}
-            </div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: 16 }}>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 28, color: ACCENT.learn }}>{win ? hops : "—"}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>your hops</div></div>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 28, color: T.amber }}>{puzzle.par}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>best route</div></div>
-            </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Border Path" subtitle={win ? "Connected" : "Gave up"} onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon={perfect ? "trophy" : win ? "compass" : "x"} accent={win ? ACCENT.learn : T.warm}
+              title={win ? (perfect ? "Perfect route!" : "Connected!") : "Gave up"}
+              score={`${NAME(puzzle.start)} → ${NAME(puzzle.target)}`} />
+            <ResultStats stats={[
+              { label: "Your hops", value: win ? hops : "—", accent: ACCENT.learn },
+              { label: "Best route", value: puzzle.par, accent: T.amber },
+            ]} />
             {/* show the optimal route */}
-            <div style={{ display: "flex", gap: 5, flexWrap: "wrap", justifyContent: "center", alignItems: "center", marginTop: 16 }}>
-              {optimal.map((c, i) => (
-                <div key={c} style={{ display: "flex", alignItems: "center", gap: 5 }}>
-                  {i > 0 && <span style={{ color: T.dim, fontSize: 11 }}>→</span>}
-                  <div style={{ width: 30, height: 20, borderRadius: 3, overflow: "hidden", border: `1px solid ${T.line}` }}>
-                    <FlagImage code={c} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+            <div>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", justifyContent: "center", alignItems: "center" }}>
+                {optimal.map((c, i) => (
+                  <div key={c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
+                    {i > 0 && <span style={{ color: T.dim, fontSize: 11 }}>→</span>}
+                    <div style={{ width: 30, height: 20, borderRadius: 3, overflow: "hidden", border: `1px solid ${T.line}` }}>
+                      <FlagImage code={c} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
+              <div className="geo-micro" style={{ fontSize: 11, color: T.dim, marginTop: 8, textAlign: "center" }}>The shortest path</div>
             </div>
-            <div className="geo-micro" style={{ fontSize: 8, color: T.dim, marginTop: 6 }}>the shortest path</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>New pair</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>New pair</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -111,24 +112,18 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Border Path</div>
-          <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 16, color: ACCENT.learn }}>{hops}<span style={{ color: T.dim, fontSize: 11 }}> / {puzzle.par} best</span></div>
-        </div>
-        <button onClick={() => setOutcome("gaveup")} className="geo-tap" style={{ fontSize: 10, fontWeight: 600, padding: "6px 10px", borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>give up</button>
-      </header>
+      <ScreenHeader title="Border Path" subtitle={`Best route: ${puzzle.par} hops`} onBack={onBack}
+        right={<HeaderStat label="Hops" accent={ACCENT.learn}>{hops}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 18px 22px", gap: 14 }}>
         {/* the two endpoints to connect */}
         <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "12px 8px", borderRadius: 14, background: T.surface, border: `1px solid ${T.line}` }}>
-          <Endpoint code={puzzle.start} label="FROM" glow={ACCENT.learn} />
+          <Endpoint code={puzzle.start} label="From" glow={ACCENT.learn} />
           <span style={{ color: T.dim, fontSize: 20 }}>⇢</span>
-          <Endpoint code={puzzle.target} label="TO" glow={T.amber} />
+          <Endpoint code={puzzle.target} label="To" glow={T.amber} />
         </div>
 
-        <div className="geo-micro" style={{ textAlign: "center", fontSize: 9, color: T.muted }}>
+        <div style={{ textAlign: "center", fontSize: 12, color: T.muted }}>
           Hop border-to-border to connect them. Match the best route for a perfect score.
         </div>
 
@@ -137,7 +132,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           {chain.map((c, i) => (
             <div key={c} style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
               {i > 0 && <span style={{ color: T.dim }}>→</span>}
-              <div style={{ width: 46, height: 31, borderRadius: 5, overflow: "hidden", border: `1px solid ${i === chain.length - 1 ? ACCENT.learn : T.line}`, boxShadow: i === chain.length - 1 ? `0 0 10px ${tint(ACCENT.learn, 0.6)}` : "none" }}>
+              <div style={{ width: 46, height: 31, borderRadius: 5, overflow: "hidden", border: `1px solid ${i === chain.length - 1 ? ACCENT.learn : T.line}` }}>
                 <FlagImage code={c} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
             </div>
@@ -146,7 +141,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
         {/* current */}
         <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted, marginBottom: 6 }}>Name a country bordering</div>
+          <div className="geo-micro" style={{ fontSize: 11, color: T.muted, marginBottom: 8 }}>Name a country bordering</div>
           <div style={{ width: 160, height: 107, margin: "0 auto", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)" }}>
             <FlagImage code={current} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
           </div>
@@ -171,6 +166,8 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               ))}
             </div>
           )}
+          <button onClick={() => setOutcome("gaveup")} className="geo-micro geo-tap"
+            style={{ marginTop: 8, fontSize: 11, color: T.muted, background: "transparent", minHeight: 32 }}>give up · show the route</button>
         </div>
       </div>
     </div>

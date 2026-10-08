@@ -1,11 +1,11 @@
 import { useState } from "react"
-import { Trophy, ThumbsUp, BookOpen } from "lucide-react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS } from "../data/flagAttribs"
 import type { FlagAttribs } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
 const FEATURES = ['stripes', 'cross', 'star', 'crescent', 'emblem'] as const
 
@@ -181,40 +181,17 @@ function OddOneOutScreenGame({ onBack , onReplay }: Props & { onReplay: () => vo
     const correct = scores.filter(Boolean).length
     const pct = Math.round((correct / TOTAL_ROUNDS) * 100)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm" style={{ position: "relative", zIndex: 1 }}>
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-            <div className="mb-3 flex justify-center" style={{ color: pct === 100 ? T.gold : ACC }}>
-              {pct === 100
-                ? <Trophy size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                : pct >= 60
-                  ? <ThumbsUp size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <BookOpen size={44} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-6xl mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{correct}/{TOTAL_ROUNDS}</div>
-            <div className="text-sm mb-4" style={{ color: T.muted }}>
-              {pct === 100 ? "Perfect round!" : pct >= 60 ? "Well played" : "Keep practising"}
-            </div>
-            <div className="flex justify-center gap-2">
-              {scores.map((ok, i) => (
-                <span key={i} style={{ width: 22, height: 22, borderRadius: 6, background: ok ? T.green : T.danger, display: "inline-block" }} />
-              ))}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Play Again
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Odd One Out" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3" style={{ position: "relative", zIndex: 1 }}>
+          <ResultCard>
+            <ResultHeader icon={pct === 100 ? "trophy" : pct >= 60 ? "check" : "codex"} accent={pct === 100 ? T.gold : ACC}
+              title={`${correct} of ${TOTAL_ROUNDS} impostors found`}
+              score={pct === 100 ? "Perfect round!" : pct >= 60 ? "Well played" : "Keep practising"} />
+            <ResultDots results={scores} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACC}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -224,17 +201,8 @@ function OddOneOutScreenGame({ onBack , onReplay }: Props & { onReplay: () => vo
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, color: T.text }}>
 
-      <ScreenHeader title="Odd One Out" subtitle={`Round ${idx + 1} / ${TOTAL_ROUNDS}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5 items-center">
-            {Array.from({ length: TOTAL_ROUNDS }).map((_, i) => (
-              <div key={i} style={{
-                width: 8, height: 8, borderRadius: "50%",
-                background: i < scores.length ? (scores[i] ? T.green : T.danger) : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title="Odd One Out" subtitle={`${scores.filter(Boolean).length} correct so far`} onBack={onBack}
+        right={<HeaderStat accent={ACC}>{idx + 1} / {TOTAL_ROUNDS}</HeaderStat>} />
 
       <div className="mx-5 h-1.5 rounded-full overflow-hidden" style={{ background: T.line, zIndex: 1 }}>
         <div className="h-full rounded-full transition-all duration-500"
@@ -307,11 +275,9 @@ function OddOneOutScreenGame({ onBack , onReplay }: Props & { onReplay: () => vo
         )}
 
         {answered && (
-          <button onClick={handleNext}
-            className="w-full max-w-sm mt-3 py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-            {idx + 1 >= TOTAL_ROUNDS ? "See Results →" : "Next →"}
-          </button>
+          <PrimaryButton onClick={handleNext} accent={ACC} style={{ maxWidth: 384, marginTop: 12 }}>
+            {idx + 1 >= TOTAL_ROUNDS ? "See results →" : "Next →"}
+          </PrimaryButton>
         )}
       </div>
     </div>

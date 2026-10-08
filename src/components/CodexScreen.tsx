@@ -23,7 +23,7 @@ import { ScreenHeader } from './ui'
 import AdBox from './AdBox'
 import { AD_SLOTS } from '../ads'
 import { LineIcon } from './icons'
-import { Search, Anchor, ChevronDown, Castle, Sun, Mountain, Landmark, MoonStar, Sailboat, Rainbow, Users, Feather, MapPin, Crown, Vote, Building2 } from 'lucide-react'
+import { Search, Anchor, ChevronDown, GitBranch, Castle, Sun, Mountain, Landmark, MoonStar, Sailboat, Rainbow, Users, Feather, MapPin, Crown, Vote, Building2 } from 'lucide-react'
 
 // Etched line icon per continent — cartographer style, never emoji.
 const REGION_ICONS: Record<string, typeof Castle> = {
@@ -2638,14 +2638,14 @@ const NO_FLAG_PLACEHOLDER = (
 // Shown when a flag may exist but hasn't been added yet (the default for unknowns).
 const UNKNOWN_FLAG_PLACEHOLDER = (
   <div style={{ width: '100%', aspectRatio: '3/2', display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT.codex, 0.1), border: `1px dashed ${tint(ACCENT.codex, 0.3)}`, borderRadius: 4 }}>
-    <span style={{ fontSize: 16, lineHeight: 1 }}>🏳️</span>
+    <LineIcon name="flag" size={16} color={T.dim} />
   </div>
 )
 // HTML string version for the <img> onError fallback (a broken URL = unverified, not "no flag").
 const UNKNOWN_FLAG_HTML = `width:100%;aspect-ratio:3/2;display:flex;align-items:center;justify-content:center;background:${tint(ACCENT.codex, 0.1)};border:1px dashed ${tint(ACCENT.codex, 0.3)};border-radius:4px`
 
 // Countries whose first-level subdivisions are confirmed to have NO official flags —
-// their flagless tiles read "No flag" rather than the ambiguous 🏳️ placeholder.
+// their flagless tiles read "No flag" rather than the ambiguous flag-icon placeholder.
 const NO_SUBDIVISION_FLAG_COUNTRIES = new Set<string>([
   // Africa — first-level subdivisions verified to have no official flags.
   'DZ', 'BJ', 'BW', 'BF', 'BI', 'CF', 'TD', 'CG', 'CD', 'CI', 'DJ', 'GQ', 'ER', 'SZ',
@@ -2677,7 +2677,7 @@ function SubRegionTile({ sr, confirmedNoFlags, onSelect, selected }: { sr: SubRe
             src={sr.flagUrl}
             alt={sr.name}
             style={{ width: '100%', aspectRatio: '3/2', objectFit: 'contain', borderRadius: 4, display: 'block' }}
-            onError={e => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('div'), { style: UNKNOWN_FLAG_HTML, innerHTML: '<span style="font-size:16px;line-height:1">🏳️</span>' })) }}
+            onError={e => { (e.target as HTMLImageElement).replaceWith(Object.assign(document.createElement('div'), { style: UNKNOWN_FLAG_HTML, innerHTML: `<span style="font-size:12px;line-height:1;color:${T.dim}">?</span>` })) }}
           />
         : (sr.noFlag || confirmedNoFlags) ? NO_FLAG_PLACEHOLDER : UNKNOWN_FLAG_PLACEHOLDER
       }
@@ -2797,7 +2797,7 @@ function FlagImg({ src, alt, height }: { src: string; alt: string; height: numbe
         }}
       />
       <div className="flag-placeholder" style={{ display: 'none', position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', background: T.surfaceHi }}>
-        <span style={{ color: T.dim, fontSize: 40 }}>🏳️</span>
+        <LineIcon name="flag" size={40} color={T.dim} />
       </div>
     </div>
   )
@@ -2831,7 +2831,7 @@ function FlagHistoryCard({ hf, isFirst }: { hf: HistoricalFlag; isFirst: boolean
         {hf.parallel && hf.parallel.length > 0 && (
           <div className="mt-3 pt-3" style={{ borderTop: `1px dashed ${T.lineHi}` }}>
             <div className="flex items-center gap-1.5 mb-2.5">
-              <span style={{ color: T.gold, fontSize: 13 }}>⌥</span>
+              <GitBranch size={13} color={T.gold} strokeWidth={1.6} absoluteStrokeWidth />
               <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: T.gold }}>
                 {hf.parallelCaption ?? 'Flown at the same time'}
               </span>

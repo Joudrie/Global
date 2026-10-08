@@ -3,6 +3,7 @@ import { PAINT_PUZZLES } from "../data/paintPuzzles"
 import type { PaintPuzzle, PaintLayout } from "../data/paintPuzzles"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import FlagImage from "./FlagImage"
 
 const ACC = ACCENT.challenge
@@ -175,21 +176,15 @@ export default function GeoPaintScreen({ onBack }: Props) {
             <Slider label="Lightness" value={l} max={100} badge="%" track={lightTrack} onChange={v => setHSL(c => ({ ...c, l: v }))} />
           </div>
 
-          <button onClick={check}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-            Check my colour →
-          </button>
+          <PrimaryButton onClick={check} accent={ACC} style={{ maxWidth: 384 }}>Check my colour →</PrimaryButton>
         </div>
       ) : (
         <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 gap-4">
           {/* Score */}
-          <div className="w-full max-w-sm rounded-2xl p-5 text-center"
-            style={{ background: T.surface, border: `1px solid ${tint(grade.c, 0.4)}` }}>
-            <div className="text-6xl font-black mb-1" style={{ color: grade.c, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{accuracy}%</div>
-            <div className="text-sm font-bold" style={{ color: grade.c }}>{grade.t}</div>
-            <div className="text-xs mt-1" style={{ color: T.muted }}>{puzzle.targetLabel} of {puzzle.name}</div>
-          </div>
+          <ResultCard style={{ width: "100%", maxWidth: 384 }}>
+            <ResultHeader icon="geopaint" accent={grade.c} eyebrow={grade.t}
+              title={`${accuracy}% accurate`} score={`${puzzle.targetLabel} of ${puzzle.name}`} />
+          </ResultCard>
 
           {/* Yours vs actual */}
           <div className="w-full max-w-sm flex gap-3">
@@ -222,16 +217,8 @@ export default function GeoPaintScreen({ onBack }: Props) {
           </div>
 
           <div className="flex flex-col gap-3 w-full max-w-sm mt-1">
-            <button onClick={next}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Next flag →
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <PrimaryButton onClick={next} accent={ACC}>Next flag →</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         </div>
       )}

@@ -5,7 +5,7 @@ import type { AppState } from "../utils/storage"
 import ShareCard from "./ShareCard"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { LineIcon, FlameIcon } from "./icons"
+import { LineIcon, FlameIcon, CrownIcon } from "./icons"
 
 interface Props {
   state: AppState
@@ -133,7 +133,7 @@ export default function ProfileScreen({ state, onBack, onSetUsername }: Props) {
                 <div className="h-full rounded-full transition-all duration-700"
                   style={{ width: `${rs.pct * 100}%`, background: rs.pct >= 1 ? T.gold : A }} />
               </div>
-              {rs.pct >= 1 && <div className="text-xs mt-1 text-right" style={{ color: T.gold }}>👑 Complete!</div>}
+              {rs.pct >= 1 && <div className="text-xs mt-1" style={{ color: T.gold, display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 4 }}><CrownIcon size={12} color={T.gold} strokeWidth={1.7} /> Complete</div>}
             </div>
           ))}
         </div>

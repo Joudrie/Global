@@ -2,6 +2,9 @@ import { useState, useEffect } from "react"
 import { FLAGS } from "../data/flags"
 import { HISTORICAL_FLAGS } from "../data/historicalFlags"
 import { T, ACCENT, FONT } from "../ui/tokens"
+import { LineIcon } from "./icons"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, PrimaryButton, ResultCard, ResultHeader } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -58,15 +61,8 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header className="flex items-center justify-between px-5 pt-8 pb-4">
-        <button onClick={onBack} className="w-9 h-9 flex items-center justify-center rounded-full text-xl"
-          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>&#8249;</button>
-        <div className="text-center">
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Dead or Alive</div>
-          <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 16, color: ACCENT.play }}>Streak {streak}</div>
-        </div>
-        <div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 13, color: T.amber }}>🏆 {best}</div>
-      </header>
+      <ScreenHeader title="Dead or Alive" subtitle={`Best ${best}`} onBack={onBack}
+        right={<HeaderStat label="Streak" accent={ACCENT.play}>{streak}</HeaderStat>} />
 
       <div className="flex-1 flex flex-col items-center justify-center px-5 gap-5">
         <p style={{ fontSize: 13, color: T.muted }}>Is this a flag of a country that exists today?</p>
@@ -85,8 +81,8 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
               background: "linear-gradient(transparent,rgba(0,0,0,0.82))", padding: "26px 12px 10px", textAlign: "center",
             }}>
               <div style={{ color: "#fff", fontWeight: 800 }}>{card.name}</div>
-              <div style={{ color: card.alive ? T.green : T.warm, fontSize: 12, fontWeight: 700 }}>
-                {card.alive ? "✓ Still flying today" : `✝ Vanished · ${card.sub}`}
+              <div style={{ color: card.alive ? T.green : T.warm, fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                {card.alive ? "✓ Still flying today" : <><LineIcon name="skull" size={13} /> Vanished · {card.sub}</>}
               </div>
             </div>
           )}
@@ -95,8 +91,8 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
         {!reveal ? (
           <div className="flex gap-3 w-full max-w-sm">
             <button onClick={() => guess(false)} className="geo-tap flex-1 py-4 rounded-xl"
-              style={{ background: T.warm, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700 }}>
-              ✝ Vanished
+              style={{ background: T.warm, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <LineIcon name="skull" size={18} /> Vanished
             </button>
             <button onClick={() => guess(true)} className="geo-tap flex-1 py-4 rounded-xl"
               style={{ background: T.green, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700 }}>
@@ -104,14 +100,16 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
             </button>
           </div>
         ) : (
-          <div className="w-full max-w-sm flex flex-col gap-3 items-center">
-            <div className="geo-display" style={{ fontSize: 17, fontWeight: 700, color: reveal.correct ? T.green : T.warm }}>
-              {reveal.correct ? "✓ Correct!" : `✗ Survived ${streak}`}
-            </div>
-            <button onClick={cont} className="geo-tap w-full py-3.5 rounded-xl"
-              style={{ background: ACCENT.play, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700 }}>
-              {reveal.correct ? "Next →" : "Try Again"}
-            </button>
+          <div className="w-full max-w-sm flex flex-col gap-3">
+            {reveal.correct
+              ? <div className="geo-display" style={{ fontSize: 17, fontWeight: 700, color: T.green, textAlign: "center" }}>✓ Correct!</div>
+              : <ResultCard>
+                  <ResultHeader icon="skull" accent={T.warm} eyebrow="Run over"
+                    title={`You survived ${streak}`} score={`Best streak: ${best}`} />
+                </ResultCard>}
+            <PrimaryButton onClick={cont} accent={ACCENT.play}>
+              {reveal.correct ? "Next →" : "Try again"}
+            </PrimaryButton>
           </div>
         )}
       </div>

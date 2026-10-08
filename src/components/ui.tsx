@@ -1,7 +1,7 @@
 import type { CSSProperties, ReactNode } from "react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import type { TabKey } from "../ui/registry"
-import { LineIcon, ChevronLeftIcon } from "./icons"
+import { LineIcon, ChevronLeftIcon, CrownIcon } from "./icons"
 import { GamePoster } from "./GamePoster"
 
 /* ── Screen chrome: the ONE back button + header used by every destination
@@ -33,10 +33,9 @@ export function ScreenHeader({ title, subtitle, onBack, right }:
   )
 }
 
-// Render an etched line icon, falling back to the emoji when no glyph is set.
-function Glyph({ glyph, emoji, size, color }: { glyph?: string; emoji?: ReactNode; size: number; color: string }) {
-  if (glyph) return <LineIcon name={glyph} size={size} color={color} />
-  return <span style={{ fontSize: size }}>{emoji}</span>
+// Render an etched line icon (never an emoji; unknown names fall back to a compass).
+function Glyph({ glyph, size, color }: { glyph?: string; size: number; color: string }) {
+  return <LineIcon name={glyph ?? "compass"} size={size} color={color} />
 }
 
 /* ── Circular progress ring with monospaced % readout ───────────────────── */
@@ -96,7 +95,7 @@ export function SectionHeader({ title, accent = T.muted, action }:
 }
 
 /* ── Module card: heavy learning tasks (icon, title, subtitle, progress) ── */
-export function ModuleCard({ icon, glyph, title, subtitle, accent, progress, onClick }:
+export function ModuleCard({ glyph, title, subtitle, accent, progress, onClick }:
   {
     icon?: ReactNode; glyph?: string; title: string; subtitle: string; accent: string
     progress?: { done: number; total: number }; onClick: () => void
@@ -118,10 +117,10 @@ export function ModuleCard({ icon, glyph, title, subtitle, accent, progress, onC
         display: "flex", alignItems: "center", justifyContent: "center",
         background: tint(accent, 0.12), border: `1px solid ${tint(accent, 0.28)}`,
         color: accent,
-      }}><Glyph glyph={glyph} emoji={icon} size={21} color={accent} /></span>
+      }}><Glyph glyph={glyph} size={21} color={accent} /></span>
       <div style={{ flex: 1, minWidth: 0 }}>
         <div className="geo-display" style={{ color: T.text, fontWeight: 600, fontSize: 15, letterSpacing: "-0.01em" }}>
-          {title}{mastered && <span style={{ marginLeft: 6 }}>👑</span>}
+          {title}{mastered && <span style={{ marginLeft: 6, display: "inline-flex", verticalAlign: "-1px" }} aria-label="mastered"><CrownIcon size={13} color={T.gold} strokeWidth={1.7} /></span>}
         </div>
         <div style={{ color: T.muted, fontSize: 11.5, marginTop: 1, display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{subtitle}</div>
       </div>
@@ -136,7 +135,7 @@ export function ModuleCard({ icon, glyph, title, subtitle, accent, progress, onC
 }
 
 /* ── Game tile: compact, casual minigames (carousel / grid) ─────────────── */
-export function GameTile({ icon, glyph, title, subtitle, accent, onClick, style }:
+export function GameTile({ glyph, title, subtitle, accent, onClick, style }:
   { icon?: ReactNode; glyph?: string; title: string; subtitle: string; accent: string; onClick: () => void; style?: CSSProperties }) {
   return (
     <button onClick={onClick} className="geo-tap carto-card"
@@ -149,7 +148,7 @@ export function GameTile({ icon, glyph, title, subtitle, accent, onClick, style 
       <span style={{
         width: 34, height: 34, borderRadius: 9, display: "flex", alignItems: "center", justifyContent: "center",
         background: tint(accent, 0.12), border: `1px solid ${tint(accent, 0.3)}`, color: accent,
-      }}><Glyph glyph={glyph} emoji={icon} size={18} color={accent} /></span>
+      }}><Glyph glyph={glyph} size={18} color={accent} /></span>
       <div>
         <div className="geo-display" style={{ color: T.text, fontWeight: 600, fontSize: 12.5, lineHeight: 1.1 }}>{title}</div>
         <div style={{ color: T.muted, fontSize: 9.5, marginTop: 3, lineHeight: 1.2 }}>{subtitle}</div>
@@ -205,11 +204,11 @@ export function HeroCard({ eyebrow, title, subtitle, accent, image, onClick, tal
 }
 
 /* ── Bottom tab bar ─────────────────────────────────────────────────────── */
-const TAB_META: { key: TabKey; label: string; glyph: string; emoji: string; accent: string }[] = [
-  { key: "today", label: "Today", glyph: "today", emoji: "🛰️", accent: T.warm },
-  { key: "play",  label: "Play",  glyph: "play",  emoji: "🎮", accent: ACCENT.play },
-  { key: "codex", label: "Codex", glyph: "codex", emoji: "🗂️", accent: T.amber },
-  { key: "you",   label: "You",   glyph: "you",   emoji: "🪪", accent: T.cyan },
+const TAB_META: { key: TabKey; label: string; glyph: string; accent: string }[] = [
+  { key: "today", label: "Today", glyph: "today", accent: T.warm },
+  { key: "play",  label: "Play",  glyph: "play",  accent: ACCENT.play },
+  { key: "codex", label: "Codex", glyph: "codex", accent: T.amber },
+  { key: "you",   label: "You",   glyph: "you",   accent: T.cyan },
 ]
 
 export function TabBar({ active, onChange }: { active: TabKey; onChange: (t: TabKey) => void }) {
@@ -231,39 +230,12 @@ export function TabBar({ active, onChange }: { active: TabKey; onChange: (t: Tab
               background: on ? t.accent : "transparent", boxShadow: "none",
             }} />
             <span style={{ display: "flex", color: on ? t.accent : T.dim, opacity: on ? 1 : 0.8, transition: "all 0.15s" }}>
-              <Glyph glyph={t.glyph} emoji={t.emoji} size={19} color={on ? t.accent : T.dim} />
+              <Glyph glyph={t.glyph} size={19} color={on ? t.accent : T.dim} />
             </span>
             <span className="geo-micro" style={{ fontSize: 9.5, color: on ? t.accent : T.dim }}>{t.label}</span>
           </button>
         )
       })}
     </nav>
-  )
-}
-
-/* ── Flag load failure: games re-roll a round whose flag image fails to load
-   (so no round is unwinnable). After MAX_FLAG_RETRIES failures in a row they
-   show this panel instead of a blank flag. ─────────────────────────────── */
-export const MAX_FLAG_RETRIES = 5
-
-export function FlagLoadFailed({ onRetry, onBack, accent = T.green }:
-  { onRetry: () => void; onBack: () => void; accent?: string }) {
-  return (
-    <div role="alert" className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-      <div style={{ padding: 20, borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`, textAlign: "center" }}>
-        <div className="geo-display" style={{ fontWeight: 700, fontSize: 17, color: T.text }}>Couldn't load flags</div>
-        <p style={{ color: T.muted, fontSize: 13, lineHeight: 1.5, marginTop: 4 }}>
-          The flag images didn't load. Check your connection and try again.
-        </p>
-      </div>
-      <button onClick={onRetry} className="geo-tap"
-        style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: accent, color: T.onAccent }}>
-        Try again
-      </button>
-      <button onClick={onBack} className="geo-tap"
-        style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-        ← Home
-      </button>
-    </div>
   )
 }

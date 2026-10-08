@@ -3,8 +3,10 @@ import { FLAGS } from "../data/flags"
 import { SYMBOLS } from "../data/flagSymbols"
 import type { SymbolDef } from "../data/flagSymbols"
 import { OTHER_IDENTITY_FLAGS } from "../data/identityFlags"
-import { T, ACCENT, FONT } from "../ui/tokens"
+import { T, ACCENT } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -68,15 +70,16 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
     const total = scores.reduce((a, s) => a + s.total, 0)
     const misses = scores.reduce((a, s) => a + s.miss, 0)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>🔎</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 38, color: ACCENT.play }}>{hits}<span style={{ color: T.dim, fontSize: 20 }}>/{total}</span></div>
-            <div style={{ color: T.muted, fontSize: 12 }}>symbols found{misses ? ` · ${misses} wrong` : " · flawless!"}</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Symbol Hunt" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="symbolhunt" accent={ACCENT.play}
+              title={`${hits} of ${total} symbols found`}
+              score={misses ? `${misses} wrong pick${misses === 1 ? "" : "s"}` : "Flawless, no wrong picks"} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -84,16 +87,13 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Symbol Hunt</div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 13, color: T.dim }}>{idx + 1}/{ROUNDS}</div>
-      </header>
+      <ScreenHeader title="Symbol Hunt" subtitle="Find every flag with the symbol" onBack={onBack}
+        right={<HeaderStat accent={ACCENT.play}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 20px", gap: 14 }}>
         <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Tap every flag with</div>
-          <div className="geo-display" style={{ fontWeight: 700, fontSize: 24, color: T.text }}>{round.sym.emoji} {round.sym.label}</div>
+          <div className="geo-micro" style={{ fontSize: 11, color: T.muted }}>Tap every flag with</div>
+          <div className="geo-display" style={{ fontWeight: 700, fontSize: 24, color: T.text }}>{round.sym.label}</div>
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 }}>
@@ -114,7 +114,7 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                 {isPicked && !checked && <span style={{ position: "absolute", top: 3, right: 3, width: 18, height: 18, borderRadius: "50%", background: ACCENT.play, color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center" }}>✓</span>}
                 {checked && isMatch && <span style={{ position: "absolute", bottom: 2, right: 3, fontSize: 13, color: ACCENT.codex }}>✓</span>}
                 {checked && isPicked && !isMatch && <span style={{ position: "absolute", bottom: 2, right: 3, fontSize: 13, color: T.warm }}>✗</span>}
-                {checked && !cell.code && <span style={{ position: "absolute", top: 2, left: 3, fontSize: 8, fontWeight: 700, color: T.warm, background: T.bg, padding: "1px 4px", borderRadius: 4 }}>not a country</span>}
+                {checked && !cell.code && <span style={{ position: "absolute", top: 2, left: 3, fontSize: 11, fontWeight: 700, color: T.warm, background: T.bg, padding: "0 4px", borderRadius: 4 }}>not a country</span>}
               </button>
             )
           })}
@@ -122,8 +122,8 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
         <div style={{ marginTop: "auto" }}>
           {!checked
-            ? <button onClick={check} className="geo-tap" style={{ width: "100%", padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>Submit{picked.size ? ` (${picked.size})` : ""}</button>
-            : <button onClick={next} className="geo-tap" style={{ width: "100%", padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>{idx + 1 >= ROUNDS ? "See result →" : "Next →"}</button>}
+            ? <PrimaryButton onClick={check} accent={ACCENT.play}>Submit{picked.size ? ` (${picked.size})` : ""}</PrimaryButton>
+            : <PrimaryButton onClick={next} accent={ACCENT.play}>{idx + 1 >= ROUNDS ? "See result →" : "Next →"}</PrimaryButton>}
         </div>
       </div>
     </div>

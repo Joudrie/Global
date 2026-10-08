@@ -3,8 +3,11 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { FAKE_FLAGS, FAKE_CODES } from "../data/fakeFlags"
 import type { FakeFlag } from "../data/fakeFlags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { LineIcon } from "./icons"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -117,32 +120,29 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   if (done) {
     const spotted = roundForgeries.filter(f => caught[f.code]).length
     return (
-      <div className="min-h-screen flex flex-col items-center px-5 py-8" style={{ background: T.bg, overflowY: "auto" }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 22, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>🔍</div>
-            <div className="geo-micro" style={{ fontSize: 10, color: ACCENT.play, marginTop: 6 }}>
-              {score >= 18 ? "🔥 Eagle eyes!" : score >= 14 ? "👏 Sharp work!" : "Good try!"}
-            </div>
-            <div className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 20, marginTop: 4 }}>
-              You spotted {spotted} of {roundForgeries.length} forgeries
-            </div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: 16 }}>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 30, color: ACCENT.play }}>{score}<span style={{ fontSize: 15, color: T.muted }}>/{deck.length}</span></div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>score</div></div>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 30, color: T.amber }}>{best}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>best</div></div>
-            </div>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, overflowY: "auto" }}>
+        <ScreenHeader title="Flag Forgery" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="forgery" accent={ACCENT.play}
+              eyebrow={score >= 18 ? "Eagle eyes" : score >= 14 ? "Sharp work" : "Good try"}
+              title={`You spotted ${spotted} of ${roundForgeries.length} forgeries`} />
+            <ResultStats stats={[
+              { label: "Score", value: <>{score}<span style={{ fontSize: 15, color: T.muted }}>/{deck.length}</span></>, accent: ACCENT.play },
+              { label: "Best", value: best, accent: T.amber },
+            ]} />
+          </ResultCard>
 
           {/* recap: every forgery, what was doctored, and whether it slipped past */}
           <div style={{ borderRadius: 16, padding: "14px 16px", background: T.surface, border: `1px solid ${T.line}`, display: "flex", flexDirection: "column", gap: 12 }}>
-            <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>The forgeries</div>
+            <div className="geo-micro" style={{ fontSize: 11, color: T.muted }}>The forgeries</div>
             {roundForgeries.map(f => (
               <div key={f.code} style={{ display: "flex", gap: 10, alignItems: "flex-start" }}>
                 <img src={f.src} alt="" style={{ width: 54, height: 36, objectFit: "cover", borderRadius: 5, border: `1px solid ${T.line}`, flexShrink: 0 }} />
                 <div style={{ flex: 1, minWidth: 0 }}>
                   <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
                     <span style={{ color: T.text, fontWeight: 700, fontSize: 13 }}>{f.name}</span>
-                    <span className="geo-micro" style={{ fontSize: 8, color: caught[f.code] ? ACCENT.learn : T.warm }}>
+                    <span className="geo-micro" style={{ fontSize: 11, color: caught[f.code] ? ACCENT.learn : T.warm }}>
                       {caught[f.code] ? "✓ caught" : "✗ fooled you"}
                     </span>
                   </div>
@@ -157,8 +157,8 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             )}
           </div>
 
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>New round</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>New round</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -166,23 +166,17 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Flag Forgery · {i + 1}/{deck.length}</div>
-          <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 18, color: ACCENT.play }}>{score}</div>
-        </div>
-        <div style={{ textAlign: "right" }}><div className="geo-micro" style={{ fontSize: 8, color: T.dim }}>best</div><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 14, color: T.amber }}>{best}</div></div>
-      </header>
+      <ScreenHeader title="Flag Forgery" subtitle={`Card ${i + 1} / ${deck.length} · Best ${best}`} onBack={onBack}
+        right={<HeaderStat label="Score" accent={ACCENT.play}>{score}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px 20px", position: "relative" }}>
         {/* swipe hints */}
         <div style={{ position: "absolute", inset: 0, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 8px", pointerEvents: "none" }}>
           <div style={{ opacity: dx < -30 ? 1 : 0.25, transition: "opacity 0.15s", textAlign: "center", color: T.warm }}>
-            <div style={{ fontSize: 26 }}>✂️</div><div className="geo-micro" style={{ fontSize: 8 }}>DOCTORED</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><GameIcon name="scissors" size={26} /></div><div className="geo-micro" style={{ fontSize: 11, marginTop: 4 }}>Doctored</div>
           </div>
           <div style={{ opacity: dx > 30 ? 1 : 0.25, transition: "opacity 0.15s", textAlign: "center", color: ACCENT.learn }}>
-            <div style={{ fontSize: 26 }}>✓</div><div className="geo-micro" style={{ fontSize: 8 }}>CORRECT</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><LineIcon name="check" size={26} /></div><div className="geo-micro" style={{ fontSize: 11, marginTop: 4 }}>Correct</div>
           </div>
         </div>
 
@@ -224,8 +218,8 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
         {/* tap fallbacks */}
         <div style={{ display: "flex", gap: 14, marginTop: 12 }}>
-          <button onClick={() => answer(false)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(T.warm, 0.14), border: `1.5px solid ${tint(T.warm, 0.5)}`, color: T.warm }}>✂️</button>
-          <button onClick={() => answer(true)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(ACCENT.learn, 0.14), border: `1.5px solid ${tint(ACCENT.learn, 0.5)}`, color: ACCENT.learn }}>✓</button>
+          <button onClick={() => answer(false)} aria-label="Doctored" className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: tint(T.warm, 0.14), border: `1.5px solid ${tint(T.warm, 0.5)}`, color: T.warm }}><GameIcon name="scissors" size={26} /></button>
+          <button onClick={() => answer(true)} aria-label="Correct flag" className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: tint(ACCENT.learn, 0.14), border: `1.5px solid ${tint(ACCENT.learn, 0.5)}`, color: ACCENT.learn }}><LineIcon name="check" size={26} /></button>
         </div>
       </div>
     </div>

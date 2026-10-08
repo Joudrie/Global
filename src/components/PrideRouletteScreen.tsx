@@ -1,10 +1,10 @@
 import { useState, useMemo } from "react"
 import { LGBTQ_FLAGS } from "../data/identityFlags"
 import type { IdentityFlag } from "../data/identityFlags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { LineIcon } from "./icons"
-import { Trophy } from "lucide-react"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+
 
 interface Props { onBack: () => void }
 
@@ -12,7 +12,6 @@ const BEST_KEY = "globalio_prideroulette_best"
 const loadBest = () => { try { return Number(localStorage.getItem(BEST_KEY)) || 0 } catch { return 0 } }
 const saveBest = (n: number) => { try { localStorage.setItem(BEST_KEY, String(n)) } catch { /* ignore */ } }
 
-const PRIDE_GRADIENT = "linear-gradient(90deg,#FF5E5E,#FFD93D,#6BCB77,#4D96FF,#B66DFF)"
 const DEFAULT_LEN = 10
 
 interface Round { target: IdentityFlag; choices: IdentityFlag[] }
@@ -69,29 +68,14 @@ export default function PrideRouletteScreen({ onBack }: Props) {
   // ── Results ──────────────────────────────────────────────────────────────
   if (done) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 12px 32px -14px ${tint(T.text, 0.45)}` }}>
-            <div className="mb-2 flex justify-center" style={{ color: ACCENT.play }}>
-              <LineIcon name="identity" size={44} color={ACCENT.play} />
-            </div>
-            <div className="text-6xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{score}<span style={{ fontSize: 28, color: T.dim }}>/{total}</span></div>
-            <div className="text-sm" style={{ color: T.muted }}>pride flags · best {best}</div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={() => restart()}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: PRIDE_GRADIENT, color: "#fff", textShadow: "0 1px 2px #0006" }}>
-              Play Again
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
+        <ScreenHeader title="Pride Roulette" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon="identity" accent={ACCENT.play} title={`${score} of ${total} pride flags`} score={`Best: ${best}`} />
+          </ResultCard>
+          <PrimaryButton onClick={() => restart()} accent={ACCENT.play}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -100,13 +84,8 @@ export default function PrideRouletteScreen({ onBack }: Props) {
   return (
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-      <ScreenHeader title="Pride Roulette" subtitle={`${idx + 1} / ${total} · ${score} correct`} onBack={onBack}
-        right={
-          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 999, background: T.surface, border: `1px solid ${tint(T.gold, 0.4)}` }}>
-            <Trophy size={13} color={T.gold} strokeWidth={1.6} absoluteStrokeWidth />
-            <span style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 13, color: T.gold }}>{best}</span>
-          </div>
-        } />
+      <ScreenHeader title="Pride Roulette" subtitle={`${score} correct · Best ${best}`} onBack={onBack}
+        right={<HeaderStat accent={ACCENT.play}>{idx + 1} / {total}</HeaderStat>} />
 
       {/* Length toggle — 10 (default) or the whole set */}
       <div className="flex justify-center mt-1 mb-2">
@@ -159,11 +138,9 @@ export default function PrideRouletteScreen({ onBack }: Props) {
         </div>
 
         {answered && (
-          <button onClick={next}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: PRIDE_GRADIENT, color: "#fff", textShadow: "0 1px 2px #0006" }}>
+          <PrimaryButton onClick={next} accent={ACCENT.play} style={{ maxWidth: 384 }}>
             {isLast ? "See score →" : "Next →"}
-          </button>
+          </PrimaryButton>
         )}
       </div>
     </div>

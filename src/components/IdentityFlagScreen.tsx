@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { LGBTQ_FLAGS, OTHER_IDENTITY_FLAGS, SIGNAL_FLAGS } from "../data/identityFlags"
 import type { IdentityFlag } from "../data/identityFlags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
+import { LineIcon } from "./icons"
 
 interface Props { onBack: () => void }
 
@@ -11,18 +13,14 @@ const A = ACCENT.learn
 
 // Each play mode keeps its pool separate so a round never mixes types — pride,
 // movements/identity, and the maritime signal alphabet are all their own thing.
-// The pride rainbow and maritime blue gradients are content (they evoke the
-// flags themselves); the movements deck uses the screen accent.
+// Each deck has a line icon and a palette accent (no rainbow gradients).
 type ModeId = "lgbtq" | "identity" | "signal"
 // Entries with no flag (noFlag, or an empty flagUrl) can't be shown — keep them out of every pool.
 const withFlag = (pool: IdentityFlag[]) => pool.filter(f => f.flagUrl && !f.noFlag)
-const MODES: { id: ModeId; label: string; emoji: string; pool: IdentityFlag[]; gradient: string }[] = [
-  { id: "lgbtq",    label: "Pride & LGBTQ+",      emoji: "🏳️‍🌈", pool: withFlag(LGBTQ_FLAGS),
-    gradient: "linear-gradient(90deg,#FF5E5E,#FFD93D,#6BCB77,#4D96FF,#B66DFF)" },
-  { id: "identity", label: "Movements & Identity", emoji: "🏴", pool: withFlag(OTHER_IDENTITY_FLAGS),
-    gradient: A },
-  { id: "signal",   label: "Maritime Signal Flags", emoji: "⚓", pool: withFlag(SIGNAL_FLAGS),
-    gradient: "linear-gradient(90deg,#1C6DD0,#3CC4D0)" },
+const MODES: { id: ModeId; label: string; icon: string; pool: IdentityFlag[]; accent: string }[] = [
+  { id: "lgbtq",    label: "Pride & LGBTQ+",        icon: "heart",  pool: withFlag(LGBTQ_FLAGS),          accent: T.chartreuse },
+  { id: "identity", label: "Movements & Identity",  icon: "flag",   pool: withFlag(OTHER_IDENTITY_FLAGS), accent: A },
+  { id: "signal",   label: "Maritime Signal Flags", icon: "anchor", pool: withFlag(SIGNAL_FLAGS),         accent: T.green },
 ]
 
 function pickChoices(target: IdentityFlag, pool: IdentityFlag[]): IdentityFlag[] {
@@ -59,7 +57,7 @@ function FlagImg({ src, alt }: { src: string; alt: string }) {
           if (ph) ph.style.display = "flex"
         }} />
       <div className="ph" style={{ display: "none", position: "absolute", inset: 0, alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 52, opacity: 0.4 }}>🏳️‍🌈</span>
+        <span style={{ opacity: 0.4, display: "flex" }}><LineIcon name="flag" size={48} color={T.dim} /></span>
       </div>
     </div>
   )
@@ -94,10 +92,16 @@ export default function IdentityFlagScreen({ onBack }: Props) {
           </p>
           {MODES.map(m => (
             <button key={m.id} onClick={() => startMode(m.id)}
-              className="w-full max-w-sm py-5 rounded-2xl font-bold text-lg transition-all active:scale-95"
-              style={{ background: m.gradient, color: "#fff", textShadow: "0 1px 2px #0006", boxShadow: `0 4px 16px -8px ${tint(T.text, 0.55)}`, fontFamily: FONT.display }}>
-              <span style={{ fontSize: 26, marginRight: 8 }}>{m.emoji}</span>{m.label}
-              <div className="text-xs font-normal mt-0.5 opacity-90">{m.pool.length} flags</div>
+              className="geo-tap carto-card w-full max-w-sm rounded-2xl text-left"
+              style={{ display: "flex", alignItems: "center", gap: 12, padding: 16, ["--wash" as string]: tint(m.accent, 0.4) }}>
+              <span style={{ width: 40, height: 40, borderRadius: 999, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: tint(m.accent, 0.14), border: `1px solid ${tint(m.accent, 0.3)}` }}>
+                <GameIcon name={m.icon} size={20} color={m.accent} />
+              </span>
+              <span style={{ flex: 1, minWidth: 0 }}>
+                <span className="geo-display" style={{ display: "block", fontWeight: 700, fontSize: 17, color: T.text }}>{m.label}</span>
+                <span style={{ display: "block", fontSize: 12, color: T.muted, marginTop: 2 }}>{m.pool.length} flags</span>
+              </span>
+              <span style={{ color: m.accent, fontSize: 18 }}>→</span>
             </button>
           ))}
         </div>
@@ -123,30 +127,17 @@ export default function IdentityFlagScreen({ onBack }: Props) {
   if (done) {
     const correct = scores.filter(s => s.correct).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${tint(A, 0.3)}` }}>
-            <div className="text-5xl mb-3">{correct >= ROUNDS * 0.8 ? "🏳️‍🌈" : correct >= ROUNDS * 0.5 ? "✊" : "🌈"}</div>
-            <div className="text-5xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct} / {ROUNDS}</div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>identities identified</div>
-            <div className="flex justify-center gap-2 flex-wrap">
-              {scores.map((s, i) => <span key={i} style={{ fontSize: 22 }}>{s.correct ? "🟩" : "🟥"}</span>)}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={() => setMode(null)}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: activeMode?.gradient ?? A, color: "#fff", textShadow: "0 1px 2px #0006", fontFamily: FONT.display }}>
-              Play Again
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title={activeMode?.label ?? "Identity Flags"} subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={activeMode?.icon ?? "flag"} accent={activeMode?.accent ?? A}
+              title={`${correct} of ${ROUNDS} identified`}
+              score={correct >= ROUNDS * 0.8 ? "You know your identity flags." : "Each round adds a few more to your memory."} />
+            <ResultDots results={scores.map(s => s.correct)} />
+          </ResultCard>
+          <PrimaryButton onClick={() => setMode(null)} accent={activeMode?.accent ?? A}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -156,21 +147,12 @@ export default function IdentityFlagScreen({ onBack }: Props) {
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, color: T.text }}>
 
-      <ScreenHeader title={activeMode?.label ?? "Identity Flag"} subtitle={`Round ${idx + 1} / ${ROUNDS}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5">
-            {Array.from({ length: ROUNDS }).map((_, i) => (
-              <div key={i} style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: i < scores.length ? (scores[i].correct ? T.green : T.danger) : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title={activeMode?.label ?? "Identity Flag"} subtitle={`${scores.filter(s => s.correct).length} correct so far`} onBack={onBack}
+        right={<HeaderStat accent={activeMode?.accent ?? A}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div className="mx-5 h-1.5 rounded-full overflow-hidden mb-4" style={{ background: T.line }}>
         <div className="h-full rounded-full transition-all duration-500"
-          style={{ width: `${(scores.length / ROUNDS) * 100}%`, background: activeMode?.gradient ?? A }} />
+          style={{ width: `${(scores.length / ROUNDS) * 100}%`, background: activeMode?.accent ?? A }} />
       </div>
 
       <div className="flex flex-col items-center px-5 gap-4">
@@ -212,11 +194,9 @@ export default function IdentityFlagScreen({ onBack }: Props) {
               </p>
               <p className="text-xs leading-relaxed" style={{ color: T.muted, lineHeight: 1.6 }}>{round.target.note}</p>
             </div>
-            <button onClick={handleNext}
-              className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: activeMode?.gradient ?? A, color: "#fff", textShadow: "0 1px 2px #0006", fontFamily: FONT.display }}>
-              {idx + 1 >= ROUNDS ? "See Results →" : "Next →"}
-            </button>
+            <PrimaryButton onClick={handleNext} accent={activeMode?.accent ?? A} style={{ maxWidth: 384 }}>
+              {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
+            </PrimaryButton>
           </>
         )}
       </div>

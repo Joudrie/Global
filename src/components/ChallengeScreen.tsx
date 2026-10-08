@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef } from "react"
-import { Trophy, ThumbsUp, BookOpen, Lock, Landmark, TreePalm, Castle, Sun, Mountain, Sailboat, Globe } from "lucide-react"
+import { Lock, Landmark, TreePalm, Castle, Sun, Mountain, Sailboat, Globe } from "lucide-react"
 import { CHALLENGE_CONTINENTS } from "../data/challenges"
 import type { ChallengeContinent, ChallengeCountry, SubRegion } from "../data/challenges"
 import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
 import { LineIcon } from "./icons"
 
 interface Props { onBack: () => void }
@@ -13,7 +14,7 @@ type Phase = "continents" | "countries" | "quiz" | "result"
 
 const ACC = ACCENT.challenge
 
-// Distinct region icon per continent (no more identical 🌎 globes everywhere).
+// Distinct region icon per continent (no more identical globes everywhere).
 const CONTINENT_ICON: Record<string, typeof Castle> = {
   "north-america": Landmark, "south-america": TreePalm, "europe": Castle,
   "africa": Sun, "asia": Mountain, "oceania": Sailboat,
@@ -194,40 +195,17 @@ export default function ChallengeScreen({ onBack }: Props) {
   if (phase === "result" && activeCountry) {
     const pct = Math.round((score / total) * 100)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm" style={{ zIndex: 1, position: "relative" }}>
-          <div className="rounded-2xl p-6 mb-4 text-center"
-            style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-            <div className="mb-3 flex justify-center" style={{ color: pct >= 80 ? T.gold : ACC }}>
-              {pct >= 80
-                ? <Trophy size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                : pct >= 50
-                  ? <ThumbsUp size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <BookOpen size={44} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-6xl mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontWeight: 800, fontVariantNumeric: "tabular-nums" }}>{score}/{total}</div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>{activeCountry.name} · {activeCountry.subTitle}</div>
-            <div className="flex justify-center gap-1 mb-4">
-              {answers.map((a, i) => (
-                <span key={i} style={{ width: 14, height: 14, borderRadius: 3, background: a === "correct" ? T.green : T.danger, display: "inline-block" }} />
-              ))}
-            </div>
-            <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: T.line }}>
-              <div className="h-full rounded-full" style={{ width: `${pct}%`, background: ACC }} />
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={() => handleCountryClick(activeCountry)}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>Play Again</button>
-            <button onClick={() => setPhase("countries")}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>Other Countries</button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>&#8592; Home</button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title={activeCountry.name} subtitle="Results" onBack={() => setPhase("countries")} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3" style={{ zIndex: 1, position: "relative" }}>
+          <ResultCard>
+            <ResultHeader icon={pct >= 80 ? "trophy" : pct >= 50 ? "check" : "codex"} accent={pct >= 80 ? T.gold : ACC}
+              title={`${score} of ${total} correct`} score={`${activeCountry.subTitle} · ${pct}%`} />
+            <ResultDots results={answers.map(a => a === "correct")} />
+          </ResultCard>
+          <PrimaryButton onClick={() => handleCountryClick(activeCountry)} accent={ACC}>Play again</PrimaryButton>
+          <SecondaryButton onClick={() => setPhase("countries")}>Other countries</SecondaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -238,11 +216,7 @@ export default function ChallengeScreen({ onBack }: Props) {
       <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
         <ScreenHeader title={activeCountry?.name ?? ""} subtitle={`${score} correct so far`}
           onBack={() => setPhase("countries")}
-          right={
-            <span style={{ fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontWeight: 700, fontSize: 14, color: ACC, padding: "5px 11px", borderRadius: 999, background: tint(ACC, 0.1), border: `1px solid ${tint(ACC, 0.3)}` }}>
-              {idx + 1} / {total}
-            </span>
-          } />
+          right={<HeaderStat accent={ACC}>{idx + 1} / {total}</HeaderStat>} />
 
         <div className="mx-5 mt-2 h-1.5 rounded-full overflow-hidden" style={{ background: T.line, zIndex: 1 }}>
           <div className="h-full rounded-full transition-all duration-500"
@@ -285,11 +259,9 @@ export default function ChallengeScreen({ onBack }: Props) {
           </div>
 
           {answered && (
-            <button onClick={handleNext}
-              className="w-full max-w-sm py-3.5 rounded-xl font-bold text-base transition-all active:scale-95 animate-slide-up"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              {idx + 1 >= questions.length ? "See Results →" : "Next →"}
-            </button>
+            <PrimaryButton onClick={handleNext} accent={ACC} style={{ maxWidth: 384 }}>
+              {idx + 1 >= questions.length ? "See results →" : "Next →"}
+            </PrimaryButton>
           )}
         </div>
       </div>

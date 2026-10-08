@@ -6,9 +6,10 @@ import { shuffleWithSeed, seededRandom, todayString } from '../utils/prng'
 import { scorePhrase } from '../utils/quiz'
 import { shareOrCopy } from '../utils/share'
 import CountryOutline from './CountryOutline'
-import { T, ACCENT, FONT, tint } from '../ui/tokens'
-import { ScreenHeader } from './ui'
-import { LineIcon } from './icons'
+import { T, ACCENT, tint } from '../ui/tokens'
+import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+
 
 interface Props { onBack: () => void }
 
@@ -113,39 +114,20 @@ export default function GeoQuizScreen({ onBack }: Props) {
     const pct = score / questions.length
     const color = pct >= 0.8 ? T.green : pct >= 0.5 ? T.gold : T.danger
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div style={{ marginBottom: 16, color: ACC }}>
-          <LineIcon name="geo" size={64} color={ACC} strokeWidth={1.3} />
-        </div>
-        <div style={{ fontSize: 48, fontWeight: 800, color, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }} className="mb-2">{score}/{questions.length}</div>
-        <div style={{ color: T.muted, marginBottom: 20 }}>
-          {pct >= 0.8 ? 'Geography master!' : pct >= 0.5 ? 'Not bad!' : 'Keep exploring!'}
-        </div>
-
-        {/* Wordle-style result grid */}
-        <div className="flex justify-center gap-1 mb-6 flex-wrap" style={{ maxWidth: 320 }}>
-          {answers.map((a, i) => (
-            <span key={i} style={{ width: 16, height: 16, borderRadius: 4, background: a === 'correct' ? T.green : T.danger, display: 'inline-block' }} />
-          ))}
-        </div>
-
-        <button onClick={handleShare}
-          className="px-6 py-3 rounded-2xl font-bold mb-3 transition-all active:scale-95 hover:brightness-110"
-          style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display, display: 'flex', alignItems: 'center', gap: 8 }}>
-          <Clipboard size={16} strokeWidth={1.6} absoluteStrokeWidth /> Share Result
-        </button>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={onBack}
-            className="px-6 py-3 rounded-2xl font-bold"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, color: ACC }}>
-            Home
-          </button>
-          <button onClick={resetGame}
-            className="px-6 py-3 rounded-2xl font-bold"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, color: ACC }}>
-            Play Again
-          </button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Geography" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon="geo" accent={color}
+              title={`${score} of ${questions.length} countries`}
+              score={pct >= 0.8 ? 'Geography master!' : pct >= 0.5 ? 'Not bad!' : 'Keep exploring!'} />
+            <ResultDots results={answers.map(a => a === 'correct')} />
+          </ResultCard>
+          <PrimaryButton onClick={handleShare} accent={ACC}>
+            <Clipboard size={16} strokeWidth={1.6} absoluteStrokeWidth /> Share result
+          </PrimaryButton>
+          <SecondaryButton onClick={resetGame}>Play again</SecondaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )

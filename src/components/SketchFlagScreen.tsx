@@ -4,6 +4,7 @@ import { colorAccuracy } from "../utils/color"
 import type { RGB } from "../utils/color"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { Undo2, Eraser, Trash2 } from "lucide-react"
 
 const ACC = ACCENT.play
@@ -187,30 +188,18 @@ export default function SketchFlagScreen({ onBack }: { onBack: () => void }) {
               </button>
             </div>
 
-            <button onClick={reveal} disabled={!hasStrokes}
-              className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: hasStrokes ? ACC : T.surface, border: hasStrokes ? "none" : `1px solid ${T.line}`,
-                color: hasStrokes ? T.onAccent : T.dim, cursor: hasStrokes ? "pointer" : "not-allowed", fontFamily: FONT.display }}>
+            <PrimaryButton onClick={reveal} disabled={!hasStrokes} accent={ACC} style={{ maxWidth: 384 }}>
               {hasStrokes ? "Reveal the real flag →" : "Draw something first"}
-            </button>
+            </PrimaryButton>
           </>
         ) : (
           <div className="w-full max-w-sm flex flex-col gap-3">
-            <div className="rounded-2xl p-5 text-center" style={{ background: T.surface, border: `1px solid ${tint(grade.c, 0.4)}` }}>
-              <div className="text-6xl font-black mb-1" style={{ color: grade.c, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{accuracy}%</div>
-              <div className="text-sm font-bold" style={{ color: grade.c }}>{grade.t}</div>
-              <div className="text-xs mt-1" style={{ color: T.muted }}>The real {target.name} flag is laid over your sketch.</div>
-            </div>
-            <button onClick={next}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Next flag →
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <ResultCard>
+              <ResultHeader icon="sketchflag" accent={grade.c} eyebrow={grade.t}
+                title={`${accuracy}% match`} score={`The real ${target.name} flag is laid over your sketch.`} />
+            </ResultCard>
+            <PrimaryButton onClick={next} accent={ACC}>Next flag →</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
       </div>

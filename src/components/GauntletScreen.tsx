@@ -1,11 +1,13 @@
 import { useState } from 'react'
-import { Swords, Skull, Trophy, Heart } from 'lucide-react'
+import { Swords, Castle, Sun, Mountain, Landmark, MoonStar, Sailboat, Globe } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { FLAGS, REGIONS, getFlagsByRegion } from '../data/flags'
 import type { FlagRecord, Region } from '../data/flags'
 import { shuffleWithSeed } from '../utils/prng'
 import { buildQuestion } from '../utils/quiz'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
-import { ScreenHeader } from './ui'
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -15,28 +17,29 @@ const ACC = ACCENT.challenge
 
 interface GauntletConfig {
   label: string
-  emoji: string
+  Icon: LucideIcon
   flags: FlagRecord[]
   id: string
 }
 
 function buildConfigs(): GauntletConfig[] {
   return [
-    { id: 'world', label: 'World', emoji: '🌍', flags: FLAGS },
+    { id: 'world', label: 'World', Icon: Globe, flags: FLAGS },
     ...REGIONS.map(r => ({
       id: r,
       label: r,
-      emoji: regionEmoji(r),
+      Icon: regionIcon(r),
       flags: getFlagsByRegion(r as Region),
     })),
   ]
 }
 
-function regionEmoji(r: string): string {
-  const map: Record<string, string> = {
-    Europe: '🏰', Africa: '🌍', Asia: '🏯', Americas: '🗽', Oceania: '🏄', 'Middle East': '🕌',
+// Etched line icon per region — the same set the Codex uses.
+function regionIcon(r: string): LucideIcon {
+  const map: Record<string, LucideIcon> = {
+    Europe: Castle, Africa: Sun, Asia: Mountain, Americas: Landmark, Oceania: Sailboat, 'Middle East': MoonStar,
   }
-  return map[r] ?? '🌐'
+  return map[r] ?? Globe
 }
 
 export default function GauntletScreen({ onBack }: Props) {
@@ -98,7 +101,9 @@ export default function GauntletScreen({ onBack }: Props) {
               style={{ background: T.surface, border: `1px solid ${T.line}` }}
             >
               <div className="flex items-center gap-3">
-                <span className="text-2xl">{cfg.emoji}</span>
+                <span style={{ width: 40, height: 40, borderRadius: 999, flexShrink: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACC, 0.12), border: `1px solid ${tint(ACC, 0.28)}` }}>
+                  <cfg.Icon size={20} color={ACC} strokeWidth={1.6} absoluteStrokeWidth />
+                </span>
                 <div className="text-left">
                   <div className="font-bold" style={{ color: T.text, fontFamily: FONT.display }}>{cfg.label}</div>
                   <div className="text-xs" style={{ color: T.muted }}>{cfg.flags.length} flags to survive</div>
@@ -114,27 +119,16 @@ export default function GauntletScreen({ onBack }: Props) {
 
   if (phase === 'dead') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5 gap-6"
-        style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
-        <Skull size={64} color={T.danger} strokeWidth={1.4} absoluteStrokeWidth />
-        <div style={{ textAlign: 'center' }}>
-          <div className="text-3xl mb-2" style={{ color: T.text, fontFamily: FONT.display, fontWeight: 800 }}>Game Over</div>
-          <div style={{ color: T.muted }}>You survived <strong style={{ color: T.danger, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>{score}</strong> flag{score !== 1 ? 's' : ''}</div>
-          {q && <div className="mt-2 text-sm" style={{ color: T.dim }}>The answer was <strong style={{ color: T.text }}>{q.target.name}</strong></div>}
-        </div>
-        <div style={{ display: 'flex', gap: 12 }}>
-          <button onClick={onBack}
-            className="px-6 py-3 rounded-2xl font-bold"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-            Home
-          </button>
-          {config && (
-            <button onClick={() => startRun(config)}
-              className="px-6 py-3 rounded-2xl font-bold"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Try Again
-            </button>
-          )}
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
+        <ScreenHeader title={`${config?.label ?? ''} Gauntlet`} subtitle="Game over" onBack={() => setPhase('menu')} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon="skull" accent={T.danger} eyebrow="Game over"
+              title={`You survived ${score} flag${score !== 1 ? 's' : ''}`}
+              score={q ? <>The answer was <strong style={{ color: T.text }}>{q.target.name}</strong></> : undefined} />
+          </ResultCard>
+          {config && <PrimaryButton onClick={() => startRun(config)} accent={ACC}>Try again</PrimaryButton>}
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -142,18 +136,15 @@ export default function GauntletScreen({ onBack }: Props) {
 
   if (phase === 'win') {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5 gap-6"
-        style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
-        <Trophy size={64} color={T.gold} strokeWidth={1.4} absoluteStrokeWidth />
-        <div style={{ textAlign: 'center' }}>
-          <div className="text-3xl mb-2" style={{ color: T.text, fontFamily: FONT.display, fontWeight: 800 }}>Flawless!</div>
-          <div style={{ color: T.green }}>You named all <strong style={{ fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>{score}</strong> flags without a mistake</div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
+        <ScreenHeader title={`${config?.label ?? ''} Gauntlet`} subtitle="Complete" onBack={() => setPhase('menu')} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon="trophy" accent={T.gold} eyebrow="Flawless"
+              title={`All ${score} flags named`} score="Not a single mistake." />
+          </ResultCard>
+          <PrimaryButton onClick={onBack} accent={T.green}>Back to home</PrimaryButton>
         </div>
-        <button onClick={onBack}
-          className="px-8 py-3 rounded-2xl font-bold"
-          style={{ background: T.green, color: T.onAccent, fontFamily: FONT.display }}>
-          Back to Home
-        </button>
       </div>
     )
   }
@@ -163,13 +154,7 @@ export default function GauntletScreen({ onBack }: Props) {
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
       <ScreenHeader title={`${config?.label} Gauntlet`} subtitle={`${idx + 1} / ${questions.length} · ${score} survived`}
         onBack={() => setPhase('menu')}
-        right={
-          <div style={{
-            padding: '4px 12px', borderRadius: 999, display: 'flex', alignItems: 'center', gap: 5,
-            background: tint(T.danger, 0.1), border: `1px solid ${tint(T.danger, 0.3)}`,
-            color: T.danger, fontSize: 12, fontWeight: 700, fontFamily: FONT.mono,
-          }}><Heart size={12} strokeWidth={1.6} absoluteStrokeWidth /> 1 life</div>
-        } />
+        right={<HeaderStat label="Lives" accent={T.danger}>1</HeaderStat>} />
 
       <div className="flex-1 flex flex-col items-center px-5 pb-8 gap-5">
         {/* Survival progress */}

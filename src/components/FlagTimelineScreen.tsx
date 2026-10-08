@@ -3,6 +3,8 @@ import { CODEX } from "../data/codex"
 import type { HistoricalFlag } from "../data/codex"
 import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -73,15 +75,16 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     const total = scores.reduce((a, b) => a + b, 0)
     const max = rounds.reduce((a, r) => a + r.chrono.length, 0)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>⏳</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 38, color: ACCENT.learn, marginTop: 4 }}>{total}<span style={{ color: T.dim, fontSize: 20 }}>/{max}</span></div>
-            <div style={{ color: T.muted, fontSize: 12 }}>flags placed in the right era</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Flag Timeline" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="hourglass" accent={ACCENT.learn}
+              title={`${total} of ${max} in the right era`}
+              score="Flags placed in the correct order" />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -91,14 +94,8 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Flag Timeline</div>
-          <div style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: 16, color: T.text }}>{round.name}</div>
-        </div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 13, color: T.dim }}>{idx + 1}/{ROUNDS}</div>
-      </header>
+      <ScreenHeader title="Flag Timeline" subtitle={round.name} onBack={onBack}
+        right={<HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "10px 18px 24px", gap: 18 }}>
         <p style={{ color: T.muted, fontSize: 12.5, textAlign: "center", maxWidth: 300 }}>
@@ -118,7 +115,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                 <div style={{ position: "relative", width: 60, height: 40, borderRadius: 6, border: `1.5px ${filled ? "solid" : "dashed"} ${locked ? (correct ? ACCENT.learn : T.warm) : filled ? T.lineHi : T.line}`, overflow: "hidden", background: filled ? "#fff" : tint(ACCENT.learn, 0.05), display: "flex", alignItems: "center", justifyContent: "center" }}>
                   {filled
                     ? <img src={round.shuffled[shufIdx].flagUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).style.opacity = "0.2" }} />
-                    : <span style={{ color: T.dim, fontSize: 10, fontFamily: FONT.mono }}>{pos + 1}</span>}
+                    : <span style={{ color: T.dim, fontSize: 11, fontFamily: FONT.mono }}>{pos + 1}</span>}
                   {locked && filled && <span style={{ position: "absolute", bottom: 1, right: 2, fontSize: 9, color: correct ? ACCENT.learn : T.warm }}>{correct ? "✓" : "✗"}</span>}
                 </div>
               </div>
@@ -127,7 +124,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
 
         {locked && (
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>↓ correct order with years</div>
+          <div className="geo-micro" style={{ fontSize: 11, color: T.muted }}>Correct order with years</div>
         )}
         {locked && (
           <div style={{ display: "flex", flexDirection: "column", gap: 6, width: "100%", maxWidth: 340 }}>
@@ -156,11 +153,11 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
         <div style={{ marginTop: "auto", width: "100%", maxWidth: 340, display: "flex", gap: 10 }}>
           {!locked && order.length > 0 && (
-            <button onClick={undo} className="geo-tap" style={{ flex: 1, padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>Undo</button>
+            <SecondaryButton onClick={undo} style={{ flex: 1, width: "auto" }}>Undo</SecondaryButton>
           )}
           {!locked
-            ? <button onClick={lockIn} disabled={!allPlaced} className="geo-tap" style={{ flex: 2, padding: "13px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: allPlaced ? ACCENT.learn : T.surface, color: allPlaced ? (T.onAccent) : T.dim, border: allPlaced ? "none" : `1px solid ${T.line}` }}>{allPlaced ? "Lock in" : `Place all ${round.chrono.length}`}</button>
-            : <button onClick={next} className="geo-tap" style={{ flex: 1, padding: "13px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>{idx + 1 >= ROUNDS ? "See result →" : "Next →"}</button>}
+            ? <PrimaryButton onClick={lockIn} disabled={!allPlaced} accent={ACCENT.learn} style={{ flex: 2, width: "auto" }}>{allPlaced ? "Lock in" : `Place all ${round.chrono.length}`}</PrimaryButton>
+            : <PrimaryButton onClick={next} accent={ACCENT.learn} style={{ flex: 1, width: "auto" }}>{idx + 1 >= ROUNDS ? "See result →" : "Next →"}</PrimaryButton>}
         </div>
       </div>
     </div>

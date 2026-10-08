@@ -3,6 +3,7 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 const ACC = ACCENT.codex
 const MAX = 6
@@ -64,7 +65,8 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-      <ScreenHeader title="Flag Outline" subtitle={`${wins} solved · ${status === "play" ? `${MAX - wrong} guesses left` : answer.name}`} onBack={onBack} />
+      <ScreenHeader title="Flag Outline" subtitle={status === "play" ? `${MAX - wrong} guesses left` : answer.name} onBack={onBack}
+        right={<HeaderStat label="Solved" accent={ACC}>{wins}</HeaderStat>} />
 
       <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 gap-4">
         <p className="text-sm text-center" style={{ color: T.muted }}>
@@ -119,31 +121,17 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
               </div>
             )}
 
-            <button onClick={giveUp}
-              className="w-full max-w-sm py-3 rounded-xl font-semibold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              Give up
-            </button>
+            <SecondaryButton onClick={giveUp} style={{ maxWidth: 384 }}>Give up</SecondaryButton>
           </>
         ) : (
           <div className="w-full max-w-sm flex flex-col gap-3">
-            <div className="rounded-2xl p-5 text-center" style={{ background: T.surface, border: `1px solid ${tint(status === "won" ? T.green : T.danger, 0.4)}` }}>
-              <div className="text-lg font-black" style={{ color: status === "won" ? T.green : T.danger, fontFamily: FONT.display }}>
-                {status === "won" ? `Got it in ${wrong + 1}!` : "Out of guesses"}
-              </div>
-              <div className="text-xl font-black mt-1" style={{ color: T.text, fontFamily: FONT.display }}>{answer.name}</div>
-              <div className="text-xs mt-2" style={{ color: T.muted }}>{answer.funFact}</div>
-            </div>
-            <button onClick={next}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Next flag →
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <ResultCard>
+              <ResultHeader icon={status === "won" ? "trophy" : "flagoutline"} accent={status === "won" ? T.green : T.danger}
+                eyebrow={status === "won" ? `Got it in ${wrong + 1}` : "Out of guesses"}
+                title={answer.name} score={answer.funFact} />
+            </ResultCard>
+            <PrimaryButton onClick={next} accent={ACC}>Next flag →</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
       </div>

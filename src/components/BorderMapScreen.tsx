@@ -4,6 +4,8 @@ import { FLAGS } from "../data/flags"
 import { neighborsOf, countriesWithBorders } from "../data/borders"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -83,51 +85,29 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 4px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9.5, color: T.muted }}>Name the neighbours of</div>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 10, marginTop: 2 }}>
-            <div style={{ width: 38, height: 26, borderRadius: 4, overflow: "hidden", border: `1px solid ${T.line}`, flexShrink: 0 }}>
-              <FlagImage code={primary} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </div>
-            <div className="geo-display" style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.01em", color: T.text }}>{NAME(primary)}</div>
-          </div>
+      <ScreenHeader title="Border Map" subtitle={done ? "All neighbours found" : "Name every neighbour"} onBack={onBack}
+        right={<HeaderStat accent={ACCENT.codex}>{found.size} / {targets.length}</HeaderStat>} />
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 16px 4px" }}>
+        <div style={{ width: 38, height: 26, borderRadius: 4, overflow: "hidden", border: `1px solid ${T.line}`, flexShrink: 0 }}>
+          <FlagImage code={primary} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 14, color: ACCENT.codex, fontWeight: 700 }}>{found.size}<span style={{ color: T.dim }}>/{targets.length}</span></div>
-      </header>
+        <div className="geo-display" style={{ fontWeight: 800, fontSize: 28, letterSpacing: "-0.01em", color: T.text }}>{NAME(primary)}</div>
+      </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 20px", gap: 12 }}>
         {/* Map */}
         <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}`, background: SEA(), flex: 1, minHeight: 300 }}>
           <svg viewBox={vb ?? FULL_VB} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: "block", opacity: vb ? 1 : 0, transition: "opacity 0.25s" }}>
-            <defs>
-              <filter id="bmglow" x="-30%" y="-30%" width="160%" height="160%">
-                <feDropShadow dx="0" dy="0" stdDeviation="1.4" floodColor={PRIMARY_FILL} floodOpacity="0.9" />
-              </filter>
-            </defs>
             {/* hidden measuring path (also the primary fill) */}
-            <path ref={primRef} d={PATHS.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke="#B98A2E" strokeWidth={0.4} style={{ filter: "url(#bmglow)" }} />
+            <path ref={primRef} d={PATHS.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke="#B98A2E" strokeWidth={0.4} />
             {drawn.filter(d => !d.isPrimary).map(d => (
               <path key={d.code} d={PATHS.get(d.code.toLowerCase())!} fill={d.fill}
-                stroke="#00000022" strokeWidth={0.4}
-                style={{ filter: d.fill === NEIGHBOR_FILL ? "url(#bmglow)" : undefined }} />
+                stroke="#00000022" strokeWidth={0.4} />
             ))}
           </svg>
 
           {/* found / done overlay */}
-          {done && (
-            <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", background: "#FBF4E4cc", textAlign: "center" }}>
-              <Confetti />
-              <div style={{ fontSize: 40 }}>🎉</div>
-              <div className="geo-display" style={{ fontWeight: 700, fontSize: 22, color: T.text }}>All {targets.length} neighbours!</div>
-              <div style={{ color: T.muted, fontSize: 12, marginTop: 4 }}>{misses === 0 ? "Flawless — no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`}</div>
-              <div style={{ display: "flex", gap: 10, marginTop: 18 }}>
-                <button onClick={onReplay} className="geo-tap" style={{ padding: "11px 20px", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.codex, color: T.onAccent }}>New country</button>
-                <button onClick={onBack} className="geo-tap" style={{ padding: "11px 20px", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>Home</button>
-              </div>
-            </div>
-          )}
+          {done && <Confetti />}
           {flash && (
             <div style={{ position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)", padding: "5px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700, fontFamily: FONT.display,
               background: flash === "ok" ? tint(ACCENT.codex, 0.95) : tint(MISS_FILL, 0.95), color: "#fff" }}>
@@ -140,8 +120,20 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         {found.size > 0 && !done && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {[...found].map(c => (
-              <span key={c} className="geo-mono" style={{ fontSize: 10, padding: "3px 9px", borderRadius: 999, background: tint(ACCENT.codex, 0.14), color: ACCENT.codex, border: `1px solid ${tint(ACCENT.codex, 0.35)}` }}>{NAME(c)}</span>
+              <span key={c} className="geo-mono" style={{ fontSize: 11, padding: "4px 8px", borderRadius: 999, background: tint(ACCENT.codex, 0.14), color: ACCENT.codex, border: `1px solid ${tint(ACCENT.codex, 0.35)}` }}>{NAME(c)}</span>
             ))}
+          </div>
+        )}
+
+        {done && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+            <ResultCard>
+              <ResultHeader icon="bordermap" accent={ACCENT.codex}
+                title={`All ${targets.length} neighbours!`}
+                score={misses === 0 ? "Flawless, no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`} />
+            </ResultCard>
+            <PrimaryButton onClick={onReplay} accent={ACCENT.codex}>New country</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
 
@@ -164,7 +156,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               </div>
             )}
             <button onClick={() => setRevealed(true)} className="geo-micro geo-tap"
-              style={{ marginTop: 8, fontSize: 9, color: T.dim, background: "transparent" }}>give up · reveal the rest</button>
+              style={{ marginTop: 8, fontSize: 11, color: T.muted, background: "transparent", minHeight: 32 }}>give up · reveal the rest</button>
           </div>
         )}
       </div>
@@ -175,8 +167,10 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 function Confetti() {
   const bits = useMemo(() => Array.from({ length: 16 }, (_, i) => ({
     left: Math.random() * 100, delay: Math.random() * 0.4, dur: 1 + Math.random(),
-    color: ["#F4B740", "#27D3DE", "#C2735A", "#5C8CA8", "#BEF23A"][i % 5],
+    color: [T.gold, T.cyan, T.chartreuse, T.green, T.warm][i % 5],
   })), [])
+  // No falling confetti for people who ask for reduced motion.
+  if (typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return null
   return (
     <>
       <style>{`@keyframes bmConfetti{0%{transform:translateY(-20px) rotate(0);opacity:1}100%{transform:translateY(220px) rotate(360deg);opacity:0}}`}</style>

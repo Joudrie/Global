@@ -1,9 +1,10 @@
 import { useState } from "react"
 import { FLAGS, REGIONS, getFlagsByRegion } from "../data/flags"
 import type { FlagRecord, Region } from "../data/flags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, FONT } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { LineIcon, CrownIcon } from "./icons"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { LineIcon } from "./icons"
 
 interface Props { onBack: () => void }
 
@@ -128,16 +129,14 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     const rounds = Array.from(new Set(history.map(m => m.roundSize))).sort((a, b) => b - a)
     return (
       <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-        <ScreenHeader title="Your Champion" onBack={onBack} />
+        <ScreenHeader title="Flag Bracket" subtitle="Your champion" onBack={onBack} />
         <div className="flex-1 overflow-y-auto px-5 pb-6">
           <div className="w-full max-w-sm mx-auto text-center">
-            <div className="rounded-2xl p-6 mb-4" style={{ background: T.surface, border: `1px solid ${tint(T.gold, 0.45)}` }}>
-              <div className="mb-2 flex justify-center"><CrownIcon size={34} color={T.gold} strokeWidth={1.6} absoluteStrokeWidth /></div>
+            <ResultCard style={{ marginBottom: 16 }}>
+              <ResultHeader icon="crown" accent={T.gold} eyebrow="Your champion" title={champion.name} score={`Your coolest flag · ${scope}`} />
               <img src={champion.flagUrl} alt={champion.name}
-                style={{ width: 200, height: 133, objectFit: "contain", background: T.void, borderRadius: 12, margin: "0 auto 10px", border: `2px solid ${T.gold}` }} />
-              <div className="text-2xl font-black" style={{ color: T.text, fontFamily: FONT.display }}>{champion.name}</div>
-              <div className="text-xs mt-1" style={{ color: T.muted }}>your coolest flag — {scope}</div>
-            </div>
+                style={{ width: 200, height: 133, objectFit: "contain", background: T.void, borderRadius: 12, margin: "0 auto", border: `2px solid ${T.gold}` }} />
+            </ResultCard>
 
             {/* Bracket recap */}
             <div className="rounded-2xl p-4 mb-4 text-left" style={{ background: T.surfaceHi, border: `1px solid ${T.line}` }}>
@@ -161,12 +160,8 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             </div>
 
             <div className="flex flex-col gap-3">
-              <button onClick={onReplay}
-                className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-                style={{ background: ACCENT.play, color: T.onAccent, fontFamily: FONT.display }}>New Bracket</button>
-              <button onClick={onBack}
-                className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95 geo-tap"
-                style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+              <PrimaryButton onClick={onReplay} accent={ACCENT.play}>New bracket</PrimaryButton>
+              <SecondaryButton onClick={onBack}>Home</SecondaryButton>
             </div>
           </div>
         </div>

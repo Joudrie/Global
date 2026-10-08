@@ -1,10 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react"
 import { PUZZLES } from "../data/buildFlagPuzzles"
 import type { BuildPuzzle, Piece } from "../data/buildFlagPuzzles"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { hexToRgb } from "../utils/color"
-import { Palette as PaletteIcon, Brush } from "lucide-react"
 
 const ACC = ACCENT.play
 
@@ -321,39 +321,21 @@ export default function BuildFlagScreen({ onBack }: Props) {
           <FlagCanvas puzzle={puzzle} placed={placed} phase="result" slotRefs={slotRefs} onSlotClick={() => {}} />
 
           {/* Score */}
-          <div className="w-full rounded-2xl p-5 text-center"
-            style={{ background: T.surface, border: `1px solid ${tint(perfect ? T.green : T.danger, 0.35)}` }}>
-            <div className="mb-2 flex justify-center" style={{ color: perfect ? T.green : ACC }}>
-              {perfect
-                ? <PaletteIcon size={36} strokeWidth={1.6} absoluteStrokeWidth />
-                : <Brush size={36} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-5xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct}/{total}</div>
-            <div className="text-sm" style={{ color: T.muted }}>
-              {perfect ? `Perfect! That's ${puzzle.name}!` : `${correct} of ${total} bands correct for ${puzzle.name}`}
-            </div>
-            {/* Correct answer hint when wrong */}
-            {!perfect && (
-              <div className="mt-3 text-xs" style={{ color: ACC }}>
-                Correct order: {puzzle.slots.map(s => {
+          <ResultCard style={{ width: "100%" }}>
+            <ResultHeader icon={perfect ? "palette" : "buildflag"} accent={perfect ? T.green : ACC}
+              title={`${correct} of ${total} bands`}
+              score={<>
+                {perfect ? `Perfect! That's ${puzzle.name}!` : `${correct} of ${total} bands correct for ${puzzle.name}`}
+                {!perfect && <><br /><span style={{ color: ACC }}>Correct order: {puzzle.slots.map(s => {
                   const piece = puzzle.pieces.find(p => p.id === puzzle.solution[s])
                   return piece?.label
-                }).join(' · ')}
-              </div>
-            )}
-          </div>
+                }).join(' · ')}</span></>}
+              </>} />
+          </ResultCard>
 
           <div className="flex flex-col gap-3 w-full">
-            <button onClick={startNewGame}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              New Flag
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <PrimaryButton onClick={startNewGame} accent={ACC}>New flag</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         </div>
       </div>
@@ -438,19 +420,9 @@ export default function BuildFlagScreen({ onBack }: Props) {
         </div>
 
         {/* Confirm */}
-        <button
-          onClick={() => setPhase('result')}
-          disabled={!allSlotsFilled}
-          className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-          style={{
-            background: allSlotsFilled ? ACC : T.surface,
-            border: allSlotsFilled ? "none" : `1px solid ${T.line}`,
-            color: allSlotsFilled ? T.onAccent : T.dim,
-            cursor: allSlotsFilled ? "pointer" : "not-allowed",
-            fontFamily: FONT.display,
-          }}>
+        <PrimaryButton onClick={() => setPhase('result')} disabled={!allSlotsFilled} accent={ACC} style={{ maxWidth: 384 }}>
           {allSlotsFilled ? "Confirm →" : `Fill all ${total - Object.keys(placed).length} remaining slots`}
-        </button>
+        </PrimaryButton>
       </div>
 
       {/* Drag ghost */}

@@ -1,8 +1,9 @@
 import { useState } from "react"
 import { SUB_FLAGS, SUB_CONTINENTS } from "../data/subdivisions"
 import type { SubFlag } from "../data/subdivisions"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { ScreenHeader, FlagLoadFailed, MAX_FLAG_RETRIES } from "./ui"
+import { T, ACCENT, tint } from "../ui/tokens"
+import { ScreenHeader } from "./ui"
+import { FlagLoadFailed, MAX_FLAG_RETRIES, HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void; onSubLearned: (code: string) => void }
 
@@ -98,32 +99,28 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
   if (done) {
     const correct = results.filter(Boolean).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl overflow-hidden mb-4" style={{ border: `2px solid ${tint(T.green, 0.3)}` }}>
-            <img src={target.flagUrl} alt={target.name} style={{ width: "100%", height: 150, objectFit: "contain", display: "block", background: T.surfaceHi, padding: 6 }}
-              onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
-          </div>
-          <div className="rounded-2xl p-6 text-center mb-4" style={{ background: T.surface, border: `1px solid ${tint(A, 0.3)}` }}>
-            <div className="text-4xl mb-2">{correct === 3 ? "🎯" : correct >= 1 ? "🧭" : "🌍"}</div>
-            <div className="text-2xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct} / 3</div>
-            <div className="text-sm" style={{ color: T.muted }}>{target.countryEmoji} {target.name}, {target.countryName}</div>
-            <div className="flex justify-center gap-2 mt-3">
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Province Roulette" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={correct === 3 ? "target" : correct >= 1 ? "compass" : "globe"} accent={A}
+              title={`${correct} of 3 steps right`}
+              score={`${target.countryEmoji} ${target.name}, ${target.countryName}`} />
+            <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
+              <img src={target.flagUrl} alt={target.name} style={{ width: "100%", height: 150, objectFit: "contain", display: "block", background: T.surfaceHi, padding: 6 }}
+                onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
+            </div>
+            <div className="flex justify-center gap-2">
               {["Continent", "Country", "Region"].map((l, i) => (
-                <span key={l} className="text-xs px-2 py-1 rounded-full"
-                  style={{ background: tint(results[i] ? T.green : T.danger, 0.13), color: results[i] ? T.green : T.danger, border: `1px solid ${tint(results[i] ? T.green : T.danger, 0.3)}` }}>
+                <span key={l} className="px-2 py-1 rounded-full" style={{ fontSize: 12,
+                  background: tint(results[i] ? T.green : T.danger, 0.13), color: results[i] ? T.green : T.danger, border: `1px solid ${tint(results[i] ? T.green : T.danger, 0.3)}` }}>
                   {results[i] ? "✓" : "✗"} {l}
                 </span>
               ))}
             </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay} className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: A, color: T.onAccent, fontFamily: FONT.display }}>New Flag</button>
-            <button onClick={onBack} className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
-          </div>
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={A}>New flag</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -131,14 +128,8 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-      <ScreenHeader title="Province Roulette" subtitle={`Step ${stepIdx + 1} / 3`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5">
-            {steps.map((_, i) => (
-              <div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i < results.length ? (results[i] ? T.green : T.danger) : T.line }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title="Province Roulette" subtitle="Continent, country, then region" onBack={onBack}
+        right={<HeaderStat accent={A}>{stepIdx + 1} / 3</HeaderStat>} />
 
       {fails >= MAX_FLAG_RETRIES ? (
         <div className="flex flex-col items-center px-5 gap-4">
@@ -172,10 +163,9 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
         </div>
 
         {answered && (
-          <button onClick={next} className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: A, color: T.onAccent, fontFamily: FONT.display }}>
+          <PrimaryButton onClick={next} accent={A} style={{ maxWidth: 384 }}>
             {stepIdx + 1 >= steps.length ? "See Result →" : "Next →"}
-          </button>
+          </PrimaryButton>
         )}
       </div>
       )}

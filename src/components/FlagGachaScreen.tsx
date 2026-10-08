@@ -4,6 +4,9 @@ import type { FlagRecord } from "../data/flags"
 import { todayString } from "../utils/prng"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { LineIcon } from "./icons"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -15,8 +18,9 @@ function rarity(code: string): "legendary" | "rare" | "common" {
   let h = 0; for (const ch of code) h = (h * 31 + ch.charCodeAt(0)) >>> 0
   return h % 100 < 28 ? "rare" : "common"
 }
-const RARITY_COLOR = { legendary: "#F4B740", rare: "#8B7BE8", common: "#7E8DA6" }
-const RARITY_LABEL = { legendary: "★ Legendary", rare: "◆ Rare", common: "● Common" }
+// Palette tokens only: ochre, sky and ink-grey.
+const RARITY_COLOR = { legendary: T.gold, rare: T.cyan, common: T.muted }
+const RARITY_LABEL = { legendary: "Legendary", rare: "Rare", common: "Common" }
 
 // Continent grouping for the collection view (completionist sort).
 const REGION_ORDER = ["Africa", "Americas", "Asia", "Europe", "Middle East", "Oceania"]
@@ -72,22 +76,24 @@ export default function FlagGachaScreen({ onBack }: Props) {
   if (reveal) {
     const r = rarity(reveal.flag.code)
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-6" style={{ background: T.bg }}>
-        <div className="geo-micro" style={{ fontSize: 9, color: RARITY_COLOR[r], marginBottom: 12 }}>{RARITY_LABEL[r]}{reveal.dupe ? " · duplicate" : " · NEW"}</div>
-        <div style={{ width: 260, borderRadius: 18, overflow: "hidden", border: `2px solid ${RARITY_COLOR[r]}`, boxShadow: `0 0 40px ${tint(RARITY_COLOR[r], 0.6)}`, background: T.surface, animation: "gachaPop 0.4s cubic-bezier(0.2,1.4,0.4,1)" }}>
-          <style>{`@keyframes gachaPop{0%{transform:scale(0.6) rotate(-6deg);opacity:0}100%{transform:scale(1) rotate(0);opacity:1}}`}</style>
-          <div style={{ height: 168 }}><FlagImage code={reveal.flag.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></div>
-          <div style={{ padding: "14px 16px" }}>
-            <div className="geo-display" style={{ fontWeight: 700, fontSize: 20, color: T.text }}>{reveal.flag.name}</div>
-            <div style={{ color: T.muted, fontSize: 11, marginTop: 4, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{reveal.flag.funFact}</div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Flag Gacha" subtitle="Your pull" onBack={onBack}
+          right={<HeaderStat accent={ACCENT.codex}>{save.xp} XP</HeaderStat>} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 16 }}>
+          <ResultHeader icon="gift" accent={RARITY_COLOR[r]}
+            eyebrow={`${RARITY_LABEL[r]} · ${reveal.dupe ? "Duplicate" : "New"}`}
+            title={reveal.flag.name}
+            score={reveal.dupe ? "+15 XP (already collected)" : `${save.collected.length} of ${FLAGS.length} collected`} />
+          <div className="carto-rise" style={{ width: 260, borderRadius: 16, overflow: "hidden", border: `2px solid ${RARITY_COLOR[r]}`, background: T.surface }}>
+            <div style={{ height: 168 }}><FlagImage code={reveal.flag.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} /></div>
+            <div style={{ padding: "12px 16px", color: T.muted, fontSize: 12, lineHeight: 1.5, display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden" }}>{reveal.flag.funFact}</div>
           </div>
-        </div>
-        {reveal.dupe && <div className="geo-mono" style={{ marginTop: 14, fontSize: 12, color: ACCENT.codex }}>+15 XP (already collected)</div>}
-        <div style={{ display: "flex", gap: 10, marginTop: 22 }}>
-          {save.tokens > 0
-            ? <button onClick={pull} className="geo-tap" style={{ padding: "12px 22px", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.codex, color: T.onAccent }}>Pull again ({save.tokens})</button>
-            : <button onClick={() => setReveal(null)} className="geo-tap" style={{ padding: "12px 22px", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.codex, color: T.onAccent }}>Done</button>}
-          <button onClick={() => { setReveal(null); setBrowse(true) }} className="geo-tap" style={{ padding: "12px 18px", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>Collection</button>
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, width: "100%" }}>
+            {save.tokens > 0
+              ? <PrimaryButton onClick={pull} accent={ACCENT.codex}>Pull again ({save.tokens})</PrimaryButton>
+              : <PrimaryButton onClick={() => setReveal(null)} accent={ACCENT.codex}>Done</PrimaryButton>}
+            <SecondaryButton onClick={() => { setReveal(null); setBrowse(true) }}>Collection</SecondaryButton>
+          </div>
         </div>
       </div>
     )
@@ -95,11 +101,8 @@ export default function FlagGachaScreen({ onBack }: Props) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div className="geo-micro" style={{ fontSize: 10, color: T.muted }}>Flag Gacha</div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 12, color: ACCENT.codex }}>{save.xp} XP</div>
-      </header>
+      <ScreenHeader title="Flag Gacha" subtitle="One free pull a day" onBack={onBack}
+        right={<HeaderStat accent={ACCENT.codex}>{save.xp} XP</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "10px 18px 24px", gap: 16 }}>
         {/* progress */}
@@ -115,10 +118,10 @@ export default function FlagGachaScreen({ onBack }: Props) {
 
         {!browse ? (
           <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 18 }}>
-            <div style={{ width: 130, height: 130, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", fontSize: 60, background: tint(ACCENT.codex, 0.1), border: `2px dashed ${tint(ACCENT.codex, 0.4)}` }}>🎁</div>
+            <div style={{ width: 128, height: 128, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: tint(ACCENT.codex, 0.1), border: `2px dashed ${tint(ACCENT.codex, 0.4)}` }}><LineIcon name="gift" size={48} color={ACCENT.codex} /></div>
             {save.tokens > 0 ? (
               <>
-                <button onClick={pull} className="geo-tap" style={{ padding: "16px 36px", borderRadius: 14, fontWeight: 700, fontSize: 17, fontFamily: FONT.display, background: ACCENT.codex, color: T.onAccent, boxShadow: `0 8px 26px -8px ${tint(ACCENT.codex, 0.8)}` }}>Pull a flag</button>
+                <PrimaryButton onClick={pull} accent={ACCENT.codex} style={{ maxWidth: 280 }}>Pull a flag</PrimaryButton>
                 <div className="geo-mono" style={{ fontSize: 11, color: T.muted }}>{save.tokens} pull{save.tokens === 1 ? "" : "s"} available</div>
               </>
             ) : (
@@ -127,18 +130,18 @@ export default function FlagGachaScreen({ onBack }: Props) {
                 <div style={{ color: T.muted, fontSize: 12, marginTop: 4 }}>Come back tomorrow for a free pull.</div>
               </div>
             )}
-            <button onClick={() => setBrowse(true)} className="geo-tap" style={{ padding: "10px 18px", borderRadius: 12, fontWeight: 600, fontSize: 13, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>View collection →</button>
+            <SecondaryButton onClick={() => setBrowse(true)} style={{ maxWidth: 280 }}>View collection →</SecondaryButton>
           </div>
         ) : (
           <div style={{ flex: 1, overflowY: "auto" }}>
-            <button onClick={() => setBrowse(false)} className="geo-micro geo-tap" style={{ fontSize: 9, color: T.dim, background: "transparent", marginBottom: 10 }}>← back to pulls</button>
+            <button onClick={() => setBrowse(false)} className="geo-micro geo-tap" style={{ fontSize: 11, color: T.muted, background: "transparent", marginBottom: 12, minHeight: 32 }}>← back to pulls</button>
             {byContinent.map(group => {
               const haveCount = group.flags.filter(f => collected.has(f.code)).length
               return (
                 <div key={group.region} style={{ marginBottom: 16 }}>
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline", marginBottom: 7 }}>
                     <span className="geo-display" style={{ fontWeight: 700, fontSize: 13, color: T.text }}>{group.region}</span>
-                    <span style={{ fontFamily: FONT.mono, fontSize: 10, color: T.dim }}>{haveCount}/{group.flags.length}</span>
+                    <span style={{ fontFamily: FONT.mono, fontSize: 11, color: T.dim }}>{haveCount}/{group.flags.length}</span>
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill,minmax(56px,1fr))", gap: 8 }}>
                     {group.flags.map(f => {
