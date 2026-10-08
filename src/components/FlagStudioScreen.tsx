@@ -11,7 +11,7 @@ import {
   newDesign, newId, loadBase, composeBase, composeFull, svgDataUri, svgToPng, downloadBlob,
   fileSlug, encodeDesign, decodeDesign, loadStore, saveStore, toHex,
   loadEmblem, ensureEmblems, emblemInner, emblemPng, imageInner, overlaySize, prepareUpload,
-  countryBase, stripesDesign, randomDesign, baseTextSync, svgOwnRatio, FULL_WIDTH_SYMBOLS,
+  countryBase, stripesDesign, randomDesign, baseTextSync, svgOwnRatio, FULL_WIDTH_SYMBOLS, refitOverlays,
 } from "../utils/flagStudio"
 import { nationCard, canvasBlob } from "../utils/nationCard"
 import { STUDIO_FLAGS } from "../data/studioFlags"
@@ -20,9 +20,12 @@ import type { Design, Overlay, SymbolKind } from "../utils/flagStudio"
 
 const ACC = ACCENT.play
 
+// A colour selection keeps the parts and symbols it was made from, so
+// recolouring them (even dragging the custom picker past another flag
+// colour) never loses track of which ones they are.
 type Sel =
   | { k: "part"; i: number; prop: "f" | "s" }
-  | { k: "color"; hex: string }
+  | { k: "color"; hex: string; f: number[]; s: number[]; ov: string[] }
   | { k: "ov"; id: string }
   | null
 
@@ -71,6 +74,41 @@ function overlayBox(o: Overlay) {
   return { x: b.x * k, y: b.y * k, w: b.w * k, h: b.h * k }
 }
 
+// What a part really paints. A stroke-only line (the US's white stripes, the
+// UK's diagonals) sets no fill, so the browser reports a default black it
+// never shows. A <use> paints its target's own fill when the target sets one
+// (Nepal's crimson behind its blue border, Brazil's stars), whatever the
+// <use> itself inherits.
+const setsFill = (el: Element) => el.hasAttribute("fill") || !!(el as SVGElement).style?.fill
+
+/** Whether a part, or a group around it inside `host`, sets a fill. */
+function fillSet(el: Element, host: Element) {
+  for (let x: Element | null = el; x && x !== host; x = x.parentElement) if (setsFill(x)) return true
+  return false
+}
+
+type FillMemo = Map<Element, string | null | undefined>
+
+/** The fill a <use>'s target sets for itself (or a shape inside it does): a
+ *  colour, null for none or a gradient, undefined when the <use>'s own shows. */
+function targetFill(el: Element, host: Element, memo: FillMemo = new Map(), hops = 0): string | null | undefined {
+  const id = (el.getAttribute("href") || el.getAttribute("xlink:href") || "").replace(/^#/, "")
+  const t = id && hops < 8 ? host.querySelector(`[id="${window.CSS.escape(id)}"]`) : null
+  if (!t) return undefined
+  if (!memo.has(t)) memo.set(t, ownFill(t, host, memo, hops + 1))
+  return memo.get(t)
+}
+function ownFill(t: Element, host: Element, memo: FillMemo, hops: number): string | null | undefined {
+  if (setsFill(t)) return toHex(getComputedStyle(t).fill)
+  if (t.tagName === "use") return targetFill(t, host, memo, hops)
+  for (const c of Array.from(t.children)) {
+    if (c.tagName === "clipPath" || c.tagName === "mask") continue
+    const f = ownFill(c, host, memo, hops)
+    if (f !== undefined) return f
+  }
+  return undefined
+}
+
 const SHIELDS = new Set(["shield", "shieldround", "shieldfrench", "shieldcurved", "cartouche", "shieldborder"])
 
 function useWide() {
@@ -105,7 +143,8 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const [sel, setSel] = useState<Sel>(null)
   const [tab, setTab] = useState<Tab>(() => (shared || store.current ? "edit" : "templates"))
   const [strip, setStrip] = useState<{ hex: string; count: number }[]>([])
-  const [notice, setNotice] = useState<string | null>(shared ? "You opened a shared flag. Change anything to make it yours." : null)
+  const [notice, setNotice] = useState<string | null>(shared ? "You opened a shared flag. Change anything to make it yours."
+    : initialDesign ? "That flag link didn't work." : null)
   const [exportSize, setExportSize] = useState(1200)
   const [shareUrl, setShareUrl] = useState<string | null>(null)
 
@@ -115,21 +154,40 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const inGroup = (c: string | null | undefined, rep: string) => !!c && (eff.current.group.get(c) ?? c) === rep
   const [guides, setGuides] = useState<{ x?: number; y?: number }>({})
   const [partBox, setPartBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
-  type Drag =
-    | { mode: "move"; id: string; dx: number; dy: number; started: boolean }
-    | { mode: "resize"; id: string; d0: number; size0: number; started: boolean }
-    | { mode: "rotate"; id: string; started: boolean }
-    | { mode: "border"; i: number; started: boolean }
+  // sx, sy: where the pointer went down, on screen. A drag only starts once
+  // it has moved a few pixels, so a tap never records an undo step.
+  type Drag = (
+    | { mode: "move"; id: string; dx: number; dy: number }
+    | { mode: "resize"; id: string; d0: number; size0: number }
+    | { mode: "rotate"; id: string }
+    | { mode: "border"; i: number }
+  ) & { started: boolean; sx: number; sy: number }
   const drag = useRef<Drag | null>(null)
   // Two-finger pinch on a selected symbol: resize and rotate together.
   const touches = useRef(new Map<number, { x: number; y: number }>())
   const pinch = useRef<{ id: string; d0: number; a0: number; size0: number; rot0: number } | null>(null)
+  // Where the last finger went down. A tap's click arrives where the
+  // browser's tap targeting moved it, often onto a small shape nearby (a star
+  // instead of the US canton around it), so taps go by where the finger was.
+  const lastTouch = useRef<{ x: number; y: number; t: number } | null>(null)
   const liveStarted = useRef(false)
+  const liveFrom = useRef<Design | null>(null)
 
   // The studio is the one screen that uses the full width of a desktop window.
   useEffect(() => {
     document.documentElement.classList.add("fs-wide")
     return () => document.documentElement.classList.remove("fs-wide")
+  }, [])
+
+  // The desktop panels fill the window under the header, whatever its height.
+  const rootRef = useRef<HTMLDivElement>(null)
+  const headRef = useRef<HTMLElement>(null)
+  useLayoutEffect(() => {
+    const head = headRef.current, root = rootRef.current
+    if (!head || !root || typeof ResizeObserver === "undefined") return
+    const ro = new ResizeObserver(() => root.style.setProperty("--fs-head", `${head.offsetHeight}px`))
+    ro.observe(head)
+    return () => ro.disconnect()
   }, [])
 
   // Load the template behind the design. Layouts and stripes are drawn in
@@ -146,9 +204,13 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   const composed = useMemo(() => (baseText ? composeBase(baseText, design.parts, design.ratio) : null), [baseText, design.parts, design.ratio])
   const flagH = composed?.h ?? Math.round(FLAG_W * 2 / 3)
+  // React 19 re-sets innerHTML whenever the {__html} object is new, which
+  // rebuilt the whole flag (and dropped the selection pulse) on every pointer
+  // move. The markup objects only change when the markup does.
+  const baseHtml = useMemo(() => (composed ? { __html: composed.svg } : undefined), [composed])
 
   // Emblem artwork loads on demand; re-render once it arrives.
-  const [, setEmblemTick] = useState(0)
+  const [emblemTick, setEmblemTick] = useState(0)
   const emblemKey = design.overlays.map(o => o.emblem ?? "").join()
   useEffect(() => {
     let live = true
@@ -156,12 +218,22 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     return () => { live = false }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [emblemKey])
+  const innerCache = useRef(new Map<string, { o: Overlay; tick: number; html: { __html: string } }>())
+  const innerHtml = (o: Overlay) => {
+    const c = innerCache.current.get(o.id)
+    if (c && c.tick === emblemTick && c.o.size === o.size && c.o.color === o.color && c.o.emblem === o.emblem && c.o.src === o.src && c.o.ratio === o.ratio) return c.html
+    const html = { __html: o.kind === "emblem" ? emblemInner(o) : imageInner(o) }
+    innerCache.current.set(o.id, { o, tick: emblemTick, html })
+    return html
+  }
 
   // Read back the colours the browser actually paints, so the colour strip
   // and "every part in this colour" work for any flag file. The strip is
   // ordered by how much of the flag each colour covers, so a crest's hundred
   // tiny shades never push the main stripes out of view, and near-identical
-  // shades (#000000 and #010101) count as one colour.
+  // shades (#000000 and #010101) count as one colour. It only runs when the
+  // flag or a symbol's colour changes, not while a symbol is dragged.
+  const ovColours = design.overlays.map(o => o.color.toLowerCase()).filter(Boolean).join()
   useLayoutEffect(() => {
     const host = baseRef.current
     if (!host || !composed) return
@@ -169,17 +241,22 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     const s: (string | null)[] = []
     const area = new Map<string, number>()
     const add = (c: string | null, a: number) => { if (c) area.set(c, (area.get(c) ?? 0) + a) }
+    const memo: FillMemo = new Map()
     host.querySelectorAll("[data-p]").forEach(el => {
       const i = Number(el.getAttribute("data-p"))
       const cs = getComputedStyle(el)
-      f[i] = toHex(cs.fill)
       s[i] = cs.strokeWidth && parseFloat(cs.strokeWidth) > 0 ? toHex(cs.stroke) : null
+      const own = el.tagName === "use" ? targetFill(el, host, memo) : undefined
+      f[i] = own !== undefined ? own
+        // An outline with no fill set anywhere: the default black never shows.
+        : s[i] && toHex(cs.fill) === "#000000" && !fillSet(el, host) ? null
+          : toHex(cs.fill)
       const r = el.getBoundingClientRect()
       const a = r.width * r.height
       add(f[i], a)
       add(s[i], a * 0.3)
     })
-    for (const o of design.overlays) if (o.color) add(o.color.toLowerCase(), 1)
+    for (const c of ovColours ? ovColours.split(",") : []) add(c, 1)
     const ranked = [...area.entries()].filter(([, a]) => a > 0).sort((a, b) => b[1] - a[1])
     const group = new Map<string, string>()
     const reps: { hex: string; area: number }[] = []
@@ -190,7 +267,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     eff.current = { f, s, group }
     const next = reps.slice(0, 10).map(r => ({ hex: r.hex, count: Math.round(r.area) }))
     setStrip(prev => (prev.map(x => x.hex + x.count).join() === next.map(x => x.hex + x.count).join() ? prev : next))
-  }, [composed, design.overlays])
+  }, [composed, ovColours])
 
   // Pulse whatever is selected on the flag itself.
   useLayoutEffect(() => {
@@ -211,10 +288,8 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     }
     setPartBox(prev => (JSON.stringify(prev) === JSON.stringify(box) ? prev : box))
     if (sel?.k === "color") {
-      host.querySelectorAll("[data-p]").forEach(el => {
-        const i = Number(el.getAttribute("data-p"))
-        if (inGroup(eff.current.f[i], sel.hex) || inGroup(eff.current.s[i], sel.hex)) el.classList.add("fs-sel")
-      })
+      const on = new Set([...sel.f, ...sel.s])
+      host.querySelectorAll("[data-p]").forEach(el => { if (on.has(Number(el.getAttribute("data-p")))) el.classList.add("fs-sel") })
     }
   }, [composed, sel])
 
@@ -225,16 +300,33 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   )
 
   const storageWarned = useRef(false)
-  // Autosave, lightly debounced so dragging doesn't hammer storage.
+  // Autosave, lightly debounced so dragging doesn't hammer storage, and
+  // flushed when the page is hidden or closed or the studio is left, so the
+  // last change is never lost.
+  const pendingSave = useRef<(() => void) | null>(null)
   useEffect(() => {
-    const t = window.setTimeout(() => {
+    const save = () => {
+      pendingSave.current = null
       if (!saveStore({ current: design, saved: library }) && !storageWarned.current) {
         storageWarned.current = true
         setNotice("Your device's storage is full, so changes aren't being saved. Delete a few flags in My flags, or use smaller pictures.")
       }
-    }, 250)
+    }
+    pendingSave.current = save
+    const t = window.setTimeout(save, 250)
     return () => window.clearTimeout(t)
   }, [design, library])
+  useEffect(() => {
+    const flush = () => pendingSave.current?.()
+    const onHide = () => { if (document.visibilityState === "hidden") flush() }
+    window.addEventListener("pagehide", flush)
+    document.addEventListener("visibilitychange", onHide)
+    return () => {
+      window.removeEventListener("pagehide", flush)
+      document.removeEventListener("visibilitychange", onHide)
+      flush()
+    }
+  }, [])
 
   useEffect(() => {
     if (!notice) return
@@ -251,30 +343,47 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     setShareUrl(null)
   }, [design])
 
-  // Continuous edits (dragging, sliders) record one undo step, not hundreds.
+  // Continuous edits (dragging, sliders) record one undo step, not hundreds,
+  // and only once something changes: tapping a slider records nothing.
   const beginLive = () => {
     if (liveStarted.current) return
     liveStarted.current = true
-    setPast(p => [...p.slice(-99), design])
-    setFuture([])
-    setShareUrl(null)
+    liveFrom.current = design
   }
-  const live = (fn: (d: Design) => Design) =>
+  const live = (fn: (d: Design) => Design) => {
+    // Outside a gesture (a screen reader nudging a slider) each change is a step.
+    const from = liveStarted.current ? liveFrom.current : design
+    if (from) {
+      liveFrom.current = null
+      setPast(p => [...p.slice(-99), from])
+      setFuture([])
+      setShareUrl(null)
+    }
     setDesign(d => ({ ...fn(d), edited: true, updated: Date.now() }))
-  const endLive = () => { liveStarted.current = false }
+  }
+  const endLive = () => { liveStarted.current = false; liveFrom.current = null }
 
+  // Naming a flag (even an untouched template) keeps it in My flags.
+  const setWords = (patch: Pick<Design, "name"> | Pick<Design, "motto">) =>
+    setDesign(d => ({ ...d, ...patch, edited: true, updated: Date.now() }))
+
+  // The name and motto aren't undo steps, so undo and redo carry them along.
+  const keepWords = useCallback((d: Design): Design => ({
+    ...d, name: design.name, motto: design.motto,
+    edited: d.edited || d.name !== design.name || (d.motto ?? "") !== (design.motto ?? ""),
+  }), [design])
   const undo = useCallback(() => {
     if (!past.length) return
     setFuture(f => [design, ...f])
-    setDesign(past[past.length - 1])
+    setDesign(keepWords(past[past.length - 1]))
     setPast(p => p.slice(0, -1))
-  }, [past, design])
+  }, [past, design, keepWords])
   const redo = useCallback(() => {
     if (!future.length) return
     setPast(p => [...p, design])
-    setDesign(future[0])
+    setDesign(keepWords(future[0]))
     setFuture(f => f.slice(1))
-  }, [future, design])
+  }, [future, design, keepWords])
 
   const switchTo = (next: Design) => {
     setSaved(library)
@@ -294,9 +403,9 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const applyColor = (hex: string) => {
     hex = hex.toLowerCase()
     if (!sel) { setNotice("Tap part of the flag, or a colour in the strip, first."); return }
-    const key = sel.k === "part" ? `p${sel.i}${sel.prop}` : sel.k === "ov" ? `o${sel.id}` : "c"
+    const key = sel.k === "part" ? `p${sel.i}${sel.prop}` : sel.k === "ov" ? `o${sel.id}` : `c${sel.f.join()}|${sel.s.join()}|${sel.ov.join()}`
     const now = Date.now()
-    const merge = key === lastColor.current.key && now - lastColor.current.at < 700 && key !== "c"
+    const merge = key === lastColor.current.key && now - lastColor.current.at < 700
     lastColor.current = { key, at: now }
     const put = (next: Design) => (merge ? setDesign({ ...next, edited: true, updated: now }) : commit(next))
     if (sel.k === "part") {
@@ -305,14 +414,20 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     } else if (sel.k === "ov") {
       put({ ...design, overlays: design.overlays.map(o => (o.id === sel.id ? { ...o, color: hex } : o)) })
     } else {
-      const from = sel.hex
       const parts = { ...design.parts }
-      eff.current.f.forEach((c, i) => { if (inGroup(c, from)) parts[i] = { ...parts[i], f: hex } })
-      eff.current.s.forEach((c, i) => { if (inGroup(c, from)) parts[i] = { ...parts[i], s: hex } })
-      const overlays = design.overlays.map(o => (inGroup(o.color.toLowerCase(), from) ? { ...o, color: hex } : o))
-      commit({ ...design, parts, overlays })
-      setSel({ k: "color", hex })
+      for (const i of sel.f) parts[i] = { ...parts[i], f: hex }
+      for (const i of sel.s) parts[i] = { ...parts[i], s: hex }
+      const overlays = design.overlays.map(o => (sel.ov.includes(o.id) ? { ...o, color: hex } : o))
+      put({ ...design, parts, overlays })
+      setSel({ ...sel, hex })
     }
+  }
+
+  // Tapping a colour in the strip selects every part and symbol in it.
+  const selectColor = (hex: string) => {
+    const ids = (cs: (string | null)[]) => cs.flatMap((c, i) => (inGroup(c, hex) ? [i] : []))
+    setSel({ k: "color", hex, f: ids(eff.current.f), s: ids(eff.current.s), ov: design.overlays.filter(o => inGroup(o.color.toLowerCase(), hex)).map(o => o.id) })
+    if (!wide) setTab("edit")
   }
 
   const shuffleColors = () => {
@@ -359,6 +474,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
       } else {
         o = { ...o, x: sh.x, y: sh.y + sb.y + sb.h * 0.45, size: Math.round(Math.min(sb.w, sb.h) * 0.55), color: contrast(sh.color) }
       }
+      o.y = Math.max(0, Math.min(flagH, o.y)) // a crown or scroll never lands off a short flag
     }
     const list = [...design.overlays]
     const at = sh && kind === "laurel" ? list.indexOf(sh) : list.length
@@ -405,9 +521,8 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   const setRatio = (value?: number) => {
     if (value === design.ratio) return
-    const newH = FLAG_W / (value ?? originalRatio)
-    const k = newH / flagH
-    commit({ ...design, ratio: value, overlays: design.overlays.map(o => ({ ...o, y: o.y * k })) })
+    const newH = Math.round(FLAG_W / (value ?? originalRatio))
+    commit({ ...design, ratio: value, overlays: refitOverlays(design.overlays, flagH, newH) })
   }
 
   // ── Stripes ──
@@ -456,13 +571,34 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   // ── Pointer input ────────────────────────────────────────────────────────
 
-  const onBaseClick = (e: ReactMouseEvent) => {
-    const el = (e.target as Element).closest?.("[data-p]")
-    if (!el) return
+  /** The flag's own shape painted at a screen point, under any symbols. */
+  const partAt = (x: number, y: number) => {
+    const host = baseRef.current
+    return host ? document.elementsFromPoint(x, y).find(el => el.hasAttribute("data-p") && host.contains(el)) ?? null : null
+  }
+  const selectPart = (el: Element, x: number, y: number) => {
+    const host = baseRef.current
     const i = Number(el.getAttribute("data-p"))
-    const prop = eff.current.f[i] ? "f" : eff.current.s[i] ? "s" : "f"
+    const f = eff.current.f[i], s = eff.current.s[i]
+    let prop: "f" | "s" = f || !s ? "f" : "s"
+    // A shape with a fill and an outline (the UK's white-edged red cross):
+    // whichever is under the pointer, the outline being drawn on top. A <use>
+    // can't recolour a fill its target sets itself (Nepal's border), so it
+    // offers its outline.
+    if (f && s) {
+      if (el instanceof SVGGeometryElement) {
+        const m = el.getScreenCTM()
+        if (m && el.isPointInStroke(new DOMPoint(x, y).matrixTransform(m.inverse()))) prop = "s"
+      } else if (host && el.tagName === "use" && targetFill(el, host) !== undefined) prop = "s"
+    }
     setSel({ k: "part", i, prop })
     if (!wide) setTab("edit")
+  }
+  const onBaseClick = (e: ReactMouseEvent) => {
+    const t = lastTouch.current
+    const p = t && e.timeStamp - t.t < 1000 && Math.hypot(t.x - e.clientX, t.y - e.clientY) < 60 ? t : { x: e.clientX, y: e.clientY }
+    const el = partAt(p.x, p.y) ?? (e.target as Element).closest?.("[data-p]")
+    if (el) selectPart(el, p.x, p.y)
   }
 
   const svgPoint = (e: ReactPointerEvent) => {
@@ -473,33 +609,42 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     return { x: p.x, y: p.y }
   }
 
+  // A second finger joining a pinch (see onFlagPointerDown) never starts a
+  // drag or selects another symbol.
   const onOverlayDown = (e: ReactPointerEvent, o: Overlay) => {
     e.stopPropagation()
-    setSel({ k: "ov", id: o.id })
     if (pinch.current) return
+    setSel({ k: "ov", id: o.id })
     const p = svgPoint(e)
-    drag.current = { mode: "move", id: o.id, dx: p.x - o.x, dy: p.y - o.y, started: false }
+    drag.current = { mode: "move", id: o.id, dx: p.x - o.x, dy: p.y - o.y, started: false, sx: e.clientX, sy: e.clientY }
     ovRef.current?.setPointerCapture(e.pointerId)
   }
   const onHandleDown = (e: ReactPointerEvent, o: Overlay, mode: "resize" | "rotate") => {
     e.stopPropagation()
+    if (pinch.current) return
     const p = svgPoint(e)
+    const at = { started: false, sx: e.clientX, sy: e.clientY }
     drag.current = mode === "resize"
-      ? { mode, id: o.id, d0: Math.max(1, Math.hypot(p.x - o.x, p.y - o.y)), size0: o.size, started: false }
-      : { mode, id: o.id, started: false }
+      ? { mode, id: o.id, d0: Math.max(1, Math.hypot(p.x - o.x, p.y - o.y)), size0: o.size, ...at }
+      : { mode, id: o.id, ...at }
     ovRef.current?.setPointerCapture(e.pointerId)
   }
   const onBorderDown = (e: ReactPointerEvent, i: number) => {
     e.stopPropagation()
-    setSel(null)
-    drag.current = { mode: "border", i, started: false }
+    if (pinch.current) return
+    drag.current = { mode: "border", i, started: false, sx: e.clientX, sy: e.clientY }
     ovRef.current?.setPointerCapture(e.pointerId)
   }
   const onOverlayMove = (e: ReactPointerEvent) => {
     const d = drag.current
     if (!d || pinch.current) return
     const p = svgPoint(e)
-    if (!d.started) { d.started = true; beginLive() }
+    if (!d.started) {
+      if (Math.hypot(e.clientX - d.sx, e.clientY - d.sy) < 3) return
+      d.started = true
+      beginLive()
+      if (d.mode === "border") setSel(null)
+    }
     if (d.mode === "border") {
       if (!spec) return
       const total = spec.w.reduce((a, b) => a + b, 0)
@@ -541,14 +686,22 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     setGuides({ x: gx, y: gy })
     updateOverlay(d.id, { x, y })
   }
-  const onOverlayUp = () => {
-    if (drag.current?.started) endLive()
+  const onOverlayUp = (e?: ReactPointerEvent) => {
+    const d = drag.current
+    if (d?.started) endLive()
+    // A tap on a stripe border, without dragging it, picks the stripe there.
+    else if (e && d?.mode === "border") {
+      const el = partAt(e.clientX, e.clientY)
+      if (el) selectPart(el, e.clientX, e.clientY)
+    }
     drag.current = null
     setGuides({})
   }
 
   // Pinch: watch every finger on the flag. With two down and a symbol
-  // selected, the spread resizes it and the twist rotates it.
+  // selected, the spread resizes it and the twist rotates it. Fingers are
+  // counted on the way down (capture), before a symbol or handle under them
+  // keeps the event to itself, so a pinch can start on the symbol.
   const fingerPoint = (x: number, y: number) => {
     const ctm = ovRef.current?.getScreenCTM()
     if (!ctm) return { x: 0, y: 0 }
@@ -557,6 +710,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   }
   const onFlagPointerDown = (e: ReactPointerEvent) => {
     if (e.pointerType !== "touch") return
+    lastTouch.current = { x: e.clientX, y: e.clientY, t: e.timeStamp }
     touches.current.set(e.pointerId, fingerPoint(e.clientX, e.clientY))
     const o = selOverlay
     if (touches.current.size === 2 && o) {
@@ -617,14 +771,16 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     if (!baseText || busy) return
     setBusy(true)
     try {
+      await ensureEmblems(design) // an emblem still loading would be left out
       const { svg, h } = composeFull(baseText, design)
       downloadBlob(await svgToPng(svg, exportSize, h), `${fileSlug(design.name)}.png`)
     } catch {
       setNotice("That export didn't work. Try a smaller size, or download the SVG instead.")
     } finally { setBusy(false) }
   }
-  const exportSvg = () => {
+  const exportSvg = async () => {
     if (!baseText) return
+    await ensureEmblems(design)
     const { svg } = composeFull(baseText, design)
     downloadBlob(new Blob([svg], { type: "image/svg+xml" }), `${fileSlug(design.name)}.svg`)
   }
@@ -668,13 +824,13 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
         : selOverlay?.color ? selOverlay.color.toLowerCase() : null
 
   const header = (
-    <header style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${T.line}`, background: T.surface, flexWrap: "wrap" }}>
+    <header ref={headRef} style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${T.line}`, background: T.surface, flexWrap: "wrap" }}>
       <BackButton onClick={onBack} />
       <div style={{ flex: "1 1 180px", minWidth: 0, display: "grid" }}>
         <span style={{ color: T.muted, fontSize: 11, fontWeight: 600, letterSpacing: "0.08em", textTransform: "uppercase" }}>Flag Studio</span>
         <input
           id="fs-name" aria-label="Flag name" value={design.name} maxLength={60}
-          onChange={e => setDesign(d => ({ ...d, name: e.target.value }))}
+          onChange={e => setWords({ name: e.target.value })}
           className="fs-name"
           style={{ fontFamily: FONT.display, fontSize: 20, fontWeight: 700, color: T.text }}
         />
@@ -696,33 +852,34 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     <div className="fs-stage">
       <div className="fs-table" onClick={e => { if (e.target === e.currentTarget) setSel(null) }}>
         <div className="fs-flag" style={{ aspectRatio: `${FLAG_W} / ${flagH}`, width: `min(100%, 760px, calc(68vh * ${(FLAG_W / flagH).toFixed(4)}))`, touchAction: selOverlay ? "none" : undefined }}
-          onPointerDown={onFlagPointerDown} onPointerMove={onFlagPointerMove} onPointerUp={onFlagPointerUp} onPointerCancel={onFlagPointerUp}>
+          onPointerDownCapture={onFlagPointerDown} onPointerMove={onFlagPointerMove} onPointerUp={onFlagPointerUp} onPointerCancel={onFlagPointerUp}>
           {composed ? (
             <>
-              <div ref={baseRef} className="fs-base" onClick={onBaseClick} dangerouslySetInnerHTML={{ __html: composed.svg }} />
+              <div ref={baseRef} className="fs-base" onClick={onBaseClick} dangerouslySetInnerHTML={baseHtml} />
               <svg
                 ref={ovRef} className="fs-ov" viewBox={`0 0 ${FLAG_W} ${flagH}`}
-                onPointerMove={onOverlayMove} onPointerUp={onOverlayUp} onPointerCancel={onOverlayUp}
+                onPointerMove={onOverlayMove} onPointerUp={onOverlayUp} onPointerCancel={() => onOverlayUp()}
               >
+                {/* Stripe borders: a band 28 screen pixels across to grab. */}
                 {spec && stripeBorders(spec).map((pos, i) => (
                   spec.dir === "h" ? (
                     <g key={`b${i}`} className="fs-border h" onPointerDown={e => onBorderDown(e, i)}>
-                      <rect x={0} y={pos - 3 * upp - 6} width={FLAG_W} height={6 * upp + 12} fill="rgba(0,0,0,0)" />
-                      <rect className="fs-grip" x={FLAG_W - 34 * upp} y={pos - 5 * upp} width={26 * upp} height={10 * upp} rx={5 * upp} />
+                      <rect x={0} y={pos - 14 * upp} width={FLAG_W} height={28 * upp} fill="rgba(0,0,0,0)" />
+                      <rect className="fs-grip" x={FLAG_W - 40 * upp} y={pos - 6 * upp} width={32 * upp} height={12 * upp} rx={6 * upp} />
                     </g>
                   ) : (
                     <g key={`b${i}`} className="fs-border v" onPointerDown={e => onBorderDown(e, i)}>
-                      <rect x={pos - 3 * upp - 6} y={0} width={6 * upp + 12} height={flagH} fill="rgba(0,0,0,0)" />
-                      <rect className="fs-grip" x={pos - 5 * upp} y={flagH - 34 * upp} width={10 * upp} height={26 * upp} rx={5 * upp} />
+                      <rect x={pos - 14 * upp} y={0} width={28 * upp} height={flagH} fill="rgba(0,0,0,0)" />
+                      <rect className="fs-grip" x={pos - 6 * upp} y={flagH - 40 * upp} width={12 * upp} height={32 * upp} rx={6 * upp} />
                     </g>
                   )
                 ))}
                 {design.overlays.map(o => {
                   const s = symbolOf(o.kind)
-                  const on = (sel?.k === "ov" && sel.id === o.id) || (sel?.k === "color" && inGroup(o.color.toLowerCase(), sel.hex))
+                  const on = (sel?.k === "ov" && sel.id === o.id) || (sel?.k === "color" && sel.ov.includes(o.id))
                   if (o.kind === "emblem" || o.kind === "image") return (
                     <g key={o.id} data-ov={o.id} transform={overlayTransform(o, false)} className={on ? "fs-sel" : undefined}
-                      onPointerDown={e => onOverlayDown(e, o)} dangerouslySetInnerHTML={{ __html: o.kind === "emblem" ? emblemInner(o) : imageInner(o) }} />
+                      onPointerDown={e => onOverlayDown(e, o)} dangerouslySetInnerHTML={innerHtml(o)} />
                   )
                   return (
                     <path key={o.id} data-ov={o.id} d={s.d} fill={o.color} fillRule={s.evenOdd ? "evenodd" : undefined}
@@ -750,7 +907,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                         <circle cx={cx} cy={y0 - 30 * upp} r={r} className="fs-knob round" />
                       </g>
                       <g className="fs-handle del" role="button" aria-label={`Delete ${overlayName(o)}`}
-                        onPointerDown={e => { e.stopPropagation(); removeOverlay(o.id) }}>
+                        onPointerDown={e => { e.stopPropagation(); if (!pinch.current) removeOverlay(o.id) }}>
                         <circle cx={x0} cy={y0} r={hit} fill="rgba(0,0,0,0)" />
                         <circle cx={x0} cy={y0} r={r * 1.25} className="fs-del" />
                         <path d={`M${x0 - r * 0.5} ${y0 - r * 0.5}L${x0 + r * 0.5} ${y0 + r * 0.5}M${x0 + r * 0.5} ${y0 - r * 0.5}L${x0 - r * 0.5} ${y0 + r * 0.5}`} className="fs-del-x" />
@@ -775,7 +932,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
           {strip.map(c => (
             <button key={c.hex} className={`fs-chip${sel?.k === "color" && sel.hex === c.hex ? " on" : ""}`}
               title={`Every part in ${c.hex.toUpperCase()}`} aria-label={`Select every part in ${c.hex}`}
-              style={{ background: c.hex }} onClick={() => { setSel({ k: "color", hex: c.hex }); if (!wide) setTab("edit") }} />
+              style={{ background: c.hex }} onClick={() => selectColor(c.hex)} />
           ))}
         </div>
         <span style={{ color: T.muted, fontSize: 12 }}>Tap a colour to change it everywhere</span>
@@ -912,7 +1069,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
       <h2 className="fs-h" style={{ marginTop: 6 }}>Nation card</h2>
       <input id="fs-motto" className="fs-search" placeholder="Motto (optional)" maxLength={80} value={design.motto ?? ""}
-        aria-label="Motto" onChange={e => setDesign(d => ({ ...d, motto: e.target.value }))} />
+        aria-label="Motto" onChange={e => setWords({ motto: e.target.value })} />
       {cardPreview && <img src={cardPreview} alt={`Nation card for ${design.name}`} className="fs-card-preview" />}
       <button className="fs-secondary" onClick={downloadCard} disabled={!baseText}><Download size={16} /> Download nation card</button>
       <span style={{ fontSize: 12, color: T.muted }}>Your flag, name and motto in one image, sized for posting.</span>
@@ -959,7 +1116,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const leftTab: Tab = leftTabs.some(([t]) => t === tab) ? tab : "templates"
 
   return (
-    <div className="fs-root">
+    <div className="fs-root" ref={rootRef}>
       <style>{CSS}</style>
       {header}
       {wide ? (
@@ -1209,7 +1366,8 @@ function Slider({ id, label, min, max, value, suffix = "", onChange, onStart, on
         <span>{label}</span><span style={{ fontVariantNumeric: "tabular-nums" }}>{value}{suffix}</span>
       </label>
       <input id={id} type="range" min={min} max={max} value={value}
-        onPointerDown={onStart} onPointerUp={onEnd} onKeyDown={onStart} onKeyUp={onEnd} onBlur={onEnd}
+        onPointerDown={onStart} onPointerUp={onEnd} onKeyUp={onEnd} onBlur={onEnd}
+        onKeyDown={e => { if (/^(Arrow|Page|Home$|End$)/.test(e.key)) onStart() }}
         onChange={e => onChange(Number(e.target.value))} style={{ width: "100%", accentColor: ACC }} />
     </div>
   )
@@ -1222,12 +1380,12 @@ const CSS = `
 .fs-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; min-width: 38px; justify-content: center; padding: 0 10px; border-radius: 10px; border: 1px solid ${T.line}; background: ${T.surface}; color: ${T.text}; font-size: 13px; font-weight: 600; cursor: pointer; }
 .fs-btn:hover:not(:disabled) { border-color: ${T.lineHi}; }
 .fs-btn:disabled { opacity: .4; cursor: default; }
-.fs-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr) 300px; min-height: calc(100vh - 70px); }
-.fs-left { border-right: 1px solid ${T.line}; background: ${T.surface}; max-height: calc(100vh - 70px); overflow: auto; position: sticky; top: 0; }
+.fs-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr) 300px; min-height: calc(100vh - var(--fs-head, 78px)); }
+.fs-left { border-right: 1px solid ${T.line}; background: ${T.surface}; max-height: calc(100vh - var(--fs-head, 78px)); overflow: auto; position: sticky; top: 0; }
 .fs-right { border-left: 1px solid ${T.line}; background: ${T.surface}; display: grid; align-content: start; }
 .fs-right .fs-panel + .fs-panel { border-top: 1px solid ${T.line}; }
 .fs-stage { background: ${T.void}; display: flex; flex-direction: column; min-width: 0; position: relative; }
-.fs-grid > .fs-stage { position: sticky; top: 0; height: calc(100vh - 70px); align-self: start; }
+.fs-grid > .fs-stage { position: sticky; top: 0; height: calc(100vh - var(--fs-head, 78px)); align-self: start; }
 .fs-table { flex: 1; display: grid; place-items: center; padding: 28px 16px; overflow: hidden;
   background-image: linear-gradient(${tint(T.text, 0.06)} 1px, transparent 1px), linear-gradient(90deg, ${tint(T.text, 0.06)} 1px, transparent 1px);
   background-size: 24px 24px; }

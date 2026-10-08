@@ -56,7 +56,8 @@ export async function nationCard(baseText: string, design: Design): Promise<HTML
   for (let x = 0; x <= CARD_W; x += 30) { ctx.beginPath(); ctx.moveTo(x + 0.5, 0); ctx.lineTo(x + 0.5, CARD_H); ctx.stroke() }
   for (let y = 0; y <= CARD_H; y += 30) { ctx.beginPath(); ctx.moveTo(0, y + 0.5); ctx.lineTo(CARD_W, y + 0.5); ctx.stroke() }
 
-  // The flag, fitted into the left half with a soft shadow.
+  // The flag, fitted into the left half with a soft shadow that follows its
+  // own outline (Nepal's pennants, a flag with transparent corners).
   const { svg, h } = composeFull(baseText, design)
   const img = await loadImage(svg)
   const boxW = 560, boxH = 420, boxX = 70, boxY = (CARD_H - boxH) / 2
@@ -67,10 +68,8 @@ export async function nationCard(baseText: string, design: Design): Promise<HTML
   ctx.shadowColor = "rgba(31,58,60,0.35)"
   ctx.shadowBlur = 30
   ctx.shadowOffsetY = 12
-  ctx.fillStyle = "#fff"
-  ctx.fillRect(fx, fy, fw, fh)
-  ctx.restore()
   ctx.drawImage(img, fx, fy, fw, fh)
+  ctx.restore()
 
   // Name, motto and credit on the right.
   const tx = 690, tw = CARD_W - tx - 70
