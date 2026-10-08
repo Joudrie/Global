@@ -119,4 +119,3 @@ export const FAKE_FLAGS: FakeFlag[] = [
   },
 ]
 
-export const FAKE_CODES = new Set(FAKE_FLAGS.map(f => f.code))

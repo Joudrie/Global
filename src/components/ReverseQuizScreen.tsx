@@ -26,11 +26,7 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (animTimer.current) clearTimeout(animTimer.current) }, [])
 
-  useEffect(() => {
-    setAnswerState("idle")
-    setSelectedIdx(null)
-    setAnimatingIdx(null)
-  }, [idx])
+  const finished = useRef(false)
 
   const handleChoice = (choiceIdx: number) => {
     if (answerState !== "idle") return
@@ -43,12 +39,19 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
     setAnswers(prev => [...prev, isCorrect ? "correct" : "wrong"])
   }
 
+  // Reset here rather than in an effect, so a double click's second click
+  // finds no Next button; setIdx(idx + 1) makes a repeated call harmless.
   const handleNext = () => {
+    if (answerState === "idle" || finished.current) return
     if (idx + 1 >= questions.length) {
+      finished.current = true
       onFinish([...answers])
-    } else {
-      setIdx(i => i + 1)
+      return
     }
+    setAnswerState("idle")
+    setSelectedIdx(null)
+    setAnimatingIdx(null)
+    setIdx(idx + 1)
   }
 
   const borderColor = (i: number) => {
@@ -110,10 +113,10 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
                 transition: "background 0.2s",
               }}>
                 {answerState !== "idle" && i === q.correctIndex && (
-                  <span className="text-2xl" style={{ color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>✓</span>
+                  <span style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: T.green, color: "#fff", fontSize: 15, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.35)" }}>✓</span>
                 )}
                 {answerState !== "idle" && i === selectedIdx && answerState === "wrong" && (
-                  <span className="text-2xl" style={{ color: "#FFFFFF", textShadow: "0 1px 4px rgba(0,0,0,0.6)" }}>✗</span>
+                  <span style={{ position: "absolute", top: 6, right: 6, width: 26, height: 26, borderRadius: "50%", background: T.danger, color: "#fff", fontSize: 15, fontWeight: 800, display: "flex", alignItems: "center", justifyContent: "center", boxShadow: "0 1px 4px rgba(0,0,0,0.35)" }}>✗</span>
                 )}
               </div>
             </button>
@@ -129,7 +132,7 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
             <div className="text-xs font-semibold" style={{ color: answerState === "correct" ? T.green : T.danger }}>
               {answerState === "correct"
                 ? `✓ Correct — ${q.target.name}`
-                : `✗ That was the flag of ${q.target.name}`}
+                : `✗ That's ${selectedIdx !== null ? q.choices[selectedIdx].name : "not it"}. ${q.target.name} is marked ✓`}
             </div>
           </div>
         )}

@@ -297,7 +297,9 @@ export default function App() {
   }, [finishSplash])
 
   const handleQuizFinish = useCallback((answers: ("correct" | "wrong")[]) => {
-    if (!activeQuiz) return
+    // Answers line up with questions by position; a short list means a
+    // question was skipped, so don't save a result built on it.
+    if (!activeQuiz || answers.length !== activeQuiz.questions.length) return
     const score = answers.filter(a => a === "correct").length
     const total = answers.length
     let newState = { ...appState }

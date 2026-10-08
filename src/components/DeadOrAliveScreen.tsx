@@ -14,9 +14,12 @@ const ALIVE: Card[] = FLAGS.map(f => ({ flagUrl: f.flagUrl, name: f.name, alive:
 // Skip "dead" entries that would be misleading: flags identical to a modern
 // country (Weimar = today's Germany), entities that actually STILL EXIST (the
 // Order of Malta and the city of Gouda are "present"), or symbols still flown
-// today (the Wiphala is an official flag of Bolivia).
-const MISLEADING = new Set(["weimar", "smom", "gouda", "inca-wiphala"])
-const DEAD: Card[]  = HISTORICAL_FLAGS.filter(h => !MISLEADING.has(h.id)).map(h => ({ flagUrl: h.flagUrl, name: h.name, alive: false, sub: h.era }))
+// today (the Wiphala is an official flag of Bolivia; Czechoslovakia's flag is
+// the Czech Republic's, the Kingdom of Libya's is Libya's again; the Ainu
+// flag and Buganda's are flown now). Eras ending "present" are alive too.
+const MISLEADING = new Set(["weimar", "smom", "gouda", "inca-wiphala", "czechoslovakia", "kingdom-libya", "ainu", "buganda"])
+const DEAD: Card[]  = HISTORICAL_FLAGS.filter(h => !MISLEADING.has(h.id) && !/present/i.test(h.era))
+  .map(h => ({ flagUrl: h.flagUrl, name: h.name, alive: false, sub: h.era }))
 
 function nextCard(): Card {
   // ~50/50 alive vs dead
@@ -49,9 +52,10 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
     setReveal(null)
   }
 
-  // After a reveal, auto-advance after 10s (the Next button still works too).
+  // After a right answer, auto-advance after 10s (the Next button still works
+  // too). A run that just ended waits, so its result stays on screen.
   useEffect(() => {
-    if (!reveal) return
+    if (!reveal?.correct) return
     const t = window.setTimeout(cont, 10000)
     return () => window.clearTimeout(t)
     // eslint-disable-next-line react-hooks/exhaustive-deps

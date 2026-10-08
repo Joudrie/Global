@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Swords, Castle, Sun, Mountain, Landmark, MoonStar, Sailboat, Globe } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 import { FLAGS, REGIONS, getFlagsByRegion } from '../data/flags'
@@ -50,10 +50,16 @@ export default function GauntletScreen({ onBack }: Props) {
   const [idx, setIdx] = useState(0)
   const [score, setScore] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
+  // The pause after an answer; cleared on leaving a run so it can't act on the next screen.
+  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const clearTimer = () => { if (timer.current) { clearTimeout(timer.current); timer.current = null } }
+  useEffect(() => clearTimer, [])
+  const toMenu = () => { clearTimer(); setPhase('menu') }
 
   const q = questions[idx]
 
   const startRun = (cfg: GauntletConfig) => {
+    clearTimer()
     const seed = Date.now().toString()
     const shuffled = shuffleWithSeed(cfg.flags, seed)
     const qs = shuffled.map(f => buildQuestion(f, seed))
@@ -71,13 +77,13 @@ export default function GauntletScreen({ onBack }: Props) {
     const correct = q.choices[i].code === q.target.code
     if (correct) {
       setScore(s => s + 1)
-      setTimeout(() => {
+      timer.current = setTimeout(() => {
         if (idx + 1 >= questions.length) { setPhase('win') }
         else { setIdx(ix => ix + 1); setSelected(null) }
       }, 700)
     } else {
       // One strike = dead
-      setTimeout(() => setPhase('dead'), 900)
+      timer.current = setTimeout(() => setPhase('dead'), 900)
     }
   }
 
@@ -120,7 +126,7 @@ export default function GauntletScreen({ onBack }: Props) {
   if (phase === 'dead') {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
-        <ScreenHeader title={`${config?.label ?? ''} Gauntlet`} subtitle="Game over" onBack={() => setPhase('menu')} />
+        <ScreenHeader title={`${config?.label ?? ''} Gauntlet`} subtitle="Game over" onBack={toMenu} />
         <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
           <ResultCard>
             <ResultHeader icon="skull" accent={T.danger} eyebrow="Game over"
@@ -137,7 +143,7 @@ export default function GauntletScreen({ onBack }: Props) {
   if (phase === 'win') {
     return (
       <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
-        <ScreenHeader title={`${config?.label ?? ''} Gauntlet`} subtitle="Complete" onBack={() => setPhase('menu')} />
+        <ScreenHeader title={`${config?.label ?? ''} Gauntlet`} subtitle="Complete" onBack={toMenu} />
         <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
           <ResultCard>
             <ResultHeader icon="trophy" accent={T.gold} eyebrow="Flawless"
@@ -153,7 +159,7 @@ export default function GauntletScreen({ onBack }: Props) {
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
       <ScreenHeader title={`${config?.label} Gauntlet`} subtitle={`${idx + 1} / ${questions.length} · ${score} survived`}
-        onBack={() => setPhase('menu')}
+        onBack={toMenu}
         right={<HeaderStat label="Lives" accent={T.danger}>1</HeaderStat>} />
 
       <div className="flex-1 flex flex-col items-center px-5 pb-8 gap-5">
@@ -175,7 +181,7 @@ export default function GauntletScreen({ onBack }: Props) {
             key={q.target.code}
             src={q.target.flagUrl}
             alt="flag"
-            style={{ width: '100%', height: 200, objectFit: 'cover', display: 'block' }}
+            style={{ width: '100%', height: 200, objectFit: 'contain', background: T.surfaceHi, display: 'block' }}
             onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
           />
         </div>
