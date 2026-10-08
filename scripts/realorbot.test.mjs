@@ -11,8 +11,8 @@ const { FLAGS } = await import(path.join(ROOT, 'src/data/flags.ts'))
 const { FLAG_ATTRIBS } = await import(path.join(ROOT, 'src/data/flagAttribs.ts'))
 
 test('bot pool is large and has no duplicates', () => {
-  assert.equal(B.BOT_FLAGS.length, B.BOT_COUNT)
-  assert.ok(B.BOT_FLAGS.length >= 780)
+  assert.equal(B.BOT_FLAGS.length, B.BOT_COUNT + B.STUDIO_BOT_COUNT)
+  assert.ok(B.BOT_FLAGS.length >= 1400)
   assert.equal(new Set(B.BOT_FLAGS).size, B.BOT_FLAGS.length)
   for (const s of B.BOT_FLAGS) assert.match(s, /^data:image\/svg\+xml;utf8,/)
 })
