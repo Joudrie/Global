@@ -2,13 +2,16 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { CSSProperties } from "react"
 import { flushSync } from "react-dom"
 import { PUZZLES, PUZZLE_COUNT } from "../data/connectionsPuzzles"
-import { SIZE, MISTAKES, HINTS, check, state, rows, shareText, groupOf, puzzleIndex, shuffle, nextHint, validHints } from "../utils/connections"
-import type { Hint, Puzzle } from "../utils/connections"
+import { SIZE, MISTAKES, HINTS, check, state, rows, shareText, groupOf, puzzleIndex, shuffle, nextHint, validHints, validHistory, ids, tileById } from "../utils/connections"
+import type { Hint, Puzzle, Tile } from "../utils/connections"
+import { tileText, tileAnswer, tileLabel, endonymOf } from "../utils/connectionsTiles"
 import { todayString, shuffleWithSeed } from "../utils/prng"
 import { shareOrCopy } from "../utils/share"
 import { T, FONT, GROUP_TONES, GROUP_TONE_NAMES, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { ResultCard, ResultHeader, PrimaryButton } from "./gameUi"
+import { ResultCard, ResultHeader, PrimaryButton, HeaderStat } from "./gameUi"
+import { LineIcon } from "./icons"
+import FlagImage from "./FlagImage"
 
 interface Props { onBack: () => void; onFinish?: () => void }
 
@@ -16,17 +19,20 @@ interface Props { onBack: () => void; onFinish?: () => void }
 const M = { hop: 240, stagger: 100, shake: 360, move: 360, pop: 360 }
 const EASE = "cubic-bezier(.2,.8,.2,1)"
 const SHARE_URL = "https://globalio.app/?play=connections"
-const STORE_KEY = "globalio_connections_v1"
+// v2: tiles are ids ("capital:AT"), not country names. Progress saved by the
+// old all-country-names game (globalio_connections_v1) is simply ignored.
+const STORE_KEY = "globalio_connections_v2"
 
 interface Saved { date: string; n: number; history: string[][]; hints?: Hint[] }
 interface Progress { history: string[][]; hints: Hint[] }
 
 // Storage can be missing or throw (private windows); the game works without it.
+// Anything that doesn't fit today's puzzle is dropped rather than trusted.
 function load(date: string, n: number, p: Puzzle): Progress {
   try {
     const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null") as Saved | null
-    if (!s || s.date !== date || s.n !== n || !Array.isArray(s.history)) return { history: [], hints: [] }
-    return { history: s.history.filter(h => Array.isArray(h) && h.length === SIZE), hints: validHints(p, s.hints) }
+    if (!s || s.date !== date || s.n !== n) return { history: [], hints: [] }
+    return { history: validHistory(p, s.history), hints: validHints(p, s.hints) }
   } catch { return { history: [], hints: [] } }
 }
 function save(v: Saved) {
@@ -35,9 +41,20 @@ function save(v: Saved) {
 
 const calm = () => typeof matchMedia === "function" && matchMedia("(prefers-reduced-motion: reduce)").matches
 
+// The local-name tiles are set in Playfair italic, which the app's main font
+// link leaves out; load just that face, only here.
+const ITALIC_FONT = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@1,600&display=swap"
+function loadItalic() {
+  if (typeof document === "undefined" || document.querySelector(`link[href="${ITALIC_FONT}"]`)) return
+  const link = document.createElement("link")
+  link.rel = "stylesheet"
+  link.href = ITALIC_FONT
+  document.head.appendChild(link)
+}
+
 // A soft hyphen in the middle of long words, used only at the last fit step
-// (hyphens: none ignores it before that), so KAZAKH-STAN splits evenly.
-const halve = (w: string) => w.replace(/[\p{L}]{9,}/gu, s => s.slice(0, Math.ceil(s.length / 2)) + "\u00AD" + s.slice(Math.ceil(s.length / 2)))
+// (hyphens: none ignores it before that), so MAGYARORSZÁG splits evenly.
+const halve = (w: string) => w.replace(/[\p{L}]{9,}/gu, s => s.slice(0, Math.ceil(s.length / 2)) + "­" + s.slice(Math.ceil(s.length / 2)))
 
 // Step each tile's type down until its longest word fits on one line; only a
 // word too long even at the smallest size breaks mid-word.
@@ -48,8 +65,8 @@ const FITS: { size: number; spacing: string; pad: number; hyphens: "none" | "man
   { size: 11, spacing: "-0.02em", pad: 0, hyphens: "none" },
   { size: 11, spacing: "-0.02em", pad: 0, hyphens: "manual" },
 ]
-function fitTiles(tiles: Iterable<HTMLElement>) {
-  for (const t of tiles) {
+function fitTiles(words: Iterable<HTMLElement>) {
+  for (const t of words) {
     for (const f of FITS) {
       t.style.fontSize = `${f.size}px`
       t.style.letterSpacing = f.spacing
@@ -68,6 +85,22 @@ function untilMidnight(): string {
   return h ? `${h}h ${m}m` : `${m}m`
 }
 
+// The small line under a capital or local-name tile, so the four kinds read
+// apart at a glance: country names stand alone in bold, flags are pictures.
+function Caption({ tile, on }: { tile: Tile; on: boolean }) {
+  if (tile.kind !== "capital" && tile.kind !== "native") return null
+  return (
+    <span aria-hidden className="cx-cap" style={{
+      display: "inline-flex", alignItems: "center", gap: 2, marginTop: 4, fontFamily: FONT.mono, fontStyle: "normal",
+      fontWeight: 600, fontSize: 9, lineHeight: 1, letterSpacing: "0.06em", textTransform: "uppercase",
+      color: on ? tint(T.surface, 0.8) : T.muted,
+    }}>
+      {tile.kind === "capital" && <LineIcon name="landmark" size={10} strokeWidth={1.6} />}
+      {tile.kind === "capital" ? "capital" : "local name"}
+    </span>
+  )
+}
+
 function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNewDay: () => void }) {
   const idx = puzzleIndex(date, PUZZLE_COUNT)
   const n = idx + 1
@@ -77,8 +110,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
   const [history, setHistory] = useState<string[][]>(saved.history)
   const [hints, setHints] = useState<Hint[]>(saved.hints)
   const s = useMemo(() => state(P, history), [P, history])
-  const [order, setOrder] = useState<string[]>(() =>
-    shuffleWithSeed(P.groups.flatMap(g => g.words), `connections-${date}`))
+  const [order, setOrder] = useState<string[]>(() => shuffleWithSeed(ids(P), `connections-${date}`))
   const [picked, setPicked] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState("")
@@ -86,6 +118,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
   const [shareMsg, setShareMsg] = useState("")
   const [countdown, setCountdown] = useState(untilMidnight)
   const tileRefs = useRef(new Map<string, HTMLButtonElement>())
+  const wordRefs = useRef(new Map<string, HTMLSpanElement>())
   const toastTimer = useRef(0)
 
   const unsolved = order.filter(w => !s.solved.includes(groupOf(P, w)))
@@ -103,11 +136,12 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     if (text) toastTimer.current = window.setTimeout(() => setToast(""), 2500)
   }, [])
   useEffect(() => () => window.clearTimeout(toastTimer.current), [])
+  useEffect(loadItalic, [])
 
   // Fit tile text after every layout change and on resize.
-  useLayoutEffect(() => { fitTiles(tileRefs.current.values()) })
+  useLayoutEffect(() => { fitTiles(wordRefs.current.values()) })
   useEffect(() => {
-    const onResize = () => fitTiles(tileRefs.current.values())
+    const onResize = () => fitTiles(wordRefs.current.values())
     window.addEventListener("resize", onResize)
     document.fonts?.ready.then(onResize).catch(() => {})
     return () => window.removeEventListener("resize", onResize)
@@ -210,7 +244,8 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     const next = [...hints, hint]
     setHints(next)
     save({ date, n, history, hints: next })
-    say(hint.word ? `${hint.word} is in that group.` : "")
+    const t = hint.word ? tileById(P, hint.word) : undefined
+    say(!t ? "" : t.kind === "flag" ? "The marked flag is in that group." : `${tileText(t)} is in that group.`)
   }
 
   async function share() {
@@ -245,11 +280,12 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
         }
       `}</style>
 
-      <ScreenHeader title="Connections" subtitle={`Puzzle #${n} · a new one every day`} onBack={onBack} />
+      <ScreenHeader title="Connections" subtitle="A new puzzle every day" onBack={onBack}
+        right={<HeaderStat label="No.">{n}</HeaderStat>} />
 
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 480, padding: "4px 16px 32px", gap: 12 }}>
-        <p style={{ margin: 0, fontSize: 14, color: T.muted, textAlign: "center" }}>
-          Find four groups of four countries.
+        <p style={{ margin: 0, fontSize: 14, color: T.muted, textAlign: "center", lineHeight: 1.4 }}>
+          Find four groups of four. A tile shows a country, its capital, its flag or its own name for itself, and each group is all one kind.
         </p>
 
         {shown.length > 0 && (
@@ -257,13 +293,26 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
             {shown.map(g => {
               const grp = P.groups[g]
               const isNew = fresh.includes(g)
+              const flags = grp.tiles[0].kind === "flag"
+              const answers = grp.tiles.map(tileAnswer)
               return (
                 <li key={g} className={isNew ? "cx-pop" : undefined}
                   style={{ background: GROUP_TONES[g], borderRadius: 8, padding: "12px 16px", minHeight: 72, display: "grid", gap: 4, alignContent: "center", textAlign: "center",
                     animationDelay: isNew ? `${fresh.indexOf(g) * M.stagger * 4}ms` : undefined }}
-                  aria-label={`${GROUP_TONE_NAMES[g]} group: ${grp.name}. ${grp.words.join(", ")}. ${grp.why}`}>
+                  aria-label={`${GROUP_TONE_NAMES[g]} group: ${grp.name}. ${flags ? "Flags of " : ""}${answers.join(", ")}. ${grp.why}`}>
                   <span style={{ fontWeight: 700, fontSize: 15, letterSpacing: "0.04em", textTransform: "uppercase" }}>{grp.name}</span>
-                  <span style={{ fontSize: 15 }}>{grp.words.join(", ")}</span>
+                  {flags ? (
+                    <span style={{ display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "4px 12px", fontSize: 14 }}>
+                      {grp.tiles.map(t => (
+                        <span key={t.code} style={{ display: "inline-flex", alignItems: "center", gap: 4 }}>
+                          <FlagImage code={t.code} style={{ width: 20, height: 15, objectFit: "cover", borderRadius: 2, boxShadow: `0 0 0 1px ${tint(T.text, 0.2)}` }} />
+                          {tileAnswer(t)}
+                        </span>
+                      ))}
+                    </span>
+                  ) : (
+                    <span style={{ fontSize: 14, lineHeight: 1.4 }}>{answers.join(", ")}</span>
+                  )}
                   <span style={{ fontSize: 13, lineHeight: 1.4 }}>{grp.why}</span>
                 </li>
               )
@@ -280,25 +329,48 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
         )}
 
         {!s.over && (
-          <div role="group" aria-label="Countries" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
+          <div role="group" aria-label="Tiles" style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
             {unsolved.map(w => {
+              const t = tileById(P, w)!
               const on = picked.includes(w)
               const marked = hintedWords.has(w)
               const tone = GROUP_TONES[groupOf(P, w)]
+              const flag = t.kind === "flag"
+              const native = t.kind === "native"
               return (
                 <button key={w} type="button" className="cx-tile" aria-pressed={on} disabled={busy}
-                  aria-label={marked ? `${w} (hinted)` : undefined} data-hinted={marked || undefined}
+                  aria-label={tileLabel(t) + (marked ? " (hinted)" : "")} data-hinted={marked || undefined} data-kind={t.kind} data-tile={w}
                   ref={el => { if (el) tileRefs.current.set(w, el); else tileRefs.current.delete(w) }}
                   onClick={() => toggle(w)}
                   style={{
-                    position: "relative", minHeight: 64, minWidth: 0, borderRadius: 8, overflow: "hidden",
-                    display: "flex", alignItems: "center", justifyContent: "center", textAlign: "center",
-                    fontFamily: FONT.mono, fontWeight: 600, lineHeight: 1.15, overflowWrap: "normal", wordBreak: "normal",
-                    border: `${marked && !on ? 2 : 1}px solid ${on ? T.text : marked ? T.text : T.line}`,
-                    background: on ? T.text : marked ? tint(tone, 0.55) : T.surfaceHi, color: on ? T.surface : T.text,
+                    position: "relative", minHeight: 76, minWidth: 0, borderRadius: 8, overflow: "hidden",
+                    display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", textAlign: "center",
+                    padding: flag ? 6 : "6px 2px",
+                    // Flags keep their picture when picked, so the frame thickens and darkens instead.
+                    border: `${(flag ? on || marked : marked && !on) ? 2 : 1}px solid ${on || marked ? T.text : T.line}`,
+                    background: on ? (flag ? tint(T.text, 0.85) : T.text) : marked ? tint(tone, 0.55) : T.surfaceHi,
+                    color: on ? T.surface : T.text,
                     cursor: busy ? "default" : "pointer",
                   }}>
-                  {halve(w)}
+                  {flag ? (
+                    <FlagImage code={t.code} alt="" style={{
+                      display: "block", width: "100%", maxWidth: 84, aspectRatio: "4 / 3", objectFit: "cover", borderRadius: 2,
+                      boxShadow: `0 0 0 1px ${on ? T.surface : tint(T.text, 0.2)}`, pointerEvents: "none",
+                    }} />
+                  ) : (
+                    <>
+                      <span lang={native ? endonymOf(t.code)?.lang : undefined}
+                        ref={el => { if (el) wordRefs.current.set(w, el); else wordRefs.current.delete(w) }}
+                        style={{
+                          display: "block", width: "100%", lineHeight: 1.15, overflowWrap: "normal", wordBreak: "normal",
+                          fontFamily: native ? FONT.display : FONT.mono, fontStyle: native ? "italic" : "normal",
+                          fontWeight: t.kind === "country" ? 700 : 600,
+                        }}>
+                        {halve(tileText(t))}
+                      </span>
+                      <Caption tile={t} on={on} />
+                    </>
+                  )}
                 </button>
               )
             })}
@@ -333,7 +405,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
               </button>
             </div>
             <p style={{ margin: 0, fontSize: 13, color: T.muted, textAlign: "center" }}>
-              Hints are free: the first names a group, the next two each mark one of its countries.
+              Hints are free: the first names a group, the next two each mark one of its tiles.
             </p>
           </>
         )}

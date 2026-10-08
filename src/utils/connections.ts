@@ -1,16 +1,23 @@
 // Connections: the rules, with no DOM. Ported from the ConnecSeans game.js.
 //
-// A puzzle is { groups: [{ name, why, words: [4] } x4] }, groups ordered
-// easiest to hardest; the order sets each group's colour.
+// A puzzle is { groups: [{ name, why, tiles: [4] } x4] }, groups ordered
+// easiest to hardest; the order sets each group's colour. A tile is one
+// country shown one way (its name, capital, flag or local name; see
+// connectionsTiles.ts), and every tile in a group is the same kind.
+//
+// The engine works on tile ids ("capital:AT"): guesses, history and hints
+// are lists of ids, so saved progress is plain strings.
 
-export interface Group { name: string; why: string; words: string[] }
+export type TileKind = "country" | "capital" | "flag" | "native"
+export interface Tile { kind: TileKind; code: string; label?: string }
+export interface Group { name: string; why: string; tiles: Tile[] }
 export interface Puzzle { groups: Group[] }
 
 export const SIZE = 4
 export const MISTAKES = 6
 export const HINTS = 3
-export const MAX_WORD = 40
 const MAX_TEXT = 120
+const KIND_SET = new Set<string>(["country", "capital", "flag", "native"])
 
 export type CheckResult =
   | { result: "correct"; group: number }
@@ -26,9 +33,16 @@ export interface GameState {
 }
 
 const clean = (s: unknown) => String(s ?? "").replace(/\s+/g, " ").trim()
-const key = (w: string) => clean(w).toLowerCase()
 
-// Every problem with a puzzle, as sentences. Empty = playable.
+export const tileId = (t: Tile) => `${t.kind}:${t.code}`
+export const ids = (p: Puzzle) => p.groups.flatMap(g => g.tiles.map(tileId))
+export function tileById(p: Puzzle, id: string): Tile | undefined {
+  for (const g of p.groups) for (const t of g.tiles) if (tileId(t) === id) return t
+  return undefined
+}
+
+// Every structural problem with a puzzle, as sentences. Empty = playable.
+// (What the tiles say is checked by connectionsTiles.tileProblems.)
 export function problems(p: Puzzle): string[] {
   const out: string[] = []
   if (!p || !Array.isArray(p.groups) || p.groups.length !== SIZE) return ["A puzzle needs exactly four groups."]
@@ -37,15 +51,16 @@ export function problems(p: Puzzle): string[] {
     const n = i + 1
     if (!clean(g.name)) out.push(`Group ${n} needs a connection.`)
     if (clean(g.name).length > MAX_TEXT) out.push(`Group ${n}'s connection is over ${MAX_TEXT} characters.`)
-    if (clean(g.why).length > MAX_TEXT * 2) out.push(`Group ${n}'s story is over ${MAX_TEXT * 2} characters.`)
-    const words = Array.isArray(g.words) ? g.words : []
-    if (words.length !== SIZE || words.some(w => !clean(w))) out.push(`Group ${n} needs four words.`)
-    words.forEach(w => {
-      if (clean(w).length > MAX_WORD) out.push(`"${clean(w)}" is over ${MAX_WORD} characters; it won't fit on a tile.`)
-      const k = key(w)
-      if (!k) return
-      if (seen.has(k) && seen.get(k) !== n) out.push(`"${clean(w)}" is in two groups; every word has to be different.`)
-      else if (seen.has(k)) out.push(`"${clean(w)}" is in group ${n} twice.`)
+    if (!clean(g.why)) out.push(`Group ${n} needs a why.`)
+    if (clean(g.why).length > MAX_TEXT * 2) out.push(`Group ${n}'s why is over ${MAX_TEXT * 2} characters.`)
+    const tiles = Array.isArray(g.tiles) ? g.tiles : []
+    if (tiles.length !== SIZE) out.push(`Group ${n} needs four tiles.`)
+    if (tiles.some(t => !t || !KIND_SET.has(t.kind) || !clean(t.code))) { out.push(`Group ${n} has a tile with no kind or country.`); return }
+    if (new Set(tiles.map(t => t.kind)).size > 1) out.push(`Group ${n} mixes kinds of tile; a group is all one kind.`)
+    tiles.forEach(t => {
+      const k = tileId(t)
+      if (seen.has(k) && seen.get(k) !== n) out.push(`${k} is in two groups; every tile has to be different.`)
+      else if (seen.has(k)) out.push(`${k} is in group ${n} twice.`)
       seen.set(k, n)
     })
   })
@@ -61,13 +76,13 @@ export function shuffle<T>(list: T[], rand: () => number = Math.random): T[] {
   return a
 }
 
-export const groupOf = (p: Puzzle, word: string) => p.groups.findIndex(g => g.words.some(w => key(w) === key(word)))
+export const groupOf = (p: Puzzle, id: string) => p.groups.findIndex(g => g.tiles.some(t => tileId(t) === id))
 export const sameSet = (a: string[], b: string[]) =>
-  a.length === b.length && a.map(key).sort().join("\n") === b.map(key).sort().join("\n")
+  a.length === b.length && a.slice().sort().join("\n") === b.slice().sort().join("\n")
 
-// Guess four words, given the guesses so far ([[word x4], ...]).
+// Guess four tiles (ids), given the guesses so far ([[id x4], ...]).
 export function check(p: Puzzle, pick: string[], history: string[][] = []): CheckResult {
-  if (pick.length !== SIZE) throw new Error("Pick four words.")
+  if (pick.length !== SIZE) throw new Error("Pick four tiles.")
   if (history.some(h => sameSet(h, pick))) return { result: "repeat" }
   const counts = new Map<number, number>()
   pick.forEach(w => { const g = groupOf(p, w); counts.set(g, (counts.get(g) || 0) + 1) })
@@ -94,7 +109,7 @@ export function state(p: Puzzle, history: string[][]): GameState {
   return { solved, mistakes, left: MISTAKES - mistakes, won, lost, over: won || lost }
 }
 
-// The guesses that counted (repeats left out), as group indexes per word.
+// The guesses that counted (repeats left out), as group indexes per tile.
 export function rows(p: Puzzle, history: string[][]): number[][] {
   const past: string[][] = []
   const out: number[][] = []
@@ -109,7 +124,7 @@ export function rows(p: Puzzle, history: string[][]): number[][] {
 // ── Hints ────────────────────────────────────────────────────────────────
 // Up to HINTS per puzzle, free (they never cost a mistake). The first hint
 // names the easiest unsolved group; the next two each mark one of its
-// countries. If that group gets solved in between, the next hint starts over
+// tiles. If that group gets solved in between, the next hint starts over
 // on the easiest group still unsolved.
 export interface Hint { group: number; word?: string }
 
@@ -120,8 +135,8 @@ export function nextHint(p: Puzzle, history: string[][], hints: Hint[]): Hint | 
   const last = hints[hints.length - 1]
   const group = last && open.includes(last.group) ? last.group : open[0]
   if (!hints.some(h => h.group === group && !h.word)) return { group }
-  const marked = new Set(hints.filter(h => h.group === group && h.word).map(h => key(h.word!)))
-  const word = p.groups[group].words.find(w => !marked.has(key(w)))
+  const marked = new Set(hints.filter(h => h.group === group && h.word).map(h => h.word!))
+  const word = p.groups[group].tiles.map(tileId).find(w => !marked.has(w))
   return word ? { group, word } : null
 }
 
@@ -134,6 +149,20 @@ export function validHints(p: Puzzle, raw: unknown): Hint[] {
     if (!Number.isInteger(g) || g < 0 || g >= SIZE) break
     if (w !== undefined && groupOf(p, String(w)) !== g) break
     out.push(w === undefined ? { group: g } : { group: g, word: String(w) })
+  }
+  return out
+}
+
+// Saved guesses, kept only if every pick is four different tiles of this
+// puzzle (anything else came from another puzzle or an older format).
+export function validHistory(p: Puzzle, raw: unknown): string[][] {
+  if (!Array.isArray(raw)) return []
+  const all = new Set(ids(p))
+  const out: string[][] = []
+  for (const pick of raw) {
+    if (!Array.isArray(pick) || pick.length !== SIZE || new Set(pick).size !== SIZE) return []
+    if (!pick.every(w => typeof w === "string" && all.has(w))) return []
+    out.push(pick.slice())
   }
   return out
 }

@@ -509,7 +509,7 @@ const GAME_DESC = {
   provinceroulette: 'Spin a continent, then a country, then name the flag of one of its regions.',
   substumper: 'You are shown the flag of a state or province. Name the country it belongs to.',
   gacha: 'Pull a random flag every day and build up your collection.',
-  connections: 'A daily puzzle: sort sixteen countries into four hidden groups of four, like borders, flags, languages or wordplay. Six mistakes allowed, and three free hints.',
+  connections: 'A daily puzzle: sort sixteen tiles into four hidden groups of four. Tiles show a country, its capital, its flag or its own name for itself, with groups from Nordic crosses to capitals that used to be named after a person. Six mistakes allowed, and three free hints.',
   funfact: 'A new fact about a flag every day.',
   flagbracket: 'Flags go head to head in a tournament bracket and you vote for your favourite until one is champion.',
   tierlist: 'Rank flags from S to F and share your tier list.',
