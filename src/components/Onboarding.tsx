@@ -13,7 +13,7 @@ export const ONBOARDED_KEY = "globalio_onboarded"
 export function hasOnboarded(): boolean {
   try { return localStorage.getItem(ONBOARDED_KEY) === "1" } catch { return true }
 }
-function markOnboarded() {
+export function markOnboarded() {
   try { localStorage.setItem(ONBOARDED_KEY, "1") } catch { /* ignore */ }
 }
 

@@ -1,6 +1,6 @@
 ﻿import { useState, useCallback, useEffect, useLayoutEffect, useRef, lazy, Suspense, Component } from "react"
 import type { ReactNode } from "react"
-import Onboarding, { hasOnboarded } from "./components/Onboarding"
+import Onboarding, { hasOnboarded, markOnboarded } from "./components/Onboarding"
 import MainTabs from "./components/MainTabs"
 import { REGISTRY } from "./ui/registry"
 import type { TabKey } from "./ui/registry"
@@ -149,7 +149,13 @@ function readDeepLink(): string | null {
 export default function App() {
   const [screen, setScreen] = useState<Screen>("splash")
   const [appState, setAppState] = useState<AppState>(() => loadState())
-  const [showIntro, setShowIntro] = useState<boolean>(() => !hasOnboarded())
+  // The welcome card shows on the first visit only: it counts as seen as soon
+  // as it appears, so scrolling past it (without Skip) doesn't bring it back.
+  const [showIntro, setShowIntro] = useState<boolean>(() => {
+    const first = !hasOnboarded()
+    if (first) markOnboarded()
+    return first
+  })
   const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null)
   const [lastResult, setLastResult] = useState<{ score: number; total: number; answers: ("correct" | "wrong")[] } | null>(null)
   const [histRegion, setHistRegion] = useState<HistoricalRegion | undefined>(undefined)
