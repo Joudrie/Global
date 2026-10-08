@@ -11,7 +11,7 @@ const BASE = process.env.PAGES_BASE
 if (!BASE || !BASE.startsWith('/') || !BASE.endsWith('/')) throw new Error('Set PAGES_BASE, e.g. /Global/')
 const DIST = path.resolve('dist')
 
-const ROOTS = 'cf|flags|emblems|whats-new|fakes|identity|historical|games|privacy|contact|about|terms|favicon|manifest|logo|icon-|apple-touch|world-map|\\?play'
+const ROOTS = 'cf|flags|emblems|studio-flags|whats-new|fakes|identity|historical|games|privacy|contact|about|terms|favicon|manifest|logo|icon-|apple-touch|world-map|\\?play'
 const rootPath = new RegExp(`(["'\`(])/(${ROOTS})`, 'g')
 
 function walk(dir) {

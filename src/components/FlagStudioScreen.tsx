@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from "react"
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react"
-import { Undo2, Redo2, Shuffle, Download, Link2, Trash2, Copy, ArrowUp, ArrowDown, Search } from "lucide-react"
+import { Undo2, Redo2, Shuffle, Download, Link2, Trash2, Copy, ArrowUp, ArrowDown, Search, Dices, Minus, Plus } from "lucide-react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { BackButton } from "./ui"
 import FlagImage from "./FlagImage"
@@ -10,8 +10,11 @@ import {
   FLAG_W, LAYOUTS, SYMBOLS, FLAG_PALETTE, RATIOS, layoutSvg, symbolOf, overlayTransform,
   newDesign, newId, loadBase, composeBase, composeFull, svgDataUri, svgToPng, downloadBlob,
   fileSlug, encodeDesign, decodeDesign, loadStore, saveStore, toHex,
-  loadEmblem, ensureEmblems, emblemInner, emblemPng,
+  loadEmblem, ensureEmblems, emblemInner, emblemPng, emblemSize,
+  countryBase, stripesDesign, randomDesign, baseTextSync, svgOwnRatio, FULL_WIDTH_SYMBOLS,
 } from "../utils/flagStudio"
+import { nationCard, canvasBlob } from "../utils/nationCard"
+import { STUDIO_FLAGS } from "../data/studioFlags"
 import { EMBLEMS } from "../data/emblems"
 import type { Design, Overlay, SymbolKind } from "../utils/flagStudio"
 
@@ -62,11 +65,11 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const wide = useWide()
   const store = useMemo(loadStore, [])
   const shared = useMemo(() => (initialDesign ? decodeDesign(initialDesign) : null), [initialDesign])
-  const [design, setDesign] = useState<Design>(() => shared ?? store.current ?? newDesign("layout:tricolour-v", "My flag"))
+  const [design, setDesign] = useState<Design>(() => shared ?? store.current ?? stripesDesign("v", ["#0b3d91", "#ffffff", "#c8102e"], "My flag"))
   const [saved, setSaved] = useState<Design[]>(store.saved)
   const [past, setPast] = useState<Design[]>([])
   const [future, setFuture] = useState<Design[]>([])
-  const [baseText, setBaseText] = useState<string | null>(null)
+  const [fetched, setFetched] = useState<{ base: string; text: string } | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
   const [sel, setSel] = useState<Sel>(null)
   const [tab, setTab] = useState<Tab>(() => (shared || store.current ? "edit" : "templates"))
@@ -80,7 +83,15 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const eff = useRef<{ f: (string | null)[]; s: (string | null)[]; group: Map<string, string> }>({ f: [], s: [], group: new Map() })
   const inGroup = (c: string | null | undefined, rep: string) => !!c && (eff.current.group.get(c) ?? c) === rep
   const [guides, setGuides] = useState<{ x?: number; y?: number }>({})
-  const drag = useRef<{ id: string; dx: number; dy: number; started: boolean } | null>(null)
+  type Drag =
+    | { mode: "move"; id: string; dx: number; dy: number; started: boolean }
+    | { mode: "resize"; id: string; d0: number; size0: number; started: boolean }
+    | { mode: "rotate"; id: string; started: boolean }
+    | { mode: "border"; i: number; started: boolean }
+  const drag = useRef<Drag | null>(null)
+  // Two-finger pinch on a selected symbol: resize and rotate together.
+  const touches = useRef(new Map<number, { x: number; y: number }>())
+  const pinch = useRef<{ id: string; d0: number; a0: number; size0: number; rot0: number } | null>(null)
   const liveStarted = useRef(false)
 
   // The studio is the one screen that uses the full width of a desktop window.
@@ -89,14 +100,17 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     return () => document.documentElement.classList.remove("fs-wide")
   }, [])
 
-  // Load the template behind the design.
+  // Load the template behind the design. Layouts and stripes are drawn in
+  // code, so editing them (dragging a stripe border) never waits on a fetch.
+  const syncText = useMemo(() => baseTextSync(design), [design.base, design.ratio, design.stripes]) // eslint-disable-line react-hooks/exhaustive-deps
   useEffect(() => {
+    if (syncText) return
     let live = true
-    setBaseText(null)
     setLoadFailed(false)
-    loadBase(design.base, design.ratio).then(t => { if (live) setBaseText(t) }).catch(() => { if (live) setLoadFailed(true) })
+    loadBase(design).then(t => { if (live) setFetched({ base: design.base, text: t }) }).catch(() => { if (live) setLoadFailed(true) })
     return () => { live = false }
-  }, [design.base, design.ratio])
+  }, [design.base, syncText]) // eslint-disable-line react-hooks/exhaustive-deps
+  const baseText = syncText ?? (fetched?.base === design.base ? fetched.text : null)
 
   const composed = useMemo(() => (baseText ? composeBase(baseText, design.parts, design.ratio) : null), [baseText, design.parts, design.ratio])
   const flagH = composed?.h ?? Math.round(FLAG_W * 2 / 3)
@@ -222,7 +236,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     if (!wide) setTab("edit")
   }
 
-  const openTemplate = (base: string, name: string) => switchTo(newDesign(base, name))
+  const randomize = () => switchTo(randomDesign(EMBLEMS.map(e => e.code)))
 
   const applyColor = (hex: string) => {
     hex = hex.toLowerCase()
@@ -261,7 +275,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     const color = dominant && isLight(dominant) ? "#c8102e" : "#ffffff"
     const o: Overlay = {
       id: newId(), kind, x: FLAG_W / 2, y: flagH / 2,
-      size: kind === "stripe" ? FLAG_W : Math.round(flagH * (kind === "square" ? 0.5 : 0.4)),
+      size: FULL_WIDTH_SYMBOLS.has(kind) ? FLAG_W : Math.round(flagH * (kind === "square" ? 0.5 : 0.4)),
       rot: 0, color,
     }
     commit({ ...design, overlays: [...design.overlays, o] })
@@ -284,17 +298,32 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   // The template's own shape, for the "Original" ratio.
   const originalRatio = useMemo(() => {
-    if (design.base.startsWith("layout:")) return 1.5
-    const m = baseText?.match(/viewBox="([^"]+)"/)
-    const vb = m ? m[1].trim().split(/[\s,]+/).map(Number) : []
-    return vb.length === 4 && vb[2] > 0 && vb[3] > 0 ? vb[2] / vb[3] : 4 / 3
-  }, [baseText, design.base])
+    if (design.base === "stripes" || design.base.startsWith("layout:")) return 1.5
+    return baseText && !design.ratio ? svgOwnRatio(baseText) : fetched ? svgOwnRatio(fetched.text) : 1.5
+  }, [baseText, fetched, design.base, design.ratio])
 
   const setRatio = (value?: number) => {
     if (value === design.ratio) return
     const newH = FLAG_W / (value ?? originalRatio)
     const k = newH / flagH
     commit({ ...design, ratio: value, overlays: design.overlays.map(o => ({ ...o, y: o.y * k })) })
+  }
+
+  // ── Stripes ──
+  const spec = design.base === "stripes" ? design.stripes ?? { dir: "h" as const, w: [1, 1, 1] } : null
+  const setStripeCount = (n: number) => {
+    if (!spec || n < 2 || n > 9 || n === spec.w.length) return
+    const avg = spec.w.reduce((a, b) => a + b, 0) / spec.w.length
+    const w = n < spec.w.length ? spec.w.slice(0, n) : [...spec.w, ...Array(n - spec.w.length).fill(avg)]
+    const parts = Object.fromEntries(Object.entries(design.parts).filter(([k]) => Number(k) < n))
+    commit({ ...design, stripes: { ...spec, w }, parts })
+    setSel(null)
+  }
+  const stripeBorders = (sp: { dir: "h" | "v"; w: number[] }) => {
+    const total = sp.w.reduce((a, b) => a + b, 0)
+    const len = sp.dir === "h" ? flagH : FLAG_W
+    let acc = 0
+    return sp.w.slice(0, -1).map(w => { acc += w; return (acc / total) * len })
   }
 
   const selOverlay = sel?.k === "ov" ? design.overlays.find(o => o.id === sel.id) : undefined
@@ -346,15 +375,59 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const onOverlayDown = (e: ReactPointerEvent, o: Overlay) => {
     e.stopPropagation()
     setSel({ k: "ov", id: o.id })
+    if (pinch.current) return
     const p = svgPoint(e)
-    drag.current = { id: o.id, dx: p.x - o.x, dy: p.y - o.y, started: false }
+    drag.current = { mode: "move", id: o.id, dx: p.x - o.x, dy: p.y - o.y, started: false }
+    ovRef.current?.setPointerCapture(e.pointerId)
+  }
+  const onHandleDown = (e: ReactPointerEvent, o: Overlay, mode: "resize" | "rotate") => {
+    e.stopPropagation()
+    const p = svgPoint(e)
+    drag.current = mode === "resize"
+      ? { mode, id: o.id, d0: Math.max(1, Math.hypot(p.x - o.x, p.y - o.y)), size0: o.size, started: false }
+      : { mode, id: o.id, started: false }
+    ovRef.current?.setPointerCapture(e.pointerId)
+  }
+  const onBorderDown = (e: ReactPointerEvent, i: number) => {
+    e.stopPropagation()
+    setSel(null)
+    drag.current = { mode: "border", i, started: false }
     ovRef.current?.setPointerCapture(e.pointerId)
   }
   const onOverlayMove = (e: ReactPointerEvent) => {
     const d = drag.current
-    if (!d) return
+    if (!d || pinch.current) return
     const p = svgPoint(e)
     if (!d.started) { d.started = true; beginLive() }
+    if (d.mode === "border") {
+      if (!spec) return
+      const total = spec.w.reduce((a, b) => a + b, 0)
+      const len = spec.dir === "h" ? flagH : FLAG_W
+      const at = (spec.dir === "h" ? p.y : p.x) / len * total
+      const before = spec.w.slice(0, d.i).reduce((a, b) => a + b, 0)
+      const pair = spec.w[d.i] + spec.w[d.i + 1]
+      const min = total * 0.04
+      const a = Math.max(min, Math.min(pair - min, at - before))
+      const w = [...spec.w]
+      w[d.i] = a
+      w[d.i + 1] = pair - a
+      live(x => ({ ...x, stripes: { ...spec, w } }))
+      return
+    }
+    const o = design.overlays.find(x => x.id === d.id)
+    if (!o) return
+    if (d.mode === "resize") {
+      updateOverlay(o.id, { size: Math.round(Math.max(10, Math.min(3000, d.size0 * Math.hypot(p.x - o.x, p.y - o.y) / d.d0))) })
+      return
+    }
+    if (d.mode === "rotate") {
+      let a = Math.atan2(p.y - o.y, p.x - o.x) * 180 / Math.PI + 90
+      a = ((Math.round(a) % 360) + 360) % 360
+      const snap = Math.round(a / 45) * 45
+      if (Math.abs(a - snap) < 5) a = snap % 360 // snap to 0, 45, 90…
+      updateOverlay(o.id, { rot: a })
+      return
+    }
     let x = Math.max(0, Math.min(FLAG_W, p.x - d.dx))
     let y = Math.max(0, Math.min(flagH, p.y - d.dy))
     // Snap to the centre lines, and to the middle of the hoist (where
@@ -373,6 +446,45 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     setGuides({})
   }
 
+  // Pinch: watch every finger on the flag. With two down and a symbol
+  // selected, the spread resizes it and the twist rotates it.
+  const fingerPoint = (x: number, y: number) => {
+    const ctm = ovRef.current?.getScreenCTM()
+    if (!ctm) return { x: 0, y: 0 }
+    const q = new DOMPoint(x, y).matrixTransform(ctm.inverse())
+    return { x: q.x, y: q.y }
+  }
+  const onFlagPointerDown = (e: ReactPointerEvent) => {
+    if (e.pointerType !== "touch") return
+    touches.current.set(e.pointerId, fingerPoint(e.clientX, e.clientY))
+    const o = selOverlay
+    if (touches.current.size === 2 && o) {
+      const [a, b] = [...touches.current.values()]
+      if (drag.current?.started) endLive()
+      drag.current = null
+      pinch.current = { id: o.id, d0: Math.max(1, Math.hypot(b.x - a.x, b.y - a.y)), a0: Math.atan2(b.y - a.y, b.x - a.x), size0: o.size, rot0: o.rot }
+      beginLive()
+    }
+  }
+  const onFlagPointerMove = (e: ReactPointerEvent) => {
+    if (e.pointerType !== "touch" || !touches.current.has(e.pointerId)) return
+    touches.current.set(e.pointerId, fingerPoint(e.clientX, e.clientY))
+    const pc = pinch.current
+    if (!pc || touches.current.size < 2) return
+    const [a, b] = [...touches.current.values()]
+    const size = Math.round(Math.max(10, Math.min(3000, pc.size0 * Math.hypot(b.x - a.x, b.y - a.y) / pc.d0)))
+    const rot = ((Math.round(pc.rot0 + (Math.atan2(b.y - a.y, b.x - a.x) - pc.a0) * 180 / Math.PI) % 360) + 360) % 360
+    updateOverlay(pc.id, { size, rot })
+  }
+  const onFlagPointerUp = (e: ReactPointerEvent) => {
+    touches.current.delete(e.pointerId)
+    if (pinch.current && touches.current.size < 2) { pinch.current = null; endLive() }
+  }
+
+  const nudge = useCallback((id: string, dx: number, dy: number) => {
+    commit({ ...design, overlays: design.overlays.map(o => (o.id === id ? { ...o, x: Math.max(0, Math.min(FLAG_W, o.x + dx)), y: Math.max(0, Math.min(flagH, o.y + dy)) } : o)) })
+  }, [commit, design, flagH])
+
   // Keyboard: undo/redo, delete a symbol, Escape to deselect.
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
@@ -382,11 +494,18 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
       if (mod && e.key.toLowerCase() === "z") { e.preventDefault(); if (e.shiftKey) redo(); else undo() }
       else if (mod && e.key.toLowerCase() === "y") { e.preventDefault(); redo() }
       else if ((e.key === "Delete" || e.key === "Backspace") && sel?.k === "ov") { e.preventDefault(); removeOverlay(sel.id) }
+      else if (e.key.startsWith("Arrow") && sel?.k === "ov") {
+        e.preventDefault()
+        const step = e.shiftKey ? 25 : 5
+        const dx = e.key === "ArrowLeft" ? -step : e.key === "ArrowRight" ? step : 0
+        const dy = e.key === "ArrowUp" ? -step : e.key === "ArrowDown" ? step : 0
+        nudge(sel.id, dx, dy)
+      }
       else if (e.key === "Escape") setSel(null)
     }
     window.addEventListener("keydown", onKey)
     return () => window.removeEventListener("keydown", onKey)
-  }, [undo, redo, sel, removeOverlay])
+  }, [undo, redo, sel, removeOverlay, nudge])
 
   // ── Export & share ───────────────────────────────────────────────────────
 
@@ -417,6 +536,25 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     }
   }
 
+  // Nation card: a live preview (debounced) and a full-size download.
+  const [cardPreview, setCardPreview] = useState<string | null>(null)
+  const exportVisible = wide || tab === "export"
+  useEffect(() => {
+    if (!baseText || !exportVisible) return
+    let live = true
+    const t = window.setTimeout(() => {
+      ensureEmblems(design).then(() => nationCard(baseText, design)).then(c => { if (live) setCardPreview(c.toDataURL("image/jpeg", 0.8)) }).catch(() => {})
+    }, 500)
+    return () => { live = false; window.clearTimeout(t) }
+  }, [baseText, design, exportVisible])
+  const downloadCard = async () => {
+    if (!baseText) return
+    try {
+      await ensureEmblems(design)
+      downloadBlob(await canvasBlob(await nationCard(baseText, design)), `${fileSlug(design.name)}-card.png`)
+    } catch { setNotice("The nation card didn't download. Try again.") }
+  }
+
   // ── Render pieces ────────────────────────────────────────────────────────
 
   const selectedHex =
@@ -439,16 +577,21 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
       <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
         <IconBtn label="Undo" onClick={undo} disabled={!past.length}><Undo2 size={17} /></IconBtn>
         <IconBtn label="Redo" onClick={redo} disabled={!future.length}><Redo2 size={17} /></IconBtn>
+        <IconBtn label="Random flag" onClick={randomize} text="Random"><Dices size={16} /></IconBtn>
         <IconBtn label="Shuffle colours" onClick={shuffleColors} disabled={!strip.length} text="Shuffle"><Shuffle size={16} /></IconBtn>
         {wide && <IconBtn label="Copy share link" onClick={share} text="Share"><Link2 size={16} /></IconBtn>}
       </div>
     </header>
   )
 
+  // Flag units per screen pixel, so handles stay finger-sized at any zoom.
+  const upp = FLAG_W / Math.max(200, ovRef.current?.getBoundingClientRect().width || 760)
+
   const stage = (
     <div className="fs-stage">
       <div className="fs-table">
-        <div className="fs-flag" style={{ aspectRatio: `${FLAG_W} / ${flagH}` }}>
+        <div className="fs-flag" style={{ aspectRatio: `${FLAG_W} / ${flagH}`, width: `min(100%, 760px, calc(68vh * ${(FLAG_W / flagH).toFixed(4)}))`, touchAction: selOverlay ? "none" : undefined }}
+          onPointerDown={onFlagPointerDown} onPointerMove={onFlagPointerMove} onPointerUp={onFlagPointerUp} onPointerCancel={onFlagPointerUp}>
           {composed ? (
             <>
               <div ref={baseRef} className="fs-base" onClick={onBaseClick} dangerouslySetInnerHTML={{ __html: composed.svg }} />
@@ -456,6 +599,19 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                 ref={ovRef} className="fs-ov" viewBox={`0 0 ${FLAG_W} ${flagH}`}
                 onPointerMove={onOverlayMove} onPointerUp={onOverlayUp} onPointerCancel={onOverlayUp}
               >
+                {spec && stripeBorders(spec).map((pos, i) => (
+                  spec.dir === "h" ? (
+                    <g key={`b${i}`} className="fs-border h" onPointerDown={e => onBorderDown(e, i)}>
+                      <rect x={0} y={pos - 3 * upp - 6} width={FLAG_W} height={6 * upp + 12} fill="rgba(0,0,0,0)" />
+                      <rect className="fs-grip" x={FLAG_W - 34 * upp} y={pos - 5 * upp} width={26 * upp} height={10 * upp} rx={5 * upp} />
+                    </g>
+                  ) : (
+                    <g key={`b${i}`} className="fs-border v" onPointerDown={e => onBorderDown(e, i)}>
+                      <rect x={pos - 3 * upp - 6} y={0} width={6 * upp + 12} height={flagH} fill="rgba(0,0,0,0)" />
+                      <rect className="fs-grip" x={pos - 5 * upp} y={flagH - 34 * upp} width={10 * upp} height={26 * upp} rx={5 * upp} />
+                    </g>
+                  )
+                ))}
                 {design.overlays.map(o => {
                   const s = symbolOf(o.kind)
                   const on = (sel?.k === "ov" && sel.id === o.id) || (sel?.k === "color" && inGroup(o.color.toLowerCase(), sel.hex))
@@ -471,6 +627,26 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                 })}
                 {guides.x !== undefined && <line className="fs-guide" x1={guides.x} x2={guides.x} y1={0} y2={flagH} />}
                 {guides.y !== undefined && <line className="fs-guide" x1={0} x2={FLAG_W} y1={guides.y} y2={guides.y} />}
+                {selOverlay && (() => {
+                  const o = selOverlay
+                  const { w, h } = o.kind === "emblem" ? emblemSize(o) : { w: o.size, h: o.size * (FULL_WIDTH_SYMBOLS.has(o.kind as never) && o.kind !== "stripe" ? 2 / 3 : o.kind === "stripe" ? 0.12 : 1) }
+                  const hw = w / 2, hh = h / 2
+                  const r = 8 * upp, hit = 18 * upp
+                  return (
+                    <g transform={`translate(${o.x} ${o.y}) rotate(${o.rot})`}>
+                      <rect className="fs-box" x={-hw} y={-hh} width={w} height={h} />
+                      <line className="fs-box" x1={0} y1={-hh} x2={0} y2={-hh - 30 * upp} />
+                      <g className="fs-handle" onPointerDown={e => onHandleDown(e, o, "rotate")}>
+                        <circle cx={0} cy={-hh - 30 * upp} r={hit} fill="rgba(0,0,0,0)" />
+                        <circle cx={0} cy={-hh - 30 * upp} r={r} className="fs-knob round" />
+                      </g>
+                      <g className="fs-handle resize" onPointerDown={e => onHandleDown(e, o, "resize")}>
+                        <circle cx={hw} cy={hh} r={hit} fill="rgba(0,0,0,0)" />
+                        <rect x={hw - r} y={hh - r} width={2 * r} height={2 * r} rx={2 * upp} className="fs-knob" />
+                      </g>
+                    </g>
+                  )
+                })()}
               </svg>
             </>
           ) : (
@@ -546,6 +722,43 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
         </div>
       )}
 
+      {spec && (
+        <div style={{ display: "grid", gap: 10, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <h2 className="fs-h">Stripes</h2>
+          <div className="fs-seg" role="radiogroup" aria-label="Stripe direction">
+            {(["h", "v"] as const).map(dir => (
+              <button key={dir} role="radio" aria-checked={spec.dir === dir} className={spec.dir === dir ? "on" : ""}
+                onClick={() => spec.dir !== dir && commit({ ...design, stripes: { ...spec, dir } })}>
+                {dir === "h" ? "Horizontal" : "Vertical"}
+              </button>
+            ))}
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+            <IconBtn label="Fewer stripes" onClick={() => setStripeCount(spec.w.length - 1)} disabled={spec.w.length <= 2}><Minus size={16} /></IconBtn>
+            <span style={{ fontSize: 14, fontWeight: 600, minWidth: 74, textAlign: "center", fontVariantNumeric: "tabular-nums" }}>{spec.w.length} stripes</span>
+            <IconBtn label="More stripes" onClick={() => setStripeCount(spec.w.length + 1)} disabled={spec.w.length >= 9}><Plus size={16} /></IconBtn>
+            <button className="fs-mini" style={{ marginLeft: "auto" }} disabled={spec.w.every(w => Math.abs(w - spec.w[0]) < 1e-6)}
+              onClick={() => commit({ ...design, stripes: { ...spec, w: spec.w.map(() => 1) } })}>Even widths</button>
+          </div>
+          <span style={{ fontSize: 12, color: T.muted }}>Drag the grips on the flag's edge to make a stripe wider or narrower.</span>
+        </div>
+      )}
+
+      {design.overlays.length > 0 && (
+        <div style={{ display: "grid", gap: 8, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+          <h2 className="fs-h">Layers · top first</h2>
+          <div style={{ display: "grid", gap: 2 }}>
+            {[...design.overlays].reverse().map(o => (
+              <button key={o.id} className={`fs-layer${sel?.k === "ov" && sel.id === o.id ? " on" : ""}`} onClick={() => setSel({ k: "ov", id: o.id })}>
+                <span className="fs-swatch small" style={{ background: o.color || "transparent" }} />
+                <span>{overlayName(o)}</span>
+              </button>
+            ))}
+            <div className="fs-layer base"><span className="fs-swatch small" style={{ background: strip[0]?.hex ?? "transparent" }} /><span>The flag</span></div>
+          </div>
+        </div>
+      )}
+
       <div style={{ display: "grid", gap: 8, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
         <h2 className="fs-h">Flag shape</h2>
         <div className="fs-seg" role="radiogroup" aria-label="Flag shape">
@@ -581,6 +794,13 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
         <input id="fs-share" readOnly value={shareUrl} aria-label="Share link" onFocus={e => e.currentTarget.select()} className="fs-search" />
       )}
       <span style={{ fontSize: 12, color: T.muted }}>The link holds the whole design. No account needed.</span>
+
+      <h2 className="fs-h" style={{ marginTop: 6 }}>Nation card</h2>
+      <input id="fs-motto" className="fs-search" placeholder="Motto (optional)" maxLength={80} value={design.motto ?? ""}
+        aria-label="Motto" onChange={e => setDesign(d => ({ ...d, motto: e.target.value }))} />
+      {cardPreview && <img src={cardPreview} alt={`Nation card for ${design.name}`} className="fs-card-preview" />}
+      <button className="fs-secondary" onClick={downloadCard} disabled={!baseText}><Download size={16} /> Download nation card</button>
+      <span style={{ fontSize: 12, color: T.muted }}>Your flag, name and motto in one image, sized for posting.</span>
     </div>
   )
 
@@ -600,7 +820,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   )
 
   const content: Record<Tab, ReactNode> = {
-    templates: <TemplatesPanel onPick={openTemplate} current={design.base} />,
+    templates: <TemplatesPanel onPick={switchTo} current={design.base} />,
     symbols: symbolsPanel,
     emblems: <EmblemsPanel onAdd={addEmblem} onError={setNotice} />,
     edit: editPanel,
@@ -641,7 +861,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
 // ── Panels ─────────────────────────────────────────────────────────────────
 
-function TemplatesPanel({ onPick, current }: { onPick: (base: string, name: string) => void; current: string }) {
+function TemplatesPanel({ onPick, current }: { onPick: (d: Design) => void; current: string }) {
   const [q, setQ] = useState("")
   const [region, setRegion] = useState<(typeof REGIONS)[number]>("All")
   const flags = useMemo(() => {
@@ -670,7 +890,8 @@ function TemplatesPanel({ onPick, current }: { onPick: (base: string, name: stri
           <h2 className="fs-h">Start from a layout</h2>
           <div className="fs-tgrid">
             {layouts.map(l => (
-              <button key={l.id} className={`fs-card${current === `layout:${l.id}` ? " on" : ""}`} onClick={() => onPick(`layout:${l.id}`, "My flag")}>
+              <button key={l.id} className={`fs-card${current === `layout:${l.id}` ? " on" : ""}`}
+                onClick={() => onPick(l.stripes ? stripesDesign(l.stripes.dir, l.stripes.colors, "My flag") : newDesign(`layout:${l.id}`, "My flag"))}>
                 <img src={l.uri} alt="" className="fs-thumb" />
                 <span>{l.name}</span>
               </button>
@@ -681,9 +902,11 @@ function TemplatesPanel({ onPick, current }: { onPick: (base: string, name: stri
       )}
       <div className="fs-tgrid">
         {flags.map(f => (
-          <button key={f.code} className={`fs-card${current === `flag:${f.code.toLowerCase()}` ? " on" : ""}`}
-            onClick={() => onPick(`flag:${f.code.toLowerCase()}`, `New ${f.name}`)}>
-            <FlagImage code={f.code} alt="" className="fs-thumb" />
+          <button key={f.code} className={`fs-card${current === countryBase(f.code) ? " on" : ""}`}
+            onClick={() => onPick(newDesign(countryBase(f.code), `New ${f.name}`))}>
+            {STUDIO_FLAGS[f.code.toLowerCase()]
+              ? <img src={STUDIO_FLAGS[f.code.toLowerCase()][0]} alt="" loading="lazy" decoding="async" className="fs-thumb" />
+              : <FlagImage code={f.code} alt="" className="fs-thumb" />}
             <span>{f.name}</span>
           </button>
         ))}
@@ -775,7 +998,7 @@ function EmblemsPanel({ onAdd, onError }: { onAdd: (code: string) => void; onErr
 function DesignCheck({ design, colours, parts, hasText }: { design: Design; colours: number; parts: number; hasText: boolean }) {
   const total = parts + design.overlays.length
   const detailed = hasText || design.overlays.some(o => o.kind === "emblem") || parts > 40
-  const untouched = design.base.startsWith("flag:") && !Object.keys(design.parts).length && !design.overlays.length && !design.ratio
+  const untouched = /^(flag|real):/.test(design.base) && !Object.keys(design.parts).length && !design.overlays.length && !design.ratio
   const checks = [
     total <= 14
       ? { ok: true, text: "Simple enough to draw from memory" }
@@ -813,7 +1036,7 @@ function DesignThumb({ design }: { design: Design }) {
   const [uri, setUri] = useState<string | null>(null)
   useEffect(() => {
     let live = true
-    Promise.all([loadBase(design.base, design.ratio), ensureEmblems(design)])
+    Promise.all([loadBase(design), ensureEmblems(design)])
       .then(([t]) => { if (live) setUri(svgDataUri(composeFull(t, design).svg)) }).catch(() => {})
     return () => { live = false }
   }, [design])
@@ -868,15 +1091,30 @@ const CSS = `
 .fs-right .fs-panel + .fs-panel { border-top: 1px solid ${T.line}; }
 .fs-stage { background: ${T.void}; display: flex; flex-direction: column; min-width: 0; position: relative; }
 .fs-grid > .fs-stage { position: sticky; top: 0; height: calc(100vh - 70px); align-self: start; }
-.fs-table { flex: 1; display: grid; place-items: center; padding: 28px 16px;
+.fs-table { flex: 1; display: grid; place-items: center; padding: 28px 16px; overflow: hidden;
   background-image: linear-gradient(${tint(T.text, 0.06)} 1px, transparent 1px), linear-gradient(90deg, ${tint(T.text, 0.06)} 1px, transparent 1px);
   background-size: 24px 24px; }
-.fs-flag { position: relative; width: min(100%, 760px); max-height: 70vh; box-shadow: 0 12px 30px -14px rgba(31,58,60,.55); background: ${T.surfaceHi}; }
+.fs-flag { position: relative; box-shadow: 0 12px 30px -14px rgba(31,58,60,.55); background: ${T.surfaceHi}; }
 .fs-base, .fs-base svg { display: block; width: 100%; height: 100%; }
 .fs-base [data-p] { cursor: pointer; }
 .fs-ov { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
 .fs-ov > path, .fs-ov > g { pointer-events: visiblePainted; cursor: grab; touch-action: none; }
 .fs-ov > path:active, .fs-ov > g:active { cursor: grabbing; }
+.fs-ov > .fs-border, .fs-ov .fs-handle { pointer-events: visiblePainted; touch-action: none; }
+.fs-border.h { cursor: ns-resize; } .fs-border.v { cursor: ew-resize; }
+.fs-grip { fill: ${T.surface}; stroke: ${T.text}; stroke-width: 1.5; vector-effect: non-scaling-stroke; opacity: .85; }
+.fs-border:hover .fs-grip { opacity: 1; fill: ${T.cyan}; }
+.fs-box { fill: none; stroke: ${T.cyan}; stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; pointer-events: none; }
+.fs-knob { fill: ${T.surface}; stroke: ${T.cyan}; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.fs-handle { cursor: grab; } .fs-handle.resize { cursor: nwse-resize; }
+.fs-layer { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: ${T.text}; font-size: 13px; text-align: left; cursor: pointer; }
+.fs-layer:hover { background: ${T.surfaceHi}; }
+.fs-layer.on { border-color: ${ACC}; background: ${T.surfaceHi}; }
+.fs-layer.base { color: ${T.muted}; cursor: default; }
+.fs-layer.base:hover { background: transparent; }
+.fs-swatch.small { width: 16px; height: 16px; border-radius: 4px; }
+.fs-card-preview { width: 100%; border-radius: 8px; box-shadow: 0 0 0 1px ${T.line}; display: block; }
+.fs-mini:disabled { opacity: .45; cursor: default; }
 .fs-guide { stroke: ${T.cyan}; stroke-width: 2; stroke-dasharray: 8 6; pointer-events: none; vector-effect: non-scaling-stroke; }
 .fs-egrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
 .fs-emb { justify-items: stretch; }
