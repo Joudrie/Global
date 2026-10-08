@@ -107,7 +107,7 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
         <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
           <ResultCard>
             <ResultHeader icon="frankenflag" accent={ACCENT.play}
-              title={`${total} of ${ROUNDS} halves named`} score="Two flags stitched together, one half at a time" />
+              title={`${total * 2} of ${ROUNDS * 2} halves named`} score="Two flags stitched together, one half at a time" />
           </ResultCard>
           <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Play again</PrimaryButton>
           <SecondaryButton onClick={onBack}>Home</SecondaryButton>

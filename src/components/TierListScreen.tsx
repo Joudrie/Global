@@ -46,7 +46,7 @@ export default function TierListScreen({ onBack }: Props) {
   // Load this region's saved list whenever the region changes.
   useEffect(() => { setPlacement(loadPlacement(region)); setSelected(null) }, [region])
   // Persist on every change.
-  useEffect(() => { localStorage.setItem(keyFor(region), JSON.stringify(placement)) }, [placement, region])
+  useEffect(() => { try { localStorage.setItem(keyFor(region), JSON.stringify(placement)) } catch { /* not saved */ } }, [placement, region])
 
   const place = (code: string, tier: string) => {
     setPlacement(p => ({ ...p, [code]: tier }))
@@ -66,7 +66,14 @@ export default function TierListScreen({ onBack }: Props) {
       draggable
       onDragStart={() => setDragged(code)}
       onDragEnd={() => setDragged(null)}
-      onClick={() => setSelected(s => (s === code ? null : code))}
+      onClick={e => {
+        // Handle the tap here so it doesn't also reach the tier behind the chip
+        // (that moved the previously selected flag instead of selecting this one).
+        e.stopPropagation()
+        const zone = placement[code] ?? POOL
+        if (selected && selected !== code && (placement[selected] ?? POOL) !== zone) place(selected, zone)
+        else setSelected(s => (s === code ? null : code))
+      }}
       title={name}
       style={{
         position: 'relative', cursor: 'grab', borderRadius: 5, overflow: 'hidden',

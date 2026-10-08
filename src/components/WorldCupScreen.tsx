@@ -12,13 +12,14 @@ import FlagImage from "./FlagImage"
 // 48-nation field. Each card pulls the flag, a real Codex description, and the
 // country's historical flags from data we already ship. Pure learning, in the
 // same parchment style as the rest of the app.
-interface Props { onBack: () => void; onOpenCodex: (code: string) => void }
+interface Props { onBack: () => void; onOpenCodex: (code: string) => void; initialCode?: string | null }
 const A = ACCENT.codex
 
-export default function WorldCupScreen({ onBack, onOpenCodex }: Props) {
+export default function WorldCupScreen({ onBack, onOpenCodex, initialCode }: Props) {
   const teams = WORLD_CUP_2026
   const n = teams.length
-  const [i, setI] = useState(0)
+  // Coming back from the Codex reopens the nation you were on.
+  const [i, setI] = useState(() => Math.max(0, teams.findIndex(t => t.code === initialCode)))
   const [dx, setDx] = useState(0)
   const startX = useRef(0)
   const startY = useRef(0)
@@ -44,13 +45,16 @@ export default function WorldCupScreen({ onBack, onOpenCodex }: Props) {
       <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "4px 16px 32px" }}>
         {/* Flag card — swipe horizontally (or use the arrows) to change nation */}
         <div style={{ position: "relative", touchAction: "pan-y" }}
-          onPointerDown={e => { dragging.current = true; axis.current = null; startX.current = e.clientX; startY.current = e.clientY; try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ } }}
+          onPointerDown={e => { dragging.current = true; axis.current = null; startX.current = e.clientX; startY.current = e.clientY }}
           onPointerMove={e => {
             if (!dragging.current) return
             const ax = e.clientX - startX.current, ay = e.clientY - startY.current
             if (axis.current === null) {
               if (Math.abs(ax) < 8 && Math.abs(ay) < 8) return
               axis.current = Math.abs(ax) > Math.abs(ay) ? "h" : "v"
+              // Capture only once it's a real swipe: capturing on pointerdown sent
+              // the click to this wrapper, so the arrow buttons never fired.
+              if (axis.current === "h") try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ }
             }
             if (axis.current === "v") { dragging.current = false; setDx(0); return }
             setDx(ax)

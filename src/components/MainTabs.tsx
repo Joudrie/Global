@@ -1058,7 +1058,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
                 }}>
                   {earned ? <CrownIcon size={17} color={T.gold} strokeWidth={1.7} /> : <CrownIcon size={15} color={T.dim} strokeWidth={1.5} />}
                 </div>
-                <span className="geo-micro" style={{ fontSize: 8, color: earned ? T.gold : T.dim, whiteSpace: "nowrap" }}>{c.label}</span>
+                <span className="geo-micro" style={{ fontSize: 8, letterSpacing: "0.02em", color: earned ? T.gold : T.dim, whiteSpace: "nowrap" }}>{c.label}</span>
               </div>
             )
           })}

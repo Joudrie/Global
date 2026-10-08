@@ -120,10 +120,10 @@ class ScreenErrorBoundary extends Component<{ children: ReactNode }, { failed: b
 function ScreenFallback() {
   return (
     <div style={{ minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", background: T.bg }}>
-      <div style={{ opacity: 0.6, animation: "geoPulse 1s ease-in-out infinite" }}>
+      <div className="geo-loading" role="status" aria-label="Loading" style={{ opacity: 0.6 }}>
         <EarthLogo size={46} />
       </div>
-      <style>{`@keyframes geoPulse{0%,100%{opacity:0.35}50%{opacity:0.85}}`}</style>
+      <style>{`@keyframes geoPulse{0%,100%{opacity:0.35}50%{opacity:0.85}}@media (prefers-reduced-motion: no-preference){.geo-loading{animation:geoPulse 1s ease-in-out infinite}}`}</style>
     </div>
   )
 }
@@ -234,16 +234,22 @@ export default function App() {
     }
   }, [])
 
+  const dailyDoneToday = appState.lastDailyDate === todayString()
   const startDaily = useCallback(() => {
+    // The daily counts once a day: a ?play=daily link after it's done lands on
+    // Today ("Logged for today") instead of replaying it for a better score.
+    if (dailyDoneToday) { setTab("today"); setScreen("home"); return }
     const questions = buildDailyQuiz(todayString(), 10)
     setActiveQuiz({ questions, title: "Daily Game", isDaily: true, setId: "daily", setFlags: FLAGS, backTo: "home" })
     setScreen("quiz")
-  }, [])
+  }, [dailyDoneToday])
 
   const startSet = useCallback((setId: string, flags: FlagRecord[], backTo: Screen = "flags") => {
     const seed = `${setId}-${Date.now()}`
     const questions = buildSetQuiz(flags, seed, flags.length)
-    const label = setId.charAt(0).toUpperCase() + setId.slice(1).replace(/-/g, " ")
+    // "flashcards-all" read as "Flashcards all" even for a one-region deck.
+    const label = setId === "flashcards-all" ? "Flashcards quiz"
+      : setId.charAt(0).toUpperCase() + setId.slice(1).replace(/-/g, " ")
     setActiveQuiz({ questions, title: label, isDaily: false, setId, setFlags: flags, backTo })
     setScreen("quiz")
   }, [])
@@ -290,7 +296,7 @@ export default function App() {
     activeQuiz.questions.forEach((q, i) => {
       if (answers[i] === "correct") newState = markFlagLearned(newState, q.target.code)
     })
-    if (activeQuiz.isDaily) {
+    if (activeQuiz.isDaily && newState.lastDailyDate !== todayString()) {
       newState = recordDailyResult(newState, { score, total, date: todayString(), answers })
     }
     const allLearned = activeQuiz.setFlags.every(f => newState.learnedFlags.includes(f.code))
@@ -339,7 +345,8 @@ export default function App() {
       {screen === "language" && <LanguageQuizScreen onBack={() => setScreen("home")} />}
       {screen === "capitalquiz" && <CapitalQuizScreen onBack={() => setScreen("home")} />}
       {screen === "challenge" && <ChallengeScreen onBack={() => setScreen("home")} />}
-      {screen === "codex" && <CodexScreen onBack={() => { setCodexInitial(null); setScreen("home") }} initialCode={codexInitial} />}
+      {/* The full-screen Codex is only opened from the World Cup explorer, so back returns there. */}
+      {screen === "codex" && <CodexScreen onBack={() => setScreen("worldcup")} initialCode={codexInitial} />}
       {screen === "geo" && <GeoQuizScreen onBack={() => setScreen("home")} />}
       {screen === "gauntlet" && <GauntletScreen onBack={() => setScreen("home")} />}
       {screen === "tierlist" && <TierListScreen onBack={() => setScreen("home")} />}
@@ -397,7 +404,7 @@ export default function App() {
       {screen === "continentsort"&& <ContinentSortScreen onBack={() => setScreen("home")} />}
       {screen === "statclash"    && <StatClashScreen    onBack={() => setScreen("home")} />}
       {screen === "uscityflags"  && <USCityFlagScreen   onBack={() => setScreen("home")} />}
-      {screen === "worldcup"     && <WorldCupScreen     onBack={() => setScreen("home")} onOpenCodex={(code) => { setCodexInitial(code); setScreen("codex") }} />}
+      {screen === "worldcup"     && <WorldCupScreen     onBack={() => { setCodexInitial(null); setScreen("home") }} initialCode={codexInitial} onOpenCodex={(code) => { setCodexInitial(code); setScreen("codex") }} />}
       {screen === "supporter"    && (
         <SupporterScreen onBack={() => setScreen("home")}
           premium={appState.premium}

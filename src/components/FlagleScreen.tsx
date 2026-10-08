@@ -60,11 +60,26 @@ const TILE_GRID = `repeat(${COLS.length}, 1fr)`
 
 interface Guess { flag: FlagRecord; tiles: Record<string, Tile> }
 
+// Today's guesses are kept on this device, so leaving and coming back doesn't
+// hand out a fresh six tries on a puzzle that's already won or lost.
+const STORE_KEY = "globalio_flagle_v1"
+function loadGuesses(date: string, target: FlagRecord): Guess[] {
+  try {
+    const s = JSON.parse(localStorage.getItem(STORE_KEY) || "null") as { date: string; codes: string[] } | null
+    if (!s || s.date !== date || !Array.isArray(s.codes)) return []
+    return s.codes.map(c => ELIGIBLE.find(f => f.code === c)).filter((f): f is FlagRecord => !!f)
+      .slice(0, MAX_GUESSES).map(f => ({ flag: f, tiles: compare(f, target) }))
+  } catch { return [] }
+}
+function saveGuesses(date: string, guesses: Guess[]) {
+  try { localStorage.setItem(STORE_KEY, JSON.stringify({ date, codes: guesses.map(g => g.flag.code) })) } catch { /* not saved */ }
+}
+
 export default function FlagleScreen({ onBack }: Props) {
   const today = todayString()
   const target = useMemo(() => shuffleWithSeed(ELIGIBLE, "flagle-" + today)[0], [today])
 
-  const [guesses, setGuesses] = useState<Guess[]>([])
+  const [guesses, setGuesses] = useState<Guess[]>(() => loadGuesses(today, target))
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
   const [copied, setCopied] = useState(false)
@@ -76,13 +91,15 @@ export default function FlagleScreen({ onBack }: Props) {
   const matches = useMemo(() => {
     const q = input.trim().toLowerCase()
     if (q.length < 1) return []
-    return FLAGS.filter(f => (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) && !guessedCodes.has(f.code)).slice(0, 6)
+    // Only flags the puzzle can compare; others used to be offered and then silently ignored.
+    return ELIGIBLE.filter(f => (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) && !guessedCodes.has(f.code)).slice(0, 6)
   }, [input, guessedCodes])
 
   const submit = (f: FlagRecord) => {
     if (finished || guessedCodes.has(f.code)) return
     if (!FLAG_ATTRIBS[f.code]) return
-    setGuesses(g => [...g, { flag: f, tiles: compare(f, target) }])
+    const next = [...guesses, { flag: f, tiles: compare(f, target) }]
+    setGuesses(next); saveGuesses(today, next)
     setInput(""); setShowDrop(false)
   }
 

@@ -136,7 +136,8 @@ export default function IdentityFlagScreen({ onBack }: Props) {
               score={correct >= ROUNDS * 0.8 ? "You know your identity flags." : "Each round adds a few more to your memory."} />
             <ResultDots results={scores.map(s => s.correct)} />
           </ResultCard>
-          <PrimaryButton onClick={() => setMode(null)} accent={activeMode?.accent ?? A}>Play again</PrimaryButton>
+          <PrimaryButton onClick={() => startMode(mode)} accent={activeMode?.accent ?? A}>Play again</PrimaryButton>
+          <SecondaryButton onClick={() => setMode(null)}>Change deck</SecondaryButton>
           <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>

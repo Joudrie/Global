@@ -205,7 +205,7 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
         draggable={!checked}
         onDragStart={() => setDragged(flag.code)}
         onDragEnd={() => setDragged(null)}
-        onClick={() => inRow !== null ? handleUnassign(flag.code) : handleFlagTap(flag.code)}
+        onClick={e => { e.stopPropagation(); if (inRow !== null) handleUnassign(flag.code); else handleFlagTap(flag.code) }}
         className="flex flex-col items-center rounded-xl overflow-hidden transition-all active:scale-95"
         style={{ border, background: isSelected ? tint(T.gold, 0.15) : T.surface, width: FLAG_W, cursor: checked ? 'default' : 'grab' }}>
         <img src={flag.flagUrl} alt={flag.name}
@@ -247,9 +247,9 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
         </p>
 
         {/* Row A */}
-        <button
+        <div role="group" aria-label="Group A" tabIndex={selected && !checked ? 0 : -1}
           onClick={() => handleRowTap('A')}
-          disabled={(!selected && !dragged) || checked}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowTap('A') } }}
           onDragOver={e => { if (!checked) e.preventDefault() }}
           onDrop={() => { if (dragged && !checked) { assign(dragged, 'A'); setDragged(null) } }}
           className="w-full max-w-sm rounded-xl transition-all"
@@ -269,12 +269,12 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
               <span style={{ fontSize: 11, color: tint(ACCENT_A, 0.5), paddingLeft: 2 }}>drop here</span>
             )}
           </div>
-        </button>
+        </div>
 
         {/* Row B */}
-        <button
+        <div role="group" aria-label="Group B" tabIndex={selected && !checked ? 0 : -1}
           onClick={() => handleRowTap('B')}
-          disabled={(!selected && !dragged) || checked}
+          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowTap('B') } }}
           onDragOver={e => { if (!checked) e.preventDefault() }}
           onDrop={() => { if (dragged && !checked) { assign(dragged, 'B'); setDragged(null) } }}
           className="w-full max-w-sm rounded-xl transition-all"
@@ -294,7 +294,7 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
               <span style={{ fontSize: 11, color: tint(ACCENT_B, 0.5), paddingLeft: 2 }}>drop here</span>
             )}
           </div>
-        </button>
+        </div>
 
         {/* Unassigned pool */}
         {unassigned.length > 0 && (

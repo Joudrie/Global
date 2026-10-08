@@ -503,7 +503,7 @@ const GROUP_INTRO = {
 }
 const GAME_DESC = {
   flags: 'Browse and study flag sets for every country, plus historical states and identity flags, and track which ones you have mastered.',
-  flashcards: 'Swipe through all 195 country flags as flashcards until you know each one by sight.',
+  flashcards: 'Swipe through all 197 country flags as flashcards until you know each one by sight.',
   historical: 'Learn and quiz yourself on the flags of empires, kingdoms and republics that no longer exist.',
   identity: 'Learn pride, ethnic, indigenous, separatist and micronation flags and the stories behind them.',
   provinceroulette: 'Spin a continent, then a country, then name the flag of one of its regions.',

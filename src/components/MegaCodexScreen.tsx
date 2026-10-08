@@ -38,17 +38,21 @@ const GAP = 3
 const PAD = 6
 const MIN_TILE = 56
 const BUFFER_ROWS = 4
+const MAX_W = 720
+const colWidth = () => Math.min(window.innerWidth, MAX_W)
 
 export default function MegaCodexScreen({ onBack }: Props) {
   const [urls] = useState(gatherFlagUrls)
   const scrollRef = useRef<HTMLDivElement>(null)
   const rafRef = useRef<number | null>(null)
-  const [vw, setVw] = useState(() => (typeof window !== "undefined" ? window.innerWidth : 390))
+  // The wall sits in a column capped at MAX_W, so size the grid to that column,
+  // not the window (on desktop the row maths overshot and left blank gaps).
+  const [vw, setVw] = useState(() => (typeof window !== "undefined" ? colWidth() : 390))
   const [vh, setVh] = useState(() => (typeof window !== "undefined" ? window.innerHeight : 800))
   const [scrollTop, setScrollTop] = useState(0)
 
   useEffect(() => {
-    const onResize = () => { setVw(window.innerWidth); setVh(window.innerHeight) }
+    const onResize = () => { setVw(colWidth()); setVh(window.innerHeight) }
     window.addEventListener("resize", onResize)
     return () => window.removeEventListener("resize", onResize)
   }, [])
@@ -75,7 +79,7 @@ export default function MegaCodexScreen({ onBack }: Props) {
   }
 
   return (
-    <div style={{ position: "fixed", inset: 0, maxWidth: 720, margin: "0 auto", background: T.void, color: T.text, zIndex: 1 }}>
+    <div style={{ position: "fixed", inset: 0, maxWidth: MAX_W, margin: "0 auto", background: T.void, color: T.text, zIndex: 1 }}>
       <button onClick={onBack} aria-label="Back" className="geo-tap"
         style={{
           position: "fixed", top: 12, left: 12, zIndex: 50,

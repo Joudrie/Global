@@ -44,8 +44,9 @@ function buildQuiz(seed: string, count = 10): GeoQuestion[] {
 }
 
 export default function GeoQuizScreen({ onBack }: Props) {
-  const [seed] = useState(() => Date.now().toString())
-  const [questions] = useState<GeoQuestion[]>(() => buildQuiz(seed))
+  const [seed, setSeed] = useState(() => Date.now().toString())
+  // A new seed on "Play again" deals a fresh set of countries.
+  const questions = useMemo<GeoQuestion[]>(() => buildQuiz(seed), [seed])
   const [idx, setIdx] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [score, setScore] = useState(0)
@@ -58,6 +59,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
   const [mode, setMode] = useState<'mc' | 'type'>('mc')
   const [input, setInput] = useState('')
   const [showDrop, setShowDrop] = useState(false)
+  const [copied, setCopied] = useState(false)
 
   const q = questions[idx]
   useEffect(() => { setSelected(null); setInput('') }, [idx, seed])
@@ -69,6 +71,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
   }, [input])
 
   const resetGame = () => {
+    setSeed(Date.now().toString())
     setIdx(0); setScore(0); setAnswers([]); setSelected(null)
     setHintUsed(false); setHintShownFor(null); setPhase('quiz'); setInput('')
   }
@@ -83,7 +86,8 @@ export default function GeoQuizScreen({ onBack }: Props) {
     const grid = answers.map(a => a === 'correct' ? '🟩' : '🟥').join('')
     const phrase = scorePhrase(score, questions.length)
     const text = `Globalio Geography ${todayString()}\n${score}/${questions.length} 🌍${phrase ? ` ${phrase}` : ''}\n${grid}\nPlay at globalio.app`
-    await shareOrCopy(text)
+    // On desktop this copies silently; say so, or the button seems to do nothing.
+    if (await shareOrCopy(text) === 'copied') { setCopied(true); setTimeout(() => setCopied(false), 1800) }
   }
 
   const advance = (correct: boolean) => {
@@ -96,7 +100,10 @@ export default function GeoQuizScreen({ onBack }: Props) {
   }
 
   const handleAnswer = (i: number) => {
-    if (selected !== null) return
+    // One answer per question: switching between Choices and Type-in during
+    // the reveal must not allow a second answer (it skipped a question and
+    // crashed on the last one).
+    if (selected !== null || typedGuess) return
     setSelected(i)
     advance(q.choices[i].code === q.target.code)
   }
@@ -105,7 +112,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
   useEffect(() => { setTypedGuess(null) }, [idx, seed])
 
   const handleType = (f: FlagRecord) => {
-    if (typedGuess) return
+    if (typedGuess || selected !== null) return
     setTypedGuess(f); setInput(''); setShowDrop(false)
     advance(f.code === q.target.code)
   }
@@ -124,7 +131,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
             <ResultDots results={answers.map(a => a === 'correct')} />
           </ResultCard>
           <PrimaryButton onClick={handleShare} accent={ACC}>
-            <Clipboard size={16} strokeWidth={1.6} absoluteStrokeWidth /> Share result
+            <Clipboard size={16} strokeWidth={1.6} absoluteStrokeWidth /> {copied ? 'Copied' : 'Share result'}
           </PrimaryButton>
           <SecondaryButton onClick={resetGame}>Play again</SecondaryButton>
           <SecondaryButton onClick={onBack}>Home</SecondaryButton>

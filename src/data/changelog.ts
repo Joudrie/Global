@@ -16,6 +16,20 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     date: "2026-10-08",
+    title: "Bug fixes",
+    items: [
+      "Geography no longer skips a question or crashes when you switch between Choices and Type-in after answering, and Play again deals new countries.",
+      "Flag Families: tap a flag in a group to move it back, so a wrong sort can always be fixed on a phone.",
+      "Border Map: giving up now ends the round and shows your result.",
+      "Typing a full country name and pressing Enter picks that country, so Sudan is no longer read as South Sudan, or Oman as Romania, in Border Map, Border Path and Lineage.",
+      "The Daily Game and Flagle count once a day: coming back after finishing shows today's result instead of a fresh try.",
+      "Frankenflag's score counts halves correctly, Identity Flags' Play again replays the same deck, and the Tier List lets you switch which flag is selected.",
+      "World Cup 2026: the arrow buttons change nation again, and going back from a nation's Codex page returns to that nation.",
+      "Browse all flags shows full-size tiles on a computer, and the trophy shelf labels no longer overlap on small phones.",
+    ],
+  },
+  {
+    date: "2026-10-08",
     title: "Flag Studio: make your own flag",
     items: [
       "New: Flag Studio. Start from any real flag or a blank layout and make it your own.",
