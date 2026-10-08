@@ -150,6 +150,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
             onClick={useHint}
             disabled={hintUsed}
             title={hintUsed ? 'Hint used' : 'Use your one hint (reveals the continent)'}
+            aria-label={hintUsed ? 'Hint used' : 'Use your hint: show the continent'}
             className="px-3 h-9 flex items-center gap-1.5 rounded-full text-sm font-bold transition-all active:scale-95"
             style={{
               background: T.surface,

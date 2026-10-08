@@ -110,7 +110,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                   {filled
                     ? <img src={round.shuffled[shufIdx].flagUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).style.opacity = "0.2" }} />
                     : <span style={{ color: T.dim, fontSize: 11, fontFamily: FONT.mono }}>{pos + 1}</span>}
-                  {locked && filled && <span style={{ position: "absolute", bottom: 1, right: 2, fontSize: 9, color: correct ? ACCENT.learn : T.warm }}>{correct ? "✓" : "✗"}</span>}
+                  {locked && filled && <span style={{ position: "absolute", bottom: 1, right: 2, fontSize: 13, fontWeight: 800, color: correct ? ACCENT.learn : T.warm }}>{correct ? "✓" : "✗"}</span>}
                 </div>
               </div>
             )

@@ -1,6 +1,6 @@
 import { useRef, useState, useEffect, useCallback } from "react"
 import { PAINT_PUZZLES } from "../data/paintPuzzles"
-import { colorAccuracy } from "../utils/color"
+import { colorAccuracy, colorName } from "../utils/color"
 import type { RGB } from "../utils/color"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
@@ -165,7 +165,7 @@ export default function SketchFlagScreen({ onBack }: { onBack: () => void }) {
             {/* Paints */}
             <div className="flex flex-wrap gap-2 justify-center" style={{ maxWidth: 340 }}>
               {PAINTS.map(c => (
-                <button key={c} onClick={() => setColor(c)} aria-label={`paint ${c}`}
+                <button key={c} onClick={() => setColor(c)} aria-label={`${colorName(c)} paint`} aria-pressed={color === c}
                   style={{ width: 30, height: 30, borderRadius: 8, background: c,
                     border: color === c ? `3px solid ${ACC}` : `1px solid ${T.line}`,
                     boxShadow: color === c ? `0 0 10px ${tint(ACC, 0.6)}` : "none" }} />
