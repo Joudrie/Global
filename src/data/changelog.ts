@@ -16,6 +16,12 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Pick your flag's shape: 1:1, 2:3, 3:5 or 1:2.",
       "Symbols snap to the centre of the flag as you drag them.",
       "A design check scores your flag against the classic rules of flag design.",
+      "Real flags now open at their official shape, like 10:19 for the United States and 1:1 for Switzerland.",
+      "Striped flags are fully editable: change the number of stripes, flip them, and drag a stripe to make it wider.",
+      "Nine new symbols, including a maple leaf, shamrock, laurel wreath, wheel, chevron, crescent and star, Nordic cross and saltire.",
+      "Resize and rotate symbols with handles on the flag, pinch with two fingers on a phone, or nudge them with the arrow keys. A layers list picks out anything hidden underneath.",
+      "Make a nation card: your flag, name and motto in one image, ready to post.",
+      "New Random button: a brand-new flag and nation name with one tap.",
     ],
   },
   {

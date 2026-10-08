@@ -2,15 +2,19 @@
 // how a design turns into a finished SVG (for the editor, thumbnails, PNG/SVG
 // export and share links).
 //
-// Every flag template is one of our own self-hosted SVGs. Nothing is redrawn:
+// Every flag template is one of our own self-hosted SVGs (real flags use the
+// Wikimedia Commons artwork at official proportions). Nothing is redrawn:
 // each shape inside the file (path, rect, circle…) is a "part" numbered in
 // document order, and a design stores only the colours it changed by part
 // number. Blank layouts (tricolour, Nordic cross…) are generated SVGs that go
 // through exactly the same path.
 
+import { STUDIO_FLAGS } from "../data/studioFlags"
+
 export type SymbolKind =
   | "star5" | "star6" | "star7" | "sun" | "disc" | "ring" | "crescent"
   | "cross" | "triangle" | "diamond" | "square" | "stripe" | "heart"
+  | "star4" | "maple" | "shamrock" | "laurel" | "chevron" | "nordic" | "saltire" | "crescentstar" | "wheel"
 
 export interface Overlay {
   id: string
@@ -25,11 +29,17 @@ export interface Overlay {
 
 export interface PartColor { f?: string; s?: string } // fill / stroke override
 
+/** An editable striped field. Band colours live in `parts` like any other
+ *  shape (band i is part i); `w` holds each band's share of the flag. */
+export interface StripeSpec { dir: "h" | "v"; w: number[] }
+
 export interface Design {
   id: string
   name: string
-  base: string // "flag:<code>" or "layout:<id>"
+  base: string // "real:<code>" (official artwork), "flag:<code>" (quiz artwork), "layout:<id>" or "stripes"
   ratio?: number // width / height; unset keeps the template's own shape
+  stripes?: StripeSpec // when base is "stripes"
+  motto?: string
   parts: Record<string, PartColor>
   overlays: Overlay[]
   updated: number
@@ -54,11 +64,11 @@ const rect = (x: number, y: number, w: number, h: number, c: string) =>
 const poly = (pts: string, c: string) => `<polygon points="${pts}" fill="${c}"/>`
 const LW = 900
 
-export const LAYOUTS: { id: string; name: string; body: (h: number) => string }[] = [
+export const LAYOUTS: { id: string; name: string; body: (h: number) => string; stripes?: { dir: "h" | "v"; colors: string[] } }[] = [
   { id: "plain", name: "Plain field", body: h => rect(0, 0, LW, h, B) },
-  { id: "bicolour", name: "Bicolour", body: h => rect(0, 0, LW, h / 2, Wt) + rect(0, h / 2, LW, h / 2, R) },
-  { id: "tricolour-h", name: "Horizontal tricolour", body: h => rect(0, 0, LW, h / 3, R) + rect(0, h / 3, LW, h / 3, Wt) + rect(0, 2 * h / 3, LW, h / 3, G) },
-  { id: "tricolour-v", name: "Vertical tricolour", body: h => rect(0, 0, 300, h, B) + rect(300, 0, 300, h, Wt) + rect(600, 0, 300, h, R) },
+  { id: "bicolour", name: "Bicolour", body: h => rect(0, 0, LW, h / 2, Wt) + rect(0, h / 2, LW, h / 2, R), stripes: { dir: "h", colors: [Wt, R] } },
+  { id: "tricolour-h", name: "Horizontal tricolour", body: h => rect(0, 0, LW, h / 3, R) + rect(0, h / 3, LW, h / 3, Wt) + rect(0, 2 * h / 3, LW, h / 3, G), stripes: { dir: "h", colors: [R, Wt, G] } },
+  { id: "tricolour-v", name: "Vertical tricolour", body: h => rect(0, 0, 300, h, B) + rect(300, 0, 300, h, Wt) + rect(600, 0, 300, h, R), stripes: { dir: "v", colors: [B, Wt, R] } },
   { id: "nordic", name: "Nordic cross", body: h => rect(0, 0, LW, h, B) + rect(h * 5 / 12, 0, h / 6, h, Y) + rect(0, h * 5 / 12, LW, h / 6, Y) },
   { id: "cross", name: "Centred cross", body: h => rect(0, 0, LW, h, Wt) + rect(LW / 2 - h / 10, 0, h / 5, h, R) + rect(0, h * 2 / 5, LW, h / 5, R) },
   { id: "saltire", name: "Saltire", body: h => rect(0, 0, LW, h, B) + poly(`0,0 75,0 ${LW},${h - 50} ${LW},${h} ${LW - 75},${h} 0,50`, Wt) + poly(`${LW},0 ${LW},50 75,${h} 0,${h} 0,${h - 50} ${LW - 75},0`, Wt) },
@@ -68,8 +78,34 @@ export const LAYOUTS: { id: string; name: string; body: (h: number) => string }[
   { id: "quartered", name: "Quartered", body: h => rect(0, 0, LW / 2, h / 2, R) + rect(LW / 2, 0, LW / 2, h / 2, Wt) + rect(0, h / 2, LW / 2, h / 2, Wt) + rect(LW / 2, h / 2, LW / 2, h / 2, R) },
   { id: "disc", name: "Disc", body: h => rect(0, 0, LW, h, Wt) + `<circle cx="${LW / 2}" cy="${h / 2}" r="${h * 0.3}" fill="${R}"/>` },
   { id: "border", name: "Bordered", body: h => rect(0, 0, LW, h, Y) + rect(h / 10, h / 10, LW - h / 5, h * 0.8, G) },
-  { id: "stripes", name: "Five stripes", body: h => [0, 1, 2, 3, 4].map(i => rect(0, i * h / 5, LW, h / 5, i % 2 ? Wt : B)).join("") },
+  { id: "stripes", name: "Five stripes", body: h => [0, 1, 2, 3, 4].map(i => rect(0, i * h / 5, LW, h / 5, i % 2 ? Wt : B)).join(""), stripes: { dir: "h", colors: [B, Wt, B, Wt, B] } },
 ]
+
+// Colours new bands start with, in order.
+export const STRIPE_COLORS = [R, Wt, B, Y, G, "#000000", "#F77F00", "#75AADB", "#7A1F3D"]
+
+export function stripesSvg(spec: StripeSpec, ratio = 1.5): string {
+  const h = Math.round(LW / ratio)
+  const total = spec.w.reduce((a, b) => a + b, 0) || 1
+  const len = spec.dir === "h" ? h : LW
+  let at = 0
+  const bands = spec.w.map((w, i) => {
+    const size = (w / total) * len
+    const r = spec.dir === "h" ? rect(0, +at.toFixed(2), LW, +size.toFixed(2), STRIPE_COLORS[i % STRIPE_COLORS.length])
+      : rect(+at.toFixed(2), 0, +size.toFixed(2), h, STRIPE_COLORS[i % STRIPE_COLORS.length])
+    at += size
+    return r
+  })
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${LW} ${h}">${bands.join("")}</svg>`
+}
+
+/** A design whose field is editable stripes, starting from the given colours. */
+export function stripesDesign(dir: "h" | "v", colors: string[], name: string): Design {
+  const d = newDesign("stripes", name)
+  d.stripes = { dir, w: colors.map(() => 1) }
+  colors.forEach((c, i) => { if (c.toLowerCase() !== STRIPE_COLORS[i % STRIPE_COLORS.length].toLowerCase()) d.parts[i] = { f: c.toLowerCase() } })
+  return d
+}
 
 export const layoutSvg = (body: (h: number) => string, ratio = 1.5) => {
   const h = Math.round(LW / ratio)
@@ -94,6 +130,51 @@ function starPath(points: number, inner: number): string {
   return `M${pts.join("L")}Z`
 }
 const CIRCLE = (r: number) => `M${-r} 0A${r} ${r} 0 1 0 ${r} 0A${r} ${r} 0 1 0 ${-r} 0Z`
+const f3 = (n: number) => +n.toFixed(4)
+const circleAt = (cx: number, cy: number, r: number, cw = false) =>
+  `M${f3(cx - r)} ${f3(cy)}A${r} ${r} 0 1 ${cw ? 1 : 0} ${f3(cx + r)} ${f3(cy)}A${r} ${r} 0 1 ${cw ? 1 : 0} ${f3(cx - r)} ${f3(cy)}Z`
+function starAt(points: number, inner: number, cx: number, cy: number, r: number): string {
+  const pts: string[] = []
+  for (let i = 0; i < points * 2; i++) {
+    const a = -Math.PI / 2 + (i * Math.PI) / points
+    const rr = (i % 2 ? inner : 1) * r
+    pts.push(`${f3(cx + rr * Math.cos(a))} ${f3(cy + rr * Math.sin(a))}`)
+  }
+  return `M${pts.join("L")}Z`
+}
+const polyPath = (pts: [number, number][]) => `M${pts.map(([x, y]) => `${f3(x)} ${f3(y)}`).join("L")}Z`
+
+// A stylised maple leaf: the right half, mirrored.
+const MAPLE_RIGHT: [number, number][] = [[0, -1], [0.13, -0.74], [0.28, -0.82], [0.23, -0.4], [0.44, -0.62], [0.5, -0.5], [0.74, -0.56], [0.66, -0.33], [0.8, -0.27], [0.46, 0.02], [0.53, 0.15], [0.06, 0.1], [0.06, 0.66]]
+const MAPLE = polyPath([...MAPLE_RIGHT, ...MAPLE_RIGHT.slice(1).reverse().map(([x, y]) => [-x, y] as [number, number])])
+
+// Laurel wreath: two arcs of leaves meeting at the bottom.
+function laurel(): string {
+  const leaf = (cx: number, cy: number, ang: number) => {
+    const a = 0.16, b = 0.065, c = Math.cos(ang), s = Math.sin(ang), deg = f3(ang * 180 / Math.PI)
+    return `M${f3(cx + a * c)} ${f3(cy + a * s)}A${a} ${b} ${deg} 1 0 ${f3(cx - a * c)} ${f3(cy - a * s)}A${a} ${b} ${deg} 1 0 ${f3(cx + a * c)} ${f3(cy + a * s)}Z`
+  }
+  const out: string[] = []
+  for (let i = 0; i < 9; i++) {
+    const t = (100 + i * 17) * Math.PI / 180 // left side, from the bottom up
+    for (const side of [1, -1]) {
+      const ang = side === 1 ? t : Math.PI - t
+      const cx = 0.78 * Math.cos(ang), cy = 0.78 * Math.sin(ang)
+      out.push(leaf(cx, cy, ang + (side === 1 ? Math.PI / 2 - 0.5 : -Math.PI / 2 + 0.5)))
+    }
+  }
+  return out.join("")
+}
+
+// A wheel with 24 spokes (12 bars through the hub) inside a ring.
+function wheel(): string {
+  const bars: string[] = []
+  for (let i = 0; i < 12; i++) {
+    const a = (i * Math.PI) / 12, c = Math.cos(a), s = Math.sin(a), w = 0.025
+    bars.push(polyPath([[-0.9 * c - w * s, -0.9 * s + w * c], [0.9 * c - w * s, 0.9 * s + w * c], [0.9 * c + w * s, 0.9 * s - w * c], [-0.9 * c + w * s, -0.9 * s - w * c]]))
+  }
+  return circleAt(0, 0, 1) + circleAt(0, 0, 0.88, true) + bars.join("") + circleAt(0, 0, 0.16)
+}
 
 export const SYMBOLS: { kind: SymbolKind; name: string; d: string; evenOdd?: boolean }[] = [
   { kind: "star5", name: "Star", d: starPath(5, 0.382) },
@@ -109,7 +190,18 @@ export const SYMBOLS: { kind: SymbolKind; name: string; d: string; evenOdd?: boo
   { kind: "square", name: "Square", d: "M-1 -1H1V1H-1Z" },
   { kind: "stripe", name: "Stripe", d: "M-1 -.12H1V.12H-1Z" },
   { kind: "heart", name: "Heart", d: "M0 .9C-1.2 0 -.7 -1 0 -.45C.7 -1 1.2 0 0 .9Z" },
+  { kind: "star4", name: "Four-point star", d: starPath(4, 0.35) },
+  { kind: "maple", name: "Maple leaf", d: MAPLE },
+  { kind: "shamrock", name: "Shamrock", d: circleAt(0, -0.42, 0.36) + circleAt(-0.4, 0.02, 0.36) + circleAt(0.4, 0.02, 0.36) + "M-.05 .1L.05 .1L.16 .95L.06 .97Z" },
+  { kind: "laurel", name: "Laurel wreath", d: laurel() },
+  { kind: "crescentstar", name: "Crescent and star", d: "M.317 -.5434A.75 .75 0 1 0 .317 .5434A.6 .6 0 1 1 .317 -.5434Z" + starAt(5, 0.382, 0.52, 0, 0.3) },
+  { kind: "wheel", name: "Wheel", d: wheel() },
+  { kind: "chevron", name: "Chevron", d: "M-1 -1L.3 0L-1 1L-1 .62L-.2 0L-1 -.62Z" },
+  { kind: "nordic", name: "Nordic cross", d: "M-1 -.1H1V.1H-1Z" + "M-.44 -.6667H-.24V.6667H-.44Z" },
+  { kind: "saltire", name: "Saltire", d: "M-1 -.6667L-.86 -.6667L1 .5733L1 .6667L.86 .6667L-1 -.5733Z" + "M1 -.6667L.86 -.6667L-1 .5733L-1 .6667L-.86 .6667L1 -.5733Z" },
 ]
+/** Symbols that span the whole flag start at full width. */
+export const FULL_WIDTH_SYMBOLS = new Set<SymbolKind>(["stripe", "nordic", "saltire"])
 export const symbolOf = (k: SymbolKind | "emblem") => SYMBOLS.find(s => s.kind === k) ?? SYMBOLS[0]
 
 export const overlayTransform = (o: Overlay, scaled = true) =>
@@ -213,25 +305,47 @@ export function toHex(c: string | null | undefined): string | null {
 const baseCache = new Map<string, Promise<string>>()
 
 /** The raw SVG text behind a design's base. Self-hosted first, flagcdn as backup. */
-export function loadBase(base: string, ratio?: number): Promise<string> {
+export function loadBase(d: Pick<Design, "base" | "ratio" | "stripes">): Promise<string> {
+  const { base, ratio } = d
+  if (base === "stripes") return Promise.resolve(stripesSvg(d.stripes ?? { dir: "h", w: [1, 1, 1] }, ratio))
   if (base.startsWith("layout:")) {
     const l = LAYOUTS.find(x => x.id === base.slice(7)) ?? LAYOUTS[0]
     return Promise.resolve(layoutSvg(l.body, ratio))
   }
   let p = baseCache.get(base)
   if (p) return p
-  {
-    const code = base.replace(/^flag:/, "").toLowerCase().replace(/[^a-z-]/g, "")
-    const get = (url: string) => fetch(url).then(r => {
-      if (!r.ok) throw new Error(String(r.status))
-      return r.text()
-    }).then(t => { if (!t.includes("<svg")) throw new Error("not svg"); return t })
-    p = get(`/flags/${code}.svg`).catch(() => get(`https://flagcdn.com/${code}.svg`))
-  }
+  const code = base.replace(/^(flag|real):/, "").toLowerCase().replace(/[^a-z-]/g, "")
+  const get = (url: string) => fetch(url).then(r => {
+    if (!r.ok) throw new Error(String(r.status))
+    return r.text()
+  }).then(t => { if (!t.includes("<svg")) throw new Error("not svg"); return t })
+  const quizArt = () => get(`/flags/${code}.svg`).catch(() => get(`https://flagcdn.com/${code}.svg`))
+  const real = base.startsWith("real:") ? STUDIO_FLAGS[code] : undefined
+  p = real ? get(real[0]).catch(quizArt) : quizArt()
   p.catch(() => baseCache.delete(base))
   baseCache.set(base, p)
   return p
 }
+
+/** Bases drawn in code (layouts, stripes) need no download. */
+export function baseTextSync(d: Pick<Design, "base" | "ratio" | "stripes">): string | null {
+  if (d.base === "stripes") return stripesSvg(d.stripes ?? { dir: "h", w: [1, 1, 1] }, d.ratio)
+  if (d.base.startsWith("layout:")) return layoutSvg((LAYOUTS.find(x => x.id === d.base.slice(7)) ?? LAYOUTS[0]).body, d.ratio)
+  return null
+}
+
+/** An SVG file's own width/height, the way a browser sizes it. */
+export function svgOwnRatio(text: string): number {
+  const tag = text.match(/<svg[^>]*>/)?.[0] ?? ""
+  const num = (a: string) => { const m = tag.match(new RegExp(`\\s${a}="([\\d.]+(?:e\\d+)?)(px)?"`)); return m ? parseFloat(m[1]) : 0 }
+  const w = num("width"), h = num("height")
+  if (w > 0 && h > 0) return w / h
+  const vb = tag.match(/viewBox="([^"]+)"/)?.[1].trim().split(/[\s,]+/).map(Number)
+  return vb && vb.length === 4 && vb[2] > 0 && vb[3] > 0 ? vb[2] / vb[3] : 1.5
+}
+
+/** The template base for a country: official artwork when we have it. */
+export const countryBase = (code: string) => (STUDIO_FLAGS[code.toLowerCase()] ? "real:" : "flag:") + code.toLowerCase()
 
 // ── Composing ──────────────────────────────────────────────────────────────
 
@@ -250,14 +364,17 @@ export function composeBase(text: string, parts: Record<string, PartColor>, rati
   const root = doc.documentElement
   if (!root || root.nodeName !== "svg") return { svg: "", h: Math.round(FLAG_W * 2 / 3) }
   let vb = (root.getAttribute("viewBox") || "").trim().split(/[\s,]+/).map(Number)
+  // Like a browser: width/height set the shape when both are given in plain
+  // units (Qatar stretches a 75×18 viewBox to 1400×550), else the viewBox.
+  const attrW = /^[\d.]+(e\d+)?(px)?$/.test(root.getAttribute("width") || "") ? parseFloat(root.getAttribute("width")!) : 0
+  const attrH = /^[\d.]+(e\d+)?(px)?$/.test(root.getAttribute("height") || "") ? parseFloat(root.getAttribute("height")!) : 0
   if (vb.length !== 4 || vb.some(n => !isFinite(n)) || vb[2] <= 0 || vb[3] <= 0) {
-    const w = parseFloat(root.getAttribute("width") || "") || 900
-    const h = parseFloat(root.getAttribute("height") || "") || 600
-    vb = [0, 0, w, h]
+    vb = [0, 0, attrW || 900, attrH || 600]
     root.setAttribute("viewBox", vb.join(" "))
   }
+  const own = attrW > 0 && attrH > 0 ? attrW / attrH : vb[2] / vb[3]
   // A chosen ratio stretches the artwork to fit, the way flags are resized.
-  const h = Math.round(ratio ? FLAG_W / ratio : FLAG_W * vb[3] / vb[2])
+  const h = Math.round(FLAG_W / (ratio ?? own))
   root.setAttribute("width", String(FLAG_W))
   root.setAttribute("height", String(h))
   root.setAttribute("x", "0")
@@ -319,6 +436,71 @@ export function downloadBlob(blob: Blob, filename: string) {
 export const fileSlug = (name: string) =>
   (name.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "") || "my-flag").slice(0, 60)
 
+// ── Random flags ───────────────────────────────────────────────────────────
+// A fresh flag that follows the design rules: one structure, two or three
+// colours from different families, and sometimes one symbol.
+
+const FAMILIES = [
+  ["#C8102E", "#E4002B", "#9E1B32", "#7A1F3D"],
+  ["#0B3D91", "#002868", "#0072CE", "#00A3E0", "#75AADB"],
+  ["#007A3D", "#009639", "#00843D"],
+  ["#FCD116", "#FFC72C", "#F77F00"],
+  ["#FFFFFF"], ["#000000"],
+]
+const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]
+
+function randomColours(n: number): string[] {
+  const fams = [...FAMILIES].sort(() => Math.random() - 0.5).slice(0, n)
+  // Most flags have a light colour; make sure one is white or gold.
+  if (!fams.some(f => f[0] === "#FFFFFF" || f[0] === "#FCD116")) fams[n - 1] = Math.random() < 0.6 ? FAMILIES[4] : FAMILIES[3]
+  return fams.map(f => pick(f).toLowerCase())
+}
+
+const NAME_START = ["Val", "Mor", "Kar", "Lun", "Ost", "Bel", "Dra", "Sel", "Tor", "Ar", "Cal", "Ver", "Nor", "Zan", "El", "Mar", "Quel", "Ish", "Rav", "Tal"]
+const NAME_MID = ["", "", "a", "e", "o", "an", "en", "or", "ir", "el"]
+const NAME_END = ["ia", "ora", "ova", "land", "stan", "eria", "ania", "is", "aro", "enia", "ica", "mark"]
+const NAME_FORM = ["Republic of", "Kingdom of", "Federation of", "Free State of", "Principality of", "Commonwealth of", "United Provinces of", "Grand Duchy of", ""]
+
+export function randomNationName(): string {
+  const core = pick(NAME_START) + pick(NAME_MID) + pick(NAME_END)
+  const form = pick(NAME_FORM)
+  return form ? `${form} ${core}` : core
+}
+
+export function randomDesign(emblemCodes: string[] = []): Design {
+  const name = randomNationName()
+  const roll = Math.random()
+  let d: Design
+  if (roll < 0.4) {
+    const n = pick([2, 3, 3, 3, 4, 5])
+    const cols = randomColours(n === 2 ? 2 : Math.min(3, n))
+    const bands = Array.from({ length: n }, (_, i) => (n === 5 ? cols[i % 2] : cols[i % cols.length]))
+    d = stripesDesign(Math.random() < 0.6 ? "h" : "v", bands, name)
+    if (n === 3 && Math.random() < 0.25) d.stripes!.w = [1, 2, 1] // a wide centre band, like Spain
+  } else {
+    const l = pick(LAYOUTS.filter(x => !x.stripes && x.id !== "plain"))
+    d = newDesign(`layout:${l.id}`, name)
+    // Recolour the layout's shapes, keeping its own colour pattern.
+    const fills = [...l.body(600).matchAll(/fill="([^"]+)"/g)].map(m => m[1].toLowerCase())
+    const distinct = [...new Set(fills)]
+    const cols = randomColours(Math.min(3, Math.max(2, distinct.length)))
+    fills.forEach((f, i) => { d.parts[i] = { f: cols[distinct.indexOf(f) % cols.length] } })
+  }
+  const r2 = Math.random()
+  if (r2 < 0.55) {
+    const used = new Set(Object.values(d.parts).map(p => p.f))
+    const color = [...FAMILIES[4], ...FAMILIES[3], ...FAMILIES[0]].map(c => c.toLowerCase()).find(c => !used.has(c)) ?? "#ffffff"
+    const useEmblem = emblemCodes.length && r2 < 0.12
+    const kind: SymbolKind = pick(["star5", "star5", "sun", "crescentstar", "star7", "disc", "maple", "star6", "wheel", "laurel"] as SymbolKind[])
+    const h = FLAG_W / 1.5
+    const atHoist = Math.random() < 0.4
+    d.overlays.push(useEmblem
+      ? { id: newId(), kind: "emblem", emblem: pick(emblemCodes), x: FLAG_W / 2, y: h / 2, size: Math.round(h * 0.55), rot: 0, color: Math.random() < 0.5 ? "" : color }
+      : { id: newId(), kind, x: atHoist ? FLAG_W / 4 : FLAG_W / 2, y: h / 2, size: Math.round(h * (atHoist ? 0.35 : 0.42)), rot: 0, color })
+  }
+  return d
+}
+
 // ── Share links ────────────────────────────────────────────────────────────
 // The whole design rides in the URL (?play=flagstudio&design=…), so sharing
 // needs no account and no server.
@@ -333,6 +515,8 @@ export function encodeDesign(d: Design): string {
     p: d.parts,
     o: d.overlays.map(o => [o.kind, Math.round(o.x), Math.round(o.y), Math.round(o.size), Math.round(o.rot), o.color, ...(o.emblem ? [o.emblem] : [])]),
     ...(d.ratio ? { r: +d.ratio.toFixed(4) } : {}),
+    ...(d.stripes ? { s: { d: d.stripes.dir, w: d.stripes.w.map(n => +n.toFixed(3)) } } : {}),
+    ...(d.motto ? { m: d.motto.slice(0, 80) } : {}),
   }
   const bytes = new TextEncoder().encode(JSON.stringify(payload))
   let bin = ""
@@ -345,7 +529,7 @@ export function decodeDesign(s: string): Design | null {
   try {
     const bin = atob(s.replace(/-/g, "+").replace(/_/g, "/"))
     const json = JSON.parse(new TextDecoder().decode(Uint8Array.from(bin, c => c.charCodeAt(0))))
-    const base = typeof json.b === "string" && /^(flag|layout):[a-z0-9-]{1,24}$/.test(json.b) ? json.b : null
+    const base = typeof json.b === "string" && (/^(flag|real|layout):[a-z0-9-]{1,24}$/.test(json.b) || json.b === "stripes") ? json.b : null
     if (!base) return null
     const parts: Record<string, PartColor> = {}
     if (json.p && typeof json.p === "object") {
@@ -368,7 +552,11 @@ export function decodeDesign(s: string): Design | null {
     }) : []
     const name = typeof json.n === "string" && json.n.trim() ? json.n.slice(0, 60) : "Shared flag"
     const ratio = typeof json.r === "number" && json.r >= 0.5 && json.r <= 3 ? json.r : undefined
-    return { id: newId(), name, base, parts, overlays, updated: Date.now(), ...(ratio ? { ratio } : {}) }
+    const st = json.s
+    const stripes: StripeSpec | undefined = base === "stripes" && st && (st.d === "h" || st.d === "v") && Array.isArray(st.w) && st.w.length >= 2 && st.w.length <= 9 && st.w.every((n: unknown) => typeof n === "number" && n > 0 && n < 100)
+      ? { dir: st.d, w: st.w } : base === "stripes" ? { dir: "h", w: [1, 1, 1] } : undefined
+    const motto = typeof json.m === "string" ? json.m.slice(0, 80) : undefined
+    return { id: newId(), name, base, parts, overlays, updated: Date.now(), ...(ratio ? { ratio } : {}), ...(stripes ? { stripes } : {}), ...(motto ? { motto } : {}) }
   } catch { return null }
 }
 
