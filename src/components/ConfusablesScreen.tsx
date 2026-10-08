@@ -15,6 +15,11 @@ interface Round {
   correctIndex: number
 }
 
+// Pairs that differ only in proportions, which the 3:2 tiles don't show
+// (Monaco is 4:5, Indonesia 2:3): never both in one round.
+const TWINS = [["MC", "ID"]]
+const identical = (a: string, b: string) => TWINS.some(([x, y]) => (x === a && y === b) || (x === b && y === a))
+
 function buildRounds(count: number): Round[] {
   // Only flags with at least 3 GENUINE look-alikes — so every distractor really
   // does resemble the answer (no padding with random same-region flags, which
@@ -27,6 +32,7 @@ function buildRounds(count: number): Round[] {
     if (rounds.length >= count) break
 
     const confusables = target.confusableWith
+      .filter(code => !identical(target.code, code))
       .map(code => FLAGS.find(f => f.code === code))
       .filter((f): f is FlagRecord => !!f)
 

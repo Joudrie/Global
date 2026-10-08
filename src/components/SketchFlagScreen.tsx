@@ -28,6 +28,8 @@ function makeDealer() {
 }
 const deal = makeDealer()
 
+const WHITE: RGB = [255, 255, 255]
+
 // Average colour of each cell in a GX×GY grid over an ImageData.
 function grid(data: ImageData, gx: number, gy: number): RGB[] {
   const out: RGB[] = []
@@ -44,11 +46,12 @@ function grid(data: ImageData, gx: number, gy: number): RGB[] {
   return out
 }
 
+// Bands for the score above a blank canvas (0 = blank, 100 = the real flag).
 function gradeOf(a: number) {
-  if (a >= 90) return { t: "Spot on!", c: T.green }
-  if (a >= 78) return { t: "Great likeness", c: T.green }
-  if (a >= 64) return { t: "Recognisable", c: ACC }
-  if (a >= 48) return { t: "Rough sketch", c: T.amber }
+  if (a >= 80) return { t: "Spot on!", c: T.green }
+  if (a >= 60) return { t: "Great likeness", c: T.green }
+  if (a >= 40) return { t: "Recognisable", c: ACC }
+  if (a >= 20) return { t: "Rough sketch", c: T.amber }
   return { t: "Abstract art", c: T.danger }
 }
 
@@ -123,7 +126,10 @@ export default function SketchFlagScreen({ onBack }: { onBack: () => void }) {
     if (ctx && real) {
       const mine = grid(ctx.getImageData(0, 0, W, H), 30, 20)
       const avg = mine.reduce((s, c, i) => s + colorAccuracy(c, real[i]), 0) / mine.length
-      setAccuracy(Math.round(avg))
+      // Score only what the drawing adds over a blank white canvas, so a dot
+      // on Japan's white field isn't "83%".
+      const blank = real.reduce((s, c) => s + colorAccuracy(WHITE, c), 0) / real.length
+      setAccuracy(blank >= 100 ? Math.round(avg) : Math.max(0, Math.round((avg - blank) / (100 - blank) * 100)))
     } else setAccuracy(0)
     setPhase("result")
   }

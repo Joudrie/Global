@@ -6,6 +6,7 @@ import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { sameHalf } from "../utils/flagHalves"
 
 interface Props { onBack: () => void }
 
@@ -80,17 +81,25 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
   const [topGuess, setTopGuess] = useState<FlagRecord | null>(null)
   const [botGuess, setBotGuess] = useState<FlagRecord | null>(null)
   const [checked, setChecked] = useState(false)
+  // Which halves were right: the exact flag, or one whose half looks the same.
+  const [ok, setOk] = useState({ top: false, bot: false })
+  const [checking, setChecking] = useState(false)
   const [scores, setScores] = useState<number[]>([]) // 0, 0.5, or 1 per round
   const [done, setDone] = useState(false)
 
   const round = rounds[idx]
 
-  const check = () => {
-    let pts = 0
-    if (topGuess?.code === round.top.code) pts += 0.5
-    if (botGuess?.code === round.bottom.code) pts += 0.5
-    setScores(s => [...s, pts])
+  const check = async () => {
+    if (checking || checked) return
+    setChecking(true)
+    const [top, bot] = await Promise.all([
+      topGuess ? sameHalf(topGuess.flagUrl, round.top.flagUrl, "top") : false,
+      botGuess ? sameHalf(botGuess.flagUrl, round.bottom.flagUrl, "bottom") : false,
+    ])
+    setOk({ top, bot })
+    setScores(s => [...s, (top ? 0.5 : 0) + (bot ? 0.5 : 0)])
     setChecked(true)
+    setChecking(false)
   }
   const next = () => {
     if (idx + 1 >= ROUNDS) { setDone(true); return }
@@ -114,8 +123,8 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
     )
   }
 
-  const topOK = checked && topGuess?.code === round.top.code
-  const botOK = checked && botGuess?.code === round.bottom.code
+  const topOK = checked && ok.top
+  const botOK = checked && ok.bot
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
@@ -141,7 +150,7 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
             {checked
               ? <div className="px-4 py-3 rounded-xl font-semibold flex items-center justify-between"
                   style={{ background: T.surface, border: `1.5px solid ${topOK ? T.green : T.danger}`, color: T.text }}>
-                  <span>{round.top.name}</span><span style={{ color: topOK ? T.green : T.danger }}>{topOK ? "✓" : `✗ (you: ${topGuess?.name ?? "—"})`}</span>
+                  <span>{round.top.name}</span><span style={{ color: topOK ? T.green : T.danger }}>{topOK ? (topGuess?.code === round.top.code ? "✓" : `✓ (${topGuess?.name} looks the same)`) : `✗ (you: ${topGuess?.name ?? "—"})`}</span>
                 </div>
               : topGuess
                 ? <SelectedChip flag={topGuess} onClear={() => setTopGuess(null)} />
@@ -152,7 +161,7 @@ function FrankenflagGame({ onBack, onReplay }: Props & { onReplay: () => void })
             {checked
               ? <div className="px-4 py-3 rounded-xl font-semibold flex items-center justify-between"
                   style={{ background: T.surface, border: `1.5px solid ${botOK ? T.green : T.danger}`, color: T.text }}>
-                  <span>{round.bottom.name}</span><span style={{ color: botOK ? T.green : T.danger }}>{botOK ? "✓" : `✗ (you: ${botGuess?.name ?? "—"})`}</span>
+                  <span>{round.bottom.name}</span><span style={{ color: botOK ? T.green : T.danger }}>{botOK ? (botGuess?.code === round.bottom.code ? "✓" : `✓ (${botGuess?.name} looks the same)`) : `✗ (you: ${botGuess?.name ?? "—"})`}</span>
                 </div>
               : botGuess
                 ? <SelectedChip flag={botGuess} onClear={() => setBotGuess(null)} />
