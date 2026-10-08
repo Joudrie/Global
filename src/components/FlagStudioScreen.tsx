@@ -7,10 +7,12 @@ import FlagImage from "./FlagImage"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import {
-  FLAG_W, LAYOUTS, SYMBOLS, FLAG_PALETTE, layoutSvg, symbolOf, overlayTransform,
+  FLAG_W, LAYOUTS, SYMBOLS, FLAG_PALETTE, RATIOS, layoutSvg, symbolOf, overlayTransform,
   newDesign, newId, loadBase, composeBase, composeFull, svgDataUri, svgToPng, downloadBlob,
   fileSlug, encodeDesign, decodeDesign, loadStore, saveStore, toHex,
+  loadEmblem, ensureEmblems, emblemInner, emblemPng,
 } from "../utils/flagStudio"
+import { EMBLEMS } from "../data/emblems"
 import type { Design, Overlay, SymbolKind } from "../utils/flagStudio"
 
 const ACC = ACCENT.play
@@ -21,7 +23,7 @@ type Sel =
   | { k: "ov"; id: string }
   | null
 
-type Tab = "templates" | "symbols" | "edit" | "export" | "mine"
+type Tab = "templates" | "symbols" | "emblems" | "edit" | "export" | "mine"
 
 const REGIONS: ("All" | FlagRecord["region"])[] = ["All", "Europe", "Africa", "Asia", "Middle East", "Americas", "Oceania"]
 const EXPORT_SIZES = [600, 1200, 2400, 3840]
@@ -77,6 +79,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const ovRef = useRef<SVGSVGElement>(null)
   const eff = useRef<{ f: (string | null)[]; s: (string | null)[]; group: Map<string, string> }>({ f: [], s: [], group: new Map() })
   const inGroup = (c: string | null | undefined, rep: string) => !!c && (eff.current.group.get(c) ?? c) === rep
+  const [guides, setGuides] = useState<{ x?: number; y?: number }>({})
   const drag = useRef<{ id: string; dx: number; dy: number; started: boolean } | null>(null)
   const liveStarted = useRef(false)
 
@@ -91,12 +94,22 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     let live = true
     setBaseText(null)
     setLoadFailed(false)
-    loadBase(design.base).then(t => { if (live) setBaseText(t) }).catch(() => { if (live) setLoadFailed(true) })
+    loadBase(design.base, design.ratio).then(t => { if (live) setBaseText(t) }).catch(() => { if (live) setLoadFailed(true) })
     return () => { live = false }
-  }, [design.base])
+  }, [design.base, design.ratio])
 
-  const composed = useMemo(() => (baseText ? composeBase(baseText, design.parts) : null), [baseText, design.parts])
+  const composed = useMemo(() => (baseText ? composeBase(baseText, design.parts, design.ratio) : null), [baseText, design.parts, design.ratio])
   const flagH = composed?.h ?? Math.round(FLAG_W * 2 / 3)
+
+  // Emblem artwork loads on demand; re-render once it arrives.
+  const [, setEmblemTick] = useState(0)
+  const emblemKey = design.overlays.map(o => o.emblem ?? "").join()
+  useEffect(() => {
+    let live = true
+    ensureEmblems(design).then(() => { if (live) setEmblemTick(t => t + 1) })
+    return () => { live = false }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [emblemKey])
 
   // Read back the colours the browser actually paints, so the colour strip
   // and "every part in this colour" work for any flag file. The strip is
@@ -120,7 +133,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
       add(f[i], a)
       add(s[i], a * 0.3)
     })
-    for (const o of design.overlays) add(o.color.toLowerCase(), 1)
+    for (const o of design.overlays) if (o.color) add(o.color.toLowerCase(), 1)
     const ranked = [...area.entries()].filter(([, a]) => a > 0).sort((a, b) => b[1] - a[1])
     const group = new Map<string, string>()
     const reps: { hex: string; area: number }[] = []
@@ -256,7 +269,37 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     if (!wide) setTab("edit")
   }
 
+  const addEmblem = (code: string) => {
+    const e = EMBLEMS.find(x => x.code === code)
+    const h = flagH * 0.6
+    const o: Overlay = {
+      id: newId(), kind: "emblem", emblem: code, x: FLAG_W / 2, y: flagH / 2,
+      size: Math.round(e && e.ratio > 1 ? h * e.ratio : h), rot: 0, color: "",
+    }
+    loadEmblem(code).catch(() => setNotice("That emblem didn't load. Check your connection and try again."))
+    commit({ ...design, overlays: [...design.overlays, o] })
+    setSel({ k: "ov", id: o.id })
+    if (!wide) setTab("edit")
+  }
+
+  // The template's own shape, for the "Original" ratio.
+  const originalRatio = useMemo(() => {
+    if (design.base.startsWith("layout:")) return 1.5
+    const m = baseText?.match(/viewBox="([^"]+)"/)
+    const vb = m ? m[1].trim().split(/[\s,]+/).map(Number) : []
+    return vb.length === 4 && vb[2] > 0 && vb[3] > 0 ? vb[2] / vb[3] : 4 / 3
+  }, [baseText, design.base])
+
+  const setRatio = (value?: number) => {
+    if (value === design.ratio) return
+    const newH = FLAG_W / (value ?? originalRatio)
+    const k = newH / flagH
+    commit({ ...design, ratio: value, overlays: design.overlays.map(o => ({ ...o, y: o.y * k })) })
+  }
+
   const selOverlay = sel?.k === "ov" ? design.overlays.find(o => o.id === sel.id) : undefined
+  const overlayName = (o: Overlay) =>
+    o.kind === "emblem" ? `${EMBLEMS.find(e => e.code === o.emblem)?.name ?? "Emblem"} emblem` : symbolOf(o.kind).name
 
   const updateOverlay = (id: string, patch: Partial<Overlay>) =>
     live(d => ({ ...d, overlays: d.overlays.map(o => (o.id === id ? { ...o, ...patch } : o)) }))
@@ -312,13 +355,22 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     if (!d) return
     const p = svgPoint(e)
     if (!d.started) { d.started = true; beginLive() }
-    const x = Math.max(0, Math.min(FLAG_W, p.x - d.dx))
-    const y = Math.max(0, Math.min(flagH, p.y - d.dy))
+    let x = Math.max(0, Math.min(FLAG_W, p.x - d.dx))
+    let y = Math.max(0, Math.min(flagH, p.y - d.dy))
+    // Snap to the centre lines, and to the middle of the hoist (where
+    // emblems usually sit on a flag with a canton or triangle).
+    const SNAP = 14
+    const gx = [FLAG_W / 2, FLAG_W / 4].find(v => Math.abs(x - v) < SNAP)
+    const gy = Math.abs(y - flagH / 2) < SNAP ? flagH / 2 : undefined
+    if (gx !== undefined) x = gx
+    if (gy !== undefined) y = gy
+    setGuides({ x: gx, y: gy })
     updateOverlay(d.id, { x, y })
   }
   const onOverlayUp = () => {
     if (drag.current?.started) endLive()
     drag.current = null
+    setGuides({})
   }
 
   // Keyboard: undo/redo, delete a symbol, Escape to deselect.
@@ -370,7 +422,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const selectedHex =
     sel?.k === "part" ? (sel.prop === "f" ? eff.current.f[sel.i] : eff.current.s[sel.i]) ?? null
       : sel?.k === "color" ? sel.hex
-        : selOverlay ? selOverlay.color.toLowerCase() : null
+        : selOverlay?.color ? selOverlay.color.toLowerCase() : null
 
   const header = (
     <header style={{ display: "flex", alignItems: "center", gap: 10, padding: "12px 16px", borderBottom: `1px solid ${T.line}`, background: T.surface, flexWrap: "wrap" }}>
@@ -407,12 +459,18 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                 {design.overlays.map(o => {
                   const s = symbolOf(o.kind)
                   const on = (sel?.k === "ov" && sel.id === o.id) || (sel?.k === "color" && inGroup(o.color.toLowerCase(), sel.hex))
+                  if (o.kind === "emblem") return (
+                    <g key={o.id} transform={overlayTransform(o, false)} className={on ? "fs-sel" : undefined}
+                      onPointerDown={e => onOverlayDown(e, o)} dangerouslySetInnerHTML={{ __html: emblemInner(o) }} />
+                  )
                   return (
                     <path key={o.id} d={s.d} fill={o.color} fillRule={s.evenOdd ? "evenodd" : undefined}
                       transform={overlayTransform(o)} className={on ? "fs-sel" : undefined}
                       onPointerDown={e => onOverlayDown(e, o)} />
                   )
                 })}
+                {guides.x !== undefined && <line className="fs-guide" x1={guides.x} x2={guides.x} y1={0} y2={flagH} />}
+                {guides.y !== undefined && <line className="fs-guide" x1={0} x2={FLAG_W} y1={guides.y} y2={guides.y} />}
               </svg>
             </>
           ) : (
@@ -444,9 +502,9 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
             <span className="fs-swatch" style={{ background: selectedHex ?? "transparent" }} />
             <div style={{ display: "grid", lineHeight: 1.3 }}>
               <b style={{ fontSize: 14, color: T.text }}>
-                {sel.k === "part" ? "This shape" : sel.k === "color" ? `Every part in this colour` : symbolOf(selOverlay?.kind ?? "star5").name}
+                {sel.k === "part" ? "This shape" : sel.k === "color" ? `Every part in this colour` : selOverlay ? overlayName(selOverlay) : ""}
               </b>
-              <span style={{ fontSize: 12, color: T.muted }}>{selectedHex?.toUpperCase() ?? "Pattern"}</span>
+              <span style={{ fontSize: 12, color: T.muted }}>{selectedHex?.toUpperCase() ?? (selOverlay?.kind === "emblem" ? "Its own colours" : "Pattern")}</span>
             </div>
           </>
         ) : (
@@ -466,7 +524,12 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
       {selOverlay && (
         <div style={{ display: "grid", gap: 12, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
-          <h2 className="fs-h">{symbolOf(selOverlay.kind).name}</h2>
+          <h2 className="fs-h">{overlayName(selOverlay)}</h2>
+          {selOverlay.kind === "emblem" && selOverlay.color && (
+            <button className="fs-secondary" onClick={() => commit({ ...design, overlays: design.overlays.map(o => (o.id === selOverlay.id ? { ...o, color: "" } : o)) })}>
+              Back to its own colours
+            </button>
+          )}
           <Slider id="fs-size" label="Size" min={20} max={1200} value={Math.round(selOverlay.size)}
             onStart={beginLive} onEnd={endLive} onChange={v => updateOverlay(selOverlay.id, { size: v })} />
           <Slider id="fs-rot" label="Rotate" min={0} max={359} value={Math.round(selOverlay.rot)} suffix="°"
@@ -477,9 +540,24 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
             <IconBtn label="Send backward" onClick={() => moveOverlay(selOverlay.id, -1)}><ArrowDown size={15} /></IconBtn>
             <IconBtn label="Delete" text="Delete" onClick={() => removeOverlay(selOverlay.id)}><Trash2 size={15} /></IconBtn>
           </div>
-          <span style={{ fontSize: 12, color: T.muted }}>Drag the symbol on the flag to move it.</span>
+          <span style={{ fontSize: 12, color: T.muted }}>
+            {selOverlay.kind === "emblem" ? "Drag the emblem to move it. Pick a colour to make it one colour." : "Drag the symbol on the flag to move it."}
+          </span>
         </div>
       )}
+
+      <div style={{ display: "grid", gap: 8, borderTop: `1px solid ${T.line}`, paddingTop: 14 }}>
+        <h2 className="fs-h">Flag shape</h2>
+        <div className="fs-seg" role="radiogroup" aria-label="Flag shape">
+          {RATIOS.map(r => (
+            <button key={r.label} role="radio" aria-checked={design.ratio === r.value} className={design.ratio === r.value ? "on" : ""} onClick={() => setRatio(r.value)}>
+              {r.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <DesignCheck design={design} colours={strip.length} parts={eff.current.f.length} hasText={!!baseText?.includes("<text")} />
     </div>
   )
 
@@ -524,13 +602,14 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const content: Record<Tab, ReactNode> = {
     templates: <TemplatesPanel onPick={openTemplate} current={design.base} />,
     symbols: symbolsPanel,
+    emblems: <EmblemsPanel onAdd={addEmblem} onError={setNotice} />,
     edit: editPanel,
     export: exportPanel,
     mine: <MinePanel library={library} currentId={design.id} onOpen={d => switchTo(d)} onDelete={id => setSaved(library.filter(d => d.id !== id))} />,
   }
 
-  const leftTabs: [Tab, string][] = [["templates", "Templates"], ["symbols", "Symbols"], ["mine", "My flags"]]
-  const phoneTabs: [Tab, string][] = [["edit", "Colour"], ["templates", "Templates"], ["symbols", "Symbols"], ["export", "Export"], ["mine", "My flags"]]
+  const leftTabs: [Tab, string][] = [["templates", "Templates"], ["symbols", "Symbols"], ["emblems", "Emblems"], ["mine", "My flags"]]
+  const phoneTabs: [Tab, string][] = [["edit", "Edit"], ["templates", "Templates"], ["symbols", "Symbols"], ["emblems", "Emblems"], ["export", "Export"], ["mine", "My flags"]]
   const leftTab: Tab = leftTabs.some(([t]) => t === tab) ? tab : "templates"
 
   return (
@@ -652,11 +731,90 @@ function MinePanel({ library, currentId, onOpen, onDelete }:
   )
 }
 
+function EmblemsPanel({ onAdd, onError }: { onAdd: (code: string) => void; onError: (msg: string) => void }) {
+  const [q, setQ] = useState("")
+  const list = useMemo(() => {
+    const fq = fold(q.trim())
+    return EMBLEMS.filter(e => !fq || fold(e.name).includes(fq))
+  }, [q])
+  const download = async (code: string) => {
+    try {
+      const { blob } = await emblemPng(code, 1024)
+      downloadBlob(blob, `${code}-emblem.png`)
+    } catch { onError("That emblem didn't download. Check your connection and try again.") }
+  }
+  return (
+    <div className="fs-panel">
+      <label className="fs-searchbox">
+        <Search size={16} color={T.muted} aria-hidden="true" />
+        <input id="fs-emblem-search" className="fs-search bare" placeholder={`Search ${EMBLEMS.length} emblems`} value={q}
+          onChange={e => setQ(e.target.value)} aria-label="Search emblems" />
+      </label>
+      <div className="fs-egrid">
+        {list.map(e => (
+          <div key={e.code} className="fs-card fs-emb">
+            <button className="fs-mine-open" onClick={() => onAdd(e.code)} aria-label={`Add the ${e.name} emblem`}>
+              <img src={`/emblems/${e.code}.svg`} alt="" loading="lazy" className="fs-emb-img" />
+              <span>{e.name}</span>
+            </button>
+            <button className="fs-mini" onClick={() => download(e.code)} aria-label={`Download the ${e.name} emblem as PNG`}>
+              <Download size={12} /> PNG
+            </button>
+          </div>
+        ))}
+      </div>
+      {!list.length && <span style={{ fontSize: 13, color: T.muted }}>No emblem matches "{q}".</span>}
+      <span style={{ fontSize: 12, color: T.muted }}>
+        Tap an emblem to put it on your flag. Emblems are cut from the flags in Globalio (flag-icons artwork, MIT licence). Real national emblems can have legal limits on use, so keep them to creative and fictional flags.
+      </span>
+    </div>
+  )
+}
+
+// A friendly score against the classic rules of flag design. Advice, never a block.
+function DesignCheck({ design, colours, parts, hasText }: { design: Design; colours: number; parts: number; hasText: boolean }) {
+  const total = parts + design.overlays.length
+  const detailed = hasText || design.overlays.some(o => o.kind === "emblem") || parts > 40
+  const untouched = design.base.startsWith("flag:") && !Object.keys(design.parts).length && !design.overlays.length && !design.ratio
+  const checks = [
+    total <= 14
+      ? { ok: true, text: "Simple enough to draw from memory" }
+      : { ok: false, warn: total <= 40, text: total <= 40 ? "Getting busy. Fewer parts read better from far away" : "Very detailed. Simple flags are easier to remember" },
+    colours >= 2 && colours <= 3
+      ? { ok: true, text: `${colours} colours. Two or three is the sweet spot` }
+      : colours < 2
+        ? { ok: false, warn: true, text: "One colour. Add a second so it stands out" }
+        : { ok: false, warn: colours === 4, text: `${colours} colours. Try cutting back to three` },
+    detailed
+      ? { ok: false, warn: true, text: hasText ? "Lettering is hard to read on a flag in the wind" : "A detailed crest looks great up close but blurs from far away" }
+      : { ok: true, text: "No lettering or seals" },
+    untouched
+      ? { ok: false, warn: true, text: "Still the original flag. Change something to make it yours" }
+      : { ok: true, text: "Your own design" },
+  ]
+  const score = Math.round(checks.reduce((n, c) => n + (c.ok ? 1 : c.warn ? 0.5 : 0), 0) / checks.length * 100)
+  return (
+    <div className="fs-check">
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "baseline" }}>
+        <h2 className="fs-h">Design check</h2>
+        <span style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: 24, color: T.text, fontVariantNumeric: "tabular-nums" }}>{score}</span>
+      </div>
+      <ul>
+        {checks.map(c => (
+          <li key={c.text}><span className="fs-dot" style={{ background: c.ok ? T.green : c.warn ? T.amber : T.danger }} />{c.text}</li>
+        ))}
+      </ul>
+      <span style={{ fontSize: 12, color: T.muted }}>Bonus rule: give every colour and symbol a meaning.</span>
+    </div>
+  )
+}
+
 function DesignThumb({ design }: { design: Design }) {
   const [uri, setUri] = useState<string | null>(null)
   useEffect(() => {
     let live = true
-    loadBase(design.base).then(t => { if (live) setUri(svgDataUri(composeFull(t, design).svg)) }).catch(() => {})
+    Promise.all([loadBase(design.base, design.ratio), ensureEmblems(design)])
+      .then(([t]) => { if (live) setUri(svgDataUri(composeFull(t, design).svg)) }).catch(() => {})
     return () => { live = false }
   }, [design])
   return uri ? <img src={uri} alt="" className="fs-thumb" /> : <div className="fs-thumb" style={{ background: T.surfaceHi }} />
@@ -704,11 +862,12 @@ const CSS = `
 .fs-btn { display: inline-flex; align-items: center; gap: 6px; height: 38px; min-width: 38px; justify-content: center; padding: 0 10px; border-radius: 10px; border: 1px solid ${T.line}; background: ${T.surface}; color: ${T.text}; font-size: 13px; font-weight: 600; cursor: pointer; }
 .fs-btn:hover:not(:disabled) { border-color: ${T.lineHi}; }
 .fs-btn:disabled { opacity: .4; cursor: default; }
-.fs-grid { display: grid; grid-template-columns: 320px minmax(0, 1fr) 300px; min-height: calc(100vh - 70px); }
+.fs-grid { display: grid; grid-template-columns: 340px minmax(0, 1fr) 300px; min-height: calc(100vh - 70px); }
 .fs-left { border-right: 1px solid ${T.line}; background: ${T.surface}; max-height: calc(100vh - 70px); overflow: auto; position: sticky; top: 0; }
 .fs-right { border-left: 1px solid ${T.line}; background: ${T.surface}; display: grid; align-content: start; }
 .fs-right .fs-panel + .fs-panel { border-top: 1px solid ${T.line}; }
 .fs-stage { background: ${T.void}; display: flex; flex-direction: column; min-width: 0; position: relative; }
+.fs-grid > .fs-stage { position: sticky; top: 0; height: calc(100vh - 70px); align-self: start; }
 .fs-table { flex: 1; display: grid; place-items: center; padding: 28px 16px;
   background-image: linear-gradient(${tint(T.text, 0.06)} 1px, transparent 1px), linear-gradient(90deg, ${tint(T.text, 0.06)} 1px, transparent 1px);
   background-size: 24px 24px; }
@@ -716,8 +875,16 @@ const CSS = `
 .fs-base, .fs-base svg { display: block; width: 100%; height: 100%; }
 .fs-base [data-p] { cursor: pointer; }
 .fs-ov { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; overflow: visible; }
-.fs-ov path { pointer-events: visiblePainted; cursor: grab; touch-action: none; }
-.fs-ov path:active { cursor: grabbing; }
+.fs-ov > path, .fs-ov > g { pointer-events: visiblePainted; cursor: grab; touch-action: none; }
+.fs-ov > path:active, .fs-ov > g:active { cursor: grabbing; }
+.fs-guide { stroke: ${T.cyan}; stroke-width: 2; stroke-dasharray: 8 6; pointer-events: none; vector-effect: non-scaling-stroke; }
+.fs-egrid { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 8px; }
+.fs-emb { justify-items: stretch; }
+.fs-emb-img { width: 100%; aspect-ratio: 1; object-fit: contain; padding: 6px; background: ${tint(T.text, 0.1)}; border-radius: 6px; display: block; }
+.fs-check { border: 1px solid ${T.line}; border-radius: 12px; padding: 12px; display: grid; gap: 8px; background: ${T.bg}; }
+.fs-check ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; color: ${T.text}; }
+.fs-check li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
+.fs-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; flex: none; }
 .fs-sel { animation: fsPulse 1.1s ease-in-out infinite; }
 @keyframes fsPulse { 0%, 100% { opacity: 1 } 50% { opacity: .55 } }
 @media (prefers-reduced-motion: reduce) { .fs-sel { animation: none; opacity: .7; } }
@@ -736,7 +903,7 @@ const CSS = `
 .fs-swatch { width: 30px; height: 30px; border-radius: 8px; box-shadow: 0 0 0 1px ${tint(T.text, 0.25)}; flex: none; }
 .fs-palette { display: grid; grid-template-columns: repeat(auto-fill, minmax(32px, 1fr)); gap: 8px; }
 .fs-tabs { display: flex; gap: 2px; padding: 6px; background: ${T.surface}; border-bottom: 1px solid ${T.line}; overflow-x: auto; scrollbar-width: none; }
-.fs-tabs button { flex: 1 0 auto; padding: 9px 12px; border-radius: 9px; border: 0; background: transparent; color: ${T.muted}; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+.fs-tabs button { flex: 1 0 auto; padding: 9px 10px; border-radius: 9px; border: 0; background: transparent; color: ${T.muted}; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .fs-tabs button.on { background: ${T.text}; color: ${T.surface}; }
 .fs-searchbox { display: flex; align-items: center; gap: 8px; border: 1px solid ${T.line}; border-radius: 10px; padding: 0 10px; background: ${T.bg}; }
 .fs-search { border: 1px solid ${T.line}; border-radius: 10px; padding: 9px 10px; font-size: 14px; background: ${T.bg}; color: ${T.text}; width: 100%; min-width: 0; }
