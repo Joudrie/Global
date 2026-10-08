@@ -590,7 +590,7 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
         <div>
           <div className="geo-display" style={{ fontWeight: 800, fontSize: 26, letterSpacing: "-0.02em", color: T.text }}>Play</div>
           <div style={{ color: T.muted, fontSize: 12.5, marginTop: 3 }}>
-            <span style={{ fontFamily: FONT.mono, fontWeight: 700, color: ACCENT.play }}>{playable.length}</span> games · one tap to dive in
+            <span style={{ fontFamily: FONT.mono, fontWeight: 700, color: ACCENT.play }}>{GAME_COUNT}</span> games · one tap to dive in
           </div>
         </div>
         <button onClick={shuffle} className="geo-tap" aria-label="Surprise me — play a random game"
@@ -1149,7 +1149,7 @@ function FeedbackCard() {
         </span>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div className="geo-display" style={{ fontWeight: 700, fontSize: 16, color: T.text }}>Send feedback or ideas</div>
-          <div style={{ color: T.muted, fontSize: 11.5, marginTop: 2, lineHeight: 1.4 }}>i'm a one-man operation, so i genuinely read every message. thanks for playing, and i'll do my best to make it happen 💛</div>
+          <div style={{ color: T.muted, fontSize: 11.5, marginTop: 2, lineHeight: 1.4 }}>Globalio is made by one person, and I read every message. Thanks for playing.</div>
         </div>
         <span style={{ color: ACCENT.learn, fontSize: 18, opacity: 0.7 }}>→</span>
       </div>
