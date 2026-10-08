@@ -1,5 +1,7 @@
 import { Flag, Flame, Star } from 'lucide-react'
 import type { AppState } from '../utils/storage'
+import { displayStreak } from '../utils/storage'
+import { todayString } from '../utils/prng'
 import { FLAGS } from '../data/flags'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
 import { ScreenHeader } from './ui'
@@ -37,7 +39,7 @@ export default function AchievementsScreen({ state, onBack }: Props) {
           <div className="grid grid-cols-3 gap-3 mb-4">
             {[
               { label: 'Flags Learned', value: learned, icon: <Flag size={22} color={A} strokeWidth={1.6} absoluteStrokeWidth /> },
-              { label: 'Day Streak', value: state.currentStreak, icon: <Flame size={22} color={T.amber} strokeWidth={1.6} absoluteStrokeWidth /> },
+              { label: 'Day Streak', value: displayStreak(state, todayString()), icon: <Flame size={22} color={T.amber} strokeWidth={1.6} absoluteStrokeWidth /> },
               { label: 'Best Streak', value: state.longestStreak, icon: <Star size={22} color={T.gold} strokeWidth={1.6} absoluteStrokeWidth /> },
             ].map(({ label, value, icon }) => (
               <div key={label} className="text-center py-2">
@@ -59,7 +61,7 @@ export default function AchievementsScreen({ state, onBack }: Props) {
         {/* Crowns */}
         <div>
           <h2 className="text-xs font-semibold uppercase tracking-widest mb-3" style={{ color: T.muted }}>
-            Crowns ({state.crowns.length}/{SET_IDS.length})
+            Crowns ({SET_IDS.filter(s => state.crowns.includes(s.id)).length}/{SET_IDS.length})
           </h2>
           <div className="grid grid-cols-2 gap-3">
             {SET_IDS.map(({ id, label }) => {

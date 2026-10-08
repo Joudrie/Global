@@ -12,14 +12,18 @@ interface Props {
   onFinish: (answers: ('correct' | 'wrong')[]) => void
   /** Called with the flag's code as soon as it's answered right. */
   onCorrect?: (code: string) => void
+  /** Answers already given: the quiz picks up at the next question. */
+  resume?: ('correct' | 'wrong')[]
+  /** Called with every answer so far, after each answer. */
+  onProgress?: (answers: ('correct' | 'wrong')[]) => void
   onBack: () => void
 }
 
 type AnswerState = 'idle' | 'correct' | 'wrong'
 
-export default function QuizScreen({ questions, title, onFinish, onCorrect, onBack }: Props) {
-  const [idx, setIdx] = useState(0)
-  const [answers, setAnswers] = useState<('correct' | 'wrong')[]>([])
+export default function QuizScreen({ questions, title, onFinish, onCorrect, resume, onProgress, onBack }: Props) {
+  const [idx, setIdx] = useState(() => resume?.length ?? 0)
+  const [answers, setAnswers] = useState<('correct' | 'wrong')[]>(() => resume ?? [])
   const [answerState, setAnswerState] = useState<AnswerState>('idle')
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
   const [animatingIdx, setAnimatingIdx] = useState<number | null>(null)
@@ -45,7 +49,9 @@ export default function QuizScreen({ questions, title, onFinish, onCorrect, onBa
     if (animTimer.current) clearTimeout(animTimer.current)
     animTimer.current = setTimeout(() => setAnimatingIdx(null), 500)
     if (!isCorrect) setShowLightbulb(true)
-    setAnswers(prev => [...prev, isCorrect ? 'correct' : 'wrong'])
+    const next: ('correct' | 'wrong')[] = [...answers, isCorrect ? 'correct' : 'wrong']
+    setAnswers(next)
+    onProgress?.(next)
     if (isCorrect) onCorrect?.(q.target.code)
   }
 

@@ -8,6 +8,9 @@ import { T } from "./ui/tokens"
 import EarthLogo from "./components/EarthLogo"
 import type { HistoricalRegion } from "./data/historicalFlags"
 
+// The Flag Sets that earn a crown when every flag in them is learned.
+const CROWN_SET_IDS = new Set(["world", "europe", "africa", "asia", "americas", "oceania", "middle-east"])
+
 // Every game/destination screen is code-split so the initial load only ships
 // the dashboard shell — each screen's JS is fetched the first time it's opened.
 const FlagsScreen = lazy(() => import("./components/FlagsScreen"))
@@ -83,7 +86,26 @@ import { todayString } from "./utils/prng"
 
 type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio"
 
+// The daily's answers so far, so leaving mid-round and coming back resumes it
+// instead of dealing the same questions again for a second try.
+const DAILY_PROGRESS_KEY = "globalio_daily_progress"
+type Answer = "correct" | "wrong"
+function loadDailyProgress(date: string): Answer[] {
+  try {
+    const p = JSON.parse(localStorage.getItem(DAILY_PROGRESS_KEY) ?? "null")
+    return p?.date === date && Array.isArray(p.answers) ? p.answers.filter((a: unknown) => a === "correct" || a === "wrong") : []
+  } catch { return [] }
+}
+function saveDailyProgress(date: string, answers: Answer[] | null) {
+  try {
+    if (answers) localStorage.setItem(DAILY_PROGRESS_KEY, JSON.stringify({ date, answers }))
+    else localStorage.removeItem(DAILY_PROGRESS_KEY)
+  } catch { /* ignore */ }
+}
+
 interface ActiveQuiz {
+  /** Answers already given (a resumed daily). */
+  resume?: Answer[]
   questions: Question[]
   title: string
   isDaily: boolean
@@ -167,6 +189,25 @@ export default function App() {
   // A shared Flag Studio design opens once; after that the studio shows the player's own work.
   const sharedDesign = useRef(SHARED_DESIGN)
 
+  // Phone and browser Back: any screen past home sits on one extra history
+  // entry, so Back returns home instead of leaving the site. Coming home any
+  // other way drops that entry again.
+  const backEntry = useRef(false)
+  useEffect(() => {
+    const away = screen !== "home" && screen !== "splash"
+    if (away && !backEntry.current) {
+      try { window.history.pushState({ globalio: "screen" }, ""); backEntry.current = true } catch { /* ignore */ }
+    } else if (!away && backEntry.current) {
+      backEntry.current = false
+      window.history.back()
+    }
+  }, [screen])
+  useEffect(() => {
+    const onPop = () => { if (backEntry.current) { backEntry.current = false; setScreen("home") } }
+    window.addEventListener("popstate", onPop)
+    return () => window.removeEventListener("popstate", onPop)
+  }, [])
+
   // Persist on change — but SKIP the first run. The initial appState is exactly
   // what we just loaded, so re-saving it can only ever hurt: if that load hit a
   // transient localStorage error (iOS eviction, private mode, quota) loadState
@@ -248,7 +289,8 @@ export default function App() {
     // Today ("Logged for today") instead of replaying it for a better score.
     if (dailyDoneToday) { setTab("today"); setScreen("home"); return }
     const questions = buildDailyQuiz(todayString(), 10)
-    setActiveQuiz({ questions, title: "Daily Game", isDaily: true, setId: "daily", setFlags: FLAGS, backTo: "home" })
+    const resume = loadDailyProgress(todayString()).slice(0, questions.length - 1)
+    setActiveQuiz({ questions, resume, title: "Daily Game", isDaily: true, setId: "daily", setFlags: FLAGS, backTo: "home" })
     setScreen("quiz")
   }, [dailyDoneToday])
 
@@ -309,8 +351,10 @@ export default function App() {
     if (activeQuiz.isDaily && newState.lastDailyDate !== todayString()) {
       newState = recordDailyResult(newState, { score, total, date: todayString(), answers })
     }
+    if (activeQuiz.isDaily) saveDailyProgress(todayString(), null)
     const allLearned = activeQuiz.setFlags.every(f => newState.learnedFlags.includes(f.code))
-    if (allLearned && !activeQuiz.isDaily) newState = awardCrown(newState, activeQuiz.setId)
+    // Crowns are for the Flag Sets (World and the regions), not Quick Play or Flashcards.
+    if (allLearned && CROWN_SET_IDS.has(activeQuiz.setId)) newState = awardCrown(newState, activeQuiz.setId)
     newState = recordGamePlayed(newState)
     setAppState(newState)
     setLastResult({ score, total, answers })
@@ -429,6 +473,8 @@ export default function App() {
 
       {screen === "quiz" && activeQuiz && (
         <QuizScreen questions={activeQuiz.questions} title={activeQuiz.title}
+          resume={activeQuiz.resume}
+          onProgress={activeQuiz.isDaily ? answers => saveDailyProgress(todayString(), answers) : undefined}
           onCorrect={handleFlagLearned} onFinish={handleQuizFinish} onBack={() => setScreen(activeQuiz.backTo)} />
       )}
 
