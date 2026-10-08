@@ -23,6 +23,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Make a nation card: your flag, name and motto in one image, ready to post.",
       "New Random button: a brand-new flag and nation name with one tap.",
       "A new Flag maker page explains Flag Studio, with example flags and five tips for designing a good one.",
+      "Tap the red × on a selected symbol or emblem to delete it, and tap the empty table to deselect.",
+      "Real or Bot has 600 new computer-made flags from Flag Studio's Random button, for 1,500 in all.",
     ],
   },
   {

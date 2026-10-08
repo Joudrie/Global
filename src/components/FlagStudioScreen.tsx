@@ -32,10 +32,6 @@ const REGIONS: ("All" | FlagRecord["region"])[] = ["All", "Europe", "Africa", "A
 const EXPORT_SIZES = [600, 1200, 2400, 3840]
 
 const fold = (s: string) => s.normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase()
-const isLight = (hex: string) => {
-  const n = parseInt(hex.slice(1), 16)
-  return (0.299 * (n >> 16) + 0.587 * ((n >> 8) & 255) + 0.114 * (n & 255)) / 255 > 0.6
-}
 
 const colorDistance = (a: string, b: string) => {
   const x = parseInt(a.slice(1), 16), y = parseInt(b.slice(1), 16)
@@ -83,6 +79,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const eff = useRef<{ f: (string | null)[]; s: (string | null)[]; group: Map<string, string> }>({ f: [], s: [], group: new Map() })
   const inGroup = (c: string | null | undefined, rep: string) => !!c && (eff.current.group.get(c) ?? c) === rep
   const [guides, setGuides] = useState<{ x?: number; y?: number }>({})
+  const [partBox, setPartBox] = useState<{ x: number; y: number; w: number; h: number } | null>(null)
   type Drag =
     | { mode: "move"; id: string; dx: number; dy: number; started: boolean }
     | { mode: "resize"; id: string; d0: number; size0: number; started: boolean }
@@ -165,7 +162,19 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     const host = baseRef.current
     if (!host) return
     host.querySelectorAll(".fs-sel").forEach(el => el.classList.remove("fs-sel"))
-    if (sel?.k === "part") host.querySelector(`[data-p="${sel.i}"]`)?.classList.add("fs-sel")
+    let box: { x: number; y: number; w: number; h: number } | null = null
+    if (sel?.k === "part") {
+      const el = host.querySelector(`[data-p="${sel.i}"]`)
+      el?.classList.add("fs-sel")
+      // A lasting dashed outline around the selected shape, in flag units.
+      const svg = host.querySelector("svg")
+      if (el && svg) {
+        const a = svg.getBoundingClientRect(), b = el.getBoundingClientRect()
+        const k = FLAG_W / Math.max(1, a.width)
+        if (b.width > 0 && b.height > 0) box = { x: (b.left - a.left) * k, y: (b.top - a.top) * k, w: b.width * k, h: b.height * k }
+      }
+    }
+    setPartBox(prev => (JSON.stringify(prev) === JSON.stringify(box) ? prev : box))
     if (sel?.k === "color") {
       host.querySelectorAll("[data-p]").forEach(el => {
         const i = Number(el.getAttribute("data-p"))
@@ -271,8 +280,11 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   }
 
   const addSymbol = (kind: SymbolKind) => {
-    const dominant = strip[0]?.hex
-    const color = dominant && isLight(dominant) ? "#c8102e" : "#ffffff"
+    // The colour that stands out most from everything already on the flag.
+    const candidates = ["#ffffff", "#fcd116", "#c8102e", "#0b3d91", "#000000", "#007a3d"]
+    const color = strip.length
+      ? candidates.map(c => ({ c, d: Math.min(...strip.map(x => colorDistance(c, x.hex))) })).sort((a, b) => b.d - a.d)[0].c
+      : "#ffffff"
     const o: Overlay = {
       id: newId(), kind, x: FLAG_W / 2, y: flagH / 2,
       size: FULL_WIDTH_SYMBOLS.has(kind) ? FLAG_W : Math.round(flagH * (kind === "square" ? 0.5 : 0.4)),
@@ -589,7 +601,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
   const stage = (
     <div className="fs-stage">
-      <div className="fs-table">
+      <div className="fs-table" onClick={e => { if (e.target === e.currentTarget) setSel(null) }}>
         <div className="fs-flag" style={{ aspectRatio: `${FLAG_W} / ${flagH}`, width: `min(100%, 760px, calc(68vh * ${(FLAG_W / flagH).toFixed(4)}))`, touchAction: selOverlay ? "none" : undefined }}
           onPointerDown={onFlagPointerDown} onPointerMove={onFlagPointerMove} onPointerUp={onFlagPointerUp} onPointerCancel={onFlagPointerUp}>
           {composed ? (
@@ -627,6 +639,10 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                 })}
                 {guides.x !== undefined && <line className="fs-guide" x1={guides.x} x2={guides.x} y1={0} y2={flagH} />}
                 {guides.y !== undefined && <line className="fs-guide" x1={0} x2={FLAG_W} y1={guides.y} y2={guides.y} />}
+                {partBox && sel?.k === "part" && (
+                  <rect className="fs-box" x={Math.max(1, partBox.x)} y={Math.max(1, partBox.y)}
+                    width={Math.min(FLAG_W - 2, partBox.w)} height={Math.min(flagH - 2, partBox.h)} />
+                )}
                 {selOverlay && (() => {
                   const o = selOverlay
                   const { w, h } = o.kind === "emblem" ? emblemSize(o) : { w: o.size, h: o.size * (FULL_WIDTH_SYMBOLS.has(o.kind as never) && o.kind !== "stripe" ? 2 / 3 : o.kind === "stripe" ? 0.12 : 1) }
@@ -639,6 +655,12 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
                       <g className="fs-handle" onPointerDown={e => onHandleDown(e, o, "rotate")}>
                         <circle cx={0} cy={-hh - 30 * upp} r={hit} fill="rgba(0,0,0,0)" />
                         <circle cx={0} cy={-hh - 30 * upp} r={r} className="fs-knob round" />
+                      </g>
+                      <g className="fs-handle del" role="button" aria-label={`Delete ${overlayName(o)}`}
+                        onPointerDown={e => { e.stopPropagation(); removeOverlay(o.id) }}>
+                        <circle cx={-hw} cy={-hh} r={hit} fill="rgba(0,0,0,0)" />
+                        <circle cx={-hw} cy={-hh} r={r * 1.25} className="fs-del" />
+                        <path d={`M${-hw - r * 0.5} ${-hh - r * 0.5}L${-hw + r * 0.5} ${-hh + r * 0.5}M${-hw + r * 0.5} ${-hh - r * 0.5}L${-hw - r * 0.5} ${-hh + r * 0.5}`} className="fs-del-x" />
                       </g>
                       <g className="fs-handle resize" onPointerDown={e => onHandleDown(e, o, "resize")}>
                         <circle cx={hw} cy={hh} r={hit} fill="rgba(0,0,0,0)" />
@@ -1106,7 +1128,9 @@ const CSS = `
 .fs-border:hover .fs-grip { opacity: 1; fill: ${T.cyan}; }
 .fs-box { fill: none; stroke: ${T.cyan}; stroke-width: 1.5; stroke-dasharray: 5 4; vector-effect: non-scaling-stroke; pointer-events: none; }
 .fs-knob { fill: ${T.surface}; stroke: ${T.cyan}; stroke-width: 2; vector-effect: non-scaling-stroke; }
-.fs-handle { cursor: grab; } .fs-handle.resize { cursor: nwse-resize; }
+.fs-handle { cursor: grab; } .fs-handle.resize { cursor: nwse-resize; } .fs-handle.del { cursor: pointer; }
+.fs-del { fill: ${T.danger}; stroke: ${T.surface}; stroke-width: 2; vector-effect: non-scaling-stroke; }
+.fs-del-x { stroke: ${T.surface}; stroke-width: 2; stroke-linecap: round; vector-effect: non-scaling-stroke; fill: none; }
 .fs-layer { display: flex; align-items: center; gap: 8px; width: 100%; padding: 6px 8px; border-radius: 8px; border: 1px solid transparent; background: transparent; color: ${T.text}; font-size: 13px; text-align: left; cursor: pointer; }
 .fs-layer:hover { background: ${T.surfaceHi}; }
 .fs-layer.on { border-color: ${ACC}; background: ${T.surfaceHi}; }
@@ -1123,9 +1147,9 @@ const CSS = `
 .fs-check ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; color: ${T.text}; }
 .fs-check li { display: flex; gap: 8px; align-items: flex-start; line-height: 1.35; }
 .fs-dot { width: 9px; height: 9px; border-radius: 50%; margin-top: 4px; flex: none; }
-.fs-sel { animation: fsPulse 1.1s ease-in-out infinite; }
-@keyframes fsPulse { 0%, 100% { opacity: 1 } 50% { opacity: .55 } }
-@media (prefers-reduced-motion: reduce) { .fs-sel { animation: none; opacity: .7; } }
+.fs-sel { animation: fsPulse .9s ease-in-out 2; }
+@keyframes fsPulse { 0%, 100% { opacity: 1 } 50% { opacity: .45 } }
+@media (prefers-reduced-motion: reduce) { .fs-sel { animation: none; } }
 .fs-loading { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; color: ${T.muted}; font-size: 14px; }
 .fs-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; background: ${T.surface}; border-top: 1px solid ${T.line}; }
 .fs-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: ${T.muted}; }

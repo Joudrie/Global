@@ -190,10 +190,23 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
   .shot{width:100%;height:auto;border-radius:12px;border:1px solid #DDCEAF;display:block;margin:18px 0 6px;box-shadow:0 12px 30px -18px rgba(31,58,60,0.45)}
   .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:12px 0 8px}
   .cards img{width:100%;height:auto;border-radius:10px;border:1px solid #DDCEAF;display:block}
-  .steps{counter-reset:s;list-style:none;padding:0;margin:0 0 14px;display:grid;gap:10px}
-  .steps li{counter-increment:s;background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:12px 14px 12px 52px;position:relative}
-  .steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:#A85440;color:#FFFCF4;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
-  .faq h3{margin-top:18px}
+  .how,.rules,.tiles{display:grid;gap:10px;margin:0 0 12px}
+  .how{grid-template-columns:repeat(auto-fit,minmax(160px,1fr))}
+  .how div,.rules div,.tile{background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:12px 14px;display:grid;gap:2px}
+  .how b{font-family:'Playfair Display',Georgia,serif;font-size:18px;color:#A85440}
+  .how span,.rules span,.tile span{font-size:14px;color:#5F726D;line-height:1.4}
+  .tiles{grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+  .tile b{font-family:'Playfair Display',Georgia,serif;font-size:30px;font-weight:800;line-height:1.1;color:#1F3A3C;font-variant-numeric:tabular-nums}
+  .rules{grid-template-columns:repeat(auto-fit,minmax(200px,1fr))}
+  .rules b{font-size:15px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chips span{background:#FFFCF4;border:1px solid #DDCEAF;border-radius:999px;padding:6px 13px;font-size:14px}
+  .faq details{border-bottom:1px solid #DDCEAF;padding:12px 0}
+  .faq summary{cursor:pointer;font-weight:600;list-style:none;display:flex;justify-content:space-between;gap:12px}
+  .faq summary::-webkit-details-marker{display:none}
+  .faq summary::after{content:'+';color:#A85440;font-weight:700;font-size:18px;line-height:1}
+  .faq details[open] summary::after{content:'–'}
+  .faq details p{margin:8px 0 0;color:#5F726D;font-size:15px}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid #DDCEAF;font-size:13px;color:#5F726D}
   footer a{margin-right:14px;color:#5F726D}
   @media (max-width:520px){h1{font-size:28px}.entry .thumb{width:72px}.entry .entry{flex-direction:column;gap:8px}}
@@ -577,83 +590,72 @@ ${games.filter(e => (e.sandbox ? 'More games' : e.group) === g).map(e => `<div c
 // studio itself lives in the app at /?play=flagstudio.
 const STUDIO_URL = '/?play=flagstudio'
 const FLAG_MAKER_FAQ = [
-  ['Is the flag maker free?', 'Yes. Flag Studio is free, with no account and no sign-up. Every export size, including 4K PNG and SVG, is free.'],
-  ['Can I use the flags I make?', 'Your designs are yours, for games, stories, school projects, clubs or anything else. Real national emblems can have legal limits on how they are used, so keep them to creative and fictional flags.'],
-  ['Does it work on a phone?', 'Yes. On a phone the flag stays at the top and the tools sit in tabs underneath. You can pinch with two fingers to resize and rotate a symbol.'],
-  ['Where are my flags saved?', 'In your own browser, on your device. Every flag you change is saved automatically under My flags. Nothing is uploaded unless you share a link.'],
-  ['How do I share a flag?', 'Tap Share to copy a link. The link holds the whole design, so whoever opens it sees your flag and can remix it. You can also download a PNG, an SVG or a nation card with your flag, name and motto.'],
-  ['Can I start from a real country\'s flag?', `Yes. All ${FLAGS.length} country flags are templates, drawn at their official proportions, and you can recolour every stripe, star and emblem.`],
+  ['Is it free?', 'Yes. No account, no sign-up, and every download size is free.'],
+  ['Can I use the flags I make?', 'Yes, they\'re yours: games, stories, school projects, clubs. Real national emblems can have legal limits, so keep those to creative and fictional flags.'],
+  ['Does it work on a phone?', 'Yes. The flag stays on top with the tools underneath, and you can pinch to resize and rotate a symbol.'],
+  ['Where are my flags saved?', 'On your own device, automatically, under My flags. Nothing is uploaded unless you share a link.'],
+  ['How do I share a flag?', 'Tap Share to copy a link that holds the whole design, or download a PNG, an SVG or a nation card.'],
+  ['Can I start from a real country\'s flag?', `Yes. All ${FLAGS.length} country flags are templates, at their official proportions.`],
 ]
 
 function flagMakerPage() {
+  const tile = (big, small) => `<div class="tile"><b>${big}</b><span>${small}</span></div>`
   const body = `
 <div class="crumbs"><a href="/">Home</a> › Flag maker</div>
 <p class="eyebrow">Free flag maker</p>
 <h1>Make your own flag</h1>
-<p class="lead">Flag Studio is a free flag maker. Start from any of the world's ${FLAGS.length} country flags or a blank
-layout, tap any part to change its colour, add stars, suns, crests and emblems, then download your flag or
-share it with a link. No sign-up needed.</p>
+<p class="lead">Start from any country's flag or a blank layout, change anything, and download it. Free, no sign-up.</p>
 <a class="cta" href="${STUDIO_URL}">Open Flag Studio</a>
 <img class="shot" src="/flag-maker/studio.jpg" alt="Flag Studio with a blue and gold striped flag, a laurel wreath and a red star" width="1200" height="716" />
-<p class="muted small">Flag Studio on a computer. On a phone the tools sit underneath the flag.</p>
 
 <h2>How it works</h2>
-<ol class="steps">
-  <li><b>Pick a starting point.</b> Choose a real flag, from Albania to Zimbabwe, or a blank layout such as a tricolour, a Nordic cross, a saltire or a canton. Or press Random for a brand-new flag and a made-up nation name.</li>
-  <li><b>Tap to recolour.</b> Tap a stripe, a star or any part of a crest and pick a colour. Tap a colour in the strip under the flag to change it everywhere at once.</li>
-  <li><b>Add symbols and emblems.</b> Drop in stars, a sun, a crescent, a maple leaf, a laurel wreath or one of ${EMBLEM_COUNT} national emblems. Drag, resize and rotate them; they snap to the centre.</li>
-  <li><b>Download or share.</b> Save a PNG up to 4K or an SVG, copy a share link, or make a nation card with your flag, name and motto.</li>
-</ol>
+<div class="how">
+  <div><b>1 · Pick</b><span>A real flag, a blank layout, or Random</span></div>
+  <div><b>2 · Tap</b><span>Any part to recolour it</span></div>
+  <div><b>3 · Add</b><span>Stars, suns, crests and emblems</span></div>
+  <div><b>4 · Save</b><span>PNG, SVG, a link or a nation card</span></div>
+</div>
 
-<h2>Flags made in Flag Studio</h2>
-<p>Each of these took a couple of minutes. The nation card puts the flag, the name and the motto in one image, sized for posting.</p>
+<h2>Made in Flag Studio</h2>
 <div class="cards">
   <img src="/flag-maker/aldmere.jpg" alt="Nation card for the Kingdom of Aldmere: blue and gold stripes with a laurel wreath and a red star" width="1200" height="630" loading="lazy" />
   <img src="/flag-maker/norhaven.jpg" alt="Nation card for the Free State of Norhaven: a green flag with a white Nordic cross and a gold crescent and star" width="1200" height="630" loading="lazy" />
   <img src="/flag-maker/solenna.jpg" alt="Nation card for the Republic of Solenna: black and gold with a red hoist triangle and a gold sun" width="1200" height="630" loading="lazy" />
 </div>
 
-<h2>What you can do</h2>
-<ul>
-  <li><b>Every country flag as a template,</b> at its official shape: 10:19 for the United States, 1:1 for Switzerland, 4:7 for Mexico.</li>
-  <li><b>Recolour anything,</b> one shape at a time or a whole colour at once, from a palette of real flag colours or any colour you like.</li>
-  <li><b>Edit stripes:</b> two to nine of them, horizontal or vertical, and drag a stripe to make it wider.</li>
-  <li><b>${SYMBOL_COUNT} symbols and ${EMBLEM_COUNT} emblems,</b> including Albania's eagle, Mexico's eagle, Spain's coat of arms and Bhutan's dragon. Keep an emblem's own colours or make it one colour, or download an emblem on its own as a PNG.</li>
-  <li><b>Pick the shape:</b> the flag's own, 1:1, 2:3, 3:5 or 1:2.</li>
-  <li><b>Undo anything,</b> as many times as you like, and come back later: your flags are saved on your device.</li>
-  <li><b>A design check</b> that scores your flag against the classic rules of good flag design.</li>
-</ul>
+<h2>What's inside</h2>
+<div class="tiles">
+  ${tile(FLAGS.length, 'country flags to start from, at their real shape')}
+  ${tile(EMBLEM_COUNT, 'national emblems, like Albania\'s eagle')}
+  ${tile(SYMBOL_COUNT, 'symbols: stars, suns, maple leaf, laurel')}
+  ${tile('2–9', 'stripes, horizontal or vertical, any width')}
+  ${tile('4K', 'PNG downloads, plus SVG')}
+  ${tile('0', 'accounts needed. Saved on your device')}
+</div>
 
-<h2>Five tips for a good flag</h2>
-<p>Flag designers tend to agree on a few rules. Flag Studio's design check scores your flag against them.</p>
-<ol>
-  <li><b>Keep it simple.</b> A child should be able to draw it from memory. Most of the world's best-known flags are a few stripes and one symbol.</li>
-  <li><b>Give it meaning.</b> Pick colours and symbols that stand for something: a river, a harvest, a founding story.</li>
-  <li><b>Use two or three colours.</b> More than that gets muddy, and the colours should contrast so the flag reads from far away.</li>
-  <li><b>Skip lettering and seals.</b> Words can't be read on a flag moving in the wind, and a detailed seal turns into a blob at a distance.</li>
-  <li><b>Be distinctive.</b> It should not be mistaken for another flag. Chad and Romania, or Indonesia and Monaco, show how easily that happens.</li>
-</ol>
-<p>Want to see how real countries did it? Every <a href="/flags/">country flag page</a> explains what its colours and symbols mean.</p>
+<h2>Five rules of a good flag</h2>
+<div class="rules">
+  <div><b>Keep it simple</b><span>A child could draw it from memory.</span></div>
+  <div><b>Give it meaning</b><span>Every colour and symbol stands for something.</span></div>
+  <div><b>Two or three colours</b><span>Contrasting, so it reads from far away.</span></div>
+  <div><b>No lettering or seals</b><span>Both blur on a flag in the wind.</span></div>
+  <div><b>Be distinctive</b><span>Chad and Romania show how easily flags clash.</span></div>
+</div>
+<p class="small muted">Flag Studio's design check scores your flag against these. See how real countries did it on the <a href="/flags/">country flag pages</a>.</p>
 
-<h2>Ideas to try</h2>
-<ul>
-  <li>A flag for a fictional country, a fantasy kingdom or a tabletop campaign.</li>
-  <li>A redesign of your state, province or city flag.</li>
-  <li>A flag for a school project, a sports team, a club or your family.</li>
-  <li>Your country's flag in your favourite colours.</li>
-  <li>A random flag: press Random until something sparks an idea, then make it your own.</li>
-</ul>
+<h2>Ideas</h2>
+<p class="chips"><span>A fantasy kingdom</span><span>Your state or city, redesigned</span><span>A sports team or club</span><span>A school project</span><span>Your family</span><span>A tabletop campaign</span></p>
 
 <h2>Questions</h2>
 <div class="faq">
-${FLAG_MAKER_FAQ.map(([q, a]) => `<h3>${esc(q)}</h3>\n<p>${esc(a)}</p>`).join('\n')}
+${FLAG_MAKER_FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n')}
 </div>
 <a class="cta" href="${STUDIO_URL}">Make your flag</a>
-<p class="small muted">When you're done, test yourself on the real ones in <a href="/games/">${GAME_COUNT} flag games</a>.</p>
+<p class="small muted">Then test yourself on the real ones in <a href="/games/">${GAME_COUNT} flag games</a>.</p>
 `
   return page({
     title: 'Flag Maker: Make Your Own Flag Free | Globalio',
-    description: `Free flag maker. Start from any of ${FLAGS.length} country flags or a blank layout, recolour anything, add stars, emblems and crests, then download a PNG or SVG or share a link. No sign-up.`,
+    description: `Free flag maker. Start from any of ${FLAGS.length} country flags or a blank layout, recolour anything, add stars and emblems, and download a PNG or SVG. No sign-up.`,
     canonical: `${ORIGIN}/flag-maker/`,
     ogImage: `${ORIGIN}/flag-maker/aldmere.jpg`,
     jsonLd: [

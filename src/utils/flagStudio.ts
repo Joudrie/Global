@@ -447,13 +447,20 @@ const FAMILIES = [
   ["#FCD116", "#FFC72C", "#F77F00"],
   ["#FFFFFF"], ["#000000"],
 ]
-const pick = <T,>(a: T[]) => a[Math.floor(Math.random() * a.length)]
+// Colour family letters, the way Real or Bot compares flags with real ones.
+const FAMILY_LETTER: Record<string, string> = {}
+FAMILIES.forEach((f, i) => f.forEach(c => { FAMILY_LETTER[c.toLowerCase()] = "rbgywk"[i] }))
+FAMILY_LETTER["#f77f00"] = "o"
+export const familyOf = (hex: string) => FAMILY_LETTER[hex.toLowerCase()] ?? "?"
 
-function randomColours(n: number): string[] {
-  const fams = [...FAMILIES].sort(() => Math.random() - 0.5).slice(0, n)
+type Rand = () => number
+const pickR = <T,>(a: T[], r: Rand) => a[Math.floor(r() * a.length)]
+
+function randomColours(n: number, r: Rand): string[] {
+  const fams = [...FAMILIES].map(f => ({ f, k: r() })).sort((a, b) => a.k - b.k).map(x => x.f).slice(0, n)
   // Most flags have a light colour; make sure one is white or gold.
-  if (!fams.some(f => f[0] === "#FFFFFF" || f[0] === "#FCD116")) fams[n - 1] = Math.random() < 0.6 ? FAMILIES[4] : FAMILIES[3]
-  return fams.map(f => pick(f).toLowerCase())
+  if (!fams.some(f => f[0] === "#FFFFFF" || f[0] === "#FCD116")) fams[n - 1] = r() < 0.6 ? FAMILIES[4] : FAMILIES[3]
+  return fams.map(f => pickR(f, r).toLowerCase())
 }
 
 const NAME_START = ["Val", "Mor", "Kar", "Lun", "Ost", "Bel", "Dra", "Sel", "Tor", "Ar", "Cal", "Ver", "Nor", "Zan", "El", "Mar", "Quel", "Ish", "Rav", "Tal"]
@@ -461,44 +468,67 @@ const NAME_MID = ["", "", "a", "e", "o", "an", "en", "or", "ir", "el"]
 const NAME_END = ["ia", "ora", "ova", "land", "stan", "eria", "ania", "is", "aro", "enia", "ica", "mark"]
 const NAME_FORM = ["Republic of", "Kingdom of", "Federation of", "Free State of", "Principality of", "Commonwealth of", "United Provinces of", "Grand Duchy of", ""]
 
-export function randomNationName(): string {
-  const core = pick(NAME_START) + pick(NAME_MID) + pick(NAME_END)
-  const form = pick(NAME_FORM)
+export function randomNationName(r: Rand = Math.random): string {
+  const core = pickR(NAME_START, r) + pickR(NAME_MID, r) + pickR(NAME_END, r)
+  const form = pickR(NAME_FORM, r)
   return form ? `${form} ${core}` : core
 }
 
-export function randomDesign(emblemCodes: string[] = []): Design {
-  const name = randomNationName()
-  const roll = Math.random()
+/** A fresh flag that follows the design rules: one structure, two or three
+ *  colours from different families, and sometimes one symbol or emblem.
+ *  Pass a seeded `r` for a repeatable flag (Real or Bot does). */
+export function randomDesign(emblemCodes: string[] = [], r: Rand = Math.random): Design {
+  const name = randomNationName(r)
   let d: Design
-  if (roll < 0.4) {
-    const n = pick([2, 3, 3, 3, 4, 5])
-    const cols = randomColours(n === 2 ? 2 : Math.min(3, n))
+  if (r() < 0.4) {
+    const n = pickR([2, 3, 3, 3, 4, 5], r)
+    const cols = randomColours(n === 2 ? 2 : Math.min(3, n), r)
     const bands = Array.from({ length: n }, (_, i) => (n === 5 ? cols[i % 2] : cols[i % cols.length]))
-    d = stripesDesign(Math.random() < 0.6 ? "h" : "v", bands, name)
-    if (n === 3 && Math.random() < 0.25) d.stripes!.w = [1, 2, 1] // a wide centre band, like Spain
+    d = stripesDesign(r() < 0.6 ? "h" : "v", bands, name)
+    if (n === 3 && r() < 0.25) d.stripes!.w = [1, 2, 1] // a wide centre band, like Spain
   } else {
-    const l = pick(LAYOUTS.filter(x => !x.stripes && x.id !== "plain"))
+    const l = pickR(LAYOUTS.filter(x => !x.stripes && x.id !== "plain"), r)
     d = newDesign(`layout:${l.id}`, name)
     // Recolour the layout's shapes, keeping its own colour pattern.
     const fills = [...l.body(600).matchAll(/fill="([^"]+)"/g)].map(m => m[1].toLowerCase())
     const distinct = [...new Set(fills)]
-    const cols = randomColours(Math.min(3, Math.max(2, distinct.length)))
+    const cols = randomColours(Math.min(3, Math.max(2, distinct.length)), r)
     fills.forEach((f, i) => { d.parts[i] = { f: cols[distinct.indexOf(f) % cols.length] } })
   }
-  const r2 = Math.random()
-  if (r2 < 0.55) {
-    const used = new Set(Object.values(d.parts).map(p => p.f))
-    const color = [...FAMILIES[4], ...FAMILIES[3], ...FAMILIES[0]].map(c => c.toLowerCase()).find(c => !used.has(c)) ?? "#ffffff"
-    const useEmblem = emblemCodes.length && r2 < 0.12
-    const kind: SymbolKind = pick(["star5", "star5", "sun", "crescentstar", "star7", "disc", "maple", "star6", "wheel", "laurel"] as SymbolKind[])
+  const roll = r()
+  if (roll < 0.55) {
+    // A symbol colour from a family the flag doesn't use yet, so it stands out.
+    const used = new Set(drawnFills(d).map(familyOf))
+    const color = [...FAMILIES[4], ...FAMILIES[3], ...FAMILIES[0], ...FAMILIES[5]].map(c => c.toLowerCase()).find(c => !used.has(familyOf(c))) ?? "#ffffff"
+    const useEmblem = emblemCodes.length > 0 && roll < 0.12
+    const kind = pickR<SymbolKind>(["star5", "star5", "sun", "crescentstar", "star7", "disc", "maple", "star6", "wheel", "laurel"], r)
     const h = FLAG_W / 1.5
-    const atHoist = Math.random() < 0.4
+    const atHoist = r() < 0.4
     d.overlays.push(useEmblem
-      ? { id: newId(), kind: "emblem", emblem: pick(emblemCodes), x: FLAG_W / 2, y: h / 2, size: Math.round(h * 0.55), rot: 0, color: Math.random() < 0.5 ? "" : color }
+      ? { id: newId(), kind: "emblem", emblem: pickR(emblemCodes, r), x: FLAG_W / 2, y: h / 2, size: Math.round(h * 0.55), rot: 0, color: r() < 0.5 ? "" : color }
       : { id: newId(), kind, x: atHoist ? FLAG_W / 4 : FLAG_W / 2, y: h / 2, size: Math.round(h * (atHoist ? 0.35 : 0.42)), rot: 0, color })
   }
   return d
+}
+
+/** The colours of a drawn (layout or stripes) base, part by part, after the design's changes. */
+export function drawnFills(d: Pick<Design, "base" | "ratio" | "stripes" | "parts">): string[] {
+  const text = baseTextSync(d) ?? ""
+  return [...text.matchAll(/fill="([^"]+)"/g)].map((m, i) => (d.parts[i]?.f ?? m[1]).toLowerCase())
+}
+
+/** A finished SVG for a drawn base (layouts and stripes) without the DOM, so
+ *  it also runs in Node. Symbols only: emblems need their files loaded. */
+export function drawnSvg(d: Design): string {
+  const text = baseTextSync(d)
+  if (!text) return ""
+  let i = 0
+  const body = text.replace(/fill="([^"]+)"/g, (m) => { const f = d.parts[i++]?.f; return f ? `fill="${f}"` : m })
+  const vb = text.match(/viewBox="0 0 (\d+) (\d+)"/)
+  const w = vb ? +vb[1] : 900, hh = vb ? +vb[2] : 600
+  const H = Math.round(FLAG_W * hh / w)
+  const inner = body.replace(/^<svg[^>]*>/, `<svg width="${FLAG_W}" height="${H}" viewBox="0 0 ${w} ${hh}" preserveAspectRatio="none">`)
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${FLAG_W} ${H}" preserveAspectRatio="none">${inner}${d.overlays.filter(o => o.kind !== "emblem").map(overlayMarkup).join("")}</svg>`
 }
 
 // ── Share links ────────────────────────────────────────────────────────────

@@ -552,7 +552,8 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
       if (it) list.splice(Math.min(pos, list.length), 0, it)
     }
     pin("geopaint", 0)
-    pin("realorbot", 0) // last pin wins the front
+    pin("flagstudio", 0)
+    pin("realorbot", 0) // last pin wins the front: Real or Bot, Flag Studio, GeoPaint
     return list
   })()
   const top = topGames(dayIdx)

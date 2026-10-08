@@ -301,6 +301,32 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
         </div>
       ) }
 
+    case "flagstudio": {
+      // A flag being made: blue and gold stripes, a red star mid-edit with
+      // its selection box and handles, and the pointer that placed it.
+      const pts = Array.from({ length: 10 }, (_, i) => {
+        const a = -Math.PI / 2 + (i * Math.PI) / 5, r = i % 2 ? 4.2 : 11
+        return `${(50 + r * Math.cos(a)).toFixed(2)},${(34 + r * Math.sin(a)).toFixed(2)}`
+      }).join(" ")
+      return { bleed: true, node: (
+        <div style={{ ...box }}>
+          <svg viewBox="0 0 100 66.7" preserveAspectRatio="none" style={{ width: "100%", height: "100%", display: "block" }}>
+            <rect x={0} y={0} width={100} height={16.7} fill="#0B3D91" />
+            <rect x={0} y={16.7} width={100} height={33.3} fill="#FCD116" />
+            <rect x={0} y={50} width={100} height={16.7} fill="#0B3D91" />
+            <polygon points={pts} fill="#C8102E" />
+            <rect x={37.5} y={21.5} width={25} height={25} fill="none" stroke="#5C8CA8" strokeWidth={0.6} strokeDasharray="1.6 1.2" />
+            <line x1={50} y1={21.5} x2={50} y2={16} stroke="#5C8CA8" strokeWidth={0.6} />
+            <circle cx={50} cy={15} r={1.6} fill="#FFFFFF" stroke="#5C8CA8" strokeWidth={0.6} />
+            <rect x={61} y={45} width={3} height={3} rx={0.6} fill="#FFFFFF" stroke="#5C8CA8" strokeWidth={0.6} />
+          </svg>
+          <span style={{ position: "absolute", left: "63%", top: "68%", filter: `drop-shadow(0 2px 3px ${tint(T.text, 0.5)})` }}>
+            <MousePointer2 size={hero ? 26 : 16} color={T.text} fill="#FFFFFF" strokeWidth={1.6} />
+          </span>
+        </div>
+      ) }
+    }
+
     case "geopaint": {
       // The Stars & Stripes, recoloured with lime-green stripes — eye-catching,
       // and a literal hint at the game: take a flag and repaint its colours.

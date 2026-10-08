@@ -1,9 +1,12 @@
 import { seededRandom } from "../utils/prng"
+import { randomDesign, drawnFills, drawnSvg, familyOf } from "../utils/flagStudio"
+import type { Design } from "../utils/flagStudio"
 import { FLAGS } from "./flags"
 import type { FlagRecord } from "./flags"
 
 // ── Real or Bot: synthetic "bot" flags + the real-flag pool ─────────────────
-// BOT_FLAGS: 900 fixed, procedurally drawn flags in the same flat-vector style
+// BOT_FLAGS: 900 fixed, procedurally drawn flags (plus 600 from Flag Studio's
+// Random button, below) in the same flat-vector style
 // as the real ones, built from ~35 layouts real flags actually use (tricolours,
 // Nordic crosses, saltires, hoist triangles, cantons, diagonal bands, borders,
 // stars, crescents, suns). Every flag is seeded, so the pool is identical on
@@ -445,7 +448,50 @@ function generate(): Built[] {
   return out
 }
 
-export const BOT_ENTRIES: Built[] = generate()
+// ── Flag Studio bots ─────────────────────────────────────────────────────────
+// A second pool from Flag Studio's Random button: its layouts, stripes and
+// symbols (maple leaves, laurels, wheels, crescent-and-stars), seeded so the
+// pool is the same everywhere. Each one is checked against REAL_SIGS too.
+export const STUDIO_BOT_COUNT = 600
+
+function studioSig(d: Design): string[] | null {
+  const f = drawnFills(d).map(familyOf).join("")
+  if (f.includes("?")) return null
+  // Same rule as the classic bots: no clashing neighbours (yellow on white…).
+  const touching = d.base === "stripes" ? [...f].slice(1).map((c, i) => f[i] + c) : [...f].flatMap((a, i) => [...f].slice(i + 1).map(b => a + b))
+  if (touching.some(p => CLASH.has(p) || p[0] === p[1] && d.base === "stripes")) return null
+  if (d.base === "stripes") return ["bands:" + canon(f)]
+  const kind = d.base.slice("layout:".length)
+  switch (kind) {
+    case "nordic": return [`nordic:${f[0]}${f[1]}`]
+    case "cross": return [`cross:${f[0]}${f[1]}`]
+    case "saltire": return [`saltire:${f[0]}${f[1]}`]
+    case "canton": return [`canton1:${f[0]}${f[1]}`]
+    case "triangle": return [`tri:${canon(f[0] + f[1])}:${f[2]}`]
+    case "diagonal": return [`split:${pair(f[0], f[1])}`]
+    case "quartered": return [`quart:${f[0]}${f[1]}`]
+    case "disc": return [`disc:${f[0]}${f[1]}`]
+    case "border": return [`border:${f[0]}${f[1]}`]
+    default: return null
+  }
+}
+
+function generateStudio(): Built[] {
+  const out: Built[] = []
+  const seen = new Set<string>()
+  for (let i = 0; out.length < STUDIO_BOT_COUNT && i < STUDIO_BOT_COUNT * 4; i++) {
+    const d = randomDesign([], seededRandom("studiobot-" + i))
+    const sig = studioSig(d)
+    if (!sig || sig.some(x => REAL_SIGS.has(x))) continue
+    const src = "data:image/svg+xml;utf8," + encodeURIComponent(drawnSvg(d))
+    if (seen.has(src)) continue
+    seen.add(src)
+    out.push({ src, sig })
+  }
+  return out
+}
+
+export const BOT_ENTRIES: Built[] = [...generate(), ...generateStudio()]
 export const BOT_FLAGS: string[] = BOT_ENTRIES.map(b => b.src)
 
 // ── Real flags in rotation ───────────────────────────────────────────────────
