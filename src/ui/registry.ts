@@ -67,6 +67,7 @@ export const REGISTRY: Entry[] = [
   { id: "thecrop", title: "The Crop", subtitle: "Zoom out to guess", icon: "🔍", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "thepeel", title: "The Peel", subtitle: "Scratch to reveal", icon: "🖌️", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
   { id: "composer", title: "Tile Flipper", subtitle: "Reassemble the flag", icon: "🎴", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
+  { id: "flagstudio", title: "Flag Studio", subtitle: "Make your own flag", icon: "🎨", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
   { id: "buildflag", title: "Build the Flag", subtitle: "Assemble the bands", icon: "🧩", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
   { id: "geopaint", title: "GeoPaint", subtitle: "Colour-match the flag", icon: "🎨", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "sketchflag", title: "Sketch the Flag", subtitle: "Draw it from memory", icon: "✏️", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },

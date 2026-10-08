@@ -4,6 +4,17 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-08",
+    title: "Flag Studio: make your own flag",
+    items: [
+      "New: Flag Studio. Start from any real flag or a blank layout and make it your own.",
+      "Tap any stripe, star or emblem to recolour it, or change a colour everywhere at once.",
+      "Add stars, suns, crescents, crosses and more, then drag, resize and rotate them.",
+      "Download your flag as a PNG up to 4K or as an SVG, or share it with a link.",
+      "Every flag you make is saved on your device under My flags.",
+    ],
+  },
+  {
     date: "2026-10-02",
     title: "What every flag means",
     items: [

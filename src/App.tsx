@@ -30,6 +30,7 @@ const ConnectionsScreen = lazy(() => import("./components/ConnectionsScreen"))
 const TheCropScreen = lazy(() => import("./components/TheCropScreen"))
 const FlagDNAScreen = lazy(() => import("./components/FlagDNAScreen"))
 const BuildFlagScreen = lazy(() => import("./components/BuildFlagScreen"))
+const FlagStudioScreen = lazy(() => import("./components/FlagStudioScreen"))
 const GeoPaintScreen = lazy(() => import("./components/GeoPaintScreen"))
 const SketchFlagScreen = lazy(() => import("./components/SketchFlagScreen"))
 const SpotErrorScreen = lazy(() => import("./components/SpotErrorScreen"))
@@ -80,7 +81,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections"
+type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio"
 
 interface ActiveQuiz {
   questions: Question[]
@@ -130,6 +131,12 @@ function ScreenFallback() {
 // Deep link straight into a game: globalio.app/?play=realorbot (any registry
 // id), ?play=daily or ?play=quickplay. Lets a social post or bio link drop a
 // new player into the exact game they just saw instead of the dashboard.
+// A Flag Studio share link carries the design as ?design=…; read it before the
+// deep-link handler tidies the URL.
+const SHARED_DESIGN = (() => {
+  try { return new URLSearchParams(window.location.search).get("design") } catch { return null }
+})()
+
 function readDeepLink(): string | null {
   try {
     const id = new URLSearchParams(window.location.search).get("play")?.toLowerCase()
@@ -149,6 +156,8 @@ export default function App() {
   const [tab, setTab] = useState<TabKey>("today")
   // Deep-link target for the full-screen Codex (e.g. from the World Cup explorer)
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
+  // A shared Flag Studio design opens once; after that the studio shows the player's own work.
+  const sharedDesign = useRef(SHARED_DESIGN)
 
   // Persist on change — but SKIP the first run. The initial appState is exactly
   // what we just loaded, so re-saving it can only ever hurt: if that load hit a
@@ -310,7 +319,7 @@ export default function App() {
           (see .geo-home-pill in index.css): it sat on top of the score, round
           counter and best score in most game headers, and every game already
           has its own back button that goes home. */}
-      {screen !== "splash" && screen !== "home" && screen !== "megacodex" && screen !== "flagdiag" && (
+      {screen !== "splash" && screen !== "home" && screen !== "megacodex" && screen !== "flagdiag" && screen !== "flagstudio" && (
         <button
           onClick={() => setScreen("home")}
           aria-label="Home"
@@ -364,6 +373,7 @@ export default function App() {
       {screen === "thecrop"    && <TheCropScreen    onBack={() => setScreen("home")} />}
       {screen === "flagdna"    && <FlagDNAScreen     onBack={() => setScreen("home")} />}
       {screen === "buildflag"    && <BuildFlagScreen    onBack={() => setScreen("home")} />}
+      {screen === "flagstudio"   && <FlagStudioScreen   onBack={() => { sharedDesign.current = null; setScreen("home") }} initialDesign={sharedDesign.current} />}
       {screen === "geopaint"     && <GeoPaintScreen     onBack={() => setScreen("home")} />}
       {screen === "sketchflag"   && <SketchFlagScreen   onBack={() => setScreen("home")} />}
       {screen === "spoterror"    && <SpotErrorScreen    onBack={() => setScreen("home")} />}
