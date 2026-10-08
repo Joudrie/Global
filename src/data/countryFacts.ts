@@ -74,7 +74,12 @@ export const FACTS = {
   southeastAsia: { yes: ['BN', 'KH', 'ID', 'LA', 'MY', 'MM', 'PH', 'SG', 'TH', 'VN', 'TL'], maybe: ['PG'] },
   // Island countries in the Caribbean Sea (the Bahamas are in the Atlantic, but often counted).
   caribbeanIsland: { yes: ['CU', 'JM', 'HT', 'DO', 'BB', 'TT', 'AG', 'DM', 'GD', 'KN', 'LC', 'VC'], maybe: ['BS'] },
-  hornOfAfrica: { yes: ['SO', 'ET', 'ER', 'DJ'], maybe: ['KE', 'SD', 'SS', 'UG'] },
+  // China, Japan, the two Koreas, Mongolia and Taiwan.
+  eastAsia: { yes: ['CN', 'JP', 'KR', 'KP', 'MN', 'TW'] },
+  // A Slavic language is the main national language. `maybe`: Kosovo (Serbian
+  // is co-official) and Moldova (Russian widely spoken).
+  slavic: { yes: ['RU', 'UA', 'BY', 'PL', 'CZ', 'SK', 'SI', 'HR', 'BA', 'RS', 'ME', 'MK', 'BG'], maybe: ['XK', 'MD'] },
+  hornOfAfrica:{ yes: ['SO', 'ET', 'ER', 'DJ'], maybe: ['KE', 'SD', 'SS', 'UG'] },
   // The Sahara covers part of their land (Morocco through Western Sahara).
   sahara: { yes: ['DZ', 'LY', 'EG', 'SD', 'TD', 'NE', 'ML', 'MR', 'TN'], maybe: ['MA'] },
   blackSea: { yes: ['TR', 'BG', 'RO', 'UA', 'RU', 'GE'] },
@@ -96,6 +101,14 @@ export const FACTS = {
   warsawPact: { yes: ['PL', 'HU', 'RO', 'BG'], maybe: ['CZ', 'SK', 'AL', 'DE'] },
   // Portuguese colonies that are countries today.
   exPortuguese: { yes: ['BR', 'AO', 'MZ', 'CV', 'GW', 'ST', 'TL'], maybe: ['IN', 'LK', 'MY', 'OM', 'BH', 'MA', 'GH', 'UY'] },
+  // Former German colonies (1884 to 1919): South West Africa, East Africa,
+  // Kamerun, Togoland, New Guinea and Samoa. `maybe`: land that was German
+  // only in part or briefly (Togoland's west in Ghana, Neukamerun, Kionga,
+  // Witu, the northern Solomons, Kiautschou).
+  exGerman: {
+    yes: ['NA', 'TZ', 'RW', 'BI', 'CM', 'TG', 'PG', 'WS', 'NR', 'MH', 'FM', 'PW'],
+    maybe: ['GH', 'SB', 'MZ', 'CN', 'KE', 'NG', 'CF', 'CG', 'TD', 'GA'],
+  },
   // Spanish colonies that are countries today.
   exSpanish: {
     yes: ['MX', 'GT', 'HN', 'SV', 'NI', 'CR', 'PA', 'CU', 'DO', 'CO', 'VE', 'EC', 'PE', 'BO', 'CL', 'AR', 'PY', 'UY', 'GQ', 'PH'],
@@ -122,13 +135,15 @@ export const FACTS = {
   // A monarch is head of state (including the 15 Commonwealth realms).
   monarchy: {
     yes: [
-      'GB', 'AU', 'NZ', 'CA', 'JM', 'BS', 'BZ', 'AG', 'GD', 'KN', 'LC', 'VC', 'PG', 'SB', 'TV',
+      'GB', 'AU', 'NZ', 'CA', 'BS', 'BZ', 'AG', 'GD', 'KN', 'LC', 'VC', 'PG', 'SB', 'TV',
       'ES', 'NL', 'BE', 'LU', 'LI', 'MC', 'DK', 'NO', 'SE', 'AD', 'VA',
       'JP', 'TH', 'KH', 'BT', 'MY', 'BN', 'SA', 'JO', 'KW', 'QA', 'BH', 'AE', 'OM', 'MA', 'LS', 'SZ', 'TO',
     ],
+    maybe: ['JM'],
   },
-  // King Charles III is head of state (the 15 Commonwealth realms).
-  realm: { yes: ['GB', 'AU', 'NZ', 'CA', 'JM', 'BS', 'BZ', 'AG', 'GD', 'KN', 'LC', 'VC', 'PG', 'SB', 'TV'] },
+  // King Charles III is head of state (the Commonwealth realms).
+  // Jamaica is `maybe`: it plans to become a republic, so it may have changed.
+  realm: { yes: ['GB', 'AU', 'NZ', 'CA', 'BS', 'BZ', 'AG', 'GD', 'KN', 'LC', 'VC', 'PG', 'SB', 'TV'], maybe: ['JM'] },
   // A monarch of their own (the monarchies that are not other countries' realms).
   ownMonarch: {
     yes: [
@@ -156,6 +171,23 @@ export const FACTS = {
 
   // The Group of Seven.
   g7: { yes: ['US', 'CA', 'GB', 'FR', 'DE', 'IT', 'JP'] },
+  // Use the euro without being in the EU (by agreement or on their own).
+  euroNotEU: { yes: ['ME', 'XK', 'MC', 'SM', 'VA', 'AD'] },
+  // In the EU but still on their own currency (Bulgaria joined the euro in 2026).
+  euNotEuro: { yes: ['CZ', 'DK', 'HU', 'PL', 'RO', 'SE'] },
+  // In NATO but not the EU.
+  natoNotEU: { yes: ['AL', 'CA', 'IS', 'ME', 'MK', 'NO', 'TR', 'GB', 'US'] },
+  // In the EU but not NATO (Finland and Sweden joined NATO in 2023 and 2024).
+  euNotNato: { yes: ['AT', 'IE', 'MT', 'CY'] },
+  // European countries outside the EU. `maybe`: countries only partly in Europe.
+  europeOutsideEU: {
+    yes: ['NO', 'CH', 'IS', 'RS', 'GB', 'UA', 'ME', 'MK', 'AL', 'BA', 'MD', 'BY', 'RU', 'LI', 'AD', 'MC', 'SM', 'VA', 'XK'],
+    maybe: ['TR', 'GE', 'AM', 'AZ', 'KZ'],
+  },
+  // Gulf Cooperation Council.
+  gcc: { yes: ['SA', 'AE', 'QA', 'KW', 'BH', 'OM'] },
+  // Mercosur's founding members. `maybe`: Venezuela (suspended) and Bolivia (joined 2024).
+  mercosur: { yes: ['AR', 'BR', 'PY', 'UY'], maybe: ['VE', 'BO'] },
   // Joined the Commonwealth without ever being ruled by Britain (Cameroon was partly British).
   commonwealthNeverBritish: { yes: ['MZ', 'RW', 'GA', 'TG'], maybe: ['CM'] },
 
@@ -209,10 +241,80 @@ export const FACTS = {
   },
   // A map of the country is on the flag.
   flagMap: { yes: ['CY', 'XK'] },
+  // An eagle on the flag. `maybe`: other birds of prey (condors, the
+  // Zimbabwe bird), other birds, and eagles hidden in a coat of arms.
+  flagEagle: {
+    yes: ['AL', 'MX', 'EG', 'ZM', 'KZ', 'MD', 'RS', 'ME'],
+    maybe: [
+      'ZW', 'EC', 'BO', 'GT', 'DM', 'KI', 'PG', 'UG', 'AD', 'ES', 'PE', 'VE', 'CR', 'SV', 'NI', 'HN', 'CO', 'PY', 'AM',
+      'DE', 'AT', 'PL', 'RU', 'IQ', 'SY', 'YE', 'PS', 'LY', 'PT', 'PH', 'HT', 'MT', 'SM', 'FJ',
+    ],
+  },
+  // Only red and white. `maybe`: dark red or maroon (Latvia, Qatar), Malta's grey cross.
+  flagRedWhite: {
+    yes: ['JP', 'CA', 'CH', 'DK', 'PL', 'ID', 'MC', 'AT', 'PE', 'TR', 'TN', 'GE', 'BH', 'SG', 'TO'],
+    maybe: ['LV', 'QA', 'MT'],
+  },
+  // Red, white, red bands (either way), with or without an emblem. Thailand's
+  // five stripes start and end red too.
+  flagRedWhiteRed: { yes: ['AT', 'LV', 'PE', 'CA', 'LB'], maybe: ['TH'] },
+  // Only blue and yellow.
+  flagBlueYellow: { yes: ['UA', 'SE', 'PW', 'KZ'], maybe: ['BA', 'XK', 'NR', 'BB', 'LC', 'TV', 'SB'] },
+  // A cross that is not a Nordic cross. `maybe`: the crosses inside the Union
+  // Jack in another flag's corner, saltires, and crosses inside a coat of arms.
+  flagCrossOther: {
+    yes: ['CH', 'GR', 'GE', 'TO', 'DO', 'GB', 'DM'],
+    maybe: ['AU', 'NZ', 'FJ', 'TV', 'JM', 'BI', 'MT', 'MD', 'RS', 'ME', 'AD', 'VA', 'SM', 'HR', 'PT', 'ES', 'LI', 'EC', 'BO', 'SK'],
+  },
+  // Three horizontal stripes in three colours and nothing else. `maybe`: an
+  // emblem, star or band on top, uneven stripes, or only two colours.
+  flagHorizontalTricolour: {
+    yes: ['DE', 'NL', 'RU', 'LU', 'HU', 'BG', 'EE', 'LT', 'AM', 'GA', 'SL', 'YE'],
+    maybe: [
+      'CO', 'BO', 'IN', 'NE', 'EG', 'IQ', 'SY', 'SD', 'IR', 'TJ', 'SI', 'SK', 'HR', 'RS', 'GH', 'ET', 'MM', 'LS', 'LA', 'KH',
+      'MW', 'VE', 'EC', 'PY', 'GM', 'TH', 'CR', 'AT', 'LV', 'MU', 'SS', 'KE', 'CF', 'BY', 'AZ', 'UZ', 'AE', 'KW', 'PS', 'JO', 'LY',
+    ],
+  },
+  // The Pan-Arab colours: red, black, white and green.
+  flagPanArab: {
+    yes: ['JO', 'PS', 'SD', 'AE', 'KW', 'IQ', 'SY', 'LY'],
+    maybe: ['YE', 'EG', 'OM', 'IR', 'AF', 'KE', 'MW', 'SS', 'MZ', 'ZW', 'ST'],
+  },
+  // Near-identical to another country's flag: Chad and Romania, Indonesia
+  // and Monaco. `maybe`: every other famous lookalike pair.
+  flagTwin: {
+    yes: ['TD', 'RO', 'ID', 'MC'],
+    maybe: [
+      'AU', 'NZ', 'NL', 'LU', 'SN', 'ML', 'CI', 'IE', 'CO', 'EC', 'VE', 'NO', 'IS', 'PL', 'SG', 'GN', 'HT', 'LI', 'SK', 'SI',
+      'RU', 'JO', 'PS', 'BH', 'QA', 'CR', 'TH', 'AT', 'LV', 'IT', 'MX', 'YE', 'EG', 'SY', 'IQ', 'MY', 'US', 'LR',
+    ],
+  },
+  // Words written large on the flag. `maybe`: a motto inside a coat of arms.
+  flagText: {
+    yes: ['SA', 'BR', 'IQ', 'IR'],
+    maybe: ['AF', 'PY', 'SV', 'NI', 'GT', 'DO', 'EC', 'BO', 'BZ', 'HT', 'ES', 'SM', 'AD', 'MT', 'VE', 'CR', 'PT', 'MX', 'ME', 'RS', 'MD'],
+  },
+  // Stripes with a star in a corner box, like the Stars and Stripes.
+  flagStarsStripes: { yes: ['US', 'LR', 'MY', 'TG'], maybe: ['UY', 'GR', 'CU', 'CL'] },
+  // A plain disc. `maybe`: a disc with something on or around it.
+  flagDisc: {
+    yes: ['JP', 'BD', 'PW', 'LA', 'NE'],
+    maybe: ['KR', 'BR', 'MK', 'KG', 'KZ', 'AR', 'UY', 'TW', 'MN', 'PT', 'MW', 'AG', 'KI', 'NA', 'RW', 'PH', 'NP'],
+  },
+  // A diagonal band across the flag.
+  flagDiagonal: {
+    yes: ['CG', 'TZ', 'NA', 'CD', 'SB', 'TT', 'KN', 'BN', 'MH'],
+    maybe: ['PG', 'BA', 'SC', 'GY', 'BS', 'CZ', 'KW', 'ER'],
+  },
+  // A triangle (or chevron) at the hoist, the side by the pole.
+  flagHoistTriangle: {
+    yes: ['CZ', 'PH', 'CU', 'BS', 'JO', 'SD', 'PS', 'ER', 'DJ', 'MZ', 'ZW', 'TL', 'GQ', 'ST', 'SS', 'KM'],
+    maybe: ['KW', 'BA', 'GY', 'BH', 'QA', 'ZA', 'JM', 'VU', 'SC', 'LC', 'AG', 'GD', 'CG', 'TZ', 'NA', 'TT', 'KN', 'SB', 'MH', 'PG', 'CD', 'NP'],
+  },
   // A plant, leaf, tree or branch is on the flag.
   flagPlant: {
     yes: ['CA', 'LB', 'CY', 'ER', 'BZ', 'GQ', 'HT', 'GD', 'MX', 'FJ', 'LK', 'VU', 'TM', 'GT'],
-    maybe: ['SV', 'EC', 'BO', 'PE', 'VE', 'AF', 'PY', 'SM', 'MD', 'CR', 'DM', 'IR', 'NI', 'ME', 'ZM'],
+    maybe: ['SV', 'EC', 'BO', 'PE', 'VE', 'AF', 'PY', 'SM', 'MD', 'CR', 'DM', 'IR', 'NI', 'ME'],
   },
 
   // A star of any kind (five-pointed, Star of David, pentagram, many-pointed)
@@ -237,15 +339,45 @@ export const FACTS = {
   // The capital is not the country's biggest city.
   capitalNotLargest: {
     yes: ['US', 'CA', 'AU', 'NZ', 'BR', 'TR', 'CH', 'NG', 'PK', 'CN', 'VN', 'MA', 'TZ', 'CI', 'BO', 'KZ', 'MM', 'LK', 'BZ', 'MT', 'AE', 'BJ', 'BI', 'GM', 'LI', 'SM'],
-    maybe: ['IN', 'EC', 'ZA', 'IL', 'CM', 'SY', 'MW', 'PH', 'SZ', 'OM', 'PS', 'NL', 'MH', 'KI', 'PW', 'FM', 'TW', 'TT', 'YE', 'KW'],
+    maybe: ['IN', 'EC', 'ZA', 'IL', 'CM', 'SY', 'MW', 'PH', 'SZ', 'OM', 'PS', 'NL', 'MH', 'KI', 'PW', 'FM', 'TW', 'TT', 'YE', 'KW', 'BE'],
   },
-  // The capital is named after a person.
+  // The capital is named after a person: Washington, Monrovia (James Monroe),
+  // Wellington (the Duke), Brazzaville (Pierre de Brazza), Victoria (the
+  // queen), Georgetown (George III), Port Louis (Louis XV), Valletta (Jean de
+  // Valette), Port Moresby (Admiral Fairfax Moresby). `maybe`: saints, gods,
+  // legendary founders, local chiefs, and names whose story is disputed.
   capitalAfterPerson: {
-    yes: ['US', 'LR', 'NZ', 'CG', 'SC', 'GY', 'MU', 'MT'],
-    maybe: ['BS', 'VC', 'JM', 'GR', 'IT', 'KN', 'AG', 'GD', 'LC', 'DM', 'ST', 'CL', 'AR', 'PY', 'CR', 'SV', 'DO', 'KZ', 'PH', 'ZW'],
+    yes: ['US', 'LR', 'NZ', 'CG', 'SC', 'GY', 'MU', 'MT', 'PG'],
+    maybe: [
+      'BS', 'VC', 'JM', 'GR', 'IT', 'KN', 'AG', 'GD', 'LC', 'DM', 'ST', 'CL', 'AR', 'PY', 'CR', 'SV', 'DO', 'KZ', 'PH', 'ZW',
+      'ZM', 'BW', 'GQ', 'ZA', 'BO', 'CU', 'BN', 'KH', 'MN', 'UA', 'SK', 'PL', 'BG', 'RO', 'SM', 'PT',
+    ],
+  },
+  // The capital was renamed from a person's name: Salisbury (Harare),
+  // Léopoldville (Kinshasa), Stalinabad (Dushanbe), Frunze (Bishkek), Titograd
+  // (Podgorica), Bathurst (Banjul), Fort-Lamy (N'Djamena), Lourenço Marques
+  // (Maputo), Ciudad Trujillo (Santo Domingo), Nur-Sultan (Astana) and
+  // Christiania (Oslo, after King Christian IV). `maybe`: older or lesser-known
+  // renamings (Poltoratsk, Bytown, Santa Isabel, Gaberones, Batavia, Pressburg).
+  capitalOnceAfterPerson: {
+    yes: ['ZW', 'CD', 'TJ', 'KG', 'ME', 'GM', 'TD', 'MZ', 'DO', 'KZ', 'NO'],
+    maybe: ['TM', 'CA', 'GQ', 'BW', 'ID', 'SK'],
   },
   // The capital stands on the Danube.
   capitalDanube: { yes: ['AT', 'SK', 'HU', 'RS'] },
+  // The capital is more than 2,000 m above sea level (La Paz and Sucre,
+  // Quito, Bogotá, Addis Ababa, Asmara, Thimphu, Sana'a, Mexico City).
+  // `maybe`: capitals between about 1,400 and 2,000 m.
+  capitalHigh: {
+    yes: ['BO', 'EC', 'CO', 'ET', 'BT', 'ER', 'YE', 'MX'],
+    maybe: ['KE', 'AF', 'NA', 'RW', 'LS', 'BI', 'ZW', 'GT', 'NP', 'ZA'],
+  },
+  // The capital was built from scratch to be the capital. `maybe`: an older
+  // town greatly expanded, or a planned city that became capital later.
+  plannedCapital: {
+    yes: ['BR', 'AU', 'NG', 'PK', 'MM', 'BZ', 'US', 'IN', 'BW'],
+    maybe: ['KZ', 'TZ', 'CI', 'MW', 'BI', 'PW', 'MT', 'MR', 'ZM', 'FM', 'TR'],
+  },
 
   // ── Names ─────────────────────────────────────────────────────────────────
   // Named after a person. `maybe`: a saint, a biblical figure, a dynasty, a
