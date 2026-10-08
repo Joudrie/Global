@@ -35,7 +35,8 @@ function buildTraits(): Trait[] {
     { label: "Flags with vertical stripes",  icon: "columns", count: withAttr.filter(f => STRIPES_V.has(f.code)).length },
     { label: "Flags from Europe",      icon: "globe", count: countRegion("Europe") },
     { label: "Flags from Africa",      icon: "globe", count: countRegion("Africa") },
-    { label: "Flags from Asia",        icon: "globe", count: countRegion("Asia") },
+    // The Middle East is part of Asia, so it is counted in (it is its own region elsewhere in the app).
+    { label: "Flags from Asia and the Middle East", icon: "globe", count: countRegion("Asia") + countRegion("Middle East") },
     { label: "Flags from the Americas",icon: "globe", count: countRegion("Americas") },
   ]
 }

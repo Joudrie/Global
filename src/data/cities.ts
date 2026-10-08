@@ -21,7 +21,8 @@ export const CITIES: Record<string, string[]> = {
   KR: ["Busan", "Incheon", "Daegu", "Gwangju"],
   MX: ["Guadalajara", "Monterrey", "Puebla", "Tijuana", "Cancún"],
   AR: ["Córdoba", "Rosario", "Mendoza", "La Plata"],
-  ZA: ["Johannesburg", "Durban", "Cape Town", "Soweto"],
+  // Not Cape Town or Bloemfontein: they are South Africa's legislative and judicial capitals.
+  ZA: ["Johannesburg", "Durban", "Soweto"],
   EG: ["Alexandria", "Giza", "Luxor", "Port Said"],
   NG: ["Lagos", "Kano", "Ibadan", "Port Harcourt"],
   TR: ["Istanbul", "Izmir", "Bursa", "Antalya"],

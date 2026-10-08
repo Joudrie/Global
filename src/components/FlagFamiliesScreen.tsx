@@ -1,50 +1,116 @@
 import { useState } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
+import { FLAG_ATTRIBS } from "../data/flagAttribs"
+import type { FlagAttribs } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
+// A family is a sorting rule. Its codes must list EVERY flag that fits the
+// rule; flags a player could fairly argue fit go in `maybe`. In a round, a
+// flag is only shown for one family if it is neither a member nor a maybe of
+// the other, so each round has exactly one right sort.
+//
+// `kin` groups families about the same kind of feature (crosses, stars,
+// circles, emblems). Against a family of another kin, any flag with that
+// feature at all (a cross, a star or crescent, a disc or sun, an emblem or
+// bird) is held back too: a Greek cross among "Blue & White" flags facing the
+// Nordic crosses could be sorted either way. Between kin the round is about
+// telling the styles apart, so only the other family's codes and maybes count.
 interface Family {
   id: string
   label: string
   codes: string[]
+  maybe?: string[]
+  kin?: 'cross' | 'star' | 'disc' | 'emblem'
 }
 
 const FAMILY_DEFS: Family[] = [
   // ── Structure / layout ───────────────────────────────────────────────────
-  { id: 'nordic',     label: 'Nordic Cross',        codes: ['DK','NO','SE','FI','IS'] },
-  { id: 'cross-mid',  label: 'Centered Cross',      codes: ['CH','GE','DO','TO'] },
-  { id: 'v-tricolor', label: 'Vertical Tricolor',   codes: ['FR','IT','IE','BE','RO','NG','ML','SN','CI','GN','CM','TD'] },
-  { id: 'h-tricolor', label: 'Horizontal Tricolor', codes: ['DE','NL','RU','HU','BG','LT','EE','AM','GA','SL'] },
-  { id: 'bicolor',    label: 'Two-Band Bicolor',    codes: ['ID','MC','PL','UA','SM'] },
-  { id: 'hoist-tri',  label: 'Hoist Triangle',      codes: ['CZ','PH','ER','DJ','BS','GY','MZ','ZA','SS','JO','PS','SD','KW','VU'] },
-  { id: 'diagonal',   label: 'Diagonal Band',       codes: ['CD','CG','TZ','NA','TT','BN','SC','SB'] },
-  { id: 'white-mid',  label: 'White Center Band',   codes: ['NG','PE','CA','AT','LV','LB','IR','TJ','MX'] },
-  { id: 'uk-ensign',  label: 'Union Jack Canton',   codes: ['AU','NZ','FJ','TV','CK'] },
+  { id: 'nordic',     label: 'Nordic Cross',        kin: 'cross', codes: ['DK','NO','SE','FI','IS'] },
+  { id: 'cross-mid',  label: 'Centered Cross',      kin: 'cross', codes: ['CH','GE','DO','DM'],
+    maybe: ['GB','JM','BI','TO','GR','MT','SK'] },
+  { id: 'uk-ensign',  label: 'Union Jack Canton',   kin: 'cross', codes: ['AU','NZ','FJ','TV'], maybe: ['GB'] },
+  { id: 'v-tricolor', label: 'Vertical Tricolor',   codes: ['FR','IT','IE','BE','RO','MD','AD','TD','ML','GN','CI','SN','CM','MX','VC','AF'],
+    maybe: ['NG','PE','CA','GT','BB','MN'] },
+  { id: 'h-tricolor', label: 'Horizontal Tricolor', codes: ['DE','NL','RU','HU','BG','LT','EE','AM','GA','SL','LU','YE','IQ','EG','SY','IN','NE','IR','TJ',
+    'BO','CO','EC','VE','MM','ET','GH','LS','MW','AZ','SI','SK','RS','HR','PY'],
+    maybe: ['AT','LV','LB','ES','KH','LA','BW','HN','SV','NI','AR','GM','KE','UZ','SD','KW','JO','PS','AE','SS','GQ','OM','CR','TH','MU','CF','KM'] },
+  { id: 'bicolor',    label: 'Two-Band Bicolor',    codes: ['ID','MC','PL','UA','SM','LI','HT','SG'],
+    maybe: ['BY','CL','CZ','PH','DJ','MG','BJ','GW','VU','MT','VA','PT','DZ','BH','QA'] },
+  { id: 'hoist-tri',  label: 'Hoist Triangle',      codes: ['CZ','PH','ER','DJ','BS','GY','MZ','ZA','SS','JO','PS','SD','VU','CU','GQ','KM','ST','TL','ZW'],
+    maybe: ['KW','BA','LC','AG','GD'] },
+  { id: 'diagonal',   label: 'Diagonal Band',       codes: ['CD','CG','TZ','NA','TT','BN','SB','KN'],
+    maybe: ['SC','MH','PG','BT','JM','BI'] },
+  { id: 'white-mid',  label: 'White Center Band',   codes: ['AT','LV','LB','IR','TJ','HU','NE','IN','SL','NL','LU','YE','IQ','SY','EG','SD','KW','JO','PS','AE',
+    'HR','PY','AR','SV','HN','NI','LS','GQ','UZ','NG','PE','CA','MX','FR','IT','IE','CI','GT'],
+    maybe: ['BW','GM','KE','SS','KP','TH','CR','IL','SR','MZ','TT','ZA','DO'] },
   // ── Colour palette ───────────────────────────────────────────────────────
-  { id: 'rwb',        label: 'Red, White & Blue',   codes: ['US','GB','FR','NL','RU','NO','IS','CZ','LU','TH','PY','CL','CU','CR','PA'] },
-  { id: 'red-white',  label: 'Red & White Only',    codes: ['AT','PL','MC','ID','BH','QA','CA','PE','MT','SG'] },
-  { id: 'blue-white', label: 'Blue & White Only',   codes: ['AR','GR','FI','IL','NI','SV','HN','SO','UY','GT'] },
-  { id: 'pan-african',label: 'Pan-African Colours', codes: ['ET','GH','ML','GN','KE','ZM','TZ','BJ','BF','CG','CM','GW','TG','ZW'] },
-  { id: 'pan-arab',   label: 'Pan-Arab Colours',    codes: ['EG','IQ','SY','YE','JO','KW','AE','PS','SD'] },
-  { id: 'green-dom',  label: 'Green-Dominant',      codes: ['SA','PK','NG','BD','TM','MR','ZM'] },
-  { id: 'yellow-dom', label: 'Yellow-Dominant',     codes: ['BN','CO','EC','VE','BT'] },
-  { id: 'has-black',  label: 'Contains Black',      codes: ['DE','EG','SY','YE','KE','AF','SS','BE','AO','BW','JM','PG','MW','UG','TZ','ZW','VU','TT','EE'] },
+  { id: 'rwb',        label: 'Red, White & Blue',   codes: ['US','GB','FR','NL','RU','NO','IS','CZ','LU','TH','CL','CU','CR','PA','SK','KH','LA','NP','KP','TW','LR','AU','NZ','WS'],
+    maybe: ['BZ','DO','FJ','SI','RS','HR','PY','AG','AZ','MY','PH','KR','UZ','CV','CF','KM','DJ','GQ','GM','NA','SC','ZA','SS','KI','TV','SZ'] },
+  { id: 'red-white',  label: 'Red & White Only',    codes: ['AT','PL','MC','ID','BH','QA','CA','PE','MT','SG','DK','CH','GE','TO','TR','TN','JP','LV'],
+    maybe: ['LB'] },
+  { id: 'blue-white', label: 'Blue & White Only',   codes: ['GR','FI','IL','SO','HN','FM'],
+    maybe: ['AR','UY','GT','SV','NI','SM'] },
+  { id: 'pan-african',label: 'Pan-African Colours', codes: ['ET','GH','ML','GN','BJ','BF','CG','CM','GW','TG','ZW','SN','ST','KE','MW','ZM','MR'],
+    maybe: ['TZ','UG','AO','MZ','SS','ER','CF','KM','MU','NA','SC','ZA','GQ','LY','SD','LT','BO','MM','GD','SR','GY','DM','KN','VU','LK','JM','AF','PT','TJ',
+      'JO','KW','PS','SY','AE'] },
+  { id: 'pan-arab',   label: 'Pan-Arab Colours',    codes: ['EG','IQ','SY','YE','JO','KW','AE','PS','SD','LY'],
+    maybe: ['OM','SA','AF','KE','MW','SS','DM','GY','KN','GH','GW','MZ','ST','ZA','ZM','ZW','VU'] },
+  { id: 'green-dom',  label: 'Green-Dominant',      codes: ['SA','PK','NG','BD','TM','MR','ZM','BR','DM','GY'],
+    maybe: ['DZ','ST','MV','SB','JM','PT','ER'] },
+  { id: 'yellow-dom', label: 'Yellow-Dominant',     codes: ['BN','CO','EC','BT'],
+    maybe: ['VE','UA','VA','ES','VC','BB','AD','LK','MK','BR'] },
+  { id: 'has-black',  label: 'Contains Black',      codes: ['AL','BE','EE','DE','AG','BB','BS','DM','GY','JM','KN','LC','TT','IQ','JO','KW','PS','SY','AE','YE','AF','BN',
+    'KR','TL','AO','BW','EG','GH','GW','KE','LS','LY','MW','MZ','ST','SZ','ZA','SS','SD','TZ','UG','ZM','ZW','PG','VU'],
+    // a coat of arms or emblem drawn with black detail
+    maybe: ['HR','LI','MT','PT','SM','RS','ES','VA','BZ','BO','DO','EC','SV','GT','HT','MX','PY','UY','BT','KH','KP','LK','GQ','FJ'] },
   // ── Emblems ──────────────────────────────────────────────────────────────
-  { id: 'crescent',   label: 'Crescent & Star',     codes: ['TR','PK','MY','TN','DZ','AZ','TM','MV','MR','LY','KM','SG'] },
-  { id: 'disc',       label: 'Disc / Circle',       codes: ['JP','BD','LA','PW','NE','KR'] },
-  { id: 'sun',        label: 'Sun Emblem',          codes: ['AR','UY','MK','TW','PH','KI','AG','RW','NP'] },
-  { id: 'one-star',   label: 'Single Star',         codes: ['VN','MA','SO','GH','SN','BF','CM','LR','TG'] },
-  { id: 'south-cross',label: 'Southern Cross',      codes: ['AU','NZ','PG','WS','SB'] },
-  { id: 'arms',       label: 'Coat of Arms',        codes: ['ES','PT','ME','MX','EC','BO','HR','AD','MD','GT','FJ','SZ','LS','BZ','DM'] },
-  { id: 'eagle2',     label: 'Double-Headed Eagle', codes: ['AL','ME','RS'] },
-  { id: 'eagle1',     label: 'Single Eagle',        codes: ['EG','MX','ZM','KZ','MD'] },
-  { id: 'bird',       label: 'Bird (not eagle)',    codes: ['UG','PG','ZW','KI','DM'] },
-  { id: 'map',        label: 'Map of the Country',  codes: ['CY','XK'] },
+  { id: 'crescent',   label: 'Crescent & Star',     kin: 'star', codes: ['TR','PK','MY','TN','DZ','AZ','TM','MR','LY','KM','SG','UZ'],
+    maybe: ['MV','BN','NP','IR','MN'] },
+  { id: 'one-star',   label: 'Single Star',         kin: 'star', codes: ['VN','MA','SO','GH','SN','BF','CM','LR','TG','SS','CL','CU','DJ','MZ','AO','GW','CD',
+    'TL','ET','MM','KP','ZW','IL','JO','NR','MH','SR','CF'] },
+  { id: 'south-cross',label: 'Southern Cross',      kin: 'star', codes: ['AU','NZ','PG','WS'], maybe: ['BR','SB'] },
+  { id: 'disc',       label: 'Disc / Circle',       kin: 'disc', codes: ['JP','BD','LA','PW','NE','KR'],
+    maybe: ['TN','ET','UG','BZ','KP','GD','DM','BR','IN','CV'] },
+  { id: 'sun',        label: 'Sun Emblem',          kin: 'disc', codes: ['AR','UY','MK','TW','PH','KI','AG','RW','NP','KZ','KG','MW','NA'],
+    maybe: ['NE','JP','BD','EC','BO','MN','SV','NI','MH'] },
+  { id: 'arms',       label: 'Coat of Arms',        kin: 'emblem', codes: ['ES','PT','ME','MX','EC','BO','HR','AD','MD','GT','FJ','SZ','BZ','RS','SK','SI','SM','VA',
+    'DO','SV','HT','NI','PY','OM','AF','BN','EG','GQ','KE'],
+    maybe: ['AL','LK','IR','TJ','LI','MN'] },
+  { id: 'eagle2',     label: 'Double-Headed Eagle', kin: 'emblem', codes: ['AL','ME','RS'] },
+  { id: 'eagle1',     label: 'Single Eagle',        kin: 'emblem', codes: ['EG','MX','ZM','KZ','MD'],
+    maybe: ['ZW'] }, // the Zimbabwe Bird is thought to be a fish eagle
+  { id: 'bird',       label: 'Bird (not eagle)',    kin: 'emblem', codes: ['UG','PG','KI','DM','GT'],
+    maybe: ['ZW','EC','BO','FJ'] },
+  { id: 'map',        label: 'Map of the Country',  kin: 'emblem', codes: ['CY','XK'] },
 ]
+
+// Every flag that shows a kin's feature at all: the kin's own families plus
+// the flags FLAG_ATTRIBS marks with a cross, a star or crescent, or an emblem.
+const KIN_ATTR: Record<NonNullable<Family['kin']>, (a: FlagAttribs) => boolean> = {
+  cross: a => a.cross,
+  star: a => a.star || a.crescent,
+  disc: () => false,
+  emblem: a => a.emblem,
+}
+const KIN_FLAGS: Record<string, Set<string>> = {}
+for (const [kin, has] of Object.entries(KIN_ATTR)) {
+  const fams = FAMILY_DEFS.filter(d => d.kin === kin)
+  KIN_FLAGS[kin] = new Set([
+    ...fams.flatMap(d => [...d.codes, ...(d.maybe ?? [])]),
+    ...FLAGS.filter(f => FLAG_ATTRIBS[f.code] && has(FLAG_ATTRIBS[f.code])).map(f => f.code),
+  ])
+}
+
+// The flags that must not be shown for `other` when it is paired with `fam`.
+function heldBack(fam: Family, other: Family): Set<string> {
+  if (fam.kin && fam.kin !== other.kin) return KIN_FLAGS[fam.kin]
+  return new Set([...fam.codes, ...(fam.maybe ?? [])])
+}
 
 interface Round {
   familyA: Family
@@ -52,12 +118,14 @@ interface Round {
   flags: { flag: FlagRecord; family: 'A' | 'B' }[]
 }
 
-// Build a single round from two families, excluding any flag that belongs to
-// BOTH (so a flag is never ambiguous within a round). Returns null if either
-// side can't field at least two unambiguous flags.
+// Build a single round from two families. A flag is only used for one family
+// if the other family doesn't claim it (see heldBack), so no flag fits both
+// and a round has one right sort. Returns null if either side can't field at
+// least two such flags.
 function tryPair(famA: Family, famB: Family): Round | null {
-  const flagsA = FLAGS.filter(f => famA.codes.includes(f.code) && !famB.codes.includes(f.code)).sort(() => Math.random() - 0.5).slice(0, 3)
-  const flagsB = FLAGS.filter(f => famB.codes.includes(f.code) && !famA.codes.includes(f.code)).sort(() => Math.random() - 0.5).slice(0, 3)
+  const notA = heldBack(famA, famB), notB = heldBack(famB, famA)
+  const flagsA = FLAGS.filter(f => famA.codes.includes(f.code) && !notB.has(f.code)).sort(() => Math.random() - 0.5).slice(0, 3)
+  const flagsB = FLAGS.filter(f => famB.codes.includes(f.code) && !notA.has(f.code)).sort(() => Math.random() - 0.5).slice(0, 3)
   if (flagsA.length < 2 || flagsB.length < 2) return null
   const combined = [
     ...flagsA.map(flag => ({ flag, family: 'A' as const })),
