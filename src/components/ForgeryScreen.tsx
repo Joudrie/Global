@@ -165,7 +165,7 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+    <div className="min-h-screen flex flex-col" style={{ background: T.bg, overflowX: "clip" }}>
       <ScreenHeader title="Flag Forgery" subtitle={`Card ${i + 1} / ${deck.length} · Best ${best}`} onBack={onBack}
         right={<HeaderStat label="Score" accent={ACCENT.play}>{score}</HeaderStat>} />
 

@@ -5,6 +5,16 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "Smoother on phones",
+    items: [
+      "The welcome card shows on your first visit only.",
+      "The Trending deck on Play swipes with a quick flick, and the next card no longer slides back in.",
+      "Real or Bot and Flag Forgery no longer let the page slide sideways on phones.",
+      "The category buttons on Play are bigger and easier to tap.",
+    ],
+  },
+  {
+    date: "2026-10-08",
     title: "Flag Studio: build a crest, add your own pictures",
     items: [
       "Build your own coat of arms: six blank shields, a crown, a mural crown, a scroll, a fleur-de-lis, a tower, an anchor, a sword and a cross pattée. Add a shield first and the other pieces fit around it.",
