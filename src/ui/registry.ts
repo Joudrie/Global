@@ -1,5 +1,6 @@
 import type { AppState } from "../utils/storage"
 import { FLAGS } from "../data/flags"
+import { shuffleWithSeed } from "../utils/prng"
 import type { AccentKey } from "./tokens"
 
 export type TabKey = "today" | "play" | "codex" | "you"
@@ -153,14 +154,6 @@ export function featuredGames(): Entry[] {
   return playable().filter(r => r.featured)
 }
 
-// Stable string hash (FNV-1a) — lets us shuffle deterministically by a daily
-// seed without pulling in a PRNG dependency.
-function hash(s: string): number {
-  let h = 2166136261
-  for (let i = 0; i < s.length; i++) { h ^= s.charCodeAt(i); h = Math.imul(h, 16777619) }
-  return h >>> 0
-}
-
 /** "Because you played X" — games that share a shelf or category with the most
  *  recently played game, ranked by affinity, excluding the recent rotation so
  *  the rail always points somewhere new. Returns null until there's a signal. */
@@ -180,23 +173,18 @@ export function recommendFor(recentIds: string[]): { seed: Entry; entries: Entry
  *  per-day seed so "something new" stays fresh but stable within the day. */
 export function discoverGames(recentIds: string[], daySeed: number): Entry[] {
   const recent = new Set(recentIds)
-  return playable()
-    .filter(r => !recent.has(r.id))
-    .map(r => ({ r, k: hash(`${r.id}:${daySeed}`) }))
-    .sort((a, b) => a.k - b.k)
-    .map(x => x.r)
-    .slice(0, 12)
+  return shuffleWithSeed(playable().filter(r => !recent.has(r.id)), `discover:${daySeed}`).slice(0, 12)
 }
 
 /** "Trending this week" deck — featured (A-tier) games lead, then a stable
  *  weekly shuffle of the rest, so the swipe stack always opens on something
  *  great yet rotates fresh every week. Catalogue reach, weekly cadence. */
 export function trendingGames(weekSeed: number, count = 9): Entry[] {
-  return playable()
-    .map(r => ({ r, k: (r.featured ? 0 : 1) * 1e9 + hash(`${r.id}:${weekSeed}`) }))
-    .sort((a, b) => a.k - b.k)
-    .map(x => x.r)
-    .slice(0, count)
+  const games = playable()
+  return [
+    ...shuffleWithSeed(games.filter(r => r.featured), `trending:${weekSeed}`),
+    ...shuffleWithSeed(games.filter(r => !r.featured), `trending-rest:${weekSeed}`),
+  ].slice(0, count)
 }
 
 // The hand-picked hit list for the "Top games" shelf. Fixed membership (these
@@ -207,10 +195,8 @@ const TOP_GAME_IDS = [
   "bordermap", "composer", "deadoralive", "lineage", "gauntlet",
 ]
 export function topGames(daySeed: number): Entry[] {
-  return TOP_GAME_IDS
+  const games = TOP_GAME_IDS
     .map(id => REGISTRY.find(r => r.id === id))
     .filter((e): e is Entry => !!e)
-    .map(r => ({ r, k: hash(`top:${r.id}:${daySeed}`) }))
-    .sort((a, b) => a.k - b.k)
-    .map(x => x.r)
+  return shuffleWithSeed(games, `top:${daySeed}`)
 }

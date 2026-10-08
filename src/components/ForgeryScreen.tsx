@@ -1,7 +1,7 @@
 import { useState, useRef, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
-import { FAKE_FLAGS, FAKE_CODES } from "../data/fakeFlags"
+import { FAKE_FLAGS } from "../data/fakeFlags"
 import type { FakeFlag } from "../data/fakeFlags"
 import { T, ACCENT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
@@ -34,11 +34,14 @@ function shuffle<T>(arr: T[]): T[] {
 }
 
 // Each round draws a fresh handful of forgeries from the pool plus genuine flags
-// drawn fresh too. No forged country ever appears as a real card in the same
-// deck — seeing the real Spain next to the doctored one would give it away.
+// drawn fresh too. A country forged this round never appears as a real card in
+// the same deck — seeing the real Spain next to the doctored one would give it
+// away. Pool countries not forged this round can still come up real, so a
+// country's name alone never says "fake". (Fake codes are lowercase.)
 function buildDeck(): Card[] {
   const forgeries = shuffle(FAKE_FLAGS).slice(0, FAKE_COUNT)
-  const reals = shuffle(FLAGS.filter(f => !FAKE_CODES.has(f.code))).slice(0, REAL_COUNT)
+  const forged = new Set(forgeries.map(f => f.code.toUpperCase()))
+  const reals = shuffle(FLAGS.filter(f => !forged.has(f.code))).slice(0, REAL_COUNT)
   return shuffle([
     ...reals.map((flag): Card => ({ fake: false, flag })),
     ...forgeries.map((forgery): Card => ({ fake: true, forgery })),

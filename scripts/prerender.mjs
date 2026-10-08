@@ -30,7 +30,10 @@ const ORIGIN = 'https://globalio.app'
 const CONTACT_EMAIL = 'sjoudrie@gmail.com'
 const data = f => import(path.join(ROOT, 'src/data', f))
 
-const { FLAGS, REGIONS } = await data('flags.ts')
+const { FLAGS: GAME_FLAGS, REGIONS } = await data('flags.ts')
+// The game's short labels spelled out for reading (UAE -> United Arab Emirates).
+const LONG_NAME = { AE: 'United Arab Emirates' }
+const FLAGS = GAME_FLAGS.map(f => LONG_NAME[f.code] ? { ...f, name: LONG_NAME[f.code] } : f)
 const { CAPITALS } = await data('capitals.ts')
 const { CODEX, fp } = await data('codex.ts')
 const { HISTORICAL_FLAGS } = await data('historicalFlags.ts')
@@ -72,13 +75,27 @@ const img = (src, alt, cls = 'thumb') => src
   ? `<img class="${cls}" src="${esc(src)}" alt="${esc(alt)}" loading="lazy" />`
   : `<span class="${cls} noflag">No flag</span>`
 // Rounded figures from src/data/countryStats.ts (millions of people, thousand km²).
-const people = m => m >= 10 ? `about ${Math.round(m)} million`
+const people = m => m >= 1000 ? `about ${(m / 1000).toFixed(1)} billion` : m >= 10 ? `about ${Math.round(m)} million`
   : m >= 1 ? `about ${String(Math.round(m * 10) / 10)} million`
   : `about ${Number((m * 1e6).toPrecision(2)).toLocaleString('en')}`
 const km2 = a => {
   const k = a * 1000
   const r = k >= 100000 ? Math.round(k / 1000) * 1000 : k >= 1000 ? Math.round(k / 100) * 100 : Math.round(k)
   return `about ${r.toLocaleString('en')} km²`
+}
+// Country names in a sentence: "the United States", "the Netherlands' flag".
+const THE = new Set(['AE', 'BS', 'CD', 'CF', 'CG', 'CZ', 'DO', 'GB', 'GM', 'KM', 'MH', 'MV', 'NL', 'PH', 'SB', 'SC', 'US'])
+const the = f => THE.has(f.code) ? `the ${f.name}` : f.name
+const The = f => THE.has(f.code) ? `The ${f.name}` : f.name
+const poss = s => s.endsWith('s') ? `${s}'` : `${s}'s`
+// A meta description of at most `max` characters, cut at a sentence or word.
+const clip = (s, max = 158) => {
+  s = s.replace(/\s+/g, ' ').trim()
+  if (s.length <= max) return s
+  const cut = s.slice(0, max)
+  const stop = cut.lastIndexOf('. ')
+  if (stop >= max * 0.6) return cut.slice(0, stop + 1)
+  return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:–-]+$/, '')}…`
 }
 const list = xs => xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`
 const words = html => html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
@@ -99,6 +116,8 @@ const NO_AD_FLAGS = [
   'Flag_of_the_Confederate_States_(1863–1865).svg',
   'Flag_of_the_Confederate_States_(1865).svg',
   'Battle_flag_of_the_Confederate_States_of_America_(1-1).svg',
+  'Flag_of_Croatia_(1941–1945).svg',            // Ustaše
+  'War_flag_of_the_Italian_Social_Republic.svg',
 ].map(fp)
 const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
 
@@ -107,7 +126,7 @@ const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
 // `ads: false` for utility pages (contact, 404) where an ad would sit on a page
 // with little content of its own; hate-symbol pages never get the script.
 const FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap'
-function page({ title, description, canonical, body, noindex = false, ads = true, ogImage = `${ORIGIN}/world-map.jpg`, jsonLd = null }) {
+function page({ title, description, canonical, body, noindex = false, ads = true, ogImage = `${ORIGIN}/og-image.jpg`, jsonLd = null }) {
   const adScript = ads && !noindex && !showsHateSymbol(body)
   return `<!doctype html>
 <html lang="en">
@@ -164,11 +183,12 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
   .index{font-size:14px;line-height:1.9}
   .eyebrow{font-size:11px;font-weight:700;letter-spacing:0.18em;text-transform:uppercase;color:#8F6320;margin-bottom:6px}
   .lead{font-size:17px}
-  .hero{width:100%;max-width:360px;border-radius:10px;border:1px solid #DDCEAF;background:#fff;display:block;margin:18px 0}
+  .hero{width:100%;max-width:320px;height:auto;border-radius:10px;border:1px solid #DDCEAF;background:#fff;display:block;margin:18px 0}
   .facts{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
   .facts li{background:#FFFCF4;border:1px solid #DDCEAF;border-radius:10px;padding:9px 13px;font-size:14px}
   .facts b{display:block;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5F726D;font-weight:600}
   .entry > div{min-width:0}
+  .entry h2.entry-title{font-size:18px;margin:0 0 4px;padding:0;border:0}
   .entry .entry{margin-left:0}
   .entry{display:flex;gap:16px;align-items:flex-start;background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:14px;margin:0 0 12px;
          box-shadow:0 1px 2px rgba(31,58,60,0.05),0 8px 20px -14px rgba(31,58,60,0.25)}
@@ -265,17 +285,17 @@ function countryPage(flag) {
   const current = history.find(h => h.toYear == null)
   const geography = FACTS.landlocked.yes.includes(flag.code) ? 'Landlocked'
     : FACTS.island.yes.includes(flag.code) ? 'Island nation' : null
-  const title = `Flag of ${flag.name}: history, meaning & facts | Globalio`
-  const description = (codex?.summary
-    ? `The flag of ${flag.name}, what it means and its history. ${codex.summary}`
-    : `The flag of ${flag.name}: ${flag.distinguishingTip}`).slice(0, 300)
+  const name = the(flag)
+  const title = [`Flag of ${name}: history, meaning & facts | Globalio`, `Flag of ${name}: meaning & history | Globalio`, `Flag of ${name} | Globalio`]
+    .find(t => t.length <= 65) ?? `Flag of ${name} | Globalio`
+  const description = clip(`The flag of ${name}: what it means and its history. ${FLAG_MEANINGS[flag.code]}`)
 
   const body = `
 <div class="crumbs"><a href="/">Home</a> › <a href="/flags/">Country flags</a> › ${esc(flag.name)}</div>
 <div class="eyebrow">${esc(flag.region)}</div>
-<h1>Flag of ${esc(flag.name)}</h1>
+<h1>Flag of ${esc(name)}</h1>
 ${codex?.summary ? `<p class="lead">${esc(codex.summary)}</p>` : ''}
-<img class="hero" src="${esc(flag.flagUrl)}" width="360" height="240" alt="Flag of ${esc(flag.name)}" />
+<img class="hero" src="${esc(flag.flagUrl)}" width="320" height="240" alt="Flag of ${esc(name)}" />
 <ul class="facts">
   ${capital ? `<li><b>Capital</b>${esc(capital)}</li>` : ''}
   <li><b>Region</b>${esc(flag.region)}</li>
@@ -286,7 +306,7 @@ ${codex?.summary ? `<p class="lead">${esc(codex.summary)}</p>` : ''}
   ${history.length ? `<li><b>Flags in history</b>${history.length}</li>` : ''}
 </ul>
 ${stat ? '<p class="muted small">Population and area are rounded.</p>' : ''}
-<h2>What the flag of ${esc(flag.name)} means</h2>
+<h2>What the flag of ${esc(name)} means</h2>
 <p>${esc(FLAG_MEANINGS[flag.code])}</p>
 ${FLAG_DETAILS[flag.code] ? `<h2>More about the flag</h2>
 <p>${esc(FLAG_DETAILS[flag.code])}</p>` : ''}
@@ -295,16 +315,16 @@ ${FLAG_DETAILS[flag.code] ? `<h2>More about the flag</h2>
 <h2>Did you know?</h2>
 <p>${esc(flag.funFact)}</p>
 ${confusable.length ? `<h2>Easily confused with</h2>
-<p class="muted">${esc(flag.name)}'s flag is often mixed up with these. Learn to tell them apart:</p>
+<p class="muted">${esc(poss(The(flag)))} flag is often mixed up with these. Learn to tell them apart:</p>
 <div class="grid">
 ${confusable.map(c => `<a class="card" href="/flags/${slug(c.code)}/">${img(c.flagUrl, `Flag of ${c.name}`)} ${esc(c.name)}</a>`).join('\n')}
 </div>` : ''}
-${history.length ? `<h2>Flag history of ${esc(flag.name)}</h2>
-<p class="muted">Every flag that has flown over ${esc(flag.name)}, from today back through time.</p>
+${history.length ? `<h2>Flag history of ${esc(name)}</h2>
+<p class="muted">Every flag that has flown over ${esc(name)}, from today back through time.</p>
 ${historyList(history)}` : ''}
 ${flag.code === 'GB' ? UK_NATIONS.map(n => `<h2>${esc(n.name)}</h2>${historyList(n.flagHistory ?? [])}`).join('') : ''}
 ${related.length ? `<h2>Related historical states</h2>
-<p class="muted">Empires, kingdoms and republics that once covered part of ${esc(flag.name)}.</p>
+<p class="muted">Empires, kingdoms and republics that once covered part of ${esc(name)}.</p>
 ${related.map(h => `
 <div class="entry">
   ${img(h.flagUrl, `Flag of ${h.name}`)}
@@ -316,22 +336,22 @@ ${territories.map(t => `
   ${img(t.noFlag ? '' : t.flagUrl, `Flag of ${t.name}`)}
   <div><div class="when">${esc(t.status)}</div><h3>${esc(t.name)}</h3><p>${esc(t.note)}</p></div>
 </div>`).join('')}` : ''}
-${subs.length ? `<h2>Regional flags of ${esc(flag.name)}</h2>
-<p class="muted">The ${subs.length} states, provinces and regions of ${esc(flag.name)} with their own flags.</p>
+${subs.length ? `<h2>Regional flags of ${esc(name)}</h2>
+<p class="muted">The ${subs.length} states, provinces and regions of ${esc(name)} with their own flags.</p>
 <div class="grid">
 ${subs.map(s => `<div class="card">${img(s.flagUrl, `Flag of ${s.name}`)} ${esc(s.name)}</div>`).join('\n')}
 </div>` : ''}
 ${neighbours.length ? `<h2>Neighbouring countries</h2>
-<p class="muted">${esc(flag.name)} shares a land border with ${neighbours.length === 1 ? 'one country' : `${neighbours.length} countries`}: ${esc(list(neighbours.map(n => n.name)))}.</p>
+<p class="muted">${esc(The(flag))} shares a land border with ${neighbours.length === 1 ? 'one country' : `${neighbours.length} countries`}: ${esc(list(neighbours.map(the)))}.</p>
 <div class="grid">
 ${neighbours.map(c => `<a class="card" href="/flags/${slug(c.code)}/">${img(c.flagUrl, `Flag of ${c.name}`)} ${esc(c.name)}</a>`).join('\n')}
 </div>` : ''}
 ${sameColours.length ? `<h2>Other flags in ${esc(list(colours))}</h2>
-<p class="muted">${sameColours.length === 1 ? 'One other national flag uses' : `${sameColours.length} other national flags use`} the same main colours as ${esc(flag.name)}'s.</p>
+<p class="muted">${sameColours.length === 1 ? 'One other national flag uses' : `${sameColours.length} other national flags use`} the same main colours as ${esc(poss(name))}.</p>
 <div class="grid">
 ${sameColours.map(c => `<a class="card" href="/flags/${slug(c.code)}/">${img(c.flagUrl, `Flag of ${c.name}`)} ${esc(c.name)}</a>`).join('\n')}
 </div>` : ''}
-<a class="cta" href="/">Play Globalio and learn ${esc(flag.name)}'s flag</a>
+<a class="cta" href="/">Play Globalio and learn ${esc(poss(name))} flag</a>
 `
   return page({ title, description, canonical: `${ORIGIN}/flags/${slug(flag.code)}/`, body })
 }
@@ -359,7 +379,7 @@ ${flags.map(f => `<a class="card" href="/flags/${slug(f.code)}/">${img(f.flagUrl
 <a class="cta" href="/">Play Globalio</a>
 `
   return page({
-    title: `Flags of the World: all ${FLAGS.length} country flags and their history | Globalio`,
+    title: `Flags of the World: all ${FLAGS.length} country flags | Globalio`,
     description: `Browse the flags of all ${FLAGS.length} countries, grouped by region, with each flag's history, meaning, capital and facts. Free flag games, no sign-up.`,
     canonical: `${ORIGIN}/flags/`,
     body,
@@ -368,14 +388,17 @@ ${flags.map(f => `<a class="card" href="/flags/${slug(f.code)}/">${img(f.flagUrl
 
 // ── historical flags: /historical/ and /historical/<region>/ ─────────────────
 const HIST_REGIONS = [...new Set(HISTORICAL_FLAGS.map(h => h.region))]
+// Region labels as they read in a sentence.
+const REGION_TEXT = { 'Americas': 'the Americas', 'Africa & Middle East': 'Africa and the Middle East' }
+const inRegion = r => REGION_TEXT[r] ?? r
 
 function historicalRegionPage(region) {
   const items = HISTORICAL_FLAGS.filter(h => h.region === region)
   const body = `
 <div class="crumbs"><a href="/">Home</a> › <a href="/historical/">Historical flags</a> › ${esc(region)}</div>
 <div class="eyebrow">Historical flags</div>
-<h1>Historical flags of ${esc(region)}</h1>
-<p class="lead">${items.length} kingdoms, empires, republics and short-lived states from ${esc(region)} that no
+<h1>Historical flags of ${esc(inRegion(region))}</h1>
+<p class="lead">${items.length} kingdoms, empires, republics and short-lived states from ${esc(inRegion(region))} that no
 longer exist, with the flags they flew and the story behind each one.</p>
 ${items.map(h => {
     const links = [h.relatedCode, ...(h.relatedCodes ?? [])].filter(Boolean).map(c => BY_CODE.get(c)).filter(Boolean)
@@ -384,7 +407,7 @@ ${items.map(h => {
   ${img(h.flagUrl, `Flag of ${h.name}`)}
   <div>
     <div class="when">${esc(h.era)}</div>
-    <h3>${esc(h.name)}</h3>
+    <h2 class="entry-title">${esc(h.name)}</h2>
     <p>${esc(h.note)}</p>
     ${links.length ? `<p class="muted" style="font-size:13px">Today part of: ${links.map(c => `<a href="/flags/${slug(c.code)}/">${esc(c.name)}</a>`).join(', ')}</p>` : ''}
   </div>
@@ -393,8 +416,8 @@ ${items.map(h => {
 <a class="cta" href="/?play=historical">Play the historical flags quiz</a>
 `
   return page({
-    title: `Historical flags of ${region}: vanished states and empires | Globalio`,
-    description: `The flags of ${items.length} former states, empires and kingdoms of ${region}, with the history behind each one.`,
+    title: [`Historical flags of ${inRegion(region)}: lost states | Globalio`, `Historical flags of ${inRegion(region)} | Globalio`].find(t => t.length <= 65) ?? `Historical flags of ${inRegion(region)} | Globalio`,
+    description: `The flags of ${items.length} former states, empires and kingdoms of ${inRegion(region)}, with the history behind each one.`,
     canonical: `${ORIGIN}/historical/${slug(region)}/`,
     body,
   })
@@ -422,7 +445,7 @@ ${HIST_REGIONS.map(r => {
 <a class="cta" href="/?play=historical">Play the historical flags quiz</a>
 `
   return page({
-    title: 'Historical flags: flags of vanished states and empires | Globalio',
+    title: 'Historical flags of vanished states and empires | Globalio',
     description: `An illustrated archive of ${HISTORICAL_FLAGS.length} flags from states, empires and kingdoms that no longer exist, with the history behind each one.`,
     canonical: `${ORIGIN}/historical/`,
     body,
@@ -439,7 +462,7 @@ const ID_INTRO = {
   'Micronations': 'Flags of self-declared micronations, from sea forts to desert "kingdoms".',
   'Maritime & Signal': 'Nautical signal flags and the maritime code they spell out.',
 }
-const ID_CATS = IDENTITY_CATEGORIES.filter(c => IDENTITY_FLAGS.some(f => f.category === c))
+const ID_CATS = [...IDENTITY_CATEGORIES, 'Maritime & Signal'].filter(c => IDENTITY_FLAGS.some(f => f.category === c))
 const byTier = (a, b) => (a.tier ?? 2) - (b.tier ?? 2) || a.name.localeCompare(b.name)
 
 function identityPage(cat) {
@@ -452,12 +475,12 @@ function identityPage(cat) {
 ${items.map(f => `
 <div class="entry" id="${esc(f.id)}">
   ${img(f.noFlag ? '' : f.flagUrl, f.name)}
-  <div><h3>${esc(f.name)}</h3><p>${esc(f.note)}</p></div>
+  <div><h2 class="entry-title">${esc(f.name)}</h2><p>${esc(f.note)}</p></div>
 </div>`).join('')}
 <a class="cta" href="/?play=identity">Play the identity flags quiz</a>
 `
   return page({
-    title: `${cat} flags: ${items.length} flags and their meaning | Globalio`,
+    title: [`${cat} flags: ${items.length} flags and their meaning | Globalio`, `${cat} flags and their meaning | Globalio`].find(t => t.length <= 65) ?? `${cat} flags | Globalio`,
     description: `${ID_INTRO[cat] ?? ''} ${items.length} flags with the story behind each one.`.trim(),
     canonical: `${ORIGIN}/identity/${slug(cat)}/`,
     body,
@@ -482,7 +505,7 @@ ${ID_CATS.map(c => {
 <a class="cta" href="/?play=identity">Play the identity flags quiz</a>
 `
   return page({
-    title: 'Identity flags: pride, indigenous, separatist and micronation flags | Globalio',
+    title: 'Identity flags: pride, ethnic and micronation flags | Globalio',
     description: `${IDENTITY_FLAGS.length} flags of communities, peoples, movements and micronations, with the story behind each one.`,
     canonical: `${ORIGIN}/identity/`,
     body,
@@ -719,8 +742,8 @@ Ads from Google help cover its running costs. See the <a href="/privacy.html">pr
 <a class="cta" href="/">Play Globalio</a>
 `
   return page({
-    title: 'About Globalio | Globalio',
-    description: 'Globalio is a free flag and geography game made by Sean Joudrie, covering every country, regional, historical and identity flag, with how the archive is researched.',
+    title: 'About Globalio: who makes it and how',
+    description: 'Globalio is a free flag and geography game by Sean Joudrie, covering country, regional, historical and identity flags, and how the archive is researched.',
     canonical: `${ORIGIN}/about/`,
     body,
   })
@@ -746,7 +769,7 @@ browser. For anything about cookies, ads or analytics, see the <a href="/privacy
 or email the address above.</p>
 `
   return page({
-    title: 'Contact Globalio | Globalio',
+    title: 'Contact Globalio',
     description: 'Get in touch with Globalio: questions, game ideas, bug reports, flag corrections and privacy requests. Email sjoudrie@gmail.com.',
     canonical: `${ORIGIN}/contact/`,
     body,
@@ -766,7 +789,7 @@ ${CHANGELOG.map(e => `
 <p>Have an idea for a game or found a mistake? <a href="/contact/">Tell us</a>.</p>
 `
   return page({
-    title: "What's new on Globalio | Globalio",
+    title: "What's new on Globalio",
     description: 'Recent updates to Globalio: new flag games, new flags and fixes, updated every month.',
     canonical: `${ORIGIN}/whats-new/`,
     body,
@@ -809,7 +832,7 @@ function sitemap() {
   ]
   return `<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`).join('\n')}
+${urls.map(u => `  <url>\n    <loc>${u.loc}</loc>\n    <lastmod>${LAST_UPDATED}</lastmod>\n    <changefreq>${u.freq}</changefreq>\n    <priority>${u.priority}</priority>\n  </url>`).join('\n')}
 </urlset>
 `
 }

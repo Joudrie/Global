@@ -5,7 +5,7 @@ import { T, ACCENT, FONT } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -44,7 +44,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const optimal = useMemo(() => shortestPath(puzzle.start, puzzle.target) ?? [], [puzzle])
 
   const matches = input.trim().length
-    ? FLAGS.filter(f => f.name.toLowerCase().includes(input.trim().toLowerCase())).slice(0, 6)
+    ? matchNames(FLAGS, input, 6)
     : []
 
   const submit = (code: string) => {
@@ -59,7 +59,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length >= 1) submit((pickOnEnter(matches, input) ?? matches[0]).code)
+    if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) submit(pick.code) }
     if (e.key === "Escape") { setInput(""); setShowDrop(false) }
   }
 
@@ -95,7 +95,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                 {optimal.map((c, i) => (
                   <div key={c} style={{ display: "flex", alignItems: "center", gap: 4 }}>
                     {i > 0 && <span style={{ color: T.dim, fontSize: 11 }}>→</span>}
-                    <div style={{ width: 30, height: 20, borderRadius: 3, overflow: "hidden", border: `1px solid ${T.line}` }}>
+                    <div title={NAME(c)} role="img" aria-label={NAME(c)} style={{ width: 30, height: 20, borderRadius: 3, overflow: "hidden", border: `1px solid ${T.line}` }}>
                       <FlagImage code={c} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                     </div>
                   </div>
@@ -133,7 +133,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           {chain.map((c, i) => (
             <div key={c} style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
               {i > 0 && <span style={{ color: T.dim }}>→</span>}
-              <div style={{ width: 46, height: 31, borderRadius: 5, overflow: "hidden", border: `1px solid ${i === chain.length - 1 ? ACCENT.learn : T.line}` }}>
+              <div title={NAME(c)} role="img" aria-label={NAME(c)} style={{ width: 46, height: 31, borderRadius: 5, overflow: "hidden", border: `1px solid ${i === chain.length - 1 ? ACCENT.learn : T.line}` }}>
                 <FlagImage code={c} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
             </div>
@@ -151,7 +151,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
 
         <div style={{ position: "relative", marginTop: "auto" }}>
-          <input ref={inputRef} value={input}
+          <input aria-label="Type a country" ref={inputRef} value={input}
             onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
             onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
             placeholder={`Borders ${NAME(current)}…`} autoComplete="off"
@@ -167,8 +167,15 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               ))}
             </div>
           )}
-          <button onClick={() => setOutcome("gaveup")} className="geo-micro geo-tap"
-            style={{ marginTop: 8, fontSize: 11, color: T.muted, background: "transparent", minHeight: 32 }}>give up · show the route</button>
+          <div style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 8 }}>
+            {/* Out of a dead end (Spain → Portugal) without giving up. */}
+            {chain.length > 1 && (
+              <button onClick={() => { setChain(c => c.slice(0, -1)); setErr(null) }} className="geo-micro geo-tap"
+                style={{ fontSize: 11, color: ACCENT.learn, background: "transparent", minHeight: 44 }}>undo last hop</button>
+            )}
+            <button onClick={() => setOutcome("gaveup")} className="geo-micro geo-tap"
+              style={{ fontSize: 11, color: T.muted, background: "transparent", minHeight: 44 }}>give up · show the route</button>
+          </div>
         </div>
       </div>
     </div>

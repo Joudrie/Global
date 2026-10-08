@@ -10,3 +10,10 @@
 # No catch-all SPA redirect: the app has no client-side routes (deep links use
 # ?play=), so unknown paths fall through to the generated 404.html and return a
 # real 404 instead of the homepage.
+
+# Vite names every bundle by its content hash, so a file under /assets/ never
+# changes: let browsers keep it for a year.
+[[headers]]
+  for = "/assets/*"
+  [headers.values]
+    Cache-Control = "public, max-age=31536000, immutable"

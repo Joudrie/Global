@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { LGBTQ_FLAGS } from "../data/identityFlags"
 import type { IdentityFlag } from "../data/identityFlags"
 import { T, ACCENT, tint } from "../ui/tokens"
@@ -8,11 +8,13 @@ import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } 
 
 interface Props { onBack: () => void }
 
-const BEST_KEY = "globalio_prideroulette_best"
-const loadBest = () => { try { return Number(localStorage.getItem(BEST_KEY)) || 0 } catch { return 0 } }
-const saveBest = (n: number) => { try { localStorage.setItem(BEST_KEY, String(n)) } catch { /* ignore */ } }
-
 const DEFAULT_LEN = 10
+
+// One best per deck length, so an "All" score can't sit on top of the 10-flag one.
+const bestKey = (len: number) => len === DEFAULT_LEN ? "globalio_prideroulette_best" : `globalio_prideroulette_best_${len}`
+const loadBest = (len: number) => { try { return Number(localStorage.getItem(bestKey(len))) || 0 } catch { return 0 } }
+const saveBest = (len: number, n: number) => { try { localStorage.setItem(bestKey(len), String(n)) } catch { /* ignore */ } }
+
 
 interface Round { target: IdentityFlag; choices: IdentityFlag[] }
 
@@ -39,7 +41,8 @@ export default function PrideRouletteScreen({ onBack }: Props) {
   const [idx, setIdx] = useState(0)
   const [score, setScore] = useState(0)
   const [picked, setPicked] = useState<string | null>(null)
-  const [best, setBest] = useState(loadBest)
+  const [best, setBest] = useState(() => loadBest(len))
+  useEffect(() => { setBest(loadBest(len)) }, [len])
   const [done, setDone] = useState(false)
 
   const round = deck[idx]
@@ -60,7 +63,7 @@ export default function PrideRouletteScreen({ onBack }: Props) {
   const next = () => {
     if (isLast) {
       const finalRight = score
-      if (finalRight > best) { setBest(finalRight); saveBest(finalRight) }
+      if (finalRight > best) { setBest(finalRight); saveBest(len, finalRight) }
       setDone(true)
     } else { setIdx(i => i + 1); setPicked(null) }
   }

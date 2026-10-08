@@ -4,20 +4,11 @@ import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { isExactName, normName } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.codex
 const MAX = 6
 
-const norm = (s: string) =>
-  s.toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/[^a-z0-9]/g, "")
-
-// A few forgiving aliases → canonical FLAGS name.
-const ALIASES: Record<string, string> = {
-  usa: "United States", us: "United States", america: "United States",
-  uk: "United Kingdom", britain: "United Kingdom", greatbritain: "United Kingdom", england: "United Kingdom",
-  uae: "United Arab Emirates", southkorea: "South Korea", northkorea: "North Korea",
-  czechia: "Czech Republic", drc: "Democratic Republic of the Congo", car: "Central African Republic",
-}
 
 function shuffle<X>(a: X[]): X[] {
   const r = [...a]
@@ -30,14 +21,9 @@ function makeDealer() {
 }
 const deal = makeDealer()
 
-function matches(input: string, ans: FlagRecord): boolean {
-  const n = norm(input)
-  if (!n) return false
-  if (n === norm(ans.name)) return true
-  if (n === ans.code.toLowerCase()) return true
-  const canon = ALIASES[n]
-  return canon ? norm(canon) === norm(ans.name) : false
-}
+// The country a guess names: its name, another name ("USA", "Ivory Coast") or its code.
+const countryNamed = (input: string): FlagRecord | undefined =>
+  FLAGS.find(f => isExactName(f, input)) ?? FLAGS.find(f => f.code.toLowerCase() === normName(input))
 
 export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
   const [answer, setAnswer] = useState(deal)
@@ -45,6 +31,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
   const [input, setInput] = useState("")
   const [status, setStatus] = useState<"play" | "won" | "lost">("play")
   const [wins, setWins] = useState(0)
+  const [note, setNote] = useState("")
 
   const names = useMemo(() => FLAGS.map(f => f.name).sort(), [])
   const wrong = guesses.length
@@ -55,13 +42,19 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
 
   const submit = () => {
     if (status !== "play" || !input.trim()) return
-    if (matches(input, answer)) { setStatus("won"); setWins(w => w + 1); return }
-    const g = [...guesses, input.trim()]
+    // Only a real country costs a guess, and only once.
+    const country = countryNamed(input)
+    if (!country) { setNote("That's not a country on the list"); return }
+    if (country.code === answer.code) { setStatus("won"); setWins(w => w + 1); setNote(""); return }
+    if (guesses.includes(country.name)) { setNote(`Already guessed ${country.name}`); return }
+    setNote("")
+    const g = [...guesses, country.name]
     setGuesses(g); setInput("")
     if (g.length >= MAX) setStatus("lost")
   }
   const giveUp = () => setStatus("lost")
-  const next = () => { setAnswer(deal()); setGuesses([]); setInput(""); setStatus("play") }
+  const giveUpNote = status === "lost" && wrong < MAX
+  const next = () => { setAnswer(deal()); setGuesses([]); setInput(""); setNote(""); setStatus("play") }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
@@ -97,7 +90,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
             {/* Guess input with autocomplete */}
             <div className="w-full max-w-sm flex gap-2">
               <input list="flag-names" value={input}
-                onChange={e => setInput(e.target.value)}
+                onChange={e => { setInput(e.target.value); setNote("") }}
                 onKeyDown={e => { if (e.key === "Enter") submit() }}
                 placeholder="Type a country…" aria-label="Guess the country"
                 style={{ flex: 1, padding: "0 14px", height: 46, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 15, outline: "none" }} />
@@ -108,6 +101,8 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
                 Guess
               </button>
             </div>
+
+            {note && <p role="status" className="w-full max-w-sm text-xs" style={{ color: T.muted, marginTop: -8 }}>{note}</p>}
 
             {/* Past wrong guesses */}
             {guesses.length > 0 && (
@@ -127,7 +122,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
           <div className="w-full max-w-sm flex flex-col gap-3">
             <ResultCard>
               <ResultHeader icon={status === "won" ? "trophy" : "flagoutline"} accent={status === "won" ? T.green : T.danger}
-                eyebrow={status === "won" ? `Got it in ${wrong + 1}` : "Out of guesses"}
+                eyebrow={status === "won" ? `Got it in ${wrong + 1}` : giveUpNote ? "The answer" : "Out of guesses"}
                 title={answer.name} score={answer.funFact} />
             </ResultCard>
             <PrimaryButton onClick={next} accent={ACC}>Next flag →</PrimaryButton>

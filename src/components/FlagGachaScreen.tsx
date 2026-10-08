@@ -51,10 +51,10 @@ function persist(s: Save) { try { localStorage.setItem(KEY, JSON.stringify(s)) }
 export default function FlagGachaScreen({ onBack }: Props) {
   const [save, setSave] = useState<Save>(load)
   const [reveal, setReveal] = useState<null | { flag: FlagRecord; dupe: boolean }>(null)
-  // Open straight into the collection when there's already something to see, so
-  // tapping "Gacha Collection" is one tap to the grid — not a pull screen with a
-  // second "View collection" button. New players (no pulls yet) start on pulls.
-  const [browse, setBrowse] = useState(() => save.collected.length > 0)
+  // Open on the pull when today's pull is waiting; otherwise straight into the
+  // collection, so "Gacha Collection" is one tap to the grid. New players (no
+  // pulls yet) start on pulls.
+  const [browse, setBrowse] = useState(() => save.collected.length > 0 && save.tokens <= 0)
   const collected = useMemo(() => new Set(save.collected), [save.collected])
 
   const pull = () => {
@@ -64,7 +64,7 @@ export default function FlagGachaScreen({ onBack }: Props) {
     const next: Save = {
       ...save,
       tokens: save.tokens - 1,
-      xp: save.xp + (dupe ? 15 : 0),
+      xp: save.xp + (dupe ? 15 : 25),
       collected: dupe ? save.collected : [...save.collected, flag.code],
     }
     setSave(next); persist(next); setReveal({ flag, dupe })
@@ -134,7 +134,7 @@ export default function FlagGachaScreen({ onBack }: Props) {
           </div>
         ) : (
           <div style={{ flex: 1, overflowY: "auto" }}>
-            <button onClick={() => setBrowse(false)} className="geo-micro geo-tap" style={{ fontSize: 11, color: T.muted, background: "transparent", marginBottom: 12, minHeight: 32 }}>← back to pulls</button>
+            <button onClick={() => setBrowse(false)} className="geo-micro geo-tap" style={{ color: T.muted, background: "transparent", marginBottom: 12, minHeight: 44, fontSize: 12 }}>← Back to pulls</button>
             {byContinent.map(group => {
               const haveCount = group.flags.filter(f => collected.has(f.code)).length
               return (
@@ -148,7 +148,7 @@ export default function FlagGachaScreen({ onBack }: Props) {
                       const have = collected.has(f.code)
                       const r = rarity(f.code)
                       return (
-                        <div key={f.code} title={have ? f.name : "???"} style={{ aspectRatio: "3/2", borderRadius: 6, overflow: "hidden", border: `1px solid ${have ? tint(RARITY_COLOR[r], 0.7) : T.line}`, background: have ? "#fff" : tint(T.muted, 0.08), position: "relative" }}>
+                        <div key={f.code} title={have ? f.name : "???"} role="img" aria-label={have ? f.name : "Not collected yet"} style={{ aspectRatio: "3/2", borderRadius: 6, overflow: "hidden", border: `1px solid ${have ? tint(RARITY_COLOR[r], 0.7) : T.line}`, background: have ? "#fff" : tint(T.muted, 0.08), position: "relative" }}>
                           {have
                             ? <FlagImage code={f.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                             : <div style={{ width: "100%", height: "100%", display: "flex", alignItems: "center", justifyContent: "center", color: T.dim, fontSize: 14 }}>?</div>}

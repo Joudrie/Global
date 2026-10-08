@@ -12,7 +12,7 @@ import type { LucideIcon } from 'lucide-react'
 interface Props {
   state: AppState
   onBack: () => void
-  onStartSet: (setId: string, flags: typeof FLAGS) => void
+  onStartSet: (setId: string, flags: typeof FLAGS, label: string) => void
   onStartHistorical: (region?: HistoricalRegion) => void
   onGoIdentity: () => void
 }
@@ -103,7 +103,7 @@ export default function FlagsScreen({ state, onBack, onStartSet, onStartHistoric
             <div key={id} className="rounded-2xl overflow-hidden"
               style={{ background: T.surface, border: `1px solid ${hasCrown ? tint(T.gold, 0.45) : T.line}` }}>
               {/* Header — taps straight into the modern-flags set, as usual */}
-              <button onClick={() => onStartSet(id, setFlags)}
+              <button onClick={() => onStartSet(id, setFlags, label)}
                 className="geo-tap w-full flex flex-col gap-3 px-5 py-4 text-left transition-all active:scale-[0.98]">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
@@ -130,7 +130,7 @@ export default function FlagsScreen({ state, onBack, onStartSet, onStartHistoric
               {/* Dashed divider → reveals more sets to learn */}
               <button onClick={() => toggle(id)}
                 className="w-full flex items-center justify-center gap-1.5 py-2 text-xs font-semibold transition-all"
-                style={{ borderTop: `1px dashed ${T.line}`, color: ACCENT.learn }}>
+                style={{ borderTop: `1px dashed ${T.line}`, color: ACCENT.learn, minHeight: 44 }}>
                 <span>{isOpen ? 'Hide sets' : 'More sets'}</span>
                 <span style={{ display: 'inline-flex', transition: 'transform 0.2s', transform: isOpen ? 'rotate(180deg)' : 'none' }}>
                   <ChevronDown size={14} color={ACCENT.learn} strokeWidth={1.6} absoluteStrokeWidth />
@@ -139,7 +139,7 @@ export default function FlagsScreen({ state, onBack, onStartSet, onStartHistoric
 
               {isOpen && (
                 <div className="px-3 pb-3 pt-1 space-y-2">
-                  <button onClick={() => onStartSet(id, setFlags)}
+                  <button onClick={() => onStartSet(id, setFlags, label)}
                     className="geo-tap w-full flex items-center gap-3 px-4 py-3 rounded-xl text-left transition-all active:scale-[0.98]"
                     style={{ background: T.surfaceHi, border: `1px solid ${T.line}` }}>
                     <LineIcon name="capitalquiz" size={20} color={ACCENT.learn} />

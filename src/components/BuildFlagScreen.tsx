@@ -345,9 +345,7 @@ export default function BuildFlagScreen({ onBack }: Props) {
   // ── Playing ────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen flex flex-col"
-      style={{ background: T.bg, minHeight: "100vh", color: T.text }}
-      // Prevent page scroll while dragging
-      onTouchMove={dragging ? e => e.preventDefault() : undefined}>
+      style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
 
       <ScreenHeader title="Build the Flag" subtitle={puzzle.name} onBack={onBack} />
 

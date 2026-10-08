@@ -402,6 +402,8 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
             onTouchStart={e => handleDragStart(e.touches[0].clientX)}
             onTouchEnd={e => handleDragEnd(e.changedTouches[0].clientX)}
             onClick={() => !isDragging.current && handleFlip()}
+            role="button" tabIndex={0} aria-label={flipped ? "Show the flag" : "Reveal the answer"}
+            onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); handleFlip() } }}
           >
             <div style={{
               position: 'relative', transformStyle: 'preserve-3d',

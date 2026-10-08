@@ -1,7 +1,7 @@
 {
   "name": "Globalio — Learn Every Flag in the World",
   "short_name": "Globalio",
-  "description": "Learn every flag in the world: 50 flag and geography games, a daily Connections puzzle and a hand-researched archive of 4,500+ flags.",
+  "description": "Learn every flag in the world: 51 flag and geography games, a daily Connections puzzle and a hand-researched archive of 4,500+ flags.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",
@@ -10,7 +10,6 @@
   "theme_color": "#FBF4E4",
   "categories": ["games", "education", "trivia"],
   "icons": [
-    { "src": "/favicon.svg", "type": "image/svg+xml", "sizes": "any", "purpose": "any maskable" },
     { "src": "/icon-192.png", "type": "image/png", "sizes": "192x192", "purpose": "any maskable" },
     { "src": "/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
   ]

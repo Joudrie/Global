@@ -100,6 +100,14 @@ export function recordDailyResult(state: AppState, result: DailyResult): AppStat
   }
 }
 
+// The streak to show on `today`. currentStreak is only recalculated when a
+// daily is finished, so after a missed day it still holds the old run; it is
+// already broken unless the last daily was today or yesterday.
+export function displayStreak(state: AppState, today: string): number {
+  const last = state.lastDailyDate
+  return last === today || last === getPreviousDay(today) ? state.currentStreak : 0
+}
+
 export function recordFunFactViewed(state: AppState, date: string): AppState {
   if (state.lastFunFactDate === date) return state
   const yesterday = getPreviousDay(date)

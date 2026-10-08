@@ -49,8 +49,9 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
         }, 350)
       }
     } else {
+      if (wrong === code) return   // a double tap is one mistake
       setWrong(code); setMistakes(m => m + 1)
-      setTimeout(() => setWrong(null), 450)
+      setTimeout(() => setWrong(null), 600)
     }
   }
 
@@ -62,7 +63,7 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
         <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <ResultCard>
             <ResultHeader icon="capitalmatch" accent={ACCENT.learn}
-              title={`${total} capitals matched`}
+              title={`All ${total} capitals matched`}
               score={mistakes === 0 ? "Flawless, no mistakes." : `${mistakes} mistake${mistakes === 1 ? "" : "s"}`} />
           </ResultCard>
           <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>Play again</PrimaryButton>
@@ -75,7 +76,10 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
       <ScreenHeader title="Capital Match" subtitle="Tap a flag, then its capital city" onBack={onBack}
-        right={<HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>} />
+        right={<div style={{ display: "flex", gap: 6 }}>
+          {mistakes > 0 && <HeaderStat label="Mistakes" accent={T.danger}>{mistakes}</HeaderStat>}
+          <HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>
+        </div>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 22px", gap: 12 }}>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 10, flex: 1 }}>
@@ -104,10 +108,10 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
               const isMatched = matched.has(c.code)
               const isWrong = wrong === c.code
               return (
-                <button key={c.code} onClick={() => pickCapital(c.code)} disabled={isMatched} className="geo-tap"
+                <button key={c.code} onClick={() => pickCapital(c.code)} disabled={isMatched} className={`geo-tap ${isWrong ? "animate-wrong-shake" : ""}`}
                   style={{ display: "flex", alignItems: "center", padding: "8px 12px", borderRadius: 10, flex: 1,
-                    background: isMatched ? tint(ACCENT.learn, 0.12) : T.surface,
-                    border: `2px solid ${isMatched ? ACCENT.learn : isWrong ? T.warm : sel ? tint(ACCENT.codex, 0.5) : T.line}`,
+                    background: isMatched ? tint(ACCENT.learn, 0.12) : isWrong ? tint(T.danger, 0.12) : T.surface,
+                    border: `2px solid ${isMatched ? ACCENT.learn : isWrong ? T.danger : sel ? tint(ACCENT.codex, 0.5) : T.line}`,
                     opacity: isMatched ? 0.55 : 1, transition: "border-color 0.15s" }}>
                   <span style={{ fontFamily: FONT.display, fontWeight: 600, fontSize: 13, color: T.text, textAlign: "left" }}>{c.capital}</span>
                   {isMatched && <span style={{ marginLeft: "auto", color: ACCENT.learn }}>✓</span>}

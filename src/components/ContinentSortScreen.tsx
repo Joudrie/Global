@@ -10,10 +10,15 @@ interface Props { onBack: () => void }
 
 const SECONDS = 60
 const REGIONS: FlagRecord["region"][] = ["Europe", "Africa", "Asia", "Americas", "Oceania", "Middle East"]
+// Deal from a shuffled deck so no flag repeats until all 197 have come up.
+let deck: FlagRecord[] = []
 const randomFlag = (prev?: FlagRecord): FlagRecord => {
-  let f: FlagRecord
-  do { f = FLAGS[Math.floor(Math.random() * FLAGS.length)] } while (prev && f.code === prev.code)
-  return f
+  if (!deck.length) {
+    deck = [...FLAGS]
+    for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]] }
+    if (prev && deck[deck.length - 1].code === prev.code) deck.unshift(deck.pop()!)
+  }
+  return deck.pop()!
 }
 
 // A one-minute sprint: sort as many flags into their region as you can before

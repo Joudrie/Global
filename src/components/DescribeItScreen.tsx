@@ -6,7 +6,7 @@ import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -59,9 +59,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const round = rounds[idx]
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f => f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q).slice(0, 5)
+    return matchNames(FLAGS, input, 5)
   }, [input])
 
   const submit = (f: FlagRecord) => {
@@ -142,7 +140,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
           </>
         ) : (
           <div className="w-full max-w-sm relative">
-            <input value={input} autoFocus autoComplete="off"
+            <input aria-label="Type a country" value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}

@@ -5,7 +5,7 @@ import FlagImage from "./FlagImage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -38,12 +38,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const scale    = phase === "result" ? 1 : SCALES[scaleIdx]
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f =>
-      (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) &&
-      !guessedCodes.current.has(f.code)
-    ).slice(0, 6)
+    return matchNames(FLAGS.filter(f => !guessedCodes.current.has(f.code)), input, 6)
   }, [input])
 
   const submitGuess = (flag: FlagRecord) => {
@@ -149,7 +144,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         ) : (
           /* Type-in */
           <div className="w-full max-w-sm relative">
-            <input
+            <input aria-label="Type a country"
               ref={inputRef}
               value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
@@ -172,7 +167,6 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                     onMouseDown={() => submitGuess(flag)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:brightness-95 transition-all"
                     style={{ background: "transparent", borderBottom: `1px solid ${T.line}` }}>
-                    <img src={flag.flagUrl} alt="" style={{ width: 32, height: 21, objectFit: "cover", borderRadius: 3 }} />
                     <span style={{ color: T.text, fontWeight: 600 }}>{flag.name}</span>
                     <span style={{ color: T.dim, fontSize: 11, marginLeft: "auto", fontFamily: FONT.mono }}>{flag.code}</span>
                   </button>
