@@ -254,6 +254,13 @@ export default function BuildFlagScreen({ onBack }: Props) {
     setSelected(null)
   }, [])
 
+  // Tap a placed piece in the palette to take it back off the flag.
+  const removePiece = (pieceId: string) => {
+    if (phase !== 'playing') return
+    setPlaced(prev => { const n = { ...prev }; for (const k of Object.keys(n)) if (n[k] === pieceId) delete n[k]; return n })
+    setSelected(null)
+  }
+
   // Tap on palette piece
   const handlePaletteTap = (pieceId: string) => {
     setSelected(s => s === pieceId ? null : pieceId)
@@ -273,7 +280,8 @@ export default function BuildFlagScreen({ onBack }: Props) {
   const handlePointerDown = (e: React.PointerEvent, pieceId: string) => {
     e.preventDefault()
     ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
-    setSelected(null)
+    // Keep this piece's own selection, so the click that follows can toggle it off.
+    setSelected(s => (s === pieceId ? s : null))
     setDragging({ pieceId, x: e.clientX, y: e.clientY })
   }
 
@@ -389,14 +397,17 @@ export default function BuildFlagScreen({ onBack }: Props) {
               return (
                 <div key={piece.id}
                   onPointerDown={isPlaced ? undefined : e => handlePointerDown(e, piece.id)}
-                  onClick={() => !isPlaced && handlePaletteTap(piece.id)}
+                  onClick={() => isPlaced ? removePiece(piece.id) : handlePaletteTap(piece.id)}
+                  role="button" tabIndex={0} aria-pressed={isSelected}
+                  aria-label={isPlaced ? `${piece.label}, placed: tap to take it back` : piece.label}
+                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (isPlaced) removePiece(piece.id); else handlePaletteTap(piece.id) } }}
                   style={{
                     width: 64, height: 44, borderRadius: 10,
                     background: isPlaced ? tint(ACC, 0.08) : piece.color,
                     border: isSelected ? `3px solid ${ACC}`
                       : isPlaced       ? `2px dashed ${tint(ACC, 0.25)}`
                       : `2px solid ${T.line}`,
-                    cursor: isPlaced ? 'default' : 'grab',
+                    cursor: isPlaced ? 'pointer' : 'grab',
                     touchAction: 'none',
                     opacity: isPlaced ? 0.25 : 1,
                     transform: isSelected ? 'scale(1.08)' : 'scale(1)',
