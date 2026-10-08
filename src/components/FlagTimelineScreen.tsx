@@ -4,7 +4,8 @@ import type { HistoricalFlag } from "../data/codex"
 import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
+import { timelineFlags, timelineScore } from "../utils/timeline"
 
 interface Props { onBack: () => void }
 
@@ -14,22 +15,18 @@ const nameOf = (code: string) => FLAGS.find(f => f.code === code)?.name ?? code
 
 // Countries with a deep enough flag history to order.
 const ELIGIBLE = Object.entries(CODEX)
-  .filter(([code, e]) => e.flagHistory.length >= 3 && FLAGS.some(f => f.code === code))
-  .map(([code, e]) => ({ code, name: nameOf(code), history: e.flagHistory }))
+  .map(([code, e]) => ({ code, name: nameOf(code), chrono: timelineFlags(e.flagHistory) }))
+  .filter(e => e.chrono.length >= 3 && FLAGS.some(f => f.code === e.code))
 
 interface Round { name: string; chrono: HistoricalFlag[]; shuffled: HistoricalFlag[] }
 
 function buildRounds(): Round[] {
-  return shuffle(ELIGIBLE).slice(0, ROUNDS).map(c => {
-    // history is newest-first → chrono is oldest-first, capped to 5 for the board
-    const chrono = [...c.history].reverse().slice(-5)
-    return { name: c.name, chrono, shuffled: shuffle(chrono) }
-  })
+  return shuffle(ELIGIBLE).slice(0, ROUNDS).map(c => ({ name: c.name, chrono: c.chrono, shuffled: shuffle(c.chrono) }))
 }
 
-function FlagTile({ src, dim, badge, onClick, onDragStart }: { src: string; dim?: boolean; badge?: string; onClick?: () => void; onDragStart?: () => void }) {
+function FlagTile({ src, label, dim, badge, onClick, onDragStart }: { src: string; label?: string; dim?: boolean; badge?: string; onClick?: () => void; onDragStart?: () => void }) {
   return (
-    <button onClick={onClick} disabled={!onClick} className={onClick ? "geo-tap" : ""}
+    <button onClick={onClick} disabled={!onClick} className={onClick ? "geo-tap" : ""} aria-label={label} aria-hidden={label ? undefined : true}
       draggable={!!onDragStart}
       onDragStart={onDragStart}
       style={{ position: "relative", width: 60, height: 40, borderRadius: 6, overflow: "hidden", border: `1px solid ${T.line}`, background: "#fff", opacity: dim ? 0.32 : 1, flexShrink: 0, cursor: onDragStart ? "grab" : undefined }}>
@@ -57,11 +54,8 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const dropToStrip = () => { if (dragIdx !== null) { tap(dragIdx); setDragIdx(null) } }
 
   const lockIn = () => {
-    // correct positions: chrono order should equal the tapped flags oldest→newest
-    let correct = 0
-    order.forEach((shufIdx, pos) => {
-      if (round.shuffled[shufIdx] === round.chrono[pos]) correct++
-    })
+    if (locked) return
+    const correct = timelineScore(round.chrono, order.map(i => round.shuffled[i]))
     setScores(s => [...s, correct])
     setLocked(true)
   }
@@ -108,7 +102,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           {round.chrono.map((_, pos) => {
             const shufIdx = order[pos]
             const filled = shufIdx !== undefined
-            const correct = locked && filled && round.shuffled[shufIdx] === round.chrono[pos]
+            const correct = locked && filled && round.shuffled[shufIdx].fromYear === round.chrono[pos].fromYear
             return (
               <div key={pos} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {pos > 0 && <span style={{ color: T.dim, fontSize: 13 }}>→</span>}
@@ -116,7 +110,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                   {filled
                     ? <img src={round.shuffled[shufIdx].flagUrl} alt="" style={{ width: "100%", height: "100%", objectFit: "cover" }} onError={e => { (e.target as HTMLImageElement).style.opacity = "0.2" }} />
                     : <span style={{ color: T.dim, fontSize: 11, fontFamily: FONT.mono }}>{pos + 1}</span>}
-                  {locked && filled && <span style={{ position: "absolute", bottom: 1, right: 2, fontSize: 9, color: correct ? ACCENT.learn : T.warm }}>{correct ? "✓" : "✗"}</span>}
+                  {locked && filled && <span style={{ position: "absolute", bottom: 1, right: 2, fontSize: 13, fontWeight: 800, color: correct ? ACCENT.learn : T.warm }}>{correct ? "✓" : "✗"}</span>}
                 </div>
               </div>
             )
@@ -145,6 +139,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 4 }}>
             {round.shuffled.map((h, i) => (
               <FlagTile key={i} src={h.flagUrl} dim={placed.has(i)} badge={placed.has(i) ? String(order.indexOf(i) + 1) : undefined}
+                label={placed.has(i) ? `${choiceLabel(i, round.shuffled.length)}, placed ${order.indexOf(i) + 1}` : choiceLabel(i, round.shuffled.length)}
                 onClick={placed.has(i) ? undefined : () => tap(i)}
                 onDragStart={placed.has(i) ? undefined : () => setDragIdx(i)} />
             ))}

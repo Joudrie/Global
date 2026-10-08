@@ -48,3 +48,13 @@ test('GamePoster historical art matches fp()', async () => {
   const text = fs.readFileSync(path.join(ROOT, 'src/components/GamePoster.tsx'), 'utf8')
   for (const m of text.matchAll(/= "(\/cf\/[^"]+)"\s*\/\/ (\S+)/g)) assert.equal(m[1], fp(m[2]), m[2])
 })
+
+test('game counts in index.html and the manifest match GAME_COUNT', async () => {
+  const { GAME_COUNT } = await src('ui/registry.ts')
+  for (const f of ['index.html', 'public/manifest.webmanifest']) {
+    const text = fs.readFileSync(path.join(ROOT, f), 'utf8')
+    const counts = [...text.matchAll(/(\d+) (?:free games|ways to play|flag and geography games)/g)].map(m => +m[1])
+    assert.ok(counts.length, `${f}: no game count found`)
+    for (const n of counts) assert.equal(n, GAME_COUNT, f)
+  }
+})

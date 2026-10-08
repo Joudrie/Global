@@ -6,7 +6,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -36,7 +36,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
   const [misses, setMisses] = useState(0)
-  const [flash, setFlash] = useState<null | "ok" | "no">(null)
+  const [flash, setFlash] = useState<null | "ok" | "no" | "dup">(null)
   const [revealed, setRevealed] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -57,7 +57,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   // Giving up ends the round too: the rest are drawn and the result shows.
   const over = done || revealed
   const matches = input.trim().length
-    ? FLAGS.filter(f => f.name.toLowerCase().includes(input.trim().toLowerCase())).slice(0, 6)
+    ? matchNames(FLAGS, input, 6)
     : []
 
   const submit = (code: string) => {
@@ -69,13 +69,15 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     } else if (!targetSet.has(code)) {
       setMisses(m => m + 1)
       setFlash("no")
+    } else {
+      setFlash("dup")
     }
     setTimeout(() => setFlash(null), 500)
     inputRef.current?.focus()
   }
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length >= 1) submit((pickOnEnter(matches, input) ?? matches[0]).code)
+    if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) submit(pick.code) }
     if (e.key === "Escape") { setInput(""); setShowDrop(false) }
   }
 
@@ -99,7 +101,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 20px", gap: 12 }}>
         {/* Map */}
-        <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}`, background: SEA(), flex: 1, minHeight: 300 }}>
+        <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}`, background: SEA(), flex: 1, minHeight: 300, maxHeight: "55vh" }}>
           <svg viewBox={vb ?? FULL_VB} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: "block", opacity: vb ? 1 : 0, transition: "opacity 0.25s" }}>
             {/* hidden measuring path (also the primary fill) */}
             <path ref={primRef} d={PATHS.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke="#B98A2E" strokeWidth={0.4} />
@@ -113,8 +115,8 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           {done && <Confetti />}
           {flash && (
             <div style={{ position: "absolute", top: 10, left: "50%", transform: "translateX(-50%)", padding: "5px 14px", borderRadius: 999, fontSize: 12, fontWeight: 700, fontFamily: FONT.display,
-              background: flash === "ok" ? tint(ACCENT.codex, 0.95) : tint(MISS_FILL, 0.95), color: "#fff" }}>
-              {flash === "ok" ? "✓ Got it" : "✗ Not a neighbour"}
+              background: flash === "ok" ? tint(ACCENT.codex, 0.95) : flash === "dup" ? tint(T.muted, 0.95) : tint(MISS_FILL, 0.95), color: "#fff" }}>
+              {flash === "ok" ? "✓ Got it" : flash === "dup" ? "Already found" : "✗ Not a neighbour"}
             </div>
           )}
         </div>
@@ -133,8 +135,11 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             <ResultCard>
               <ResultHeader icon="bordermap" accent={ACCENT.codex}
                 title={done ? `All ${targets.length} neighbours!` : `${found.size} of ${targets.length} neighbours`}
-                score={!done ? `The ${targets.length - found.size} you missed are shown in red.`
+                score={!done ? `Missed: ${targets.filter(c => !found.has(c)).map(NAME).join(", ")}.`
                   : misses === 0 ? "Flawless, no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`} />
+              {!done && found.size > 0 && (
+                <p style={{ fontSize: 12.5, color: T.muted, marginTop: 8 }}>Found: {[...found].map(NAME).join(", ")}</p>
+              )}
             </ResultCard>
             <PrimaryButton onClick={onReplay} accent={ACCENT.codex}>New country</PrimaryButton>
             <SecondaryButton onClick={onBack}>Home</SecondaryButton>
@@ -144,7 +149,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         {/* Input */}
         {!over && (
           <div style={{ position: "relative" }}>
-            <input ref={inputRef} value={input}
+            <input aria-label="Type a country" ref={inputRef} value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               placeholder="Type a bordering country…" autoComplete="off"
@@ -160,7 +165,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               </div>
             )}
             <button onClick={() => setRevealed(true)} className="geo-micro geo-tap"
-              style={{ marginTop: 8, fontSize: 11, color: T.muted, background: "transparent", minHeight: 32 }}>give up · reveal the rest</button>
+              style={{ marginTop: 8, fontSize: 11, color: T.muted, background: "transparent", minHeight: 44 }}>give up · reveal the rest</button>
           </div>
         )}
       </div>

@@ -10,14 +10,20 @@ interface Props {
   questions: Question[]
   title: string
   onFinish: (answers: ('correct' | 'wrong')[]) => void
+  /** Called with the flag's code as soon as it's answered right. */
+  onCorrect?: (code: string) => void
+  /** Answers already given: the quiz picks up at the next question. */
+  resume?: ('correct' | 'wrong')[]
+  /** Called with every answer so far, after each answer. */
+  onProgress?: (answers: ('correct' | 'wrong')[]) => void
   onBack: () => void
 }
 
 type AnswerState = 'idle' | 'correct' | 'wrong'
 
-export default function QuizScreen({ questions, title, onFinish, onBack }: Props) {
-  const [idx, setIdx] = useState(0)
-  const [answers, setAnswers] = useState<('correct' | 'wrong')[]>([])
+export default function QuizScreen({ questions, title, onFinish, onCorrect, resume, onProgress, onBack }: Props) {
+  const [idx, setIdx] = useState(() => resume?.length ?? 0)
+  const [answers, setAnswers] = useState<('correct' | 'wrong')[]>(() => resume ?? [])
   const [answerState, setAnswerState] = useState<AnswerState>('idle')
   const [selectedIdx, setSelectedIdx] = useState<number | null>(null)
   const [animatingIdx, setAnimatingIdx] = useState<number | null>(null)
@@ -31,13 +37,8 @@ export default function QuizScreen({ questions, title, onFinish, onBack }: Props
   const animTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   useEffect(() => () => { if (animTimer.current) clearTimeout(animTimer.current) }, [])
 
-  useEffect(() => {
-    setAnswerState('idle')
-    setSelectedIdx(null)
-    setAnimatingIdx(null)
-    setShowLightbulb(false)
-    setImgError(false)
-  }, [idx])
+  // Set once the last answer is handed over, so a double click can't finish twice.
+  const finished = useRef(false)
 
   const handleChoice = (choiceIdx: number) => {
     if (answerState !== 'idle') return
@@ -48,16 +49,28 @@ export default function QuizScreen({ questions, title, onFinish, onBack }: Props
     if (animTimer.current) clearTimeout(animTimer.current)
     animTimer.current = setTimeout(() => setAnimatingIdx(null), 500)
     if (!isCorrect) setShowLightbulb(true)
-    setAnswers(prev => [...prev, isCorrect ? 'correct' : 'wrong'])
+    const next: ('correct' | 'wrong')[] = [...answers, isCorrect ? 'correct' : 'wrong']
+    setAnswers(next)
+    onProgress?.(next)
+    if (isCorrect) onCorrect?.(q.target.code)
   }
 
+  // Resets the round here, not in an effect, so the Next button is gone by the
+  // time a double click's second click lands; setIdx(idx + 1) (not i => i + 1)
+  // keeps a repeated call on the same question from skipping the next one.
   const handleNext = () => {
-    const newAnswers = [...answers]
+    if (answerState === 'idle' || finished.current) return
     if (idx + 1 >= questions.length) {
-      onFinish(newAnswers)
-    } else {
-      setIdx(i => i + 1)
+      finished.current = true
+      onFinish(answers)
+      return
     }
+    setAnswerState('idle')
+    setSelectedIdx(null)
+    setAnimatingIdx(null)
+    setShowLightbulb(false)
+    setImgError(false)
+    setIdx(idx + 1)
   }
 
   const choiceBg = (i: number) => {
@@ -112,7 +125,8 @@ export default function QuizScreen({ questions, title, onFinish, onBack }: Props
           {answerState !== 'idle' && (
             <button
               onClick={() => setShowLightbulb(s => !s)}
-              className="absolute -bottom-3 -right-3 w-9 h-9 rounded-full flex items-center justify-center transition-all active:scale-90 animate-fade-in"
+              aria-label="How to tell them apart" aria-pressed={showLightbulb}
+              className="absolute -bottom-3 -right-3 w-11 h-11 rounded-full flex items-center justify-center transition-all active:scale-90 animate-fade-in"
               style={{ background: T.surface, border: `1px solid ${tint(T.gold, 0.4)}`, boxShadow: `0 2px 8px ${tint(T.text, 0.18)}` }}
             ><Lightbulb size={17} color={T.gold} strokeWidth={1.6} absoluteStrokeWidth /></button>
           )}

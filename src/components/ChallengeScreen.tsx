@@ -45,11 +45,20 @@ const flaggedRegions = (country: ChallengeCountry) => country.subRegions.filter(
 const isPlayable = (country: ChallengeCountry) => !country.locked && flaggedRegions(country).length >= 4
 
 function buildQuiz(subRegions: SubRegion[]): ChallengeQ[] {
-  if (subRegions.length < 4) return []
+  if (new Set(subRegions.map(r => r.flagUrl)).size < 4) return []
   const count = Math.min(10, subRegions.length)
   const shuffled = [...subRegions].sort(() => Math.random() - 0.5).slice(0, count)
   return shuffled.map(target => {
-    const distractors = subRegions.filter(r => r.code !== target.code).sort(() => Math.random() - 0.5).slice(0, 3)
+    // No two choices with the same picture: some regions share a flag (Sharjah
+    // and Ras al-Khaimah, Cork and Louth), and the twin would be marked wrong.
+    const seen = new Set([target.flagUrl])
+    const distractors: SubRegion[] = []
+    for (const r of [...subRegions].sort(() => Math.random() - 0.5)) {
+      if (distractors.length >= 3) break
+      if (r.code === target.code || seen.has(r.flagUrl)) continue
+      seen.add(r.flagUrl)
+      distractors.push(r)
+    }
     const allChoices = [target, ...distractors].sort(() => Math.random() - 0.5)
     const correctIndex = allChoices.findIndex(r => r.code === target.code)
     return { target, choices: allChoices, correctIndex }

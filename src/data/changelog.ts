@@ -14,6 +14,22 @@ export const CHANGELOG: ChangelogEntry[] = [
   },
   {
     date: "2026-10-08",
+    title: "Fairer games, everywhere",
+    items: [
+      "Every game was checked answer by answer. Flag Timeline now orders every country's flags by year, and flags adopted in the same year count either way round.",
+      "Two Truths never calls a true statement the lie (Turkey really is in Asia), and tells you when you picked a truth.",
+      "Typing a country works with other names and without accents in every game: USA, UK, Ivory Coast, Holland, Burma, Czechia, Sao Tome. \"UK\" is never Ukraine, and Enter never guesses for you.",
+      "A quick double tap can no longer skip a question, cast two votes in Flag Bracket, or jump past a result.",
+      "No more twin flags as wrong answers (Sharjah and Ras al-Khaimah), no Monaco vs Indonesia, and Frankenflag accepts any flag whose half looks the same.",
+      "The suggestion lists in Silhouette, The Crop, The Peel and Composer show names only, so they no longer give the answer away.",
+      "Your progress in long Flag Sets is saved as you go, the daily picks up where you left off, and the streak shows 0 after a missed day.",
+      "The phone's Back button takes you home instead of leaving the site.",
+      "The Codex keeps your search and place when you switch tabs, opens Flag of the Day right on its entry, and finds countries by any name.",
+      "Screen readers hear \"Flag 2 of 4\" on picture answers, never the answer itself, and more buttons and fields have names.",
+    ],
+  },
+  {
+    date: "2026-10-08",
     title: "Smoother on phones",
     items: [
       "The welcome card shows on your first visit only.",

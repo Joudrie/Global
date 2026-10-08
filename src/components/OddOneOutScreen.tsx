@@ -5,7 +5,7 @@ import { FLAG_ATTRIBS } from "../data/flagAttribs"
 import type { FlagAttribs } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
 
 const FEATURES = ['stripes', 'cross', 'star', 'crescent', 'emblem'] as const
 
@@ -235,9 +235,10 @@ function OddOneOutScreenGame({ onBack , onReplay }: Props & { onReplay: () => vo
             return (
               <button key={flag.code} onClick={() => handlePick(i)}
                 disabled={answered}
+                aria-label={answered ? `${choiceLabel(i, round.flags.length)}: ${flag.name}` : choiceLabel(i, round.flags.length)}
                 className="relative rounded-xl overflow-hidden transition-all active:scale-95"
                 style={{ border, background: T.surface, aspectRatio: "3/2" }}>
-                <img src={flag.flagUrl} alt={flag.name} className="w-full h-full object-cover"
+                <img src={flag.flagUrl} alt="" className="w-full h-full object-cover"
                   onError={e => {
                     const el = e.target as HTMLImageElement
                     if (!el.dataset.fb) { el.dataset.fb = "1"; el.src = `https://cdn.jsdelivr.net/gh/lipis/flag-icons@main/flags/4x3/${flag.code.toLowerCase()}.svg` }

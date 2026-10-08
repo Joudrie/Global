@@ -14,7 +14,10 @@ const loadBest = () => { try { return Number(localStorage.getItem(BEST_KEY)) || 
 const saveBest = (n: number) => { try { localStorage.setItem(BEST_KEY, String(n)) } catch { /* ignore */ } }
 
 // A card is either a real country flag or a synthetic "bot" flag.
-interface Card { real: boolean; flag?: FlagRecord; botSrc?: string }
+interface Card { real: boolean; flag?: FlagRecord; botSrc?: string; uid?: number }
+// Each card gets its own key, so the next card mounts in place instead of
+// sliding back from where the last one left.
+let serial = 0
 
 // Cards shown lately, so the same flag doesn't come straight back.
 const recent: string[] = []
@@ -38,7 +41,7 @@ function makeCard(): Card {
   }
   recent.push(c.real ? c.flag!.code : c.botSrc!)
   if (recent.length > RECENT_MAX) recent.shift()
-  return c
+  return { ...c, uid: ++serial }
 }
 
 function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
@@ -143,7 +146,7 @@ function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           }}>
             {nextFlag(nextCard)}
           </div>
-          <div
+          <div key={card.uid}
             onMouseDown={e => onDown(e.clientX)} onMouseMove={e => onMove(e.clientX)} onMouseUp={onUp} onMouseLeave={onUp}
             onTouchStart={e => onDown(e.touches[0].clientX)} onTouchMove={e => onMove(e.touches[0].clientX)} onTouchEnd={onUp}
             style={{

@@ -44,10 +44,10 @@ export function colorName(hex: string): string {
   if (l < 0.12) return "black"
   if (s < 0.15) return l > 0.6 ? "light grey" : "grey"
   if (h < 15 || h >= 345) return "red"
-  if (h < 45) return "orange"
+  if (h < 40) return "orange"      // Lithuania's golden yellow (43°) is yellow
   if (h < 70) return "yellow"
-  if (h < 160) return "green"
-  if (h < 200) return "teal"
+  if (h < 170) return "green"      // Bangladesh's bottle green (164°) is green
+  if (h < 192) return "teal"       // Palau's light blue (197°) is blue
   if (h < 255) return "blue"
   if (h < 295) return "purple"
   return "pink"

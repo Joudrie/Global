@@ -17,6 +17,14 @@ const rand = <X,>(a: X[]): X => a[Math.floor(Math.random() * a.length)]
 const NAME = (code: string) => FLAGS.find(f => f.code === code)?.name ?? code
 
 const ALL_REGIONS = ["Europe", "Africa", "Asia", "Americas", "Oceania", "Middle East"]
+const inRegion = (r: string) => r === "Middle East" || r === "Americas" ? `the ${r}` : r
+// Countries in two continents: "It lies in Asia" is true of Turkey, so their
+// region is never the lie.
+const TRANSCONTINENTAL = new Set(["RU", "TR", "CY", "GE", "AM", "AZ", "KZ", "EG", "ID", "TL"])
+// Countries with land borders overseas (France and Brazil via French Guiana,
+// Spain and Morocco via Ceuta): our border data leaves those out, so a border
+// count could be "wrong" and still true.
+const OVERSEAS_BORDERS = new Set(["FR", "BR", "SR", "ES", "MA", "NL", "GB", "CY"])
 const CAP = new Map(CAPITALS.map(c => [c.code, c]))
 
 // Countries we can build statements for (need a capital). We avoid colour claims
@@ -47,8 +55,8 @@ function comparatorFor(f: FlagRecord, metric: "area" | "pop"): string | null {
 
 function trueStmt(type: string, f: FlagRecord): Stmt {
   const cap = CAP.get(f.code)!
-  if (type === "capital") return { text: `Its capital is ${cap.capital}.`, type }
-  if (type === "region") return { text: `It lies in ${f.region}.`, type }
+  if (type === "capital") return { text: `Its capital is ${cap.capital.replace(/\.$/, "")}.`, type }
+  if (type === "region") return { text: `It lies in ${inRegion(f.region)}.`, type }
   if (type === "borderCount") {
     const n = neighborsOf(f.code).length
     return { text: n === 0 ? `It has no land borders.` : `It has ${n} land neighbour${n === 1 ? "" : "s"}.`, type }
@@ -68,9 +76,10 @@ function trueStmt(type: string, f: FlagRecord): Stmt {
 }
 
 // Regions that are easy to mix up with each other — used to make a region lie
-// tempting rather than absurd (a Middle East country "in Asia", not "in Oceania").
+// tempting rather than absurd (a Middle East country "in Africa", not "in
+// Oceania"). Never "Asia" for the Middle East: it is in Asia.
 const REGION_NEAR: Record<string, string[]> = {
-  "Middle East": ["Asia", "Africa", "Europe"],
+  "Middle East": ["Africa", "Europe"],
   "Europe": ["Asia", "Middle East", "Africa"],
   "Asia": ["Middle East", "Europe", "Oceania"],
   "Africa": ["Middle East", "Europe", "Asia"],
@@ -99,16 +108,18 @@ function falseStmt(type: string, f: FlagRecord): Stmt {
     const sameRegion = FLAGS.filter(x => x.region === f.region && CAP.has(x.code) && x.code !== f.code).map(x => x.code)
     const pool = (direct.length ? direct : near.length ? near : sameRegion).filter(c => CAP.get(c)!.capital !== cap.capital)
     const otherCap = pool.length ? CAP.get(rand(pool))!.capital : rand(CAPITALS.filter(c => c.capital !== cap.capital)).capital
-    return { text: `Its capital is ${otherCap}.`, type }
+    return { text: `Its capital is ${otherCap.replace(/\.$/, "")}.`, type }
   }
   if (type === "region") {
     const near = (REGION_NEAR[f.region] ?? ALL_REGIONS).filter(r => r !== f.region)
-    return { text: `It lies in ${rand(near.length ? near : ALL_REGIONS.filter(r => r !== f.region))}.`, type }
+    return { text: `It lies in ${inRegion(rand(near.length ? near : ALL_REGIONS.filter(r => r !== f.region)))}.`, type }
   }
   if (type === "borderCount") {
     // Off by one or two — close enough that you have to actually know the count.
     const n = neighborsOf(f.code).length
-    const opts = [n - 2, n - 1, n + 1, n + 2].filter(x => x >= 0 && x !== n)
+    // Never "no land borders" for a country that has some: another statement
+    // naming a neighbour would give the lie away.
+    const opts = [n - 2, n - 1, n + 1, n + 2].filter(x => x >= (n > 0 ? 1 : 0) && x !== n)
     const fake = opts.length ? rand(opts) : n + 2
     return { text: fake === 0 ? `It has no land borders.` : `It has ${fake} land neighbour${fake === 1 ? "" : "s"}.`, type }
   }
@@ -135,7 +146,8 @@ interface Round { flag: FlagRecord; stmts: Stmt[]; falseIdx: number }
 // + borderCount always work; capital needs a capital; border needs a neighbour;
 // the size/population comparisons need a stat comparator with a clear gap.
 function availableTypes(f: FlagRecord): string[] {
-  const t = ["region", "borderCount"]
+  const t = ["region"]
+  if (!OVERSEAS_BORDERS.has(f.code)) t.push("borderCount")
   if (CAP.has(f.code)) t.push("capital")
   if (neighborsOf(f.code).length) t.push("border")
   if (comparatorFor(f, "area")) t.push("areaCmp")
@@ -147,7 +159,8 @@ function makeRound(f: FlagRecord): Round {
   // Three DIFFERENT fact types per round, drawn from whatever's available — so
   // it's not always capital / region / border.
   const chosen = shuffle(availableTypes(f)).slice(0, 3)
-  const falseType = rand(chosen)
+  const canLie = chosen.filter(t => !(t === "region" && TRANSCONTINENTAL.has(f.code)))
+  const falseType = rand(canLie)
   const built = chosen.map(t => ({ stmt: t === falseType ? falseStmt(t, f) : trueStmt(t, f), isFalse: t === falseType }))
   const ordered = shuffle(built)
   return { flag: f, stmts: ordered.map(b => b.stmt), falseIdx: ordered.findIndex(b => b.isFalse) }
@@ -213,19 +226,24 @@ function TwoTruthsGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             let border = `2px solid ${T.line}`, bg = T.surface
             if (answered) {
               if (isLie) { border = `2px solid ${T.warm}`; bg = tint(T.warm, 0.1) }
-              else if (i === picked) { border = `2px solid ${ACCENT.codex}` }
+              else if (i === picked) { border = `2px solid ${T.danger}` }
             }
             return (
               <button key={i} onClick={() => choose(i)} disabled={answered} className="geo-tap"
                 style={{ textAlign: "left", padding: "13px 15px", borderRadius: 12, background: bg, border, color: T.text, fontSize: 14, fontWeight: 500, display: "flex", alignItems: "center", gap: 10, transition: "background 0.2s ease, border-color 0.2s ease" }}>
                 <span style={{ flex: 1 }}>{s.text}</span>
                 {answered && isLie && <span style={{ color: T.warm, fontWeight: 700, fontSize: 12 }}>LIE</span>}
-                {answered && !isLie && <span style={{ color: ACCENT.codex }}>✓</span>}
+                {answered && !isLie && <span style={{ color: i === picked ? T.danger : ACCENT.codex, fontWeight: 700, fontSize: 12 }}>TRUE</span>}
               </button>
             )
           })}
         </div>
 
+        {answered && (
+          <p role="status" style={{ textAlign: "center", fontSize: 13, fontWeight: 600, color: picked === round.falseIdx ? ACCENT.codex : T.danger }}>
+            {picked === round.falseIdx ? "✓ You caught the lie" : "✗ That one's true. The lie is marked."}
+          </p>
+        )}
         {answered && (
           <PrimaryButton onClick={next} accent={ACCENT.codex} style={{ marginTop: "auto" }}>
             {idx + 1 >= ROUNDS ? "See result →" : "Next →"}

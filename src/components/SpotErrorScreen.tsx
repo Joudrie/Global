@@ -1,7 +1,7 @@
 import { useState } from "react"
 import { PAINT_PUZZLES } from "../data/paintPuzzles"
 import type { PaintPuzzle, PaintLayout } from "../data/paintPuzzles"
-import { colorName } from "../utils/color"
+import { colorAccuracy, colorName, hexToRgb } from "../utils/color"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
@@ -33,7 +33,10 @@ function ClickFlag({ layout, colors, onPick, picked, errorSlot, revealed }: {
   const Region = ({ slot, x, y, w, h, circle }: { slot: string; x: number; y: number; w: number; h: number; circle?: boolean }) => {
     const ring = ringOf(slot)
     return (
-      <g onClick={() => onPick?.(slot)} style={{ cursor: onPick ? "pointer" : "default" }}>
+      <g onClick={() => onPick?.(slot)} style={{ cursor: onPick ? "pointer" : "default" }}
+        role={onPick ? "button" : undefined} tabIndex={onPick ? 0 : undefined}
+        aria-label={onPick ? SLOT_LABEL[slot] ?? slot : undefined} aria-pressed={onPick ? picked === slot : undefined}
+        onKeyDown={onPick ? e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); onPick(slot) } } : undefined}>
         {circle
           ? <circle cx={x + w / 2} cy={y + h / 2} r={Math.min(w, h) / 2} fill={colors[slot]} />
           : <rect x={x} y={y} width={w} height={h} fill={colors[slot]} />}
@@ -81,14 +84,21 @@ function ClickFlag({ layout, colors, onPick, picked, errorSlot, revealed }: {
   )
 }
 
+const SLOT_LABEL: Record<string, string> = {
+  top: "Top band", middle: "Middle band", bottom: "Bottom band", left: "Left band", right: "Right band",
+  center: "Centre band", field: "Background", cross: "Cross", disc: "Disc",
+}
+
 // Build a round: pick a puzzle, corrupt one region with a clearly-wrong colour.
 function makeRound(pz: PaintPuzzle) {
   const slots = Object.keys(pz.colors)
   const errorSlot = slots[Math.floor(Math.random() * slots.length)]
   // Exclude every region's colour, not just the corrupted slot's own — otherwise
   // the "wrong" colour can match a neighbouring band, leaving no spottable error.
+  // Also far enough from every real colour to see at a glance (Sweden's blue
+  // vs teal scored 92/100 alike).
   const usedNames = new Set(slots.map(s => colorName(pz.colors[s])))
-  const choices = WRONG.filter(c => !usedNames.has(colorName(c)))
+  const choices = WRONG.filter(c => !usedNames.has(colorName(c)) && slots.every(s => colorAccuracy(hexToRgb(c), hexToRgb(pz.colors[s])) < 75))
   const wrongHex = choices[Math.floor(Math.random() * choices.length)]
   return { pz, errorSlot, wrongHex, shown: { ...pz.colors, [errorSlot]: wrongHex } }
 }

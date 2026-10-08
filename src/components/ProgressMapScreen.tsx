@@ -32,7 +32,7 @@ export default function ProgressMapScreen({ state, onBack }: Props) {
       {/* Real world map — each learned country fills ochre */}
       <div className="px-4 pt-2">
         <div style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}`, background: OCEAN }}>
-          <svg viewBox={worldMap.viewBox} width="100%" style={{ display: "block" }}>
+          <svg viewBox={worldMap.viewBox} width="100%" style={{ display: "block" }} role="img" aria-label={`World map: ${learned.size} countries learned`}>
             {worldMap.locations.map(loc => {
               const lit = learned.has(loc.id.toUpperCase())
               return (

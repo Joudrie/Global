@@ -1,4 +1,4 @@
-import { useState, useMemo, useRef, useEffect } from 'react'
+import { useState, useMemo, useRef, useEffect, useLayoutEffect } from 'react'
 import { createPortal } from 'react-dom'
 import { FLAGS } from '../data/flags'
 import type { FlagRecord } from '../data/flags'
@@ -19,6 +19,7 @@ import { SUB_FLAGS } from '../data/subdivisions'
 import { CHALLENGE_CONTINENTS } from '../data/challenges'
 import type { SubRegion } from '../data/challenges'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
+import { normName, matchNames } from '../utils/pickOnEnter'
 import { ScreenHeader } from './ui'
 import AdBox from './AdBox'
 import { AD_SLOTS } from '../ads'
@@ -58,22 +59,78 @@ function getSubRegions(code: string) {
   return []
 }
 
+// The Codex tab remembers where the reader was for this browser session
+// (search, open regions, open country, scroll), so leaving the tab or opening
+// a game and coming back picks up there instead of on a fresh list.
+const VIEW_KEY = 'globalio_codex_view'
+interface CodexView { search: string; regions: string[]; code: string | null; scroll: number }
+function loadView(): CodexView | null {
+  try {
+    const v = JSON.parse(sessionStorage.getItem(VIEW_KEY) || 'null')
+    return v && typeof v.search === 'string' && Array.isArray(v.regions) ? v : null
+  } catch { return null }
+}
+function saveView(v: CodexView) {
+  try { sessionStorage.setItem(VIEW_KEY, JSON.stringify(v)) } catch { /* ignore */ }
+}
+// Nearest scrolling ancestor: the dashboard's <main> when embedded.
+function scrollParent(el: HTMLElement | null): HTMLElement | null {
+  for (let p = el?.parentElement; p; p = p.parentElement) {
+    if (/auto|scroll/.test(getComputedStyle(p).overflowY)) return p
+  }
+  return null
+}
+const rowId = (code: string) => `codex-${code}`
+
 export default function CodexScreen({ onBack, initialCode, embedded = false }: Props) {
+  // A deep link (Flag of the Day → its entry) opens on that country; otherwise
+  // the embedded Codex restores the reader's last view.
+  const [saved] = useState(() => (embedded && initialCode == null ? loadView() : null))
   // A tapped country expands inline beneath its row — browsing never leaves
   // the page, so there's nothing to "go back" from.
-  const [selectedCode, setSelectedCode] = useState<string | null>(initialCode ?? null)
-  const [search, setSearch] = useState('')
+  const [selectedCode, setSelectedCode] = useState<string | null>(initialCode ?? saved?.code ?? null)
+  const [search, setSearch] = useState(saved?.search ?? '')
   // Regions start collapsed; store which are expanded
   const [expandedRegions, setExpandedRegions] = useState<Set<string>>(() => {
+    if (saved) return new Set(saved.regions)
     const f = initialCode != null ? FLAGS.find(x => x.code === initialCode) : null
     return new Set(f ? [f.region] : [])
   })
 
+  const rootRef = useRef<HTMLDivElement>(null)
+  const scrollTop = useRef(saved?.scroll ?? 0)
+  const viewRef = useRef({ search, regions: [...expandedRegions], code: selectedCode })
+  useEffect(() => {
+    if (!embedded) return
+    viewRef.current = { search, regions: [...expandedRegions], code: selectedCode }
+    saveView({ ...viewRef.current, scroll: scrollTop.current })
+  }, [embedded, search, expandedRegions, selectedCode])
+  // On mount: a deep-linked entry scrolls to the top of the screen; otherwise
+  // the embedded list goes back to where it was. initialCode is read once,
+  // like the state above.
+  useLayoutEffect(() => {
+    if (initialCode) document.getElementById(rowId(initialCode))?.scrollIntoView({ block: 'start' })
+    if (!embedded) return
+    const scroller = scrollParent(rootRef.current)
+    if (!scroller) return
+    if (!initialCode) scroller.scrollTop = scrollTop.current
+    const onScroll = () => { scrollTop.current = scroller.scrollTop }
+    scroller.addEventListener('scroll', onScroll, { passive: true })
+    return () => {
+      scroller.removeEventListener('scroll', onScroll)
+      saveView({ ...viewRef.current, scroll: scrollTop.current })
+    }
+  }, [])
+
+  // Search ignores case, accents and punctuation and knows other names
+  // ("uk", "usa", "holland", "ivory coast"), like the typed-answer boxes.
+  const q = normName(search)
   const filteredFlags = useMemo(() => {
-    const q = search.trim().toLowerCase()
     if (!q) return FLAGS
-    return FLAGS.filter(f => f.name.toLowerCase().includes(q) || f.region.toLowerCase().includes(q))
-  }, [search])
+    const hits = new Set(matchNames(FLAGS, q, FLAGS.length))
+    return FLAGS.filter(f => hits.has(f) || normName(f.region).includes(q))
+  }, [q])
+  const otherFlags = useMemo(() => otherFlagMatches(q), [q])
 
   const grouped = useMemo(() => {
     return REGION_ORDER.map(region => ({
@@ -92,10 +149,12 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
   }
 
   // Auto-expand all regions when searching
-  const isSearching = search.trim().length > 0
+  const isSearching = !!q
 
   return (
-    <div className={embedded ? 'carto-rise' : 'min-h-screen flex flex-col'} style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
+    // No rise-in on a deep link: the animation's offset would throw off the
+    // scroll to the opened entry.
+    <div ref={rootRef} className={embedded ? (initialCode ? undefined : 'carto-rise') : 'min-h-screen flex flex-col'} style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
       {embedded || !onBack ? (
         <header style={{ padding: '14px 16px 10px' }}>
           <h2 className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 20, letterSpacing: '-0.01em', lineHeight: 1.1, margin: 0 }}>Codex</h2>
@@ -112,20 +171,24 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
           <input
             type="text"
             placeholder="Search every flag…"
+            aria-label="Search every flag"
             value={search}
             onChange={e => setSearch(e.target.value)}
             className="flex-1 bg-transparent text-sm outline-none"
             style={{ color: T.text }}
           />
           {search && (
-            <button onClick={() => setSearch('')} style={{ color: T.dim, fontSize: 16 }}>✕</button>
+            // 44px target; the negative margins keep the search bar its size.
+            <button onClick={() => setSearch('')} aria-label="Clear search" className="flex items-center justify-center"
+              style={{ width: 44, height: 44, margin: '-12px -14px -12px 0', flexShrink: 0, color: T.dim, fontSize: 16 }}>✕</button>
           )}
         </div>
       </div>
 
       <div className={embedded ? 'px-5 pb-12' : 'flex-1 overflow-y-auto px-5 pb-12'}>
         {grouped.length === 0 ? (
-          <div className="text-center py-12" style={{ color: T.muted }}>No countries match "{search}"</div>
+          // Only when nothing at all matches; other flags may match below.
+          otherFlags.length === 0 && <div className="text-center py-12" style={{ color: T.muted }}>No flags match "{search.trim()}"</div>
         ) : (
           grouped.map(({ region, flags }) => {
             const isExpanded = isSearching || expandedRegions.has(region)
@@ -156,7 +219,7 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
                       const open = selectedCode === f.code
                       const capital = CAPITAL_BY_CODE.get(f.code)
                       return (
-                        <div key={f.code}>
+                        <div key={f.code} id={rowId(f.code)}>
                           <button
                             onClick={() => setSelectedCode(c => (c === f.code ? null : f.code))}
                             aria-expanded={open}
@@ -192,7 +255,7 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
         )}
 
         {/* Universal search — every other matching flag, behind a divider (G1) */}
-        {isSearching && <OtherFlagsResults query={search} />}
+        {isSearching && <OtherFlagsResults matches={otherFlags} />}
 
         {/* Soft divide: countries above, everything-else collections below */}
         {!isSearching && (
@@ -340,29 +403,35 @@ function CountryDetail({ flag }: { flag: FlagRecord }) {
                   <span className="text-xs" style={{ color: T.dim, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>
                     {historyIdx + 1} / {history.length} · newest → oldest
                   </span>
-                  <div className="flex gap-2">
+                  {/* 44px tap targets around 32px circles; the negative margin
+                      keeps the row its old height. */}
+                  <div className="flex" style={{ margin: '-6px -6px -6px 0' }}>
                     <button
                       onClick={() => setHistoryIdx(i => Math.max(0, i - 1))}
                       disabled={historyIdx === 0}
-                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90"
-                      style={{
+                      aria-label="Previous flag"
+                      className="w-11 h-11 flex items-center justify-center transition-all active:scale-90">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full" style={{
                         background: T.surface,
                         border: `1px solid ${historyIdx === 0 ? T.line : tint(ACCENT.codex, 0.4)}`,
                         color: historyIdx === 0 ? T.dim : ACCENT.codex,
                         opacity: historyIdx === 0 ? 0.5 : 1,
                         fontSize: 18,
-                      }}>‹</button>
+                      }}>‹</span>
+                    </button>
                     <button
                       onClick={() => setHistoryIdx(i => Math.min(history.length - 1, i + 1))}
                       disabled={historyIdx === history.length - 1}
-                      className="w-8 h-8 flex items-center justify-center rounded-full transition-all active:scale-90"
-                      style={{
+                      aria-label="Next flag"
+                      className="w-11 h-11 flex items-center justify-center transition-all active:scale-90">
+                      <span className="w-8 h-8 flex items-center justify-center rounded-full" style={{
                         background: T.surface,
                         border: `1px solid ${historyIdx === history.length - 1 ? T.line : tint(ACCENT.codex, 0.4)}`,
                         color: historyIdx === history.length - 1 ? T.dim : ACCENT.codex,
                         opacity: historyIdx === history.length - 1 ? 0.5 : 1,
                         fontSize: 18,
-                      }}>›</button>
+                      }}>›</span>
+                    </button>
                   </div>
                 </div>
 
@@ -655,14 +724,17 @@ function TerritoriesSection({ territories }: { territories: Territory[] }) {
 // Universal search results — every non-country flag (peoples, historical states,
 // organisations, subdivisions, cities…) matching the query, shown beneath the
 // country matches behind a divider so anything in the app is findable (G1).
-function OtherFlagsResults({ query }: { query: string }) {
-  const q = query.trim().toLowerCase()
+// `q` is already normName()d; titles are compared the same way.
+let azNames: string[] | null = null
+function otherFlagMatches(q: string): MegaFlag[] {
+  if (!q) return []
+  const names = azNames ??= ALL_FLAGS_AZ.map(f => normName(f.title))
+  const countryNames = new Set(FLAGS.map(f => normName(f.name)))
+  return ALL_FLAGS_AZ.filter((_, i) => names[i].includes(q) && !countryNames.has(names[i])).slice(0, 60)
+}
+
+function OtherFlagsResults({ matches }: { matches: MegaFlag[] }) {
   const [openKey, setOpenKey] = useState<string | null>(null)
-  const matches = useMemo(() => {
-    if (!q) return []
-    const countryNames = new Set(FLAGS.map(f => f.name.toLowerCase()))
-    return ALL_FLAGS_AZ.filter(f => f.title.toLowerCase().includes(q) && !countryNames.has(f.title.toLowerCase())).slice(0, 60)
-  }, [q])
   if (!matches.length) return null
   return (
     <div className="mt-4">

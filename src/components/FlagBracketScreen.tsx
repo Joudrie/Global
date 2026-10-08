@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { FLAGS, REGIONS, getFlagsByRegion } from "../data/flags"
 import type { FlagRecord, Region } from "../data/flags"
 import { T, ACCENT, FONT } from "../ui/tokens"
@@ -57,6 +57,7 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const [full, setFull] = useState(false)   // false = top 16, true = whole pool
   const [field, setField] = useState<FlagRecord[]>([])
   const [pair, setPair] = useState(0)
+  const lastPick = useRef(0)
   const [winners, setWinners] = useState<FlagRecord[]>([])
   const [champion, setChampion] = useState<FlagRecord | null>(null)
   const [history, setHistory] = useState<Match[]>([])
@@ -109,6 +110,10 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   const pick = (f: FlagRecord) => {
+    // A double tap's second tap would land on the next pair as it fades in.
+    const now = performance.now()
+    if (now - lastPick.current < 350) return
+    lastPick.current = now
     const a = field[pair * 2], b = field[pair * 2 + 1]
     setHistory(h => [...h, { a, b, winnerCode: f.code, roundSize: field.length }])
     const nextWinners = [...winners, f]
@@ -116,9 +121,10 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     if (pair + 1 < pairs) {
       setWinners(nextWinners); setPair(pair + 1)
     } else {
-      // round over — an odd flag out gets a bye into the next round
+      // round over — an odd flag out gets a bye into the next round, and plays
+      // first there, so the same flag can't ride byes all the way to the final
       const bye = field.length % 2 === 1 ? [field[field.length - 1]] : []
-      const advanced = [...nextWinners, ...bye]
+      const advanced = [...bye, ...nextWinners]
       if (advanced.length === 1) { setChampion(advanced[0]); return }
       setField(advanced); setWinners([]); setPair(0)
     }

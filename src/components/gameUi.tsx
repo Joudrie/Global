@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react"
+import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, MouseEventHandler, ReactNode } from "react"
 import { X, Timer, TrendingDown, Scissors, Star, Plus, Shield, Rows3, Columns3, Hourglass, Anchor } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { T, FONT, tint } from "../ui/tokens"
@@ -45,9 +45,24 @@ export const BUTTON_RADIUS = 12
 const BUTTON_PRESS = "transition-transform duration-100 motion-reduce:transition-none motion-safe:enabled:active:scale-[0.97]"
 type ActionButtonProps = Omit<ButtonHTMLAttributes<HTMLButtonElement>, "style"> & { accent?: string; style?: CSSProperties }
 
-export function PrimaryButton({ accent = T.text, disabled, className = "", style, type = "button", children, ...rest }: ActionButtonProps) {
+/* Double taps: a tap that changes the screen often leaves a new button under
+   the finger (Next where an answer was, Home where Check was), and the second
+   tap of a double tap pressed it. Action buttons ignore a click that comes
+   within DOUBLE_TAP_MS of the click before it, anywhere on the page. */
+const DOUBLE_TAP_MS = 350
+let lastClick = -Infinity
+let prevClick = -Infinity
+if (typeof document !== "undefined") {
+  document.addEventListener("click", e => { prevClick = lastClick; lastClick = e.timeStamp }, true)
+}
+const guarded = (onClick?: MouseEventHandler<HTMLButtonElement>) => onClick && ((e: MouseEvent<HTMLButtonElement>) => {
+  if (e.timeStamp - prevClick < DOUBLE_TAP_MS) return
+  onClick(e)
+})
+
+export function PrimaryButton({ accent = T.text, disabled, className = "", style, type = "button", onClick, children, ...rest }: ActionButtonProps) {
   return (
-    <button type={type} disabled={disabled} className={`${BUTTON_PRESS} ${className}`} {...rest}
+    <button type={type} disabled={disabled} className={`${BUTTON_PRESS} ${className}`} onClick={guarded(onClick)} {...rest}
       style={{
         height: 52, width: "100%", padding: "0 20px", borderRadius: BUTTON_RADIUS, flexShrink: 0,
         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -61,9 +76,9 @@ export function PrimaryButton({ accent = T.text, disabled, className = "", style
   )
 }
 
-export function SecondaryButton({ disabled, className = "", style, type = "button", children, ...rest }: Omit<ActionButtonProps, "accent">) {
+export function SecondaryButton({ disabled, className = "", style, type = "button", onClick, children, ...rest }: Omit<ActionButtonProps, "accent">) {
   return (
-    <button type={type} disabled={disabled} className={`${BUTTON_PRESS} ${className}`} {...rest}
+    <button type={type} disabled={disabled} className={`${BUTTON_PRESS} ${className}`} onClick={guarded(onClick)} {...rest}
       style={{
         height: 52, width: "100%", padding: "0 20px", borderRadius: BUTTON_RADIUS, flexShrink: 0,
         display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 8,
@@ -150,3 +165,8 @@ export function FlagLoadFailed({ onRetry, onBack, accent = T.green }:
     </div>
   )
 }
+
+/* ── Image-only answer buttons: a screen reader hears "Flag 2 of 4", never
+   the country, so the label can't give the answer away. The <img> inside
+   gets alt="" (a broken image would otherwise print the name on screen). */
+export const choiceLabel = (i: number, n: number, noun = "Flag") => `${noun} ${i + 1} of ${n}`

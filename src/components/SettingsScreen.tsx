@@ -56,9 +56,16 @@ function CreatorUnlock() {
 }
 
 // Back up = copy a portable code to the clipboard AND download it as a file.
+// The message only claims the steps that worked; if both are blocked, the code
+// is shown so it can be copied by hand.
 async function backUpProgress() {
-  const code = exportProgress()
-  try { await navigator.clipboard.writeText(code) } catch { /* clipboard may be blocked */ }
+  let code: string
+  try { code = exportProgress() } catch {
+    alert("Couldn’t read your progress on this device, so there’s nothing to back up.")
+    return
+  }
+  let copied = false, downloaded = false
+  try { await navigator.clipboard.writeText(code); copied = true } catch { /* clipboard may be blocked */ }
   try {
     const blob = new Blob([code], { type: "text/plain" })
     const url = URL.createObjectURL(blob)
@@ -66,9 +73,19 @@ async function backUpProgress() {
     a.href = url
     a.download = `globalio-backup-${new Date().toISOString().slice(0, 10)}.txt`
     a.click()
-    URL.revokeObjectURL(url)
+    // Some browsers start the download after click() returns; revoking at once
+    // can cancel it.
+    setTimeout(() => URL.revokeObjectURL(url), 1000)
+    downloaded = true
   } catch { /* download may be blocked */ }
-  alert("Backup copied to your clipboard and downloaded.\n\nKeep it somewhere safe — paste it into “Restore” on any device (or after clearing your browser) to bring all your progress back.")
+  const keep = "Keep it somewhere safe — paste it into “Restore” on any device (or after clearing your browser) to bring all your progress back."
+  if (!copied && !downloaded) {
+    window.prompt("Copy this backup code and keep it somewhere safe. Paste it into “Restore” to bring your progress back.", code)
+    return
+  }
+  const what = copied && downloaded ? "Backup copied to your clipboard and downloaded."
+    : copied ? "Backup copied to your clipboard." : "Backup downloaded as a file."
+  alert(`${what}\n\n${keep}`)
 }
 
 function restoreProgress() {

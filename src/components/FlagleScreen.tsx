@@ -9,7 +9,7 @@ import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
 
 import { Share2 } from "lucide-react"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -89,10 +89,8 @@ export default function FlagleScreen({ onBack }: Props) {
   const finished = won || guesses.length >= MAX_GUESSES
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
     // Only flags the puzzle can compare; others used to be offered and then silently ignored.
-    return ELIGIBLE.filter(f => (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) && !guessedCodes.has(f.code)).slice(0, 6)
+    return matchNames(ELIGIBLE.filter(f => !guessedCodes.has(f.code)), input, 6)
   }, [input, guessedCodes])
 
   const submit = (f: FlagRecord) => {
@@ -155,7 +153,7 @@ export default function FlagleScreen({ onBack }: Props) {
         {/* Input or result */}
         {!finished ? (
           <div className="w-full max-w-sm relative mt-1">
-            <input value={input} autoComplete="off"
+            <input aria-label="Type a country" value={input} autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}

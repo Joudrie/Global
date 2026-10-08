@@ -3,7 +3,7 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
 
 const ACC = ACCENT.play
 
@@ -14,6 +14,11 @@ interface Round {
   choices: FlagRecord[]   // 4 visually similar flags, 1 is correct
   correctIndex: number
 }
+
+// Pairs that differ only in proportions, which the 3:2 tiles don't show
+// (Monaco is 4:5, Indonesia 2:3): never both in one round.
+const TWINS = [["MC", "ID"]]
+const identical = (a: string, b: string) => TWINS.some(([x, y]) => (x === a && y === b) || (x === b && y === a))
 
 function buildRounds(count: number): Round[] {
   // Only flags with at least 3 GENUINE look-alikes — so every distractor really
@@ -27,6 +32,7 @@ function buildRounds(count: number): Round[] {
     if (rounds.length >= count) break
 
     const confusables = target.confusableWith
+      .filter(code => !identical(target.code, code))
       .map(code => FLAGS.find(f => f.code === code))
       .filter((f): f is FlagRecord => !!f)
 
@@ -132,9 +138,10 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
             return (
               <button key={flag.code} onClick={() => handlePick(i)}
                 disabled={answered}
+                aria-label={answered ? `${choiceLabel(i, round.choices.length)}: ${flag.name}` : choiceLabel(i, round.choices.length)}
                 className="relative rounded-xl overflow-hidden transition-all active:scale-95"
                 style={{ border, background: T.surface, aspectRatio: "3/2" }}>
-                <img src={flag.flagUrl} alt={flag.name} className="w-full h-full object-cover" />
+                <img src={flag.flagUrl} alt="" className="w-full h-full object-cover" />
                 {answered && (isCorrect || isChosen) && (
                   <div style={{
                     position: 'absolute', inset: 0,

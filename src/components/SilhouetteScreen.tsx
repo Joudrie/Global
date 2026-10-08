@@ -5,7 +5,7 @@ import FlagImage from "./FlagImage"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
 
@@ -50,12 +50,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const filter = revealed ? "none" : currentStage.filter
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f =>
-      (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) &&
-      !guessedCodes.current.has(f.code)
-    ).slice(0, 6)
+    return matchNames(FLAGS.filter(f => !guessedCodes.current.has(f.code)), input, 6)
   }, [input])
 
   const nextRound = (result: RoundResult) => {
@@ -185,7 +180,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         {/* Type-in */}
         {!revealed && (
           <div className="w-full max-w-sm relative">
-            <input
+            <input aria-label="Type a country"
               ref={inputRef}
               value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
@@ -204,7 +199,6 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                   <button key={flag.code} onMouseDown={() => submitGuess(flag)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:brightness-125 transition-all"
                     style={{ background: "transparent", borderBottom: `1px solid ${T.line}` }}>
-                    <FlagImage code={flag.code} style={{ width: 32, height: 21, objectFit: "cover", borderRadius: 3 }} />
                     <span style={{ color: T.text, fontWeight: 600 }}>{flag.name}</span>
                     <span style={{ color: T.dim, fontSize: 11, marginLeft: "auto" }}>{flag.code}</span>
                   </button>

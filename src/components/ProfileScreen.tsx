@@ -2,6 +2,8 @@ import { useState } from "react"
 import { Pencil } from "lucide-react"
 import { FLAGS } from "../data/flags"
 import type { AppState } from "../utils/storage"
+import { displayStreak } from "../utils/storage"
+import { todayString } from "../utils/prng"
 import ShareCard from "./ShareCard"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
@@ -81,7 +83,7 @@ export default function ProfileScreen({ state, onBack, onSetUsername }: Props) {
       <div className="mx-5 mb-4 grid grid-cols-3 gap-3">
         {[
           { label: "Learned", value: state.learnedFlags.length, sub: <span style={{ color: A }}>/ {FLAGS.length}</span> },
-          { label: "Day Streak", value: state.currentStreak, sub: <FlameIcon size={13} color={T.amber} strokeWidth={1.7} /> },
+          { label: "Day Streak", value: displayStreak(state, todayString()), sub: <FlameIcon size={13} color={T.amber} strokeWidth={1.7} /> },
           { label: "Best", value: state.longestStreak, sub: <span style={{ color: A }}>days</span> },
         ].map(({ label, value, sub }) => (
           <div key={label} className="flex flex-col items-center py-3 rounded-xl" style={{ background: T.surface, border: `1px solid ${T.line}` }}>

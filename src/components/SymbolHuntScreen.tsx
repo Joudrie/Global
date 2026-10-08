@@ -6,7 +6,7 @@ import { OTHER_IDENTITY_FLAGS } from "../data/identityFlags"
 import { T, ACCENT } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -25,14 +25,14 @@ function buildRounds(): Round[] {
     const pool = [...sym.codes]
     const nMatch = Math.min(pool.length, 4 + Math.floor(Math.random() * 4)) // 4–7 present
     const matches = shuffle(pool).slice(0, nMatch)
-    const matchCells: Cell[] = matches.map(code => ({ key: "c:" + code, code, match: true }))
+    const matchCells: Cell[] = matches.map(code => ({ key: "c:" + code, code, name: FLAGS.find(f => f.code === code)?.name, match: true }))
     // 0–2 identity flags as decoys to introduce them
     const nIdentity = matchCells.length < GRID - 4 ? Math.floor(Math.random() * 3) : 0
     const idCells: Cell[] = shuffle(OTHER_IDENTITY_FLAGS).slice(0, nIdentity)
       .map(f => ({ key: "i:" + f.id, url: f.flagUrl, name: f.name, match: false }))
     const need = GRID - matchCells.length - idCells.length
     const fillers: Cell[] = shuffle(FLAGS.filter(f => !sym.codes.has(f.code))).slice(0, need)
-      .map(f => ({ key: "c:" + f.code, code: f.code, match: false }))
+      .map(f => ({ key: "c:" + f.code, code: f.code, name: f.name, match: false }))
     return { sym, grid: shuffle([...matchCells, ...idCells, ...fillers]), matchCount: matchCells.length }
   })
 }
@@ -97,7 +97,7 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         </div>
 
         <div style={{ display: "grid", gridTemplateColumns: "repeat(3,1fr)", gap: 9 }}>
-          {round.grid.map(cell => {
+          {round.grid.map((cell, i) => {
             const isPicked = picked.has(cell.key)
             const isMatch = cell.match
             let border = `1.5px solid ${isPicked ? ACCENT.play : T.line}`
@@ -107,10 +107,11 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             }
             return (
               <button key={cell.key} onClick={() => toggle(cell.key)} className="geo-tap"
+                aria-label={checked ? `${choiceLabel(i, round.grid.length)}: ${cell.name ?? ""}` : choiceLabel(i, round.grid.length)} aria-pressed={isPicked}
                 style={{ position: "relative", aspectRatio: "3/2", borderRadius: 8, overflow: "hidden", border, background: "#fff", opacity: checked && !isMatch && !isPicked ? 0.5 : 1 }}>
                 {cell.code
                   ? <FlagImage code={cell.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-                  : <img src={cell.url} alt={cell.name} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />}
+                  : <img src={cell.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />}
                 {isPicked && !checked && <span style={{ position: "absolute", top: 3, right: 3, width: 18, height: 18, borderRadius: "50%", background: ACCENT.play, color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center" }}>✓</span>}
                 {checked && isMatch && <span style={{ position: "absolute", bottom: 2, right: 3, fontSize: 13, color: ACCENT.codex }}>✓</span>}
                 {checked && isPicked && !isMatch && <span style={{ position: "absolute", bottom: 2, right: 3, fontSize: 13, color: T.warm }}>✗</span>}
