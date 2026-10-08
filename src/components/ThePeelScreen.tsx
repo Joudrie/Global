@@ -81,13 +81,14 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
     setRevealed(Math.round((cleared / total) * 100))
   }, [brushSize])
 
-  const onMouseDown  = (e: React.MouseEvent)  => { isPointerDown.current = true;  scratch(e.clientX, e.clientY) }
-  const onMouseMove  = (e: React.MouseEvent)  => { if (isPointerDown.current) scratch(e.clientX, e.clientY) }
+  // Scratching only counts in the scratch phase; "keep scratching" goes back to it.
+  const onMouseDown  = (e: React.MouseEvent)  => { if (phase !== 'scratch') return; isPointerDown.current = true;  scratch(e.clientX, e.clientY) }
+  const onMouseMove  = (e: React.MouseEvent)  => { if (isPointerDown.current && phase === 'scratch') scratch(e.clientX, e.clientY) }
   const onMouseUp    = ()                     => { isPointerDown.current = false }
   // No preventDefault: React's touch listeners are passive, and the canvas's
   // touch-action: none already stops the page scrolling.
-  const onTouchStart = (e: React.TouchEvent) => { isPointerDown.current = true; scratch(e.touches[0].clientX, e.touches[0].clientY) }
-  const onTouchMove  = (e: React.TouchEvent) => { scratch(e.touches[0].clientX, e.touches[0].clientY) }
+  const onTouchStart = (e: React.TouchEvent) => { if (phase !== 'scratch') return; isPointerDown.current = true; scratch(e.touches[0].clientX, e.touches[0].clientY) }
+  const onTouchMove  = (e: React.TouchEvent) => { if (isPointerDown.current && phase === 'scratch') scratch(e.touches[0].clientX, e.touches[0].clientY) }
   const onTouchEnd   = ()                    => { isPointerDown.current = false }
 
   const handleGuess = (flag: FlagRecord) => {
@@ -185,7 +186,9 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         {phase === 'guess' && (
           <div className="w-full max-w-sm relative">
             <p className="text-sm text-center mb-3 font-semibold" style={{ color: T.muted }}>
-              Which flag did you reveal?
+              Which flag did you reveal?{" "}
+              <button onClick={() => { setPhase('scratch'); setInput(""); setShowDrop(false) }} className="geo-tap"
+                style={{ color: ACC, fontWeight: 600, background: "transparent", minHeight: 32 }}>← keep scratching</button>
             </p>
             <input aria-label="Type a country"
               ref={inputRef}
