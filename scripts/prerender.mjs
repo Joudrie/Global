@@ -46,6 +46,10 @@ const { neighborsOf } = await data('borders.ts')
 const { STATS } = await data('countryStats.ts')
 const { FLAG_ATTRIBS } = await data('flagAttribs.ts')
 const { FACTS } = await data('countryFacts.ts')
+const { EMBLEMS } = await data('emblems.ts')
+const { SYMBOLS } = await import(path.join(ROOT, 'src/utils/flagStudio.ts'))
+const EMBLEM_COUNT = EMBLEMS.length
+const SYMBOL_COUNT = SYMBOLS.length
 
 const CAPITAL = new Map(CAPITALS.map(c => [c.code, c.capital]))
 const missingMeaning = FLAGS.filter(f => !FLAG_MEANINGS[f.code]).map(f => f.code)
@@ -84,6 +88,7 @@ const NAV = [
   ['/historical/', 'Historical flags'],
   ['/identity/', 'Identity flags'],
   ['/games/', 'Games'],
+  ['/flag-maker/', 'Flag maker'],
   ['/about/', 'About'],
 ]
 
@@ -102,7 +107,7 @@ const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
 // `ads: false` for utility pages (contact, 404) where an ad would sit on a page
 // with little content of its own; hate-symbol pages never get the script.
 const FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap'
-function page({ title, description, canonical, body, noindex = false, ads = true }) {
+function page({ title, description, canonical, body, noindex = false, ads = true, ogImage = `${ORIGIN}/world-map.jpg`, jsonLd = null }) {
   const adScript = ads && !noindex && !showsHateSymbol(body)
   return `<!doctype html>
 <html lang="en">
@@ -124,7 +129,8 @@ ${noindex ? '<meta name="robots" content="noindex" />' : ''}
 ${canonical ? `<meta property="og:url" content="${canonical}" />` : ''}
 <meta property="og:title" content="${esc(title)}" />
 <meta property="og:description" content="${esc(description)}" />
-<meta property="og:image" content="${ORIGIN}/world-map.jpg" />
+<meta property="og:image" content="${ogImage}" />
+${jsonLd ? `<script type="application/ld+json">${JSON.stringify(jsonLd).replace(/</g, '\\u003c')}</script>` : ''}
 <meta name="twitter:card" content="summary_large_image" />
 <script src="/analytics.js"></script>
 ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-2216954143093824" crossorigin="anonymous"></script>' : ''}
@@ -181,6 +187,13 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
   .game p{margin:2px 0 0;font-size:15px}
   .cta{display:inline-block;margin:24px 0 4px;background:#A85440;color:#FFFCF4;font-weight:700;padding:13px 22px;border-radius:12px;text-decoration:none}
   .cta:hover{color:#FFFCF4;filter:brightness(1.06)}
+  .shot{width:100%;height:auto;border-radius:12px;border:1px solid #DDCEAF;display:block;margin:18px 0 6px;box-shadow:0 12px 30px -18px rgba(31,58,60,0.45)}
+  .cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin:12px 0 8px}
+  .cards img{width:100%;height:auto;border-radius:10px;border:1px solid #DDCEAF;display:block}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0 0 14px;display:grid;gap:10px}
+  .steps li{counter-increment:s;background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:12px 14px 12px 52px;position:relative}
+  .steps li::before{content:counter(s);position:absolute;left:14px;top:12px;width:26px;height:26px;border-radius:50%;background:#A85440;color:#FFFCF4;font-weight:700;font-size:14px;display:flex;align-items:center;justify-content:center}
+  .faq h3{margin-top:18px}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid #DDCEAF;font-size:13px;color:#5F726D}
   footer a{margin-right:14px;color:#5F726D}
   @media (max-width:520px){h1{font-size:28px}.entry .thumb{width:72px}.entry .entry{flex-direction:column;gap:8px}}
@@ -194,7 +207,7 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
 </header>
 ${body}
 <footer>
-  <p><a href="/">Play Globalio</a><a href="/flags/">Country flags</a><a href="/historical/">Historical flags</a><a href="/identity/">Identity flags</a><a href="/games/">Games</a></p>
+  <p><a href="/">Play Globalio</a><a href="/flags/">Country flags</a><a href="/historical/">Historical flags</a><a href="/identity/">Identity flags</a><a href="/games/">Games</a><a href="/flag-maker/">Flag maker</a></p>
   <p><a href="/whats-new/">What's new</a><a href="/about/">About</a><a href="/contact/">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></p>
   <p>© Globalio. Flags, names and dates are researched from Wikipedia, Wikimedia Commons and official sources. Spot a mistake? <a href="/contact/">Tell us</a>.</p>
   <p class="muted">Last updated ${formatDate(LAST_UPDATED)}. New games every month.</p>
@@ -558,6 +571,107 @@ ${games.filter(e => (e.sandbox ? 'More games' : e.group) === g).map(e => `<div c
   })
 }
 
+
+// ── flag maker: /flag-maker/ ─────────────────────────────────────────────────
+// The landing page for Flag Studio, so "flag maker" searches find it. The
+// studio itself lives in the app at /?play=flagstudio.
+const STUDIO_URL = '/?play=flagstudio'
+const FLAG_MAKER_FAQ = [
+  ['Is the flag maker free?', 'Yes. Flag Studio is free, with no account and no sign-up. Every export size, including 4K PNG and SVG, is free.'],
+  ['Can I use the flags I make?', 'Your designs are yours, for games, stories, school projects, clubs or anything else. Real national emblems can have legal limits on how they are used, so keep them to creative and fictional flags.'],
+  ['Does it work on a phone?', 'Yes. On a phone the flag stays at the top and the tools sit in tabs underneath. You can pinch with two fingers to resize and rotate a symbol.'],
+  ['Where are my flags saved?', 'In your own browser, on your device. Every flag you change is saved automatically under My flags. Nothing is uploaded unless you share a link.'],
+  ['How do I share a flag?', 'Tap Share to copy a link. The link holds the whole design, so whoever opens it sees your flag and can remix it. You can also download a PNG, an SVG or a nation card with your flag, name and motto.'],
+  ['Can I start from a real country\'s flag?', `Yes. All ${FLAGS.length} country flags are templates, drawn at their official proportions, and you can recolour every stripe, star and emblem.`],
+]
+
+function flagMakerPage() {
+  const body = `
+<div class="crumbs"><a href="/">Home</a> › Flag maker</div>
+<p class="eyebrow">Free flag maker</p>
+<h1>Make your own flag</h1>
+<p class="lead">Flag Studio is a free flag maker. Start from any of the world's ${FLAGS.length} country flags or a blank
+layout, tap any part to change its colour, add stars, suns, crests and emblems, then download your flag or
+share it with a link. No sign-up needed.</p>
+<a class="cta" href="${STUDIO_URL}">Open Flag Studio</a>
+<img class="shot" src="/flag-maker/studio.jpg" alt="Flag Studio with a blue and gold striped flag, a laurel wreath and a red star" width="1200" height="716" />
+<p class="muted small">Flag Studio on a computer. On a phone the tools sit underneath the flag.</p>
+
+<h2>How it works</h2>
+<ol class="steps">
+  <li><b>Pick a starting point.</b> Choose a real flag, from Albania to Zimbabwe, or a blank layout such as a tricolour, a Nordic cross, a saltire or a canton. Or press Random for a brand-new flag and a made-up nation name.</li>
+  <li><b>Tap to recolour.</b> Tap a stripe, a star or any part of a crest and pick a colour. Tap a colour in the strip under the flag to change it everywhere at once.</li>
+  <li><b>Add symbols and emblems.</b> Drop in stars, a sun, a crescent, a maple leaf, a laurel wreath or one of ${EMBLEM_COUNT} national emblems. Drag, resize and rotate them; they snap to the centre.</li>
+  <li><b>Download or share.</b> Save a PNG up to 4K or an SVG, copy a share link, or make a nation card with your flag, name and motto.</li>
+</ol>
+
+<h2>Flags made in Flag Studio</h2>
+<p>Each of these took a couple of minutes. The nation card puts the flag, the name and the motto in one image, sized for posting.</p>
+<div class="cards">
+  <img src="/flag-maker/aldmere.jpg" alt="Nation card for the Kingdom of Aldmere: blue and gold stripes with a laurel wreath and a red star" width="1200" height="630" loading="lazy" />
+  <img src="/flag-maker/norhaven.jpg" alt="Nation card for the Free State of Norhaven: a green flag with a white Nordic cross and a gold crescent and star" width="1200" height="630" loading="lazy" />
+  <img src="/flag-maker/solenna.jpg" alt="Nation card for the Republic of Solenna: black and gold with a red hoist triangle and a gold sun" width="1200" height="630" loading="lazy" />
+</div>
+
+<h2>What you can do</h2>
+<ul>
+  <li><b>Every country flag as a template,</b> at its official shape: 10:19 for the United States, 1:1 for Switzerland, 4:7 for Mexico.</li>
+  <li><b>Recolour anything,</b> one shape at a time or a whole colour at once, from a palette of real flag colours or any colour you like.</li>
+  <li><b>Edit stripes:</b> two to nine of them, horizontal or vertical, and drag a stripe to make it wider.</li>
+  <li><b>${SYMBOL_COUNT} symbols and ${EMBLEM_COUNT} emblems,</b> including Albania's eagle, Mexico's eagle, Spain's coat of arms and Bhutan's dragon. Keep an emblem's own colours or make it one colour, or download an emblem on its own as a PNG.</li>
+  <li><b>Pick the shape:</b> the flag's own, 1:1, 2:3, 3:5 or 1:2.</li>
+  <li><b>Undo anything,</b> as many times as you like, and come back later: your flags are saved on your device.</li>
+  <li><b>A design check</b> that scores your flag against the classic rules of good flag design.</li>
+</ul>
+
+<h2>Five tips for a good flag</h2>
+<p>Flag designers tend to agree on a few rules. Flag Studio's design check scores your flag against them.</p>
+<ol>
+  <li><b>Keep it simple.</b> A child should be able to draw it from memory. Most of the world's best-known flags are a few stripes and one symbol.</li>
+  <li><b>Give it meaning.</b> Pick colours and symbols that stand for something: a river, a harvest, a founding story.</li>
+  <li><b>Use two or three colours.</b> More than that gets muddy, and the colours should contrast so the flag reads from far away.</li>
+  <li><b>Skip lettering and seals.</b> Words can't be read on a flag moving in the wind, and a detailed seal turns into a blob at a distance.</li>
+  <li><b>Be distinctive.</b> It should not be mistaken for another flag. Chad and Romania, or Indonesia and Monaco, show how easily that happens.</li>
+</ol>
+<p>Want to see how real countries did it? Every <a href="/flags/">country flag page</a> explains what its colours and symbols mean.</p>
+
+<h2>Ideas to try</h2>
+<ul>
+  <li>A flag for a fictional country, a fantasy kingdom or a tabletop campaign.</li>
+  <li>A redesign of your state, province or city flag.</li>
+  <li>A flag for a school project, a sports team, a club or your family.</li>
+  <li>Your country's flag in your favourite colours.</li>
+  <li>A random flag: press Random until something sparks an idea, then make it your own.</li>
+</ul>
+
+<h2>Questions</h2>
+<div class="faq">
+${FLAG_MAKER_FAQ.map(([q, a]) => `<h3>${esc(q)}</h3>\n<p>${esc(a)}</p>`).join('\n')}
+</div>
+<a class="cta" href="${STUDIO_URL}">Make your flag</a>
+<p class="small muted">When you're done, test yourself on the real ones in <a href="/games/">${GAME_COUNT} flag games</a>.</p>
+`
+  return page({
+    title: 'Flag Maker: Make Your Own Flag Free | Globalio',
+    description: `Free flag maker. Start from any of ${FLAGS.length} country flags or a blank layout, recolour anything, add stars, emblems and crests, then download a PNG or SVG or share a link. No sign-up.`,
+    canonical: `${ORIGIN}/flag-maker/`,
+    ogImage: `${ORIGIN}/flag-maker/aldmere.jpg`,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Flag Studio', url: `${ORIGIN}${STUDIO_URL}`,
+        applicationCategory: 'DesignApplication', operatingSystem: 'Any (web browser)',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: 'A free flag maker: start from any country flag or a blank layout, recolour it, add symbols and emblems, and download or share it.',
+      },
+      {
+        '@context': 'https://schema.org', '@type': 'FAQPage',
+        mainEntity: FLAG_MAKER_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+      },
+    ],
+    body,
+  })
+}
+
 // ── about, contact, 404 ──────────────────────────────────────────────────────
 const totalSubs = [...SUBREGIONS.values()].flat().filter(s => s.flagUrl && !s.noFlag && !s.groupHeader).length
 
@@ -675,6 +789,7 @@ for (const r of HIST_REGIONS) emit(`/historical/${slug(r)}/`, historicalRegionPa
 emit('/identity/', identityHub())
 for (const c of ID_CATS) emit(`/identity/${slug(c)}/`, identityPage(c))
 emit('/games/', gamesPage())
+emit('/flag-maker/', flagMakerPage())
 emit('/about/', aboutPage())
 emit('/contact/', contactPage())
 emit('/whats-new/', whatsNewPage())
