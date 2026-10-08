@@ -5,7 +5,7 @@ import FlagImage from "./FlagImage"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
 
@@ -50,12 +50,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const filter = revealed ? "none" : currentStage.filter
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f =>
-      (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) &&
-      !guessedCodes.current.has(f.code)
-    ).slice(0, 6)
+    return matchNames(FLAGS.filter(f => !guessedCodes.current.has(f.code)), input, 6)
   }, [input])
 
   const nextRound = (result: RoundResult) => {

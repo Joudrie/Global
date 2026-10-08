@@ -5,6 +5,7 @@ import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
+import { timelineFlags, timelineScore } from "../utils/timeline"
 
 interface Props { onBack: () => void }
 
@@ -14,17 +15,13 @@ const nameOf = (code: string) => FLAGS.find(f => f.code === code)?.name ?? code
 
 // Countries with a deep enough flag history to order.
 const ELIGIBLE = Object.entries(CODEX)
-  .filter(([code, e]) => e.flagHistory.length >= 3 && FLAGS.some(f => f.code === code))
-  .map(([code, e]) => ({ code, name: nameOf(code), history: e.flagHistory }))
+  .map(([code, e]) => ({ code, name: nameOf(code), chrono: timelineFlags(e.flagHistory) }))
+  .filter(e => e.chrono.length >= 3 && FLAGS.some(f => f.code === e.code))
 
 interface Round { name: string; chrono: HistoricalFlag[]; shuffled: HistoricalFlag[] }
 
 function buildRounds(): Round[] {
-  return shuffle(ELIGIBLE).slice(0, ROUNDS).map(c => {
-    // history is newest-first → chrono is oldest-first, capped to 5 for the board
-    const chrono = [...c.history].reverse().slice(-5)
-    return { name: c.name, chrono, shuffled: shuffle(chrono) }
-  })
+  return shuffle(ELIGIBLE).slice(0, ROUNDS).map(c => ({ name: c.name, chrono: c.chrono, shuffled: shuffle(c.chrono) }))
 }
 
 function FlagTile({ src, label, dim, badge, onClick, onDragStart }: { src: string; label?: string; dim?: boolean; badge?: string; onClick?: () => void; onDragStart?: () => void }) {
@@ -57,11 +54,8 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const dropToStrip = () => { if (dragIdx !== null) { tap(dragIdx); setDragIdx(null) } }
 
   const lockIn = () => {
-    // correct positions: chrono order should equal the tapped flags oldest→newest
-    let correct = 0
-    order.forEach((shufIdx, pos) => {
-      if (round.shuffled[shufIdx] === round.chrono[pos]) correct++
-    })
+    if (locked) return
+    const correct = timelineScore(round.chrono, order.map(i => round.shuffled[i]))
     setScores(s => [...s, correct])
     setLocked(true)
   }
@@ -108,7 +102,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           {round.chrono.map((_, pos) => {
             const shufIdx = order[pos]
             const filled = shufIdx !== undefined
-            const correct = locked && filled && round.shuffled[shufIdx] === round.chrono[pos]
+            const correct = locked && filled && round.shuffled[shufIdx].fromYear === round.chrono[pos].fromYear
             return (
               <div key={pos} style={{ display: "flex", alignItems: "center", gap: 6 }}>
                 {pos > 0 && <span style={{ color: T.dim, fontSize: 13 }}>→</span>}

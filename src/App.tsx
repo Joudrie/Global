@@ -159,6 +159,8 @@ export default function App() {
   const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null)
   const [lastResult, setLastResult] = useState<{ score: number; total: number; answers: ("correct" | "wrong")[] } | null>(null)
   const [histRegion, setHistRegion] = useState<HistoricalRegion | undefined>(undefined)
+  // Historical and Identity open from Home or from Flag Sets; Back returns there.
+  const [deckBack, setDeckBack] = useState<Screen>("home")
   const [tab, setTab] = useState<TabKey>("today")
   // Deep-link target for the full-screen Codex (e.g. from the World Cup explorer)
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
@@ -250,12 +252,12 @@ export default function App() {
     setScreen("quiz")
   }, [dailyDoneToday])
 
-  const startSet = useCallback((setId: string, flags: FlagRecord[], backTo: Screen = "flags") => {
+  const startSet = useCallback((setId: string, flags: FlagRecord[], backTo: Screen = "flags", title?: string) => {
     const seed = `${setId}-${Date.now()}`
     const questions = buildSetQuiz(flags, seed, flags.length)
     // "flashcards-all" read as "Flashcards all" even for a one-region deck.
-    const label = setId === "flashcards-all" ? "Flashcards quiz"
-      : setId.charAt(0).toUpperCase() + setId.slice(1).replace(/-/g, " ")
+    const label = title ?? (setId === "flashcards-all" ? "Flashcards quiz"
+      : setId.charAt(0).toUpperCase() + setId.slice(1).replace(/-/g, " "))
     setActiveQuiz({ questions, title: label, isDaily: false, setId, setFlags: flags, backTo })
     setScreen("quiz")
   }, [])
@@ -313,6 +315,12 @@ export default function App() {
     setScreen("result")
   }, [activeQuiz, appState])
 
+  // Long sets (World is 197 flags) save each right answer as it happens, so
+  // leaving halfway keeps what was learned.
+  const handleFlagLearned = useCallback((code: string) => {
+    setAppState(s => markFlagLearned(s, code))
+  }, [])
+
   const handleSubLearned = useCallback((code: string) => {
     setAppState(s => markSubLearned(s, code))
   }, [])
@@ -321,7 +329,7 @@ export default function App() {
     if (!activeQuiz) return
     if (activeQuiz.setId === "quickplay") { startQuickPlay(); return }
     if (activeQuiz.setId === "reversequiz") { startReverseQuiz(); return }
-    startSet(activeQuiz.setId, activeQuiz.setFlags, activeQuiz.backTo)
+    startSet(activeQuiz.setId, activeQuiz.setFlags, activeQuiz.backTo, activeQuiz.title)
   }, [activeQuiz, startQuickPlay, startReverseQuiz, startSet])
 
   return (
@@ -333,19 +341,19 @@ export default function App() {
       {screen === "home" && (
         <MainTabs state={appState} tab={tab} onTab={setTab}
           intro={showIntro ? <Onboarding onDone={() => setShowIntro(false)} /> : null}
-          onNavigate={(s) => setScreen(s as Screen)}
+          onNavigate={(s) => { setDeckBack("home"); setHistRegion(undefined); setScreen(s as Screen) }}
           onQuickPlay={startQuickPlay} onStartDaily={startDaily} onReverseQuiz={startReverseQuiz}
           onSetUsername={name => setAppState(s => ({ ...s, username: name }))} />
       )}
 
       {screen === "flags" && (
-        <FlagsScreen state={appState} onBack={() => setScreen("home")} onStartSet={(id, flags) => startSet(id, flags, "flags")}
-          onStartHistorical={(region) => { setHistRegion(region); setScreen("historical") }}
-          onGoIdentity={() => setScreen("identity")} />
+        <FlagsScreen state={appState} onBack={() => setScreen("home")} onStartSet={(id, flags, label) => startSet(id, flags, "flags", label)}
+          onStartHistorical={(region) => { setHistRegion(region); setDeckBack("flags"); setScreen("historical") }}
+          onGoIdentity={() => { setDeckBack("flags"); setScreen("identity") }} />
       )}
 
       {screen === "flashcards" && (
-        <FlashcardsScreen onBack={() => setScreen("home")} onQuizSet={flags => startSet("flashcards-all", flags, "home")} />
+        <FlashcardsScreen onBack={() => setScreen("home")} onQuizSet={flags => startSet("flashcards-all", flags, "flashcards")} />
       )}
 
       {screen === "language" && <LanguageQuizScreen onBack={() => setScreen("home")} />}
@@ -382,8 +390,8 @@ export default function App() {
       )}
       {screen === "achievements" && <AchievementsScreen state={appState} onBack={() => setScreen("home")} />}
       {screen === "progressmap" && <ProgressMapScreen state={appState} onBack={() => setScreen("home")} />}
-      {screen === "historical" && <HistoricalFlagScreen onBack={() => setScreen("home")} region={histRegion} />}
-      {screen === "identity" && <IdentityFlagScreen onBack={() => setScreen("home")} />}
+      {screen === "historical" && <HistoricalFlagScreen onBack={() => setScreen(deckBack)} region={histRegion} />}
+      {screen === "identity" && <IdentityFlagScreen onBack={() => setScreen(deckBack)} />}
       {screen === "provinceroulette" && <ProvinceRouletteScreen onBack={() => setScreen("home")} onSubLearned={handleSubLearned} />}
       {screen === "substumper" && <SubdivisionStumperScreen onBack={() => setScreen("home")} onSubLearned={handleSubLearned} />}
       {screen === "lineage" && <LineageScreen onBack={() => setScreen("home")} />}
@@ -419,7 +427,7 @@ export default function App() {
 
       {screen === "quiz" && activeQuiz && (
         <QuizScreen questions={activeQuiz.questions} title={activeQuiz.title}
-          onFinish={handleQuizFinish} onBack={() => setScreen(activeQuiz.backTo)} />
+          onCorrect={handleFlagLearned} onFinish={handleQuizFinish} onBack={() => setScreen(activeQuiz.backTo)} />
       )}
 
       {screen === "reversequiz" && activeQuiz && (

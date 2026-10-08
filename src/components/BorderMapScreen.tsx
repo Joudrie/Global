@@ -6,7 +6,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -57,7 +57,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   // Giving up ends the round too: the rest are drawn and the result shows.
   const over = done || revealed
   const matches = input.trim().length
-    ? FLAGS.filter(f => f.name.toLowerCase().includes(input.trim().toLowerCase())).slice(0, 6)
+    ? matchNames(FLAGS, input, 6)
     : []
 
   const submit = (code: string) => {
@@ -75,7 +75,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length >= 1) submit((pickOnEnter(matches, input) ?? matches[0]).code)
+    if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) submit(pick.code) }
     if (e.key === "Escape") { setInput(""); setShowDrop(false) }
   }
 

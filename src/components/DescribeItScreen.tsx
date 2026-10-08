@@ -6,7 +6,7 @@ import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -59,9 +59,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const round = rounds[idx]
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f => f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q).slice(0, 5)
+    return matchNames(FLAGS, input, 5)
   }, [input])
 
   const submit = (f: FlagRecord) => {

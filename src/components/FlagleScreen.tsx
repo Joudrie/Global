@@ -9,7 +9,7 @@ import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
 
 import { Share2 } from "lucide-react"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -89,10 +89,8 @@ export default function FlagleScreen({ onBack }: Props) {
   const finished = won || guesses.length >= MAX_GUESSES
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
     // Only flags the puzzle can compare; others used to be offered and then silently ignored.
-    return ELIGIBLE.filter(f => (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) && !guessedCodes.has(f.code)).slice(0, 6)
+    return matchNames(ELIGIBLE.filter(f => !guessedCodes.has(f.code)), input, 6)
   }, [input, guessedCodes])
 
   const submit = (f: FlagRecord) => {

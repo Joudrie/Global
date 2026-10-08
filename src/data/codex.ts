@@ -5575,7 +5575,7 @@ const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
     {
       fromYear: 2021,
       toYear: null,
-      flagUrl: '/flags/af.svg',
+      flagUrl: fp('Flag_of_the_Taliban.svg'),
       label: 'Islamic Emirate (Taliban)',
       note: 'Re-adopted at the Taliban\'s August 2021 takeover: a white field bearing the black Shahada, the Islamic declaration of faith. Afghanistan has changed its flag more often than almost any nation on Earth.',
     },

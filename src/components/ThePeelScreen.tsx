@@ -4,7 +4,7 @@ import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
 
@@ -43,11 +43,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const inputRef                = useRef<HTMLInputElement>(null)
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f =>
-      f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q
-    ).slice(0, 6)
+    return matchNames(FLAGS, input, 6)
   }, [input])
 
   useEffect(() => {

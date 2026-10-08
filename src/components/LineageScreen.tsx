@@ -6,7 +6,7 @@ import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -67,9 +67,7 @@ function LineageGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const potential = scoreFor(revealed, total)
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f => f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q).slice(0, 6)
+    return matchNames(FLAGS, input, 6)
   }, [input])
 
   const revealNext = () => {
@@ -202,7 +200,7 @@ function LineageGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             <input value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-              onKeyDown={e => { if (e.key === "Enter" && matches.length >= 1) choose((pickOnEnter(matches, input) ?? matches[0]).name) }}
+              onKeyDown={e => { if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) choose(pick.name) } }}
               placeholder="Name the modern country…"
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
               style={{ background: T.surface, border: `1.5px solid ${tint(A, 0.4)}`, color: T.text, fontSize: 15 }} />

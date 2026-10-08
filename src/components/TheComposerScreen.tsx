@@ -7,7 +7,7 @@ import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
 import { Flame, Thermometer, Snowflake } from "lucide-react"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
 
@@ -96,11 +96,7 @@ export default function TheComposerScreen({ onBack }: Props) {
   const [showDrop, setShowDrop] = useState(false)
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f =>
-      f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q
-    ).slice(0, 6)
+    return matchNames(FLAGS, input, 6)
   }, [input])
 
   const handleGuess = (flag: FlagRecord) => {

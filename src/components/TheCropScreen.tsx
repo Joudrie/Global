@@ -5,7 +5,7 @@ import FlagImage from "./FlagImage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { pickOnEnter } from "../utils/pickOnEnter"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -38,12 +38,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const scale    = phase === "result" ? 1 : SCALES[scaleIdx]
 
   const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS.filter(f =>
-      (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) &&
-      !guessedCodes.current.has(f.code)
-    ).slice(0, 6)
+    return matchNames(FLAGS.filter(f => !guessedCodes.current.has(f.code)), input, 6)
   }, [input])
 
   const submitGuess = (flag: FlagRecord) => {
