@@ -807,6 +807,10 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
   // this, vertical scrolls that *started* on the card froze mid-gesture.
   const axis = useRef<null | "h" | "v">(null)
   const dragging = useRef(false)
+  // For flicks: where and when the last move happened.
+  const last = useRef({ x: 0, t: 0, v: 0 })
+  // The new top card appears in place after a swipe instead of sliding back in.
+  const [instant, setInstant] = useState(false)
   const [reduce] = useState(() =>
     typeof window !== "undefined" && !!window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)
 
@@ -814,11 +818,16 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
   const n = games.length
   // Direction-aware: swiping right (dir > 0) goes to the PREVIOUS card, swiping
   // left (dir < 0) advances to the NEXT — so the deck scrolls both ways.
-  const go = (delta: number) => { setIdx(i => (i + delta + n) % n); setDx(0) }
+  const go = (delta: number) => {
+    setInstant(true)
+    setIdx(i => (i + delta + n) % n)
+    setDx(0)
+    requestAnimationFrame(() => requestAnimationFrame(() => setInstant(false)))
+  }
   const commit = (dir: number) => {
     if (reduce) { go(-dir); return }
     setDx(dir * 540)
-    window.setTimeout(() => go(-dir), 230)
+    window.setTimeout(() => go(-dir), 200)
   }
 
   const top = games[idx]
@@ -866,12 +875,14 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
 
         {/* Live top card — drag surface */}
         <div
-          onPointerDown={e => { dragging.current = true; axis.current = null; startX.current = e.clientX; startY.current = e.clientY; try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ } }}
+          onPointerDown={e => { dragging.current = true; axis.current = null; startX.current = e.clientX; startY.current = e.clientY; last.current = { x: e.clientX, t: performance.now(), v: 0 }; try { (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId) } catch { /* ignore */ } }}
           onPointerMove={e => {
             if (!dragging.current) return
             const ax = e.clientX - startX.current, ay = e.clientY - startY.current
+            const now = performance.now(), dt = now - last.current.t
+            if (dt > 0) last.current = { x: e.clientX, t: now, v: (e.clientX - last.current.x) / dt }
             if (axis.current === null) {
-              if (Math.abs(ax) < 8 && Math.abs(ay) < 8) return
+              if (Math.abs(ax) < 6 && Math.abs(ay) < 6) return
               axis.current = Math.abs(ax) > Math.abs(ay) ? "h" : "v"
               // Hand a vertical gesture back to the page so it scrolls smoothly
               // instead of stuttering under the card's pointer capture.
@@ -885,7 +896,9 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
             dragging.current = false
             const horizontal = axis.current === "h"
             axis.current = null
-            if (horizontal && Math.abs(dx) > 80) commit(dx > 0 ? 1 : -1); else setDx(0)
+            // A drag past 60px, or a quick flick, moves to the next card.
+            const flick = Math.abs(last.current.v) > 0.3 && Math.abs(dx) > 24 && performance.now() - last.current.t < 120
+            if (horizontal && (Math.abs(dx) > 60 || flick)) commit((flick ? last.current.v : dx) > 0 ? 1 : -1); else setDx(0)
           }}
           onPointerCancel={() => { dragging.current = false; axis.current = null; setDx(0) }}
           style={{
@@ -893,8 +906,7 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
             background: T.surface, border: `1px solid ${tint(accent, 0.5)}`,
             boxShadow: `0 2px 6px rgba(31,58,60,0.08), 0 22px 42px -22px ${tint(accent, 0.85)}`,
             transform: `translateX(${dx}px) rotate(${dx * 0.022}deg)`,
-            transition: dragging.current ? "none" : "transform 0.26s cubic-bezier(0.2,0.7,0.2,1)",
-            opacity: Math.max(0, 1 - Math.abs(dx) / 620),
+            transition: dragging.current || instant ? "none" : "transform 0.22s cubic-bezier(0.2,0.7,0.2,1)",
           }}>
           {face(top, accent)}
           {/* Actions */}
