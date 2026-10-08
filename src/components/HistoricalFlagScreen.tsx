@@ -1,8 +1,10 @@
 import { useState } from "react"
 import { HISTORICAL_FLAGS } from "../data/historicalFlags"
 import type { HistoricalEntity, HistoricalRegion } from "../data/historicalFlags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { LineIcon } from "./icons"
 
 interface Props { onBack: () => void; region?: HistoricalRegion }
 
@@ -46,7 +48,7 @@ function FlagImg({ src, alt }: { src: string; alt: string }) {
           if (ph) ph.style.display = "flex"
         }} />
       <div className="ph" style={{ display: "none", position: "absolute", inset: 0, alignItems: "center", justifyContent: "center" }}>
-        <span style={{ fontSize: 52, opacity: 0.4 }}>🏴</span>
+        <span style={{ opacity: 0.4, display: "flex" }}><LineIcon name="flag" size={48} color={T.dim} /></span>
       </div>
     </div>
   )
@@ -79,30 +81,17 @@ function HistoricalFlagScreenGame({ onBack, onReplay, region }: Props & { onRepl
     const totalPts = correct * PTS
     const maxPts = ROUNDS * PTS
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${tint(A, 0.3)}` }}>
-            <div className="text-5xl mb-3">{correct >= ROUNDS * 0.8 ? "👑" : correct >= ROUNDS * 0.5 ? "📜" : "🏛️"}</div>
-            <div className="text-5xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct} / {ROUNDS}</div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>{totalPts.toLocaleString()} pts · max {maxPts.toLocaleString()}</div>
-            <div className="flex justify-center gap-2 flex-wrap">
-              {scores.map((s, i) => <span key={i} style={{ fontSize: 22 }}>{s.correct ? "🟪" : "🟥"}</span>)}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: A, color: T.onAccent, fontFamily: FONT.display }}>
-              Play Again
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
+        <ScreenHeader title="Historical Flag" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={correct >= ROUNDS * 0.8 ? "crown" : correct >= ROUNDS * 0.5 ? "scroll" : "landmark"} accent={A}
+              title={`${correct} of ${ROUNDS} correct`}
+              score={`${totalPts.toLocaleString()} pts · max ${maxPts.toLocaleString()}`} />
+            <ResultDots results={scores.map(s => s.correct)} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={A}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -112,17 +101,8 @@ function HistoricalFlagScreenGame({ onBack, onReplay, region }: Props & { onRepl
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, color: T.text }}>
 
-      <ScreenHeader title="Historical Flag" subtitle={`Round ${idx + 1} / ${ROUNDS}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5">
-            {Array.from({ length: ROUNDS }).map((_, i) => (
-              <div key={i} style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: i < scores.length ? (scores[i].correct ? A : T.danger) : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title="Historical Flag" subtitle={`${scores.filter(s => s.correct).length} correct so far`} onBack={onBack}
+        right={<HeaderStat accent={A}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div className="mx-5 h-1.5 rounded-full overflow-hidden mb-4" style={{ background: T.line }}>
         <div className="h-full rounded-full transition-all duration-500"
@@ -171,11 +151,9 @@ function HistoricalFlagScreenGame({ onBack, onReplay, region }: Props & { onRepl
               </div>
               <p className="text-xs leading-relaxed" style={{ color: T.muted, lineHeight: 1.6 }}>{round.target.note}</p>
             </div>
-            <button onClick={handleNext}
-              className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: A, color: T.onAccent, fontFamily: FONT.display }}>
-              {idx + 1 >= ROUNDS ? "See Results →" : "Next →"}
-            </button>
+            <PrimaryButton onClick={handleNext} accent={A} style={{ maxWidth: 384 }}>
+              {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
+            </PrimaryButton>
           </>
         )}
       </div>

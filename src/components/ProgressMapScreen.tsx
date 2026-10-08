@@ -3,7 +3,7 @@ import { FLAGS, REGIONS } from "../data/flags"
 import type { AppState } from "../utils/storage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { Sparkles } from "lucide-react"
+import { Lightbulb } from "lucide-react"
 
 interface Props {
   state: AppState
@@ -65,7 +65,7 @@ export default function ProgressMapScreen({ state, onBack }: Props) {
                 <span className="text-sm font-semibold" style={{ color: T.text }}>
                   {s.region} {done && (
                     <span className="text-xs" style={{ color: LIT, display: "inline-flex", alignItems: "center", gap: 3, verticalAlign: "middle" }}>
-                      <Sparkles size={12} color={LIT} strokeWidth={1.6} absoluteStrokeWidth /> lit
+                      <Lightbulb size={12} color={LIT} strokeWidth={1.6} absoluteStrokeWidth /> lit
                     </span>
                   )}
                 </span>

@@ -4,6 +4,7 @@ import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
 
 interface Props { onBack: () => void }
@@ -90,21 +91,17 @@ function buildResult(guess: FlagRecord, target: FlagRecord): GuessResult {
   }
 }
 
-function proximityLabel(pct: number): { emoji: string; label: string; color: string } {
-  if (pct >= 90) return { emoji: '🔥', label: 'Burning hot',  color: T.danger }
-  if (pct >= 75) return { emoji: '🌶️', label: 'Very warm',   color: T.warm }
-  if (pct >= 60) return { emoji: '🌡️', label: 'Warm',        color: T.gold }
-  if (pct >= 45) return { emoji: '🌤️', label: 'Lukewarm',    color: ACC }
-  return                { emoji: '❄️', label: 'Cold',         color: T.cyan }
+function proximityLabel(pct: number): { label: string; color: string } {
+  if (pct >= 90) return { label: 'Burning hot', color: T.danger }
+  if (pct >= 75) return { label: 'Very warm',   color: T.warm }
+  if (pct >= 60) return { label: 'Warm',        color: T.gold }
+  if (pct >= 45) return { label: 'Lukewarm',    color: ACC }
+  return                { label: 'Cold',        color: T.cyan }
 }
 
 const FEAT_LABEL: Record<string, string> = {
   stripesH: "H-Stripes", stripesV: "V-Stripes",
   cross: "Cross", star: "Star(s)", crescent: "Crescent", emblem: "Emblem",
-}
-const REGION_EMOJI: Record<string, string> = {
-  Europe: "🇪🇺", Americas: "🌎", Asia: "🌏",
-  Africa: "🌍", Oceania: "🌊", "Middle East": "🕌",
 }
 
 function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void }) {
@@ -164,25 +161,16 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                 : `${MAX_GUESSES} guesses`}
           </span>
         }
-        right={
-          <div className="flex gap-1 items-center">
-            {Array.from({ length: MAX_GUESSES }).map((_, i) => (
-              <div key={i} style={{
-                width: 6, height: 6, borderRadius: "50%",
-                background: i < guesses.length
-                  ? (guesses[i].flag.code === target.code ? T.green : T.danger)
-                  : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+        right={<HeaderStat accent={ACC}>{Math.min(guesses.length + (finished ? 0 : 1), MAX_GUESSES)} / {MAX_GUESSES}</HeaderStat>} />
 
       {finished && (
-        <div className="flex flex-col items-center mb-3" style={{ zIndex: 1 }}>
-          <div style={{ borderRadius: 12, overflow: "hidden", border: `2px solid ${won ? T.green : T.danger}`, boxShadow: `0 8px 24px -10px ${tint(T.text, 0.35)}` }}>
-            <img src={target.flagUrl} alt={target.name} style={{ width: 180, height: 113, display: "block" }} />
-          </div>
-          <div className="text-base font-bold mt-2" style={{ color: T.text, fontFamily: FONT.display }}>{target.name}</div>
+        <div className="w-full max-w-sm mx-auto px-5 mb-3" style={{ zIndex: 1 }}>
+          <ResultCard>
+            <ResultHeader icon={won ? "trophy" : "flagdna"} accent={won ? T.green : T.danger}
+              eyebrow={won ? `Solved in ${guesses.length}` : phase === "gaveup" ? "Gave up" : "Out of guesses"}
+              title={target.name} />
+            <img src={target.flagUrl} alt={target.name} style={{ width: 180, height: 113, display: "block", margin: "0 auto", borderRadius: 8, border: `1px solid ${T.line}` }} />
+          </ResultCard>
         </div>
       )}
 
@@ -242,7 +230,6 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                 <div className="flex-1 min-w-0">
                   <div className="font-semibold text-sm truncate" style={{ color: T.text }}>{g.flag.name}</div>
                   <div className="flex items-center gap-1.5 mt-0.5">
-                    <span style={{ fontSize: 12 }}>{REGION_EMOJI[g.flag.region]}</span>
                     <span className="text-xs" style={{ color: g.regionMatch ? T.green : T.danger }}>
                       {g.flag.region} {g.regionMatch ? "✓" : "✗"}
                     </span>
@@ -251,11 +238,11 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                 {/* Proximity badge */}
                 {!isSelf && (
                   <div className="flex flex-col items-center">
-                    <span style={{ fontSize: 16 }}>{prox.emoji}</span>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: prox.color, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{g.proximity}%</span>
+                    <span style={{ fontSize: 14, fontWeight: 700, color: prox.color, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{g.proximity}%</span>
+                    <span style={{ fontSize: 11, color: prox.color }}>{prox.label}</span>
                   </div>
                 )}
-                {isSelf && <span style={{ fontSize: 20 }}>🎯</span>}
+                {isSelf && <span aria-label="Solved" style={{ display: "flex" }}><LineIcon name="target" size={20} color={T.green} /></span>}
               </div>
 
               {/* Color chips */}
@@ -308,16 +295,8 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
 
         {finished && (
           <div className="flex flex-col gap-3 mt-2">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              New Flag
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <PrimaryButton onClick={onReplay} accent={ACC}>New flag</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
       </div>

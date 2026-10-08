@@ -3,6 +3,7 @@ import type { AppState } from '../utils/storage'
 import { FLAGS } from '../data/flags'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
 import { ScreenHeader } from './ui'
+import { CrownIcon } from './icons'
 
 interface Props {
   state: AppState
@@ -12,13 +13,13 @@ interface Props {
 const A = ACCENT.codex
 
 const SET_IDS = [
-  { id: 'world', label: 'World', emoji: '🌐' },
-  { id: 'europe', label: 'Europe', emoji: '🏰' },
-  { id: 'africa', label: 'Africa', emoji: '🌍' },
-  { id: 'asia', label: 'Asia', emoji: '🏯' },
-  { id: 'americas', label: 'Americas', emoji: '🗽' },
-  { id: 'oceania', label: 'Oceania', emoji: '🏄' },
-  { id: 'middle-east', label: 'Middle East', emoji: '🕌' },
+  { id: 'world', label: 'World' },
+  { id: 'europe', label: 'Europe' },
+  { id: 'africa', label: 'Africa' },
+  { id: 'asia', label: 'Asia' },
+  { id: 'americas', label: 'Americas' },
+  { id: 'oceania', label: 'Oceania' },
+  { id: 'middle-east', label: 'Middle East' },
 ]
 
 export default function AchievementsScreen({ state, onBack }: Props) {
@@ -61,7 +62,7 @@ export default function AchievementsScreen({ state, onBack }: Props) {
             Crowns ({state.crowns.length}/{SET_IDS.length})
           </h2>
           <div className="grid grid-cols-2 gap-3">
-            {SET_IDS.map(({ id, label, emoji }) => {
+            {SET_IDS.map(({ id, label }) => {
               const earned = state.crowns.includes(id)
               return (
                 <div
@@ -73,10 +74,10 @@ export default function AchievementsScreen({ state, onBack }: Props) {
                     opacity: earned ? 1 : 0.45,
                   }}
                 >
-                  <span className="text-2xl">{earned ? '👑' : '○'}</span>
+                  <span style={{ display: 'flex', flexShrink: 0 }}><CrownIcon size={22} color={earned ? T.gold : T.dim} strokeWidth={1.6} /></span>
                   <div>
                     <div className="font-semibold text-sm" style={{ color: earned ? T.gold : T.muted }}>{label}</div>
-                    <div className="text-xs" style={{ color: T.muted }}>{emoji} Crown</div>
+                    <div className="text-xs" style={{ color: T.muted }}>{earned ? 'Crown earned' : 'Crown'}</div>
                   </div>
                 </div>
               )
@@ -99,7 +100,7 @@ export default function AchievementsScreen({ state, onBack }: Props) {
                     <div className="flex items-center gap-2">
                       <div className="flex gap-0.5">
                         {(result.answers ?? []).map((a, i) => (
-                          <span key={i} className="text-sm">{a === 'correct' ? '🟩' : '🟥'}</span>
+                          <span key={i} style={{ width: 10, height: 10, borderRadius: 2, display: 'inline-block', background: a === 'correct' ? T.green : T.danger }} />
                         ))}
                       </div>
                       <span className="font-bold text-sm" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>{result.score}/{result.total}</span>

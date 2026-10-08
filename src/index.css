@@ -18,12 +18,6 @@ body {
   color: #1F3A3C;
 }
 
-/* The floating Home pill only fits beside the app column once the gutters are
-   wide enough to hold it; below that it covers game headers' scores. */
-@media (max-width: 959px) {
-  .geo-home-pill { display: none !important; }
-}
-
 /* The app is a phone-first experience. On desktop, pin the whole thing to a
    centred phone-width column — otherwise the Codex (and everything else)
    stretches across the full monitor and becomes unusably huge. Fixed-position

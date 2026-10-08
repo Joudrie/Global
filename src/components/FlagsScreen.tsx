@@ -5,7 +5,7 @@ import type { AppState } from '../utils/storage'
 import type { HistoricalRegion } from '../data/historicalFlags'
 import { T, ACCENT, tint } from '../ui/tokens'
 import { ScreenHeader } from './ui'
-import { LineIcon } from './icons'
+import { LineIcon, CrownIcon } from './icons'
 import { Globe2, Castle, Sun, Mountain, Landmark, Sailboat, MoonStar, ChevronDown } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
@@ -119,7 +119,7 @@ export default function FlagsScreen({ state, onBack, onStartSet, onStartHistoric
                       <div className="text-xs" style={{ color: T.muted }}>{learned}/{total} flags</div>
                     </div>
                   </div>
-                  {hasCrown ? <span className="text-2xl animate-crown-pop">👑</span> : <span style={{ color: ACCENT.learn }}>›</span>}
+                  {hasCrown ? <span className="animate-crown-pop" aria-label="Crown earned" style={{ display: 'flex' }}><CrownIcon size={22} color={T.gold} strokeWidth={1.6} /></span> : <span style={{ color: ACCENT.learn }}>›</span>}
                 </div>
                 <div className="w-full h-2 rounded-full overflow-hidden" style={{ background: T.line }}>
                   <div className="h-full rounded-full transition-all duration-500"

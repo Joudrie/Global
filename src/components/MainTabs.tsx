@@ -9,7 +9,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { groupsFor, REGISTRY, GAME_COUNT, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
-import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, SparklesIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon } from "./icons"
+import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon, HeartIcon } from "./icons"
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
@@ -665,7 +665,7 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
         {/* Because you played … — locally-derived affinity recommendations */}
         {rec && (
           <div>
-            <ShelfHead icon={<SparklesIcon size={15} color={ACCENT.codex} strokeWidth={1.7} />} accent={ACCENT.codex}
+            <ShelfHead icon={<LineIcon name="lightbulb" size={15} color={ACCENT.codex} strokeWidth={1.7} />} accent={ACCENT.codex}
               title="Recommended for you" reason={`Because you played ${rec.seed.title}`} />
             <Rail>
               {rec.entries.map(e => (
@@ -1017,7 +1017,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
           {regionStats.map(rs => (
             <div key={rs.region} style={{ display: "flex", alignItems: "center", gap: 10 }}>
               <span className="geo-display" style={{ width: 86, flexShrink: 0, fontSize: 12.5, fontWeight: 600, color: T.text }}>
-                {rs.region}{rs.done && <span style={{ marginLeft: 4 }}>👑</span>}
+                {rs.region}{rs.done && <span style={{ marginLeft: 4, display: "inline-flex", verticalAlign: "-1px" }} aria-label="complete"><CrownIcon size={12} color={T.gold} strokeWidth={1.7} /></span>}
               </span>
               <div style={{ flex: 1, height: 5, borderRadius: 3, overflow: "hidden", background: tint(T.text, 0.08) }}>
                 <div style={{ width: `${rs.total ? (rs.got / rs.total) * 100 : 0}%`, height: "100%", borderRadius: 3,
@@ -1055,7 +1055,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
                     ? { background: tint(T.gold, 0.14), border: `1px solid ${tint(T.gold, 0.5)}` }
                     : { border: `1.5px dashed ${T.line}`, opacity: 0.65 }),
                 }}>
-                  {earned ? <span style={{ fontSize: 17 }}>👑</span> : <CrownIcon size={15} color={T.dim} strokeWidth={1.5} />}
+                  {earned ? <CrownIcon size={17} color={T.gold} strokeWidth={1.7} /> : <CrownIcon size={15} color={T.dim} strokeWidth={1.5} />}
                 </div>
                 <span className="geo-micro" style={{ fontSize: 8, color: earned ? T.gold : T.dim, whiteSpace: "nowrap" }}>{c.label}</span>
               </div>
@@ -1109,7 +1109,7 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
             border: `1px solid ${tint(T.gold, 0.45)}`,
             background: `linear-gradient(150deg, ${tint(T.gold, 0.16)}, ${T.surface} 78%)` }}>
           <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ fontSize: 26, lineHeight: 1 }}>💛</span>
+            <span style={{ display: "flex", flexShrink: 0 }}><HeartIcon size={24} color={T.gold} strokeWidth={1.7} /></span>
             <div style={{ flex: 1 }}>
               <div style={{ color: T.gold, fontWeight: 800, fontSize: 15 }}>Support Globalio</div>
               <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>One-time $2 — remove ads & back a one-person project.</div>

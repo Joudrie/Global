@@ -3,7 +3,7 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { PartyPopper, Frown } from "lucide-react"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
 import { pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
@@ -115,14 +115,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                 </span>
               : undefined
         }
-        right={
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: 2 }}>
-            <div style={{ fontSize: 11, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", color: T.dim }}>{revealed}%</div>
-            <div style={{ width: 40, height: 5, borderRadius: 3, background: T.line, overflow: 'hidden' }}>
-              <div style={{ height: '100%', width: '100%', transformOrigin: 'left', transform: `scaleX(${revealed / 100})`, background: revealed < 20 ? T.green : revealed < 50 ? T.gold : T.danger, transition: 'transform 0.1s' }} />
-            </div>
-          </div>
-        } />
+        right={<HeaderStat label="Revealed" accent={revealed < 20 ? T.green : revealed < 50 ? T.gold : T.danger}>{revealed}%</HeaderStat>} />
 
       <div className="flex flex-col items-center gap-4 px-5">
 
@@ -185,11 +178,9 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         )}
 
         {phase === 'scratch' && (
-          <button onClick={() => setPhase('guess')}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-            Make My Guess →
-          </button>
+          <PrimaryButton onClick={() => setPhase('guess')} accent={ACC} style={{ maxWidth: 384 }}>
+            Make my guess →
+          </PrimaryButton>
         )}
 
         {/* Guess phase — type-in */}
@@ -235,35 +226,16 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         {/* Result */}
         {phase === 'result' && (
           <div className="w-full max-w-sm flex flex-col gap-3">
-            <div className="rounded-2xl p-5 text-center"
-              style={{ background: T.surface, border: `1px solid ${tint(guess?.code === target.code ? T.green : T.danger, 0.35)}` }}>
-              <div className="mb-2 flex justify-center" style={{ color: guess?.code === target.code ? T.green : T.danger }}>
-                {guess?.code === target.code
-                  ? <PartyPopper size={36} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <Frown size={36} strokeWidth={1.6} absoluteStrokeWidth />}
-              </div>
-              <div className="text-3xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>
-                {guess?.code === target.code ? score : 0} pts
-              </div>
-              <div className="text-sm" style={{ color: T.muted }}>
-                {guess?.code === target.code
-                  ? `${target.name} — you revealed ${revealed}%`
-                  : `That was ${target.name} — you guessed ${guess?.name}`}
-              </div>
-              {guess?.code === target.code && score === 1000 && (
-                <div className="text-xs mt-2" style={{ color: T.green }}>Perfect peel! Under 5%</div>
-              )}
-            </div>
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              New Flag
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <ResultCard>
+              <ResultHeader icon={guess?.code === target.code ? "check" : "x"} accent={guess?.code === target.code ? T.green : T.danger}
+                eyebrow={guess?.code === target.code && score === 1000 ? "Perfect peel, under 5%" : undefined}
+                title={`${guess?.code === target.code ? score : 0} pts`}
+                score={guess?.code === target.code
+                  ? `${target.name}: you revealed ${revealed}%`
+                  : `That was ${target.name}. You guessed ${guess?.name}.`} />
+            </ResultCard>
+            <PrimaryButton onClick={onReplay} accent={ACC}>New flag</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
       </div>

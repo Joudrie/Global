@@ -4,6 +4,8 @@ import type { CapitalRecord } from "../data/capitals"
 import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -55,15 +57,16 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
   if (done) {
     const total = ROUNDS * PER
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>🏛️</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 36, color: ACCENT.learn }}>{total}<span style={{ color: T.dim, fontSize: 18 }}> matched</span></div>
-            <div style={{ color: T.muted, fontSize: 12 }}>{mistakes === 0 ? "Flawless!" : `${mistakes} mistake${mistakes === 1 ? "" : "s"}`}</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Capital Match" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="capitalmatch" accent={ACCENT.learn}
+              title={`${total} capitals matched`}
+              score={mistakes === 0 ? "Flawless, no mistakes." : `${mistakes} mistake${mistakes === 1 ? "" : "s"}`} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -71,14 +74,10 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Capital Match</div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 13, color: T.dim }}>{idx + 1}/{ROUNDS}</div>
-      </header>
+      <ScreenHeader title="Capital Match" subtitle="Tap a flag, then its capital city" onBack={onBack}
+        right={<HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "8px 16px 22px", gap: 12 }}>
-        <div className="geo-micro" style={{ textAlign: "center", fontSize: 9, color: T.muted }}>Tap a flag, then its capital city</div>
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1.2fr", gap: 10, flex: 1 }}>
           {/* flags */}
           <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>

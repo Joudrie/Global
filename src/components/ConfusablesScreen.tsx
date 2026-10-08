@@ -3,7 +3,7 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { Trophy, Target, BookOpen } from "lucide-react"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
 
 const ACC = ACCENT.play
 
@@ -73,38 +73,17 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
     const total   = rounds.length
     const pct     = total > 0 ? Math.round((correct / total) * 100) : 0
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 12px 32px -14px ${tint(T.text, 0.45)}` }}>
-            <div className="mb-3 flex justify-center" style={{ color: pct === 100 ? T.gold : pct >= 60 ? T.green : ACC }}>
-              {pct === 100
-                ? <Trophy size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                : pct >= 60
-                  ? <Target size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <BookOpen size={44} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-6xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{correct}/{total}</div>
-            <div className="text-sm" style={{ color: T.muted }}>
-              {pct === 100 ? "Unbeatable! You know your lookalikes." : "These are the trickiest flags in the world — don't feel bad."}
-            </div>
-            <div className="flex justify-center gap-2 mt-3">
-              {scores.map((ok, i) => <span key={i} style={{ width: 16, height: 16, borderRadius: 4, display: 'inline-block', background: ok ? T.green : T.danger }} />)}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Play Again
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
+        <ScreenHeader title="Lookalikes" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={pct === 100 ? "trophy" : pct >= 60 ? "target" : "codex"} accent={pct === 100 ? T.gold : pct >= 60 ? T.green : ACC}
+              title={`${correct} of ${total} spotted`}
+              score={pct === 100 ? "Unbeatable! You know your lookalikes." : "These are the trickiest flags in the world. Don't feel bad."} />
+            <ResultDots results={scores} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACC}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -115,17 +94,8 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
 
-      <ScreenHeader title="Lookalikes" subtitle={`${idx + 1} / ${rounds.length}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5 items-center">
-            {Array.from({ length: rounds.length }).map((_, i) => (
-              <div key={i} style={{
-                width: 7, height: 7, borderRadius: '50%',
-                background: i < scores.length ? (scores[i] ? T.green : T.danger) : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title="Lookalikes" subtitle={`${scores.filter(Boolean).length} correct so far`} onBack={onBack}
+        right={<HeaderStat accent={ACC}>{idx + 1} / {rounds.length}</HeaderStat>} />
 
       {/* Progress */}
       <div className="mx-5 h-1.5 rounded-full overflow-hidden mb-5" style={{ background: T.line, zIndex: 1 }}>
@@ -195,11 +165,9 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
         )}
 
         {answered && (
-          <button onClick={handleNext}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-            {idx + 1 >= rounds.length ? "See Results →" : "Next →"}
-          </button>
+          <PrimaryButton onClick={handleNext} accent={ACC} style={{ maxWidth: 384 }}>
+            {idx + 1 >= rounds.length ? "See results →" : "Next →"}
+          </PrimaryButton>
         )}
       </div>
     </div>

@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import type { Question } from "../utils/quiz"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { PrimaryButton } from "./gameUi"
 
 interface Props {
   questions: Question[]
@@ -133,11 +134,9 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
         )}
 
         {answerState !== "idle" && (
-          <button onClick={handleNext}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold text-base transition-all active:scale-95 animate-slide-up"
-            style={{ background: accent, color: T.onAccent }}>
-            {idx + 1 >= questions.length ? "See Results →" : "Next →"}
-          </button>
+          <PrimaryButton onClick={handleNext} accent={accent} style={{ maxWidth: 384 }}>
+            {idx + 1 >= questions.length ? "See results →" : "Next →"}
+          </PrimaryButton>
         )}
       </div>
     </div>

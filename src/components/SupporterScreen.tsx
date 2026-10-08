@@ -1,6 +1,9 @@
 import { T, tint } from "../ui/tokens"
 import EarthLogo from "./EarthLogo"
 
+import { ScreenHeader } from "./ui"
+import { SecondaryButton, GameIcon } from "./gameUi"
+
 interface Props {
   onBack: () => void
   premium: boolean
@@ -8,21 +11,22 @@ interface Props {
 }
 
 const PERKS = [
-  { icon: "🚫", title: "No ads, ever", body: "Every banner and break disappears across the whole app." },
-  { icon: "🌍", title: "Keeps Globalio free", body: "Your $2 helps cover hosting so the world keeps free access." },
-  { icon: "💌", title: "A real thank-you", body: "A personal note from me — this is a one-person, human project." },
-  { icon: "⚡", title: "Front-of-the-queue help", body: "Questions and ideas from Supporters get answered first." },
+  { icon: "shield", title: "No ads, ever", body: "Every banner and break disappears across the whole app." },
+  { icon: "globe", title: "Keeps Globalio free", body: "Your $2 helps cover hosting so the world keeps free access." },
+  { icon: "mail", title: "A real thank-you", body: "A personal note from me — this is a one-person, human project." },
+  { icon: "quickplay", title: "Front-of-the-queue help", body: "Questions and ideas from Supporters get answered first." },
 ]
 
 export default function SupporterScreen({ onBack, premium }: Props) {
   return (
-    <div className="min-h-screen flex flex-col items-center px-5 py-10" style={{ background: T.bg, color: T.text, overflowY: "auto" }}>
-      <div className="w-full max-w-sm flex flex-col gap-5">
+    <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, overflowY: "auto" }}>
+      <ScreenHeader title="Supporter" subtitle="$2 once, no ads" onBack={onBack} />
+      <div className="w-full max-w-sm mx-auto flex flex-col gap-5 px-5 pb-10">
 
         <div className="flex flex-col items-center text-center gap-3">
           <EarthLogo size={52} />
           <div className="geo-display" style={{ fontWeight: 800, fontSize: 26, letterSpacing: "-0.02em" }}>
-            {premium ? "You're a Supporter 💛" : "Become a Supporter"}
+            {premium ? "You're a Supporter" : "Become a Supporter"}
           </div>
           <p style={{ color: T.muted, fontSize: 14, lineHeight: 1.55 }}>
             {premium
@@ -36,7 +40,7 @@ export default function SupporterScreen({ onBack, premium }: Props) {
           {PERKS.map(p => (
             <div key={p.title} className="flex items-start gap-3 rounded-2xl p-4"
               style={{ background: T.surface, border: `1px solid ${T.line}` }}>
-              <span style={{ fontSize: 22, lineHeight: 1 }}>{p.icon}</span>
+              <span style={{ display: "flex", flexShrink: 0, color: T.gold, marginTop: 2 }}><GameIcon name={p.icon} size={20} /></span>
               <div>
                 <div className="geo-display" style={{ fontWeight: 700, fontSize: 15 }}>{p.title}</div>
                 <div style={{ color: T.muted, fontSize: 12.5, marginTop: 2, lineHeight: 1.45 }}>{p.body}</div>
@@ -55,15 +59,11 @@ export default function SupporterScreen({ onBack, premium }: Props) {
               style={{ background: tint(T.gold, 0.18), border: `1px solid ${tint(T.gold, 0.4)}`, color: T.gold, opacity: 0.85, cursor: "not-allowed" }}>
               Checkout coming soon
             </button>
-            <div style={{ color: T.dim, fontSize: 10.5, marginTop: 6 }}>Secure payment is being set up. Thank you for your patience 💛</div>
+            <div style={{ color: T.dim, fontSize: 10.5, marginTop: 6 }}>Secure payment is being set up. Thank you for your patience.</div>
           </div>
         )}
 
-        <button onClick={onBack}
-          className="w-full py-3 rounded-xl font-bold text-base transition-all active:scale-95"
-          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-          ← Back
-        </button>
+        <SecondaryButton onClick={onBack}>Back</SecondaryButton>
       </div>
     </div>
   )

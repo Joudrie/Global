@@ -314,32 +314,8 @@ export default function App() {
 
   return (
     <div style={{ background: T.bg, minHeight: "100vh" }}>
-      {/* Persistent home logo — fixed top-right on every screen except splash/home.
-          Tapping it always jumps back to the home page. On phones it's hidden
-          (see .geo-home-pill in index.css): it sat on top of the score, round
-          counter and best score in most game headers, and every game already
-          has its own back button that goes home. */}
-      {screen !== "splash" && screen !== "home" && screen !== "megacodex" && screen !== "flagdiag" && screen !== "flagstudio" && (
-        <button
-          onClick={() => setScreen("home")}
-          aria-label="Home"
-          title="Home"
-          className="geo-home-pill"
-          style={{
-            position: "fixed", top: 10, right: 12, zIndex: 50,
-            display: "flex", alignItems: "center", gap: 6,
-            padding: "6px 12px 6px 8px", borderRadius: 999,
-            background: `${T.surface}EB`,
-            border: `1px solid ${T.line}`,
-            boxShadow: "0 1px 2px rgba(31,58,60,0.05), 0 8px 20px -14px rgba(31,58,60,0.25)",
-            backdropFilter: "blur(6px)", cursor: "pointer",
-          }}
-        >
-          <EarthLogo size={24} />
-          <span style={{ color: T.text, fontWeight: 700, fontSize: 13 }}>Home</span>
-        </button>
-      )}
-
+      {/* No floating Home pill: every screen has its own back button in the
+          shared ScreenHeader, and the pill only duplicated it on desktop. */}
       <ScreenErrorBoundary>
       <Suspense fallback={<ScreenFallback />}>
       {screen === "home" && (

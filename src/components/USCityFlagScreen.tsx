@@ -1,8 +1,9 @@
 import { useState } from "react"
 import { US_CITY_FLAGS } from "../data/usCityFlags"
 import type { CityFlag } from "../data/usCityFlags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { FlagLoadFailed, MAX_FLAG_RETRIES } from "./ui"
+import { T, ACCENT, tint } from "../ui/tokens"
+import { ScreenHeader } from "./ui"
+import { FlagLoadFailed, MAX_FLAG_RETRIES, HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -65,15 +66,16 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   if (done) {
     const correct = scores.filter(Boolean).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>{correct >= ROUNDS * 0.75 ? "🏙️" : correct >= ROUNDS * 0.4 ? "🗽" : "🧭"}</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 38, color: ACCENT.play }}>{correct}<span style={{ color: T.dim, fontSize: 20 }}>/{ROUNDS}</span></div>
-            <div style={{ color: T.muted, fontSize: 12 }}>U.S. city flags identified</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="US City Flags" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon={correct >= ROUNDS * 0.75 ? "trophy" : correct >= ROUNDS * 0.4 ? "building" : "compass"} accent={ACCENT.play}
+              title={`${correct} of ${ROUNDS} city flags named`}
+              score={correct >= ROUNDS * 0.75 ? "You know your city flags." : "City flags are a deep cut. Try another round."} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -81,16 +83,8 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>US City Flags</div>
-          <div style={{ fontFamily: FONT.mono, fontSize: 13, color: T.dim }}>{idx + 1}/{ROUNDS}</div>
-        </div>
-        <div style={{ display: "flex", gap: 4 }}>
-          {rounds.map((_, i) => (<div key={i} style={{ width: 7, height: 7, borderRadius: "50%", background: i < scores.length ? (scores[i] ? ACCENT.codex : T.warm) : T.line }} />))}
-        </div>
-      </header>
+      <ScreenHeader title="US City Flags" subtitle={`${scores.filter(Boolean).length} correct so far`} onBack={onBack}
+        right={<HeaderStat accent={ACCENT.play}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       {fails >= MAX_FLAG_RETRIES ? (
         <div style={{ display: "flex", flexDirection: "column", alignItems: "center", padding: "12px 18px 24px" }}>
@@ -98,7 +92,7 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         </div>
       ) : (
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", padding: "12px 18px 24px", gap: 16 }}>
-        <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Which U.S. city flies this flag?</div>
+        <div className="geo-micro" style={{ fontSize: 11, color: T.muted }}>Which U.S. city flies this flag?</div>
 
         {/* flag — contain so nothing's cropped */}
         <div style={{ width: 260, height: 173, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: "#fff", boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)", display: "flex", alignItems: "center", justifyContent: "center", padding: 8 }}>
@@ -133,9 +127,9 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         </div>
 
         {answered && (
-          <button onClick={next} className="geo-tap" style={{ marginTop: "auto", width: "100%", maxWidth: 360, padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>
+          <PrimaryButton onClick={next} accent={ACCENT.play} style={{ marginTop: "auto", maxWidth: 360 }}>
             {idx + 1 >= ROUNDS ? "See result →" : "Next →"}
-          </button>
+          </PrimaryButton>
         )}
       </div>
       )}

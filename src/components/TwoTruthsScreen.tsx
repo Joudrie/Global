@@ -4,8 +4,10 @@ import type { FlagRecord } from "../data/flags"
 import { CAPITALS } from "../data/capitals"
 import { neighborsOf } from "../data/borders"
 import { STATS } from "../data/countryStats"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -178,15 +180,16 @@ function TwoTruthsGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   if (done) {
     const correct = scores.filter(Boolean).length
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>{correct >= ROUNDS * 0.7 ? "🕵️" : "📚"}</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 38, color: ACCENT.codex }}>{correct}<span style={{ color: T.dim, fontSize: 20 }}>/{ROUNDS}</span></div>
-            <div style={{ color: T.muted, fontSize: 12 }}>lies spotted</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.codex, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Two Truths" subtitle="Round complete" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon={correct >= ROUNDS * 0.7 ? "twotruths" : "codex"} accent={ACCENT.codex}
+              title={`${correct} of ${ROUNDS} lies spotted`}
+              score={correct >= ROUNDS * 0.7 ? "A sharp eye for a fib." : "Every round teaches a new fact."} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.codex}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -194,18 +197,15 @@ function TwoTruthsGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Two Truths &amp; a Flag</div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 13, color: T.dim }}>{idx + 1}/{ROUNDS}</div>
-      </header>
+      <ScreenHeader title="Two Truths" subtitle="Spot the lie about a country" onBack={onBack}
+        right={<HeaderStat accent={ACCENT.codex}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "10px 18px 22px", gap: 16 }}>
         <div style={{ width: 220, height: 146, margin: "0 auto", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)" }}>
           <FlagImage code={round.flag.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
         </div>
         <p className="geo-display" style={{ textAlign: "center", color: T.text, fontWeight: 700, fontSize: 18 }}>{round.flag.name}</p>
-        <div className="geo-micro" style={{ textAlign: "center", fontSize: 9, color: T.muted, marginTop: -8 }}>One of these is a lie — tap it.</div>
+        <div style={{ textAlign: "center", fontSize: 12, color: T.muted, marginTop: -8 }}>One of these is a lie. Tap it.</div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
           {round.stmts.map((s, i) => {
@@ -227,9 +227,9 @@ function TwoTruthsGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
 
         {answered && (
-          <button onClick={next} className="geo-tap" style={{ marginTop: "auto", width: "100%", padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.codex, color: T.onAccent }}>
+          <PrimaryButton onClick={next} accent={ACCENT.codex} style={{ marginTop: "auto" }}>
             {idx + 1 >= ROUNDS ? "See result →" : "Next →"}
-          </button>
+          </PrimaryButton>
         )}
       </div>
     </div>

@@ -3,6 +3,8 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -48,15 +50,16 @@ function ContinentSortGame({ onBack, onReplay }: Props & { onReplay: () => void 
 
   if (done) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 24, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>⏱️</div>
-            <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 44, color: ACCENT.learn }}>{correct}</div>
-            <div style={{ color: T.muted, fontSize: 12 }}>sorted correctly in {SECONDS}s · {attempts} attempted</div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.learn, color: T.onAccent }}>Play again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Continent Sort" subtitle="Time's up" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon="timer" accent={ACCENT.learn}
+              title={`${correct} sorted correctly`}
+              score={`in ${SECONDS}s · ${attempts} attempted`} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -65,18 +68,15 @@ function ContinentSortGame({ onBack, onReplay }: Props & { onReplay: () => void 
   const low = timeLeft <= 10
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 18, color: low ? T.danger : T.text, fontVariantNumeric: "tabular-nums" }}>{Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")}</div>
-        <div style={{ fontFamily: FONT.mono, fontSize: 13, color: ACCENT.learn, fontWeight: 700 }}>{correct}<span style={{ color: T.dim }}> ✓</span></div>
-      </header>
+      <ScreenHeader title="Continent Sort" subtitle={<span style={{ color: low ? T.danger : T.muted, fontVariantNumeric: "tabular-nums" }}>{Math.floor(timeLeft / 60)}:{String(timeLeft % 60).padStart(2, "0")} left</span>} onBack={onBack}
+        right={<HeaderStat label="Sorted" accent={ACCENT.learn}>{correct}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", padding: "12px 18px 22px", gap: 16, alignItems: "center" }}>
         <div style={{ width: 220, height: 146, borderRadius: 14, overflow: "hidden", border: `1px solid ${T.lineHi}`, background: T.surfaceHi, boxShadow: "0 12px 28px -14px rgba(31,58,60,0.45)" }}>
           <FlagImage code={flag.code} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", padding: 8 }} />
         </div>
         <div className="geo-display" style={{ fontWeight: 700, fontSize: 18, color: T.text, marginTop: -6 }}>{flag.name}</div>
-        <div className="geo-micro" style={{ fontSize: 9, color: T.muted, marginTop: -10 }}>Which region?</div>
+        <div className="geo-micro" style={{ fontSize: 11, color: T.muted, marginTop: -8 }}>Which region?</div>
 
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, width: "100%", maxWidth: 360 }}>
           {REGIONS.map(r => {

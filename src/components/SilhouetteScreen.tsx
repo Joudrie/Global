@@ -2,9 +2,9 @@ import { useState, useRef, useMemo } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import FlagImage from "./FlagImage"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { Eye, Moon, BookOpen } from "lucide-react"
+import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
 import { pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
@@ -105,32 +105,17 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
     const totalPts = results.reduce((s, r) => s + r.pts, 0)
     const maxPts = ROUNDS * STAGES[0].pts
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5"
-        style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-        <div className="w-full max-w-sm">
-          <div className="rounded-2xl p-6 text-center mb-4"
-            style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 12px 32px -14px ${tint(T.text, 0.45)}` }}>
-            <div className="mb-3 flex justify-center" style={{ color: totalPts >= maxPts * 0.8 ? T.gold : totalPts >= maxPts * 0.4 ? ACC : T.muted }}>
-              {totalPts >= maxPts * 0.8
-                ? <Eye size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                : totalPts >= maxPts * 0.4
-                  ? <Moon size={44} strokeWidth={1.6} absoluteStrokeWidth />
-                  : <BookOpen size={44} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-5xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{totalPts.toLocaleString()}</div>
-            <div className="text-sm mb-3" style={{ color: T.muted }}>pts · max {maxPts.toLocaleString()}</div>
-            <div className="flex justify-center gap-2 flex-wrap">
-              {results.map((r, i) => <span key={i} style={{ width: 15, height: 15, borderRadius: 4, display: "inline-block", background: r.correct ? T.green : T.danger }} />)}
-            </div>
-          </div>
-          <div className="flex flex-col gap-3">
-            <button onClick={onReplay}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>Play Again</button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
-          </div>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
+        <ScreenHeader title="Silhouette" subtitle="Results" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
+          <ResultCard>
+            <ResultHeader icon={totalPts >= maxPts * 0.8 ? "trophy" : totalPts >= maxPts * 0.4 ? "moon" : "codex"}
+              accent={totalPts >= maxPts * 0.8 ? T.gold : totalPts >= maxPts * 0.4 ? ACC : T.muted}
+              title={`${totalPts.toLocaleString()} pts`} score={`${results.filter(r => r.correct).length} of ${ROUNDS} named · max ${maxPts.toLocaleString()}`} />
+            <ResultDots results={results.map(r => r.correct)} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACC}>Play again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -138,17 +123,8 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-      <ScreenHeader title="Silhouette" subtitle={`${idx + 1} / ${ROUNDS}`} onBack={onBack}
-        right={
-          <div className="flex gap-1.5">
-            {Array.from({ length: ROUNDS }).map((_, i) => (
-              <div key={i} style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: i < results.length ? (results[i].correct ? T.green : T.danger) : T.line,
-              }} />
-            ))}
-          </div>
-        } />
+      <ScreenHeader title="Silhouette" subtitle={`${results.filter(r => r.correct).length} named so far`} onBack={onBack}
+        right={<HeaderStat accent={ACC}>{idx + 1} / {ROUNDS}</HeaderStat>} />
 
       <div className="flex flex-col items-center px-5 gap-4">
         {/* Stage / points indicator */}

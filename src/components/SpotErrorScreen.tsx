@@ -4,6 +4,7 @@ import type { PaintPuzzle, PaintLayout } from "../data/paintPuzzles"
 import { colorName } from "../utils/color"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 
 const ACC = ACCENT.play
 
@@ -140,33 +141,18 @@ export default function SpotErrorScreen({ onBack }: Props) {
         </div>
 
         {phase === "play" ? (
-          <button onClick={submit} disabled={!picked}
-            className="w-full max-w-sm py-3.5 rounded-xl font-bold transition-all active:scale-95"
-            style={{ background: picked ? ACC : T.surface, border: picked ? "none" : `1px solid ${T.line}`,
-              color: picked ? T.onAccent : T.dim, cursor: picked ? "pointer" : "not-allowed", fontFamily: FONT.display }}>
+          <PrimaryButton onClick={submit} disabled={!picked} accent={ACC} style={{ maxWidth: 384 }}>
             {picked ? "Lock it in →" : `Tap the wrong ${part}`}
-          </button>
+          </PrimaryButton>
         ) : (
           <div className="w-full max-w-sm flex flex-col gap-3">
-            <div className="rounded-2xl p-4 text-center" style={{ background: T.surface, border: `1px solid ${tint(correct ? T.green : T.danger, 0.4)}` }}>
-              <div className="text-lg font-black" style={{ color: correct ? T.green : T.danger, fontFamily: FONT.display }}>
-                {correct ? "Correct!" : "Not quite"}
-              </div>
-              <div className="text-xs mt-1" style={{ color: T.muted }}>
-                The flag is now corrected. That {part} should be{" "}
-                <span style={{ color: T.text, fontWeight: 700 }}>{colorName(pz.colors[errorSlot])}</span>.
-              </div>
-            </div>
-            <button onClick={next}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              Next flag →
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <ResultCard>
+              <ResultHeader icon={correct ? "check" : "spoterror"} accent={correct ? T.green : T.danger}
+                title={correct ? "Correct!" : "Not quite"}
+                score={<>The flag is now corrected. That {part} should be{" "}<span style={{ color: T.text, fontWeight: 700 }}>{colorName(pz.colors[errorSlot])}</span>.</>} />
+            </ResultCard>
+            <PrimaryButton onClick={next} accent={ACC}>Next flag →</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
       </div>

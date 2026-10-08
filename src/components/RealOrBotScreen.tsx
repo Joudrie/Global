@@ -1,8 +1,11 @@
 import { useState, useRef } from "react"
 import type { FlagRecord } from "../data/flags"
 import { BOT_FLAGS, pickRealFlag } from "../data/botFlags"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { LineIcon } from "./icons"
+import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -93,26 +96,21 @@ function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   if (over) {
     return (
-      <div className="min-h-screen flex flex-col items-center justify-center px-5" style={{ background: T.bg }}>
-        <div className="w-full max-w-sm" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-          <div style={{ borderRadius: 16, padding: 22, textAlign: "center", background: T.surface, border: `1px solid ${T.line}` }}>
-            <div style={{ fontSize: 40 }}>{over.wasReal ? "🚩" : "🤖"}</div>
-            <div className="geo-micro" style={{ fontSize: 10, color: ACCENT.play, marginTop: 6 }}>
-              {streak >= 8 ? "🔥 Great run!" : streak >= 3 ? "👏 Nice job!" : "Good try!"}
-            </div>
-            <div className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 20, marginTop: 4 }}>
-              That one was {over.wasReal ? "a real flag" : "an AI fake"}
-            </div>
-            <div style={{ color: T.muted, fontSize: 12, marginTop: 4 }}>
-              {over.wasReal ? "You called a genuine flag a bot." : "A fabricated flag slipped past you."}
-            </div>
-            <div style={{ display: "flex", justifyContent: "center", gap: 28, marginTop: 18 }}>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 30, color: ACCENT.play }}>{streak}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>streak</div></div>
-              <div><div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 30, color: T.amber }}>{best}</div><div className="geo-micro" style={{ fontSize: 8, color: T.muted }}>best</div></div>
-            </div>
-          </div>
-          <button onClick={onReplay} className="geo-tap" style={{ padding: "14px 0", borderRadius: 12, fontWeight: 700, fontFamily: FONT.display, background: ACCENT.play, color: T.onAccent }}>Go again</button>
-          <button onClick={onBack} className="geo-tap" style={{ padding: "12px 0", borderRadius: 12, fontWeight: 600, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+      <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
+        <ScreenHeader title="Real or Bot" subtitle="Run over" onBack={onBack} />
+        <div className="w-full max-w-sm mx-auto px-5 pb-8" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <ResultCard>
+            <ResultHeader icon={over.wasReal ? "flag" : "bot"} accent={ACCENT.play}
+              eyebrow={streak >= 8 ? "Great run" : streak >= 3 ? "Nice job" : "Good try"}
+              title={`That one was ${over.wasReal ? "a real flag" : "an AI fake"}`}
+              score={over.wasReal ? "You called a genuine flag a bot." : "A fabricated flag slipped past you."} />
+            <ResultStats stats={[
+              { label: "Streak", value: streak, accent: ACCENT.play },
+              { label: "Best", value: best, accent: T.amber },
+            ]} />
+          </ResultCard>
+          <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Go again</PrimaryButton>
+          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
         </div>
       </div>
     )
@@ -120,23 +118,17 @@ function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <header style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "16px 18px 6px" }}>
-        <button onClick={onBack} className="geo-tap" style={{ width: 34, height: 34, borderRadius: 9, background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>‹</button>
-        <div style={{ textAlign: "center" }}>
-          <div className="geo-micro" style={{ fontSize: 9, color: T.muted }}>Real or Bot</div>
-          <div style={{ fontFamily: FONT.mono, fontWeight: 800, fontSize: 18, color: ACCENT.play }}>{streak}</div>
-        </div>
-        <div style={{ textAlign: "right" }}><div className="geo-micro" style={{ fontSize: 8, color: T.dim }}>best</div><div style={{ fontFamily: FONT.mono, fontWeight: 700, fontSize: 14, color: T.amber }}>{best}</div></div>
-      </header>
+      <ScreenHeader title="Real or Bot" subtitle={`Best ${best}`} onBack={onBack}
+        right={<HeaderStat label="Streak" accent={ACCENT.play}>{streak}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px 20px", position: "relative" }}>
         {/* swipe hints */}
         <div style={{ position: "absolute", inset: 0, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 8px", pointerEvents: "none" }}>
           <div style={{ opacity: dx < -30 ? 1 : 0.25, transition: "opacity 0.15s", textAlign: "center", color: T.warm }}>
-            <div style={{ fontSize: 26 }}>🤖</div><div className="geo-micro" style={{ fontSize: 8 }}>BOT</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><LineIcon name="bot" size={26} /></div><div className="geo-micro" style={{ fontSize: 11, marginTop: 4 }}>Bot</div>
           </div>
           <div style={{ opacity: dx > 30 ? 1 : 0.25, transition: "opacity 0.15s", textAlign: "center", color: ACCENT.learn }}>
-            <div style={{ fontSize: 26 }}>✓</div><div className="geo-micro" style={{ fontSize: 8 }}>REAL</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><LineIcon name="check" size={26} /></div><div className="geo-micro" style={{ fontSize: 11, marginTop: 4 }}>Real</div>
           </div>
         </div>
 
@@ -173,8 +165,8 @@ function RealOrBotGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
         {/* tap fallbacks */}
         <div style={{ display: "flex", gap: 14, marginTop: 16 }}>
-          <button onClick={() => answer(false)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(T.warm, 0.14), border: `1.5px solid ${tint(T.warm, 0.5)}`, color: T.warm }}>🤖</button>
-          <button onClick={() => answer(true)} className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", fontSize: 26, background: tint(ACCENT.learn, 0.14), border: `1.5px solid ${tint(ACCENT.learn, 0.5)}`, color: ACCENT.learn }}>✓</button>
+          <button onClick={() => answer(false)} aria-label="AI fake" className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: tint(T.warm, 0.14), border: `1.5px solid ${tint(T.warm, 0.5)}`, color: T.warm }}><LineIcon name="bot" size={26} /></button>
+          <button onClick={() => answer(true)} aria-label="Real flag" className="geo-tap" style={{ width: 64, height: 64, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center", background: tint(ACCENT.learn, 0.14), border: `1.5px solid ${tint(ACCENT.learn, 0.5)}`, color: ACCENT.learn }}><LineIcon name="check" size={26} /></button>
         </div>
       </div>
     </div>

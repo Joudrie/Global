@@ -8,6 +8,7 @@ import { todayString, shuffleWithSeed } from "../utils/prng"
 import { shareOrCopy } from "../utils/share"
 import { T, FONT, GROUP_TONES, GROUP_TONE_NAMES, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton } from "./gameUi"
 
 interface Props { onBack: () => void; onFinish?: () => void }
 
@@ -338,17 +339,17 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
         )}
 
         {s.over && (
-          <section aria-labelledby="cx-end" style={{ background: T.surface, border: `1px solid ${T.line}`, borderRadius: 12, padding: 16, display: "grid", gap: 12, justifyItems: "center", textAlign: "center" }}>
-            <h2 id="cx-end" className="geo-display" style={{ margin: 0, fontSize: 22, fontWeight: 700 }}>
-              {s.won ? (s.mistakes === 0 && hints.length === 0 ? "Perfect" : "Solved") : "Out of mistakes"}
-            </h2>
-            <p style={{ margin: 0, fontSize: 14, color: T.muted }}>
-              {s.won
-                ? `All four groups with ${s.mistakes} ${s.mistakes === 1 ? "mistake" : "mistakes"}`
-                : `You found ${s.solved.length} of 4 groups`}
-              {hints.length ? `${s.won ? " and" : ", using"} ${hints.length} ${hints.length === 1 ? "hint" : "hints"}.` : s.won ? " and no hints." : "."}
-              {s.lost && " The rest are shown above."}
-            </p>
+          <section aria-labelledby="cx-end" style={{ display: "grid" }}>
+            <ResultCard style={{ alignItems: "center", textAlign: "center" }}>
+            <ResultHeader icon={s.won ? "connections" : "x"} accent={s.won ? T.green : T.danger}
+              titleId="cx-end" title={s.won ? (s.mistakes === 0 && hints.length === 0 ? "Perfect" : "Solved") : "Out of mistakes"}
+              score={<>
+                {s.won
+                  ? `All four groups with ${s.mistakes} ${s.mistakes === 1 ? "mistake" : "mistakes"}`
+                  : `You found ${s.solved.length} of 4 groups`}
+                {hints.length ? `${s.won ? " and" : ", using"} ${hints.length} ${hints.length === 1 ? "hint" : "hints"}.` : s.won ? " and no hints." : "."}
+                {s.lost && " The rest are shown above."}
+              </>} />
             <div aria-label="Your guesses, one row each" role="img" style={{ display: "grid", gap: 4 }}>
               {rows(P, history).map((r, i) => (
                 <div key={i} style={{ display: "flex", gap: 4 }}>
@@ -356,11 +357,12 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
                 </div>
               ))}
             </div>
-            <button type="button" className="cx-btn cx-primary" style={pill(true, true)} onClick={share}>Share result</button>
+            <PrimaryButton onClick={share}>Share result</PrimaryButton>
             <div role="status" aria-live="polite" style={{ minHeight: 20, fontSize: 13, color: T.muted }}>{shareMsg}</div>
             <p style={{ margin: 0, fontSize: 14 }}>
               Puzzle #{n + 1 > PUZZLE_COUNT ? 1 : n + 1} arrives tomorrow, in {countdown}.
             </p>
+            </ResultCard>
           </section>
         )}
       </main>

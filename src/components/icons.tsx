@@ -7,7 +7,7 @@ import {
   LayoutGrid, Bot, History, Skull, SplitSquareHorizontal, ArrowUpDown, AlignLeft, Vote,
   MapPinned, Waypoints, Gift, ScanSearch, VenetianMask,
   Building2, Signpost, FolderTree, Scale,
-  ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Sparkles, Heart, TrendingUp, Pencil, Mail,
+  ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Heart, TrendingUp, Pencil, Mail,
   Pipette, Grid2x2,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -37,6 +37,13 @@ const MAP: Record<string, LucideIcon> = {
   symbolhunt: ScanSearch, twotruths: VenetianMask, forgery: ScanSearch,
   capitalmatch: Building2, oddborder: Signpost, continentsort: FolderTree, statclash: Scale,
   worldcup: Trophy, connections: Grid2x2, mail: Mail,
+  // semantic names for result headers, buttons and labels (instead of emoji)
+  trophy: Trophy, award: Award, target: Target, compass: Compass, flame: Flame, crown: Crown,
+  check: Check, moon: Moon,
+  globe: Globe2, map: Map, pin: MapPin, landmark: Landmark, building: Building2, scroll: ScrollText,
+  flag: Flag, bot: Bot, skull: Skull, users: Users, heart: Heart, gift: Gift, palette: Palette,
+  search: Search, swords: Swords, lightbulb: Lightbulb, tree: TreeDeciduous,
+  dna: Dna, medal: Medal, scale: Scale, waypoints: Waypoints, layers: Layers,
 }
 
 export function LineIcon({ name, size = 21, strokeWidth = 1.6, color = "currentColor" }:
@@ -45,4 +52,4 @@ export function LineIcon({ name, size = 21, strokeWidth = 1.6, color = "currentC
   return <Icon size={size} strokeWidth={strokeWidth} color={color} absoluteStrokeWidth />
 }
 
-export { Flame as FlameIcon, Crown as CrownIcon, Compass as CompassIcon, ChevronDown as ChevronDownIcon, ChevronLeft as ChevronLeftIcon, Check as CheckIcon, FlaskConical as FlaskIcon, Search as SearchIcon, Shuffle as ShuffleIcon, History as HistoryIcon, Sparkles as SparklesIcon, Heart as HeartIcon, TrendingUp as TrendingUpIcon, Pencil as PencilIcon, Mail as MailIcon }
+export { Flame as FlameIcon, Crown as CrownIcon, Compass as CompassIcon, ChevronDown as ChevronDownIcon, ChevronLeft as ChevronLeftIcon, Check as CheckIcon, FlaskConical as FlaskIcon, Search as SearchIcon, Shuffle as ShuffleIcon, History as HistoryIcon, Heart as HeartIcon, TrendingUp as TrendingUpIcon, Pencil as PencilIcon, Mail as MailIcon }

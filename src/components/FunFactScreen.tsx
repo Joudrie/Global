@@ -8,6 +8,7 @@ import { US_CITY_FLAGS } from "../data/usCityFlags"
 import type { AppState } from "../utils/storage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { PrimaryButton, SecondaryButton } from "./gameUi"
 
 interface Props {
   state: AppState
@@ -152,17 +153,12 @@ export default function FunFactScreen({ onBack }: Props) {
 
             {/* Navigation */}
             <div className="flex gap-3 w-full max-w-sm">
-              <button onClick={handlePrev} disabled={cardIdx === 0}
-                className="flex-1 py-3.5 rounded-xl font-bold transition-all active:scale-95"
-                style={{ background: T.surface, border: `1px solid ${T.line}`, color: cardIdx === 0 ? T.dim : T.muted,
-                  opacity: cardIdx === 0 ? 0.6 : 1, cursor: cardIdx === 0 ? "not-allowed" : "pointer" }}>
+              <SecondaryButton onClick={handlePrev} disabled={cardIdx === 0} style={{ flex: 1, width: "auto" }}>
                 ← Prev
-              </button>
-              <button onClick={handleNext}
-                className="flex-1 py-3.5 rounded-xl font-bold transition-all active:scale-95"
-                style={{ background: A, color: T.onAccent, fontFamily: FONT.display }}>
+              </SecondaryButton>
+              <PrimaryButton onClick={handleNext} accent={A} style={{ flex: 1, width: "auto" }}>
                 Next →
-              </button>
+              </PrimaryButton>
             </div>
           </>
         ) : (

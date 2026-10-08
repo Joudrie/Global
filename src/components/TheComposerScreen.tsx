@@ -2,10 +2,11 @@ import { useState, useMemo, useEffect } from "react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { flagSources } from "./FlagImage"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
-import { Flame, Thermometer, Snowflake, Trophy, PartyPopper, Frown } from "lucide-react"
+import { Flame, Thermometer, Snowflake } from "lucide-react"
 import { pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
@@ -222,31 +223,13 @@ export default function TheComposerScreen({ onBack }: Props) {
 
         {/* Result card */}
         {done && (
-          <div className="w-full max-w-sm rounded-2xl p-5 text-center"
-            style={{
-              background: T.surface,
-              border: `1px solid ${tint(solved ? T.green : T.danger, 0.35)}`,
-            }}>
-            <div className="mb-2 flex justify-center" style={{ color: solved ? (guesses.length <= 3 ? T.gold : T.green) : T.danger }}>
-              {solved
-                ? (guesses.length <= 3
-                    ? <Trophy size={36} strokeWidth={1.6} absoluteStrokeWidth />
-                    : <PartyPopper size={36} strokeWidth={1.6} absoluteStrokeWidth />)
-                : <Frown size={36} strokeWidth={1.6} absoluteStrokeWidth />}
-            </div>
-            <div className="text-2xl font-black mb-1" style={{ color: T.text, fontFamily: FONT.display, fontWeight: 800 }}>{target.name}</div>
-            {solved && (
-              <div className="text-lg font-bold mb-1" style={{ color: T.green, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums" }}>{pts} pts</div>
-            )}
-            <div className="text-xs mb-2" style={{ color: T.muted }}>
-              {guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'}
-            </div>
-            {target.distinguishingTip && (
-              <p className="text-xs" style={{ color: T.muted, fontStyle: 'italic' }}>
-                {target.distinguishingTip}
-              </p>
-            )}
-          </div>
+          <ResultCard style={{ width: "100%", maxWidth: 384 }}>
+            <ResultHeader icon={solved ? (guesses.length <= 3 ? "trophy" : "check") : "x"}
+              accent={solved ? (guesses.length <= 3 ? T.gold : T.green) : T.danger}
+              eyebrow={solved ? `${pts} pts` : "Gave up"}
+              title={target.name}
+              score={<>{guesses.length} {guesses.length === 1 ? 'guess' : 'guesses'}{target.distinguishingTip && <><br /><i>{target.distinguishingTip}</i></>}</>} />
+          </ResultCard>
         )}
 
         {/* Type-in */}
@@ -294,16 +277,8 @@ export default function TheComposerScreen({ onBack }: Props) {
 
         {done && (
           <div className="w-full max-w-sm flex flex-col gap-3">
-            <button onClick={handleNewGame}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              New Flag
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
-              ← Home
-            </button>
+            <PrimaryButton onClick={handleNewGame} accent={ACC}>New flag</PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
           </div>
         )}
       </div>

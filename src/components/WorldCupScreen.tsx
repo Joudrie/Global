@@ -4,6 +4,7 @@ import { CODEX, CODEX_SUMMARIES } from "../data/codex"
 import { WORLD_CUP_2026, WC_NAME_OVERRIDE, WC_BLURB } from "../data/worldCup2026"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat } from "./gameUi"
 import { ChevronLeftIcon, LineIcon } from "./icons"
 import FlagImage from "./FlagImage"
 
@@ -38,11 +39,7 @@ export default function WorldCupScreen({ onBack, onOpenCodex }: Props) {
   return (
     <div style={{ position: "fixed", inset: 0, maxWidth: 720, margin: "0 auto", background: T.bg, color: T.text, zIndex: 1, display: "flex", flexDirection: "column" }}>
       <ScreenHeader title="World Cup 2026" subtitle={`${n} nations · flags, facts & history`} onBack={onBack}
-        right={
-          <span className="geo-mono" style={{ fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontSize: 13, color: T.muted, padding: "0 4px" }}>
-            {i + 1}/{n}
-          </span>
-        } />
+        right={<HeaderStat>{i + 1} / {n}</HeaderStat>} />
 
       <div style={{ flex: 1, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: "4px 16px 32px" }}>
         {/* Flag card — swipe horizontally (or use the arrows) to change nation */}

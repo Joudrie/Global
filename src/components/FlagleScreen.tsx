@@ -4,8 +4,10 @@ import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
 import { todayString, shuffleWithSeed } from "../utils/prng"
 import { shareOrCopy } from "../utils/share"
-import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
+
 import { Share2 } from "lucide-react"
 import { pickOnEnter } from "../utils/pickOnEnter"
 
@@ -23,16 +25,16 @@ const TILE_EMOJI: Record<Tile, string> = { hit: "🟩", near: "🟨", miss: "⬛
 
 const swatch = (c: string) => ({ width: 10, height: 10, borderRadius: 3, display: "inline-block", background: c })
 
-// Attribute columns shown per guess.
-const COLS: { key: string; label: string }[] = [
-  { key: "colors",   label: "Col" },
-  { key: "stripesH", label: "═" },
-  { key: "stripesV", label: "║" },
-  { key: "cross",    label: "✚" },
-  { key: "star",     label: "★" },
-  { key: "crescent", label: "☾" },
-  { key: "emblem",   label: "🛡" },
-  { key: "region",   label: "🌍" },
+// Attribute columns shown per guess. icon: a LineIcon name; label: what it means.
+const COLS: { key: string; icon: string; label: string }[] = [
+  { key: "colors",   icon: "palette", label: "Colours" },
+  { key: "stripesH", icon: "rows",    label: "Horizontal stripes" },
+  { key: "stripesV", icon: "columns", label: "Vertical stripes" },
+  { key: "cross",    icon: "plus",    label: "Cross" },
+  { key: "star",     icon: "star",    label: "Star" },
+  { key: "crescent", icon: "moon",    label: "Crescent" },
+  { key: "emblem",   icon: "shield",  label: "Emblem" },
+  { key: "region",   icon: "globe",   label: "Region" },
 ]
 
 function compare(guess: FlagRecord, target: FlagRecord): Record<string, Tile> {
@@ -97,13 +99,13 @@ export default function FlagleScreen({ onBack }: Props) {
   return (
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
-      <ScreenHeader title="Flagle" onBack={onBack}
-        subtitle={`Daily · ${Math.min(guesses.length + (finished ? 0 : 1), MAX_GUESSES)} / ${MAX_GUESSES}`} />
+      <ScreenHeader title="Flagle" onBack={onBack} subtitle="Daily flag puzzle"
+        right={<HeaderStat accent={ACC}>{Math.min(guesses.length + (finished ? 0 : 1), MAX_GUESSES)} / {MAX_GUESSES}</HeaderStat>} />
 
       <div className="flex flex-col items-center px-4 gap-3">
         {/* Column legend */}
         <div className="grid w-full max-w-sm items-center" style={{ gridTemplateColumns: TILE_GRID, gap: 4 }}>
-          {COLS.map(c => <div key={c.key} className="text-center text-xs font-bold" style={{ color: ACC }}>{c.label}</div>)}
+          {COLS.map(c => <div key={c.key} title={c.label} aria-label={c.label} style={{ display: "flex", justifyContent: "center", color: ACC }}><GameIcon name={c.icon} size={15} /></div>)}
         </div>
 
         {/* Guess rows */}
@@ -164,25 +166,17 @@ export default function FlagleScreen({ onBack }: Props) {
           </div>
         ) : (
           <div className="w-full max-w-sm flex flex-col items-center gap-3 mt-1">
-            <div className="rounded-2xl p-4 w-full text-center"
-              style={{ background: T.surface, border: `1px solid ${tint(won ? T.green : T.danger, 0.35)}` }}>
+            <ResultCard style={{ width: "100%" }}>
+              <ResultHeader icon={won ? "trophy" : "flagle"} accent={won ? T.green : T.danger}
+                eyebrow={won ? `Solved in ${guesses.length}` : "Out of guesses"}
+                title={target.name} />
               <img src={target.flagUrl} alt={target.name}
-                style={{ width: 120, height: 80, objectFit: "cover", borderRadius: 8, margin: "0 auto 8px", border: `1px solid ${T.line}` }} />
-              <div className="text-lg font-black" style={{ color: T.text, fontFamily: FONT.display, fontWeight: 800 }}>{target.name}</div>
-              <div className="text-sm font-bold" style={{ color: won ? T.green : T.danger }}>
-                {won ? `Solved in ${guesses.length}!` : "Out of guesses"}
-              </div>
-            </div>
-            <button onClick={copyShare}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: ACC, color: T.onAccent, fontFamily: FONT.display }}>
-              <span className="inline-flex items-center justify-center gap-2">
-                {copied ? "Copied! ✓" : <>Share Result <Share2 size={16} strokeWidth={1.6} absoluteStrokeWidth /></>}
-              </span>
-            </button>
-            <button onClick={onBack}
-              className="w-full py-3.5 rounded-xl font-bold transition-all active:scale-95"
-              style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>← Home</button>
+                style={{ width: 120, height: 80, objectFit: "cover", borderRadius: 8, margin: "0 auto", border: `1px solid ${T.line}` }} />
+            </ResultCard>
+            <PrimaryButton onClick={copyShare} accent={ACC}>
+              {copied ? "Copied! ✓" : <>Share result <Share2 size={16} strokeWidth={1.6} absoluteStrokeWidth /></>}
+            </PrimaryButton>
+            <SecondaryButton onClick={onBack}>Home</SecondaryButton>
             <p className="text-xs text-center" style={{ color: T.dim }}>New flag every day · come back tomorrow</p>
           </div>
         )}

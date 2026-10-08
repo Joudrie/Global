@@ -1,6 +1,7 @@
 import { useState, useMemo, useEffect } from "react"
-import type { CSSProperties } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import { T, tint } from "../ui/tokens"
+import { LineIcon } from "./icons"
 
 /**
  * Shared flag image with a robust multi-source fallback chain.
@@ -27,11 +28,11 @@ interface Props {
   alt?: string
   style?: CSSProperties
   className?: string
-  /** Optional override of the placeholder glyph shown when every source fails. */
-  placeholder?: string
+  /** Optional override of the placeholder shown when every source fails. */
+  placeholder?: ReactNode
 }
 
-export default function FlagImage({ code, alt = "", style, className, placeholder = "🏳️" }: Props) {
+export default function FlagImage({ code, alt = "", style, className, placeholder }: Props) {
   const sources = useMemo(() => flagSources(code), [code])
   const [idx, setIdx] = useState(0)
 
@@ -49,7 +50,7 @@ export default function FlagImage({ code, alt = "", style, className, placeholde
           color: tint(T.muted, 0.6), fontSize: 28,
         }}
       >
-        {placeholder}
+        {placeholder ?? <LineIcon name="flag" size={24} />}
       </div>
     )
   }
