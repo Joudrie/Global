@@ -7,7 +7,7 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
 
 - Sean never merges by hand. When a PR is ready (build passes, checks green), merge it yourself
   (squash). Don't leave PRs waiting on him.
-- Merging is not deploying: `main` only goes live when he says "deploy".
+- After merging, deploy (see Deploys).
 
 ## Test site
 
@@ -17,11 +17,12 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
 
 ## Deploys
 
-- Netlify hosts the site, but it is **not** linked to GitHub: pushes never deploy.
-- Deploy only when Sean says "deploy". "Deploy" always means Netlify production.
-- To deploy, run the `Deploy to Netlify` workflow (`.github/workflows/deploy.yml`) on `main`.
-  It builds on GitHub, deploys `dist/`, then checks ads.txt, /about/ and a 404 on the live site.
-- Don't spend deploys on work in progress. Batch fixes, then deploy once.
+- Netlify hosts the site, but it is **not** linked to GitHub: pushes never deploy by themselves.
+- Sean wants finished work live right away (2026-10-08): after a PR is merged and verified, run the
+  `Deploy to Netlify` workflow (`.github/workflows/deploy.yml`) on `main` yourself, then check the live
+  site. It builds on GitHub, deploys `dist/`, then checks ads.txt, /about/ and a 404.
+- Each deploy ships everything on `main`, including other sessions' merged work. Only merge work that
+  is finished; never leave half-done work on `main`.
 
 ## What's new
 
