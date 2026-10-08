@@ -22,6 +22,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Resize and rotate symbols with handles on the flag, pinch with two fingers on a phone, or nudge them with the arrow keys. A layers list picks out anything hidden underneath.",
       "Make a nation card: your flag, name and motto in one image, ready to post.",
       "New Random button: a brand-new flag and nation name with one tap.",
+      "A new Flag maker page explains Flag Studio, with example flags and five tips for designing a good one.",
     ],
   },
   {
