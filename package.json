@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "tsc && npm run check:connections && vite build && node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/prerender.mjs",
     "check:connections": "node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/check-connections.mjs",
-    "test": "node --experimental-strip-types --import ./scripts/ts-resolve.mjs --test scripts/connections.test.mjs scripts/realorbot.test.mjs scripts/bundle.test.mjs scripts/games.test.mjs",
+    "test": "node --experimental-strip-types --import ./scripts/ts-resolve.mjs --test scripts/connections.test.mjs scripts/realorbot.test.mjs scripts/bundle.test.mjs scripts/games.test.mjs scripts/tabs.test.mjs",
     "preview": "vite preview"
   },
   "devDependencies": {
