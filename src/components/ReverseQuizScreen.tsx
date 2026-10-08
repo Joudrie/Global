@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react"
 import type { Question } from "../utils/quiz"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { PrimaryButton } from "./gameUi"
+import { PrimaryButton, choiceLabel } from "./gameUi"
 
 interface Props {
   questions: Question[]
@@ -92,6 +92,7 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
         <div className="w-full max-w-sm grid grid-cols-2 gap-3 mb-4">
           {q.choices.map((choice, i) => (
             <button key={choice.code} onClick={() => handleChoice(i)} disabled={answerState !== "idle"}
+              aria-label={answerState === "idle" ? choiceLabel(i, q.choices.length) : `${choiceLabel(i, q.choices.length)}: ${choice.name}`}
               className={`rounded-xl overflow-hidden transition-all active:scale-95 ${animClass(i)}`}
               style={{
                 border: `2.5px solid ${borderColor(i)}`,
@@ -99,7 +100,7 @@ export default function ReverseQuizScreen({ questions, title, onFinish, onBack }
                 position: "relative",
                 boxShadow: answerState !== "idle" && i === q.correctIndex ? `0 0 16px ${tint(T.green, 0.27)}` : "none",
               }}>
-              <img src={choice.flagUrl} alt={choice.name}
+              <img src={choice.flagUrl} alt=""
                 style={{ width: "100%", height: 90, objectFit: "contain", display: "block", background: T.surfaceHi }}
                 onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
               <div style={{

@@ -150,3 +150,8 @@ export function FlagLoadFailed({ onRetry, onBack, accent = T.green }:
     </div>
   )
 }
+
+/* ── Image-only answer buttons: a screen reader hears "Flag 2 of 4", never
+   the country, so the label can't give the answer away. The <img> inside
+   gets alt="" (a broken image would otherwise print the name on screen). */
+export const choiceLabel = (i: number, n: number, noun = "Flag") => `${noun} ${i + 1} of ${n}`

@@ -4,7 +4,7 @@ import type { HistoricalFlag } from "../data/codex"
 import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -27,9 +27,9 @@ function buildRounds(): Round[] {
   })
 }
 
-function FlagTile({ src, dim, badge, onClick, onDragStart }: { src: string; dim?: boolean; badge?: string; onClick?: () => void; onDragStart?: () => void }) {
+function FlagTile({ src, label, dim, badge, onClick, onDragStart }: { src: string; label?: string; dim?: boolean; badge?: string; onClick?: () => void; onDragStart?: () => void }) {
   return (
-    <button onClick={onClick} disabled={!onClick} className={onClick ? "geo-tap" : ""}
+    <button onClick={onClick} disabled={!onClick} className={onClick ? "geo-tap" : ""} aria-label={label} aria-hidden={label ? undefined : true}
       draggable={!!onDragStart}
       onDragStart={onDragStart}
       style={{ position: "relative", width: 60, height: 40, borderRadius: 6, overflow: "hidden", border: `1px solid ${T.line}`, background: "#fff", opacity: dim ? 0.32 : 1, flexShrink: 0, cursor: onDragStart ? "grab" : undefined }}>
@@ -145,6 +145,7 @@ function TimelineGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           <div style={{ display: "flex", gap: 10, flexWrap: "wrap", justifyContent: "center", marginTop: 4 }}>
             {round.shuffled.map((h, i) => (
               <FlagTile key={i} src={h.flagUrl} dim={placed.has(i)} badge={placed.has(i) ? String(order.indexOf(i) + 1) : undefined}
+                label={placed.has(i) ? `${choiceLabel(i, round.shuffled.length)}, placed ${order.indexOf(i) + 1}` : choiceLabel(i, round.shuffled.length)}
                 onClick={placed.has(i) ? undefined : () => tap(i)}
                 onDragStart={placed.has(i) ? undefined : () => setDragIdx(i)} />
             ))}

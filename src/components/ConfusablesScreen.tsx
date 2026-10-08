@@ -3,7 +3,7 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
 
 const ACC = ACCENT.play
 
@@ -132,9 +132,10 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
             return (
               <button key={flag.code} onClick={() => handlePick(i)}
                 disabled={answered}
+                aria-label={answered ? `${choiceLabel(i, round.choices.length)}: ${flag.name}` : choiceLabel(i, round.choices.length)}
                 className="relative rounded-xl overflow-hidden transition-all active:scale-95"
                 style={{ border, background: T.surface, aspectRatio: "3/2" }}>
-                <img src={flag.flagUrl} alt={flag.name} className="w-full h-full object-cover" />
+                <img src={flag.flagUrl} alt="" className="w-full h-full object-cover" />
                 {answered && (isCorrect || isChosen) && (
                   <div style={{
                     position: 'absolute', inset: 0,
