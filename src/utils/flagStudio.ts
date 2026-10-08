@@ -14,12 +14,13 @@ export type SymbolKind =
 
 export interface Overlay {
   id: string
-  kind: SymbolKind
+  kind: SymbolKind | "emblem"
+  emblem?: string // emblem code when kind is "emblem"
   x: number     // centre, in flag units (the flag is always 1000 wide)
   y: number
   size: number  // diameter in flag units
   rot: number   // degrees
-  color: string
+  color: string // for an emblem, "" keeps its own colours
 }
 
 export interface PartColor { f?: string; s?: string } // fill / stroke override
@@ -28,6 +29,7 @@ export interface Design {
   id: string
   name: string
   base: string // "flag:<code>" or "layout:<id>"
+  ratio?: number // width / height; unset keeps the template's own shape
   parts: Record<string, PartColor>
   overlays: Overlay[]
   updated: number
@@ -43,32 +45,41 @@ export function newDesign(base: string, name: string): Design {
 }
 
 // ── Blank layouts ──────────────────────────────────────────────────────────
-// Drawn on a 900×600 (2:3) field so they share proportions with most flags.
+// Drawn 900 wide; the height follows the chosen ratio (600 for 2:3), so a
+// disc stays round and a cross stays square at any shape.
 
 const B = "#0B3D91", Wt = "#FFFFFF", R = "#C8102E", Y = "#FCD116", G = "#007A3D"
 const rect = (x: number, y: number, w: number, h: number, c: string) =>
   `<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="${c}"/>`
 const poly = (pts: string, c: string) => `<polygon points="${pts}" fill="${c}"/>`
+const LW = 900
 
-export const LAYOUTS: { id: string; name: string; body: string }[] = [
-  { id: "plain", name: "Plain field", body: rect(0, 0, 900, 600, B) },
-  { id: "bicolour", name: "Bicolour", body: rect(0, 0, 900, 300, Wt) + rect(0, 300, 900, 300, R) },
-  { id: "tricolour-h", name: "Horizontal tricolour", body: rect(0, 0, 900, 200, R) + rect(0, 200, 900, 200, Wt) + rect(0, 400, 900, 200, G) },
-  { id: "tricolour-v", name: "Vertical tricolour", body: rect(0, 0, 300, 600, B) + rect(300, 0, 300, 600, Wt) + rect(600, 0, 300, 600, R) },
-  { id: "nordic", name: "Nordic cross", body: rect(0, 0, 900, 600, B) + rect(250, 0, 100, 600, Y) + rect(0, 250, 900, 100, Y) },
-  { id: "cross", name: "Centred cross", body: rect(0, 0, 900, 600, Wt) + rect(390, 0, 120, 600, R) + rect(0, 240, 900, 120, R) },
-  { id: "saltire", name: "Saltire", body: rect(0, 0, 900, 600, B) + poly("0,0 75,0 900,550 900,600 825,600 0,50", Wt) + poly("900,0 900,50 75,600 0,600 0,550 825,0", Wt) },
-  { id: "canton", name: "Canton", body: rect(0, 0, 900, 600, R) + rect(0, 0, 400, 300, B) },
-  { id: "triangle", name: "Hoist triangle", body: rect(0, 0, 900, 300, Wt) + rect(0, 300, 900, 300, R) + poly("0,0 450,300 0,600", B) },
-  { id: "diagonal", name: "Diagonal split", body: poly("0,0 900,0 0,600", G) + poly("900,0 900,600 0,600", Y) },
-  { id: "quartered", name: "Quartered", body: rect(0, 0, 450, 300, R) + rect(450, 0, 450, 300, Wt) + rect(0, 300, 450, 300, Wt) + rect(450, 300, 450, 300, R) },
-  { id: "disc", name: "Disc", body: rect(0, 0, 900, 600, Wt) + `<circle cx="450" cy="300" r="180" fill="${R}"/>` },
-  { id: "border", name: "Bordered", body: rect(0, 0, 900, 600, Y) + rect(60, 60, 780, 480, G) },
-  { id: "stripes", name: "Five stripes", body: [0, 1, 2, 3, 4].map(i => rect(0, i * 120, 900, 120, i % 2 ? Wt : B)).join("") },
+export const LAYOUTS: { id: string; name: string; body: (h: number) => string }[] = [
+  { id: "plain", name: "Plain field", body: h => rect(0, 0, LW, h, B) },
+  { id: "bicolour", name: "Bicolour", body: h => rect(0, 0, LW, h / 2, Wt) + rect(0, h / 2, LW, h / 2, R) },
+  { id: "tricolour-h", name: "Horizontal tricolour", body: h => rect(0, 0, LW, h / 3, R) + rect(0, h / 3, LW, h / 3, Wt) + rect(0, 2 * h / 3, LW, h / 3, G) },
+  { id: "tricolour-v", name: "Vertical tricolour", body: h => rect(0, 0, 300, h, B) + rect(300, 0, 300, h, Wt) + rect(600, 0, 300, h, R) },
+  { id: "nordic", name: "Nordic cross", body: h => rect(0, 0, LW, h, B) + rect(h * 5 / 12, 0, h / 6, h, Y) + rect(0, h * 5 / 12, LW, h / 6, Y) },
+  { id: "cross", name: "Centred cross", body: h => rect(0, 0, LW, h, Wt) + rect(LW / 2 - h / 10, 0, h / 5, h, R) + rect(0, h * 2 / 5, LW, h / 5, R) },
+  { id: "saltire", name: "Saltire", body: h => rect(0, 0, LW, h, B) + poly(`0,0 75,0 ${LW},${h - 50} ${LW},${h} ${LW - 75},${h} 0,50`, Wt) + poly(`${LW},0 ${LW},50 75,${h} 0,${h} 0,${h - 50} ${LW - 75},0`, Wt) },
+  { id: "canton", name: "Canton", body: h => rect(0, 0, LW, h, R) + rect(0, 0, 400, h / 2, B) },
+  { id: "triangle", name: "Hoist triangle", body: h => rect(0, 0, LW, h / 2, Wt) + rect(0, h / 2, LW, h / 2, R) + poly(`0,0 ${h * 0.75},${h / 2} 0,${h}`, B) },
+  { id: "diagonal", name: "Diagonal split", body: h => poly(`0,0 ${LW},0 0,${h}`, G) + poly(`${LW},0 ${LW},${h} 0,${h}`, Y) },
+  { id: "quartered", name: "Quartered", body: h => rect(0, 0, LW / 2, h / 2, R) + rect(LW / 2, 0, LW / 2, h / 2, Wt) + rect(0, h / 2, LW / 2, h / 2, Wt) + rect(LW / 2, h / 2, LW / 2, h / 2, R) },
+  { id: "disc", name: "Disc", body: h => rect(0, 0, LW, h, Wt) + `<circle cx="${LW / 2}" cy="${h / 2}" r="${h * 0.3}" fill="${R}"/>` },
+  { id: "border", name: "Bordered", body: h => rect(0, 0, LW, h, Y) + rect(h / 10, h / 10, LW - h / 5, h * 0.8, G) },
+  { id: "stripes", name: "Five stripes", body: h => [0, 1, 2, 3, 4].map(i => rect(0, i * h / 5, LW, h / 5, i % 2 ? Wt : B)).join("") },
 ]
 
-export const layoutSvg = (body: string) =>
-  `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 600">${body}</svg>`
+export const layoutSvg = (body: (h: number) => string, ratio = 1.5) => {
+  const h = Math.round(LW / ratio)
+  return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${LW} ${h}">${body(h)}</svg>`
+}
+
+export const RATIOS: { label: string; value?: number }[] = [
+  { label: "Original" }, { label: "1:1", value: 1 }, { label: "2:3", value: 1.5 },
+  { label: "3:5", value: 5 / 3 }, { label: "1:2", value: 2 },
+]
 
 // ── Symbols ────────────────────────────────────────────────────────────────
 // Unit shapes centred on 0,0 with radius 1, placed with translate/rotate/scale.
@@ -99,14 +110,77 @@ export const SYMBOLS: { kind: SymbolKind; name: string; d: string; evenOdd?: boo
   { kind: "stripe", name: "Stripe", d: "M-1 -.12H1V.12H-1Z" },
   { kind: "heart", name: "Heart", d: "M0 .9C-1.2 0 -.7 -1 0 -.45C.7 -1 1.2 0 0 .9Z" },
 ]
-export const symbolOf = (k: SymbolKind) => SYMBOLS.find(s => s.kind === k) ?? SYMBOLS[0]
+export const symbolOf = (k: SymbolKind | "emblem") => SYMBOLS.find(s => s.kind === k) ?? SYMBOLS[0]
 
-export const overlayTransform = (o: Overlay) =>
-  `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) rotate(${o.rot}) scale(${(o.size / 2).toFixed(2)})`
+export const overlayTransform = (o: Overlay, scaled = true) =>
+  `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) rotate(${o.rot})${scaled ? ` scale(${(o.size / 2).toFixed(2)})` : ""}`
 
 export function overlayMarkup(o: Overlay): string {
+  if (o.kind === "emblem") return `<g transform="${overlayTransform(o, false)}">${emblemInner(o)}</g>`
   const s = symbolOf(o.kind)
   return `<path d="${s.d}" fill="${o.color}"${s.evenOdd ? ' fill-rule="evenodd"' : ""} transform="${overlayTransform(o)}"/>`
+}
+
+// ── Emblems ────────────────────────────────────────────────────────────────
+// Cut from our own flag files by scripts/flags/emblems.mjs. Each one sits in a
+// nested <svg> sized to the overlay; a tinted emblem is drawn as a one-colour
+// silhouette with an SVG filter.
+
+const emblemCache = new Map<string, Promise<string>>()
+const emblemText = new Map<string, string>()
+
+export function loadEmblem(code: string): Promise<string> {
+  let p = emblemCache.get(code)
+  if (p) return p
+  const c = code.toLowerCase().replace(/[^a-z-]/g, "")
+  p = fetch(`/emblems/${c}.svg`).then(r => {
+    if (!r.ok) throw new Error(String(r.status))
+    return r.text()
+  }).then(t => { emblemText.set(code, t); return t })
+  p.catch(() => emblemCache.delete(code))
+  emblemCache.set(code, p)
+  return p
+}
+
+/** Load every emblem a design uses, so it can be composed synchronously. */
+export const ensureEmblems = (d: Pick<Design, "overlays">) =>
+  Promise.all(d.overlays.filter(o => o.kind === "emblem" && o.emblem).map(o => loadEmblem(o.emblem!).catch(() => "")))
+
+const emblemBox = (text: string) => {
+  const m = text.match(/viewBox="([^"]+)"/)
+  const vb = m ? m[1].trim().split(/[\s,]+/).map(Number) : [0, 0, 1, 1]
+  return { vb, ratio: vb[2] > 0 && vb[3] > 0 ? vb[2] / vb[3] : 1 }
+}
+
+/** One emblem on its own as a transparent PNG, `width` pixels across its longer side. */
+export async function emblemPng(code: string, width: number): Promise<{ blob: Blob }> {
+  const text = await loadEmblem(code)
+  const { ratio } = emblemBox(text)
+  const w = ratio >= 1 ? width : Math.round(width * ratio)
+  const h = Math.round(w / ratio)
+  const svg = text.replace(/<svg([^>]*)>/, (_m, attrs: string) => `<svg${attrs.replace(/\s(width|height)="[^"]*"/g, "")} width="${w}" height="${h}">`)
+  return { blob: await svgToPng(svg, w, h, w) }
+}
+
+/** Width and height of an emblem overlay in flag units (size is its longer side). */
+export function emblemSize(o: Overlay): { w: number; h: number } {
+  const t = o.emblem ? emblemText.get(o.emblem) : undefined
+  const r = t ? emblemBox(t).ratio : 1
+  return r >= 1 ? { w: o.size, h: o.size / r } : { w: o.size * r, h: o.size }
+}
+
+/** The emblem's own SVG, positioned around 0,0 and tinted if the overlay has a colour. */
+export function emblemInner(o: Overlay): string {
+  const t = o.emblem ? emblemText.get(o.emblem) : undefined
+  if (!t) return ""
+  const { w, h } = emblemSize(o)
+  const body = t.replace(/^[\s\S]*?<svg/, "<svg").replace(/<svg([^>]*)>/, (_m, attrs: string) => {
+    const kept = attrs.replace(/\s(width|height|x|y|preserveAspectRatio)="[^"]*"/g, "")
+    return `<svg${kept} x="${(-w / 2).toFixed(1)}" y="${(-h / 2).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}">`
+  })
+  if (!o.color) return body
+  const fid = `tint-${o.id}`
+  return `<filter id="${fid}" x="-5%" y="-5%" width="110%" height="110%"><feFlood flood-color="${o.color}"/><feComposite in2="SourceAlpha" operator="in"/></filter><g filter="url(#${fid})">${body}</g>`
 }
 
 // ── Colours ────────────────────────────────────────────────────────────────
@@ -139,13 +213,14 @@ export function toHex(c: string | null | undefined): string | null {
 const baseCache = new Map<string, Promise<string>>()
 
 /** The raw SVG text behind a design's base. Self-hosted first, flagcdn as backup. */
-export function loadBase(base: string): Promise<string> {
-  let p = baseCache.get(base)
-  if (p) return p
+export function loadBase(base: string, ratio?: number): Promise<string> {
   if (base.startsWith("layout:")) {
     const l = LAYOUTS.find(x => x.id === base.slice(7)) ?? LAYOUTS[0]
-    p = Promise.resolve(layoutSvg(l.body))
-  } else {
+    return Promise.resolve(layoutSvg(l.body, ratio))
+  }
+  let p = baseCache.get(base)
+  if (p) return p
+  {
     const code = base.replace(/^flag:/, "").toLowerCase().replace(/[^a-z-]/g, "")
     const get = (url: string) => fetch(url).then(r => {
       if (!r.ok) throw new Error(String(r.status))
@@ -170,7 +245,7 @@ export function partElements(root: Element | Document): Element[] {
 
 /** The base flag as an SVG string sized FLAG_W wide, with every part numbered
  *  (data-p) and the design's colour changes applied. */
-export function composeBase(text: string, parts: Record<string, PartColor>): { svg: string; h: number } {
+export function composeBase(text: string, parts: Record<string, PartColor>, ratio?: number): { svg: string; h: number } {
   const doc = new DOMParser().parseFromString(text, "image/svg+xml")
   const root = doc.documentElement
   if (!root || root.nodeName !== "svg") return { svg: "", h: Math.round(FLAG_W * 2 / 3) }
@@ -181,7 +256,8 @@ export function composeBase(text: string, parts: Record<string, PartColor>): { s
     vb = [0, 0, w, h]
     root.setAttribute("viewBox", vb.join(" "))
   }
-  const h = Math.round(FLAG_W * vb[3] / vb[2])
+  // A chosen ratio stretches the artwork to fit, the way flags are resized.
+  const h = Math.round(ratio ? FLAG_W / ratio : FLAG_W * vb[3] / vb[2])
   root.setAttribute("width", String(FLAG_W))
   root.setAttribute("height", String(h))
   root.setAttribute("x", "0")
@@ -200,8 +276,8 @@ export function composeBase(text: string, parts: Record<string, PartColor>): { s
 }
 
 /** The finished flag (base plus symbols) as one standalone SVG document. */
-export function composeFull(text: string, d: Pick<Design, "parts" | "overlays">): { svg: string; h: number } {
-  const { svg, h } = composeBase(text, d.parts)
+export function composeFull(text: string, d: Pick<Design, "parts" | "overlays" | "ratio">): { svg: string; h: number } {
+  const { svg, h } = composeBase(text, d.parts, d.ratio)
   const out = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 ${FLAG_W} ${h}" width="${FLAG_W}" height="${h}">${svg}${d.overlays.map(overlayMarkup).join("")}</svg>`
   return { svg: out, h }
 }
@@ -209,7 +285,7 @@ export function composeFull(text: string, d: Pick<Design, "parts" | "overlays">)
 export const svgDataUri = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
 /** Rasterise a finished SVG to a PNG blob, `width` pixels wide. */
-export function svgToPng(svg: string, width: number, h: number): Promise<Blob> {
+export function svgToPng(svg: string, width: number, h: number, srcW = FLAG_W): Promise<Blob> {
   return new Promise((resolve, reject) => {
     const img = new Image()
     const url = URL.createObjectURL(new Blob([svg], { type: "image/svg+xml" }))
@@ -217,7 +293,7 @@ export function svgToPng(svg: string, width: number, h: number): Promise<Blob> {
       try {
         const canvas = document.createElement("canvas")
         canvas.width = width
-        canvas.height = Math.round(width * h / FLAG_W)
+        canvas.height = Math.round(width * h / srcW)
         const ctx = canvas.getContext("2d")
         if (!ctx) throw new Error("no canvas")
         ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
@@ -255,7 +331,8 @@ export function encodeDesign(d: Design): string {
     n: d.name.slice(0, 60),
     b: d.base,
     p: d.parts,
-    o: d.overlays.map(o => [o.kind, Math.round(o.x), Math.round(o.y), Math.round(o.size), Math.round(o.rot), o.color]),
+    o: d.overlays.map(o => [o.kind, Math.round(o.x), Math.round(o.y), Math.round(o.size), Math.round(o.rot), o.color, ...(o.emblem ? [o.emblem] : [])]),
+    ...(d.ratio ? { r: +d.ratio.toFixed(4) } : {}),
   }
   const bytes = new TextEncoder().encode(JSON.stringify(payload))
   let bin = ""
@@ -282,12 +359,16 @@ export function decodeDesign(s: string): Design | null {
     }
     const overlays: Overlay[] = Array.isArray(json.o) ? (json.o as unknown[]).slice(0, 60).flatMap(raw => {
       if (!Array.isArray(raw)) return []
-      const [kind, x, y, size, rot, color] = raw
-      if (!SYMBOL_KINDS.has(kind) || ![x, y, size, rot].every(n => typeof n === "number" && isFinite(n)) || typeof color !== "string" || !HEX.test(color)) return []
-      return [{ id: newId(), kind, x, y, size: Math.max(4, Math.min(3000, size)), rot: ((rot % 360) + 360) % 360, color }]
+      const [kind, x, y, size, rot, color, emblem] = raw
+      const isEmblem = kind === "emblem"
+      if (!(SYMBOL_KINDS.has(kind as SymbolKind) || isEmblem) || ![x, y, size, rot].every(n => typeof n === "number" && isFinite(n))) return []
+      if (typeof color !== "string" || !(HEX.test(color) || (isEmblem && color === ""))) return []
+      if (isEmblem && !(typeof emblem === "string" && /^[a-z-]{2,10}$/.test(emblem))) return []
+      return [{ id: newId(), kind, x, y, size: Math.max(4, Math.min(3000, size)), rot: ((rot % 360) + 360) % 360, color, ...(isEmblem ? { emblem } : {}) }]
     }) : []
     const name = typeof json.n === "string" && json.n.trim() ? json.n.slice(0, 60) : "Shared flag"
-    return { id: newId(), name, base, parts, overlays, updated: Date.now() }
+    const ratio = typeof json.r === "number" && json.r >= 0.5 && json.r <= 3 ? json.r : undefined
+    return { id: newId(), name, base, parts, overlays, updated: Date.now(), ...(ratio ? { ratio } : {}) }
   } catch { return null }
 }
 

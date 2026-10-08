@@ -12,6 +12,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Add stars, suns, crescents, crosses and more, then drag, resize and rotate them.",
       "Download your flag as a PNG up to 4K or as an SVG, or share it with a link.",
       "Every flag you make is saved on your device under My flags.",
+      "Add real emblems to your flag, like Albania's eagle, Mexico's eagle or Spain's coat of arms, keep their colours or make them one colour, or download one on its own as a PNG.",
+      "Pick your flag's shape: 1:1, 2:3, 3:5 or 1:2.",
+      "Symbols snap to the centre of the flag as you drag them.",
+      "A design check scores your flag against the classic rules of flag design.",
     ],
   },
   {
