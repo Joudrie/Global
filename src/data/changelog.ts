@@ -24,6 +24,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "The suggestion lists in Silhouette, The Crop, The Peel and Composer show names only, so they no longer give the answer away.",
       "Your progress in long Flag Sets is saved as you go, the daily picks up where you left off, and the streak shows 0 after a missed day.",
       "The phone's Back button takes you home instead of leaving the site.",
+      "Change your mind mid-move: in Flag Timeline, tap a placed flag to take it back and put another in its place; in Build the Flag, tap a piece again to put it down or tap a placed piece to take it off; in Spot the Error, tap a band again to unpick it.",
       "The Codex keeps your search and place when you switch tabs, opens Flag of the Day right on its entry, and finds countries by any name.",
       "Screen readers hear \"Flag 2 of 4\" on picture answers, never the answer itself, and more buttons and fields have names.",
       "Flag facts checked flag by flag: stripes, stars, crescents, suns and colours are fixed in Flag DNA, Flagle, Describe It, Higher or Lower and Symbol Hunt (Kazakhstan has no crescent; Malawi's sun isn't a star).",

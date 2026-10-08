@@ -126,7 +126,8 @@ export default function SpotErrorScreen({ onBack }: Props) {
   // Striped flags have bands; Nordic crosses and discs (Japan, Bangladesh) don't.
   const part = pz.layout === "v3" || pz.layout === "h3" || pz.layout === "h2" ? "band" : "part"
 
-  const pick = (slot: string) => { if (phase === "play") setPicked(slot) }
+  // Tap again to unpick.
+  const pick = (slot: string) => { if (phase === "play") setPicked(p => (p === slot ? null : slot)) }
   const submit = () => {
     if (!picked) return
     setPhase("result")
