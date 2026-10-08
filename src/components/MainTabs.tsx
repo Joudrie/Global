@@ -1,12 +1,13 @@
-import { useState, useRef, lazy, Suspense } from "react"
+import { useState, useRef, useEffect, useLayoutEffect, useReducer, lazy, Suspense } from "react"
 import { LAST_UPDATED, formatDate } from "../data/changelog"
 import type { ReactNode } from "react"
 import { FLAGS } from "../data/flags"
 import type { AppState } from "../utils/storage"
+import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { openSupporter } from "../utils/supporterNav"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, GAME_COUNT, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
+import { groupsFor, REGISTRY, GAMES, GAME_COUNT, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
 import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon, HeartIcon } from "./icons"
@@ -33,8 +34,10 @@ interface Props {
   intro?: ReactNode
 }
 
-const dayIdx = Math.floor(Date.now() / 86400000)
-const weekIdx = Math.floor(Date.now() / (7 * 86400000))
+// Day number of a local y-m-d date, for the daily and weekly rotations. Taken
+// from todayString() at render time (not at module load), so the picks follow
+// the player's own midnight and an app left open overnight rolls over.
+const dayIndex = (today: string) => Math.floor(Date.parse(today) / 86400000)
 
 // Lightweight recently-played memory (ids only) so a favourite game is one tap
 // away instead of a re-swipe through the shelves. Separate key from AppState —
@@ -58,13 +61,27 @@ function pushRecent(id: string) {
 }
 
 export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, onStartDaily, onReverseQuiz, onSetUsername, intro }: Props) {
+  // Re-render when the app comes back into view, so the date-driven parts
+  // (daily picks, Flag of the Day, streak) catch up after midnight.
+  const [, wake] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    const onShow = () => { if (document.visibilityState === "visible") wake() }
+    document.addEventListener("visibilitychange", onShow)
+    return () => document.removeEventListener("visibilitychange", onShow)
+  }, [])
   const today = todayString()
   const dailyDone = state.lastDailyDate === today
+  const streak = displayStreak(state, today)
   // Deep-link target for the embedded Codex (e.g. Flag of the Day → its entry).
   // Cleared when the user leaves the Codex so a plain tab tap opens the list.
   const [codexCode, setCodexCode] = useState<string | null>(null)
   const goCodex = (code?: string) => { setCodexCode(code ?? null); onTab("codex") }
   const handleTab = (t: TabKey) => { if (tab === "codex") setCodexCode(null); onTab(t) }
+  // Every tab scrolls inside the one <main>, so a new tab would open at the old
+  // tab's scroll position. Start each tab at the top; the Codex puts back its
+  // own position (or scrolls to a deep-linked entry) when it mounts.
+  const mainRef = useRef<HTMLElement>(null)
+  useLayoutEffect(() => { if (tab !== "codex" && mainRef.current) mainRef.current.scrollTop = 0 }, [tab])
 
   const launch = (e: Entry) => {
     pushRecent(e.id)
@@ -89,9 +106,9 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
           {/* The streak, small and always on top — Today's big celebration is gone */}
-          <div style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 999, background: T.surface, border: `1px solid ${tint(T.amber, 0.45)}` }}>
+          <div role="img" aria-label={`Day streak: ${streak}`} style={{ display: "flex", alignItems: "center", gap: 5, padding: "5px 10px", borderRadius: 999, background: T.surface, border: `1px solid ${tint(T.amber, 0.45)}` }}>
             <FlameIcon size={13} color={T.amber} strokeWidth={1.7} />
-            <span style={{ fontFamily: FONT.mono, fontWeight: 600, fontSize: 14, color: T.amber, letterSpacing: "-0.02em" }}>{state.currentStreak}</span>
+            <span style={{ fontFamily: FONT.mono, fontWeight: 600, fontSize: 14, color: T.amber, letterSpacing: "-0.02em" }}>{streak}</span>
           </div>
           <button onClick={() => onNavigate("settings")} aria-label="Settings" className="geo-tap"
             style={{ width: 44, height: 44, borderRadius: 999, background: T.surface, border: `1px solid ${T.line}`, color: T.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -100,19 +117,19 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
         </div>
       </header>
 
-      <main style={{ position: "relative", flex: 1, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: tab === "codex" ? "0 0 24px" : "8px 16px 24px" }}>
+      <main ref={mainRef} style={{ position: "relative", flex: 1, minHeight: 0, overflowY: "auto", WebkitOverflowScrolling: "touch", padding: tab === "codex" ? "0 0 24px" : "8px 16px 24px" }}>
         {tab === "today" && (
-          <TodayTab state={state} dailyDone={dailyDone} launch={launch}
+          <TodayTab state={state} today={today} dailyDone={dailyDone} launch={launch}
             onNavigate={onNavigate} onGoCodex={goCodex} onGoPlay={() => onTab("play")}
             onStartDaily={onStartDaily} intro={intro} />
         )}
-        {tab === "play" && <PlayTab launch={launch} state={state} />}
+        {tab === "play" && <PlayTab launch={launch} state={state} today={today} />}
         {tab === "codex" && (
           <Suspense fallback={<div style={{ padding: 48, textAlign: "center", color: T.dim, fontSize: 13 }}>Opening the codex…</div>}>
             <CodexScreenLazy embedded initialCode={codexCode} />
           </Suspense>
         )}
-        {tab === "you" && <YouTab state={state} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} />}
+        {tab === "you" && <YouTab state={state} streak={streak} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} />}
       </main>
 
       <TabBar active={tab} onChange={handleTab} />
@@ -125,15 +142,16 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
    Flag of the Day · the Arcade · a daily fact), then a charged-up Quick Play,
    the two daily rituals as poster tiles, jump-back-in, and the learning
    resume. Every road leads to Play — or the Codex. ───────────────────────── */
-function TodayTab({ state, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, onStartDaily, intro }: {
-  state: AppState; dailyDone: boolean; launch: (e: Entry) => void
+function TodayTab({ state, today, dailyDone, launch, onNavigate, onGoCodex, onGoPlay, onStartDaily, intro }: {
+  state: AppState; today: string; dailyDone: boolean; launch: (e: Entry) => void
   onNavigate: (s: string) => void; onGoCodex: (code?: string) => void; onGoPlay: () => void; onStartDaily: () => void
   intro?: ReactNode
 }) {
+  const dayIdx = dayIndex(today)
   const fotd = FLAGS[dayIdx % FLAGS.length]
   const dyk = FLAGS[(dayIdx * 7 + 3) % FLAGS.length]
   const gameCount = GAME_COUNT
-  const todayResult = state.dailyHistory[todayString()]
+  const todayResult = state.dailyHistory[today]
   const dailyRituals = ["gacha", "funfact"].map(id => REGISTRY.find(r => r.id === id)).filter((e): e is Entry => !!e)
   const connections = REGISTRY.find(r => r.id === "connections")
 
@@ -524,7 +542,7 @@ function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark,
    catalogue by category, and a daily discovery rail. The rough/niche games
    live in the collapsible Beta Sandbox at the very bottom — nothing is ever
    deleted, only re-ranked. ─────────────────────────────────────────────── */
-function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppState }) {
+function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: AppState; today: string }) {
   const [sandboxOpen, setSandboxOpen] = useState(false)
   const [q, setQ] = useState("")
   const [activeGroup, setActiveGroup] = useState<string | null>(null)
@@ -540,12 +558,13 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
   const recents = recentIds.map(id => all.find(r => r.id === id)).filter((e): e is Entry => !!e)
   const enoughPlays = loadPlayCount() >= 4
   const rec = recommendFor(recentIds)
+  const dayIdx = dayIndex(today)
   const discover = discoverGames(recentIds, dayIdx)
   // Trending deck — featured A-tier games lead, then a stable weekly rotation.
   // Real or Bot is pinned to the opening card and GeoPaint to the second, both
   // by request — the weekly shuffle only reorders everything behind them.
   const trending = (() => {
-    const list = trendingGames(weekIdx)
+    const list = trendingGames(Math.floor(dayIdx / 7))
     const pin = (id: string, pos: number) => {
       const at = list.findIndex(e => e.id === id)
       const it = at >= 0 ? list.splice(at, 1)[0] : REGISTRY.find(e => e.id === id)
@@ -564,13 +583,14 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
   const learnPct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
 
   // Browse vs. filter: a search query or a non-"All" chip collapses the shelves
-  // into a flat result grid. Search spans the *whole* catalogue (sandbox too)
-  // so every game stays findable by name. "Popular" is the hand-picked set.
+  // into a flat result grid. Search spans the *whole* catalogue (sandbox too,
+  // and games filed on Today such as Flag Gacha) so every game stays findable
+  // by name. "Popular" is the hand-picked set.
   const POPULAR = "__popular"
   const query = q.trim().toLowerCase()
   const filtering = !!query || activeGroup !== null
   const filtered = query
-    ? all.filter(r => `${r.title} ${r.subtitle}`.toLowerCase().includes(query))
+    ? GAMES.filter(r => `${r.title} ${r.subtitle}`.toLowerCase().includes(query))
     : activeGroup === POPULAR
       ? featured
       : activeGroup
@@ -610,7 +630,8 @@ function PlayTab({ launch, state }: { launch: (e: Entry) => void; state: AppStat
           style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 14 }} />
         {q && (
           <button onClick={() => setQ("")} aria-label="Clear search"
-            style={{ color: T.dim, background: "transparent", fontSize: 18, lineHeight: 1, padding: "4px 2px" }}>×</button>
+            style={{ width: 44, height: 44, marginRight: -12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+              color: T.dim, background: "transparent", fontSize: 18, lineHeight: 1 }}>×</button>
         )}
       </div>
 
@@ -962,14 +983,28 @@ const RANKS: { min: number; title: string }[] = [
 ]
 const rankFor = (learned: number) => RANKS.find(r => learned >= r.min)!.title
 
-function YouTab({ state, learned, onNavigate, onSetUsername }: {
-  state: AppState; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void
+// Names are capped by what a reader sees as characters, so an emoji or an
+// accented letter counts once and is never cut in half (maxLength and
+// String.slice count UTF-16 units). Code points where Intl.Segmenter is missing.
+const NAME_MAX = 24
+function clampName(s: string): string {
+  const chars = typeof Intl !== "undefined" && Intl.Segmenter
+    ? Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s), g => g.segment)
+    : Array.from(s)
+  return chars.length > NAME_MAX ? chars.slice(0, NAME_MAX).join("") : s
+}
+
+function YouTab({ state, streak, learned, onNavigate, onSetUsername }: {
+  state: AppState; streak: number; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(state.username)
   const name = state.username.trim() || "Explorer"
   const pct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
-  const saveName = () => { onSetUsername(draft.trim().slice(0, 24)); setEditing(false) }
+  const saveName = () => { onSetUsername(clampName(draft.trim())); setEditing(false) }
+  // Only the set crowns count: Quick Play, Flag ID and Flashcards quizzes also
+  // record a crown under their own ids, which are not sets on the shelf.
+  const crowns = state.crowns.filter(id => CROWN_SETS.some(c => c.id === id)).length
 
   const regionStats = REGIONS.map(region => {
     const inRegion = FLAGS.filter(f => f.region === region)
@@ -988,27 +1023,35 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           {editing ? (
-            <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-              <input autoFocus value={draft} maxLength={24} placeholder="Your name"
-                onChange={e => setDraft(e.target.value)}
+            // The buttons wrap under the input on narrow phones rather than
+            // squeezing it.
+            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
+              <input autoFocus value={draft} placeholder="Your name" aria-label="Your name"
+                onChange={e => setDraft(clampName(e.target.value))}
                 onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditing(false) }}
-                style={{ flex: 1, minWidth: 0, padding: "7px 10px", borderRadius: 10, fontSize: 17, fontWeight: 700,
+                style={{ flex: "1 1 150px", minWidth: 0, padding: "7px 10px", borderRadius: 10, fontSize: 17, fontWeight: 700,
                   fontFamily: FONT.display, background: T.surfaceHi, border: `1px solid ${tint(ACCENT.learn, 0.4)}`, color: T.text, outline: "none" }} />
-              <button onClick={saveName} className="geo-tap"
-                style={{ padding: "9px 16px", borderRadius: 999, flexShrink: 0, background: ACCENT.learn, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700, fontSize: 13 }}>
-                Save
-              </button>
+              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
+                <button onClick={saveName} className="geo-tap"
+                  style={{ padding: "9px 16px", minHeight: 44, borderRadius: 999, background: ACCENT.learn, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700, fontSize: 13 }}>
+                  Save
+                </button>
+                <button onClick={() => setEditing(false)} className="geo-tap"
+                  style={{ padding: "9px 14px", minHeight: 44, borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontFamily: FONT.display, fontWeight: 600, fontSize: 13 }}>
+                  Cancel
+                </button>
+              </div>
             </div>
           ) : (
-            <button onClick={() => { setDraft(state.username); setEditing(true) }} aria-label="Edit your name"
-              style={{ display: "flex", alignItems: "center", gap: 8, background: "transparent", padding: 0, textAlign: "left" }}>
-              <span className="geo-display" style={{ color: T.text, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em", lineHeight: 1.05 }}>{name}</span>
-              <PencilIcon size={14} color={ACCENT.learn} strokeWidth={1.6} />
+            <button onClick={() => { setDraft(state.username); setEditing(true) }} aria-label={`Edit your name: ${name}`}
+              style={{ display: "flex", alignItems: "center", gap: 8, maxWidth: "100%", background: "transparent", padding: 0, textAlign: "left" }}>
+              <span className="geo-display" style={{ minWidth: 0, overflowWrap: "anywhere", color: T.text, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em", lineHeight: 1.05 }}>{name}</span>
+              <span style={{ display: "flex", flexShrink: 0 }}><PencilIcon size={14} color={ACCENT.learn} strokeWidth={1.6} /></span>
             </button>
           )}
           <div style={{ color: T.muted, fontSize: 12, marginTop: 3 }}>
             <span style={{ color: ACCENT.learn, fontWeight: 600 }}>{rankFor(learned)}</span>
-            {" "}· {learned} flags · {state.crowns.length} {state.crowns.length === 1 ? "crown" : "crowns"}
+            {" "}· {learned} flags · {crowns} {crowns === 1 ? "crown" : "crowns"}
           </div>
         </div>
       </div>
@@ -1048,15 +1091,15 @@ function YouTab({ state, learned, onNavigate, onSetUsername }: {
       <div>
         <SectionHeader title="Field Record" accent={T.amber} />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-          <StatPill icon={<FlameIcon size={15} color={T.amber} strokeWidth={1.7} />} value={state.currentStreak} label="Day streak" accent={T.amber} big />
+          <StatPill icon={<FlameIcon size={15} color={T.amber} strokeWidth={1.7} />} value={streak} label="Day streak" accent={T.amber} big />
           <StatPill icon={<LineIcon name="quickplay" size={15} color={T.chartreuse} />} value={state.longestStreak} label="Best streak" accent={T.chartreuse} big />
-          <StatPill icon={<CrownIcon size={15} color={T.gold} strokeWidth={1.7} />} value={state.crowns.length} label="Crowns" accent={T.gold} big />
+          <StatPill icon={<CrownIcon size={15} color={T.gold} strokeWidth={1.7} />} value={crowns} label="Crowns" accent={T.gold} big />
         </div>
       </div>
 
       {/* Trophy shelf — all seven set-crowns, earned and waiting */}
       <div>
-        <SectionHeader title={`Trophy Shelf · ${state.crowns.length}/${CROWN_SETS.length}`} accent={T.gold} />
+        <SectionHeader title={`Trophy Shelf · ${crowns}/${CROWN_SETS.length}`} accent={T.gold} />
         <div style={{ display: "flex", justifyContent: "space-between", gap: 4 }}>
           {CROWN_SETS.map(c => {
             const earned = state.crowns.includes(c.id)
