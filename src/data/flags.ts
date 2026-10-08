@@ -133,7 +133,7 @@ export const FLAGS: FlagRecord[] = [
   f('AM','Armenia','Asia',['TD','RO','DE'],'Horizontal red-blue-orange stripes.','Armenia was the first country in the world to adopt Christianity as its state religion, in 301 AD.'),
   f('AZ','Azerbaijan','Asia',['TM','UZ'],'Horizontal blue-red-green with a white crescent and eight-pointed star in the red stripe.','Azerbaijan was the world\'s first predominantly Muslim nation to operate as a democratic republic, in 1918.'),
   f('BD','Bangladesh','Asia',['JP','PW'],'Green field with a red disc offset slightly to the left. Japan is white with red disc.','Bangladesh is home to the Sundarbans, the world\'s largest mangrove forest, shared with India.'),
-  f('BT','Bhutan','Asia',[],'Diagonally split orange-red with a white dragon (Druk) in the centre.','Bhutan is the only country in the world that measures its success by Gross National Happiness instead of GDP.'),
+  f('BT','Bhutan','Asia',[],'Diagonally split yellow and orange with a white dragon (Druk) in the centre.','Bhutan is the only country in the world that measures its success by Gross National Happiness instead of GDP.'),
   f('BN','Brunei','Asia',['MY'],'Yellow with black and white diagonal stripes and the Brunei coat of arms in the centre.','Brunei\'s sultan is one of the wealthiest individuals in the world, with a 1,788-room palace.'),
   f('KH','Cambodia','Asia',[],'Horizontal blue-red-blue with an image of Angkor Wat in the centre.','Cambodia is home to Angkor Wat, the world\'s largest religious monument.'),
   f('CN','China','Asia',['VN','BF','TR'],'Red with one large yellow star and four smaller yellow stars in the upper left.','China is the world\'s oldest continuous civilisation, with a recorded history of over 5,000 years.'),
