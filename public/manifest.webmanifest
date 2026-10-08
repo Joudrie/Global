@@ -1,7 +1,7 @@
 {
   "name": "Globalio — Learn Every Flag in the World",
   "short_name": "Globalio",
-  "description": "A beautiful flag & geography game with 50+ ways to play — daily challenges, quizzes, and a 2,000-flag codex.",
+  "description": "Learn every flag in the world: 50 flag and geography games, a daily Connections puzzle and a hand-researched archive of 4,500+ flags.",
   "start_url": "/",
   "scope": "/",
   "display": "standalone",

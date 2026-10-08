@@ -120,18 +120,18 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
         {/* Replay the first-run intro (clears the flag and reloads) */}
         <button onClick={() => { try { localStorage.removeItem("globalio_onboarded") } catch { /* ignore */ } window.location.reload() }}
           className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
-          style={{ background: 'transparent', border: `1px dashed ${T.line}`, color: T.dim }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="intro" size={14} color={T.dim} /> Replay intro</span>
+          style={{ background: 'transparent', border: `1px solid ${T.line}`, color: T.muted }}>
+          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="intro" size={14} color={T.muted} /> Replay intro</span>
         </button>
 
         {/* Feedback — opens the user's mail app, pre-addressed to the dev */}
         <a href={"mailto:sjoudrie@gmail.com?subject=" + encodeURIComponent("Globalio feedback") + "&body=" + encodeURIComponent("What I love / what I'd change / an idea:\n\n")}
           className="w-full mt-3 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 block text-center"
           style={{ textDecoration: 'none', background: tint(ACCENT.learn, 0.12), border: `1px solid ${tint(ACCENT.learn, 0.4)}`, color: ACCENT.learn }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="historical" size={15} color={ACCENT.learn} /> Send feedback or ideas</span>
+          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="mail" size={15} color={ACCENT.learn} /> Send feedback or ideas</span>
         </a>
         <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
-          i'm a one-man operation, so i genuinely read every message — thanks for playing, and i'll do my best to make it happen
+          Globalio is made by one person, and I read every message. Thanks for playing.
         </div>
 
         {/* Legal — required for ad networks & app stores */}
@@ -150,11 +150,11 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
           </p>
         </div>
 
-        {/* secret */}
+        {/* Mega Codex: every flag on one scrolling wall */}
         <button onClick={onMegaCodex}
-          className="w-full mt-8 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
-          style={{ background: 'transparent', border: `1px dashed ${T.line}`, color: T.dim }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="codex" size={14} color={T.dim} /> Secret MegaCodex</span>
+          className="w-full mt-8 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
+          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
+          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="codex" size={14} color={T.muted} /> Browse all 4,500+ flags</span>
         </button>
 
         {/* temporary flag-QA list */}

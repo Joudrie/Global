@@ -706,7 +706,7 @@ function OtherFlagsResults({ query }: { query: string }) {
 // continents above). Mega Codex = red, Peoples = orange, then the causes step
 // down through amber/gold/chartreuse.
 const CAT_COLORS: Record<string, string> = {
-  'Pride & LGBTQ+': "#A78BFA", // light purple — the one hue the token palette lacks
+  'Pride & LGBTQ+': T.violet, // muted plum: readable on parchment (the old lavender failed contrast)
   'Pan-National & Ethnic': T.warm,
   'Indigenous Peoples': T.amber,
   'Separatist & Autonomous': T.gold,

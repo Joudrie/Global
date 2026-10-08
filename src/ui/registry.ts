@@ -44,7 +44,7 @@ export const REGISTRY: Entry[] = [
   // Learn the World — the learning spine, integrated as poster tiles like
   // every other shelf (leads the page with a live mastery line)
   { id: "flags", title: "Flag Sets", subtitle: "Country, historical & identity sets", icon: "🚩", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: flagProgress },
-  { id: "flashcards", title: "Flashcards", subtitle: "Swipe & learn all 195", icon: "🃏", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: flagProgress },
+  { id: "flashcards", title: "Flashcards", subtitle: "Swipe & learn all 197", icon: "🃏", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: flagProgress },
   { id: "historical", title: "Historical Flags", subtitle: "Vanished empires & states", icon: "📜", tab: "play", group: "Learn the World", size: "module", accent: "learn" },
   { id: "identity", title: "Identity Flags", subtitle: "Pride · ethnic · signal flags", icon: "🏳️‍🌈", tab: "play", group: "Learn the World", size: "module", accent: "learn" },
   { id: "provinceroulette", title: "Province Roulette", subtitle: "Continent → country → region", icon: "🎰", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },

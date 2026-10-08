@@ -115,6 +115,10 @@ ${canonical ? `<link rel="canonical" href="${canonical}" />` : ''}
 ${noindex ? '<meta name="robots" content="noindex" />' : ''}
 <meta name="theme-color" content="#FBF4E4" />
 <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png" />
+<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png" />
+<link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+<link rel="manifest" href="/manifest.webmanifest" />
 <meta property="og:type" content="website" />
 <meta property="og:site_name" content="Globalio" />
 ${canonical ? `<meta property="og:url" content="${canonical}" />` : ''}
@@ -158,6 +162,8 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
   .facts{list-style:none;padding:0;margin:0 0 14px;display:grid;grid-template-columns:repeat(auto-fill,minmax(140px,1fr));gap:8px}
   .facts li{background:#FFFCF4;border:1px solid #DDCEAF;border-radius:10px;padding:9px 13px;font-size:14px}
   .facts b{display:block;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:#5F726D;font-weight:600}
+  .entry > div{min-width:0}
+  .entry .entry{margin-left:0}
   .entry{display:flex;gap:16px;align-items:flex-start;background:#FFFCF4;border:1px solid #DDCEAF;border-radius:12px;padding:14px;margin:0 0 12px;
          box-shadow:0 1px 2px rgba(31,58,60,0.05),0 8px 20px -14px rgba(31,58,60,0.25)}
   .entry .thumb{width:96px;flex-shrink:0}
@@ -177,7 +183,7 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
   .cta:hover{color:#FFFCF4;filter:brightness(1.06)}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid #DDCEAF;font-size:13px;color:#5F726D}
   footer a{margin-right:14px;color:#5F726D}
-  @media (max-width:520px){h1{font-size:28px}.entry .thumb{width:72px}}
+  @media (max-width:520px){h1{font-size:28px}.entry .thumb{width:72px}.entry .entry{flex-direction:column;gap:8px}}
 </style>
 </head>
 <body>

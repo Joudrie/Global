@@ -36,7 +36,7 @@ const MAP: Record<string, LucideIcon> = {
   bordermap: MapPinned, borderchain: Waypoints, gacha: Gift,
   symbolhunt: ScanSearch, twotruths: VenetianMask, forgery: ScanSearch,
   capitalmatch: Building2, oddborder: Signpost, continentsort: FolderTree, statclash: Scale,
-  worldcup: Trophy, connections: Grid2x2,
+  worldcup: Trophy, connections: Grid2x2, mail: Mail,
 }
 
 export function LineIcon({ name, size = 21, strokeWidth = 1.6, color = "currentColor" }:
