@@ -26,6 +26,10 @@ const NAMES = new Map([...flagsTs.matchAll(/f\('([a-z-]+)',\s*'([^']+)'/gi)].map
 // by: border ornament; ir: the takbir border; tm: carpet band; tv, tw: a
 // canton or a scatter of stars, not an emblem.
 const SKIP = new Set(['by', 'ir', 'tm', 'tv', 'tw'])
+// Emblems whose field-coloured details are holes, not paint: Saudi Arabia's
+// letter dots and counters. Elsewhere (Serbia's white eagle, Dominica's green
+// stars) the field colour is real paint and must stay.
+const KNOCKOUT = new Set(['sa', 'iq'])
 
 const browser = await chromium.launch({ executablePath: process.env.CHROMIUM || undefined, args: ['--headless=new'] })
 const page = await browser.newPage()
@@ -37,7 +41,7 @@ for (const code of [...NAMES.keys()].sort()) {
   const file = path.join(FLAGS_DIR, `${code}.svg`)
   if (!fs.existsSync(file) || SKIP.has(code)) continue
   const svg = fs.readFileSync(file, 'utf8')
-  const res = await page.evaluate(src => {
+  const res = await page.evaluate(([src, code, knockout]) => {
     const host = document.getElementById('host')
     host.innerHTML = src
     const root = host.querySelector('svg')
@@ -56,6 +60,9 @@ for (const code of [...NAMES.keys()].sort()) {
       const spans = w >= vb.width * 0.97 || h >= vb.height * 0.97 || w * h >= vb.width * vb.height * 0.45
       if (spans || w * h === 0) drop.push(el); else keep.push({ el, r })
     }
+    // The field colours (fills of the shapes that span the flag).
+    const fillOf = el => getComputedStyle(el).fill
+    const fieldFills = new Set(drop.map(fillOf).filter(f => f && f !== 'none'))
     if (!keep.length) return null
     // Shapes that touch or nearly touch belong to the same emblem. Keep the
     // most detailed group, so a flag's corner stars or a stray stripe
@@ -76,12 +83,48 @@ for (const code of [...NAMES.keys()].sort()) {
     const ew = (x1 - x0) * sx, eh = (y1 - y0) * sy
     // How detailed the emblem is: plain discs and stars are already symbols.
     const detail = keep.reduce((n, k) => n + (k.el.getAttribute('d') || '').length + (k.el.getAttribute('points') || '').length, 0)
-    drop.forEach(el => el.remove())
     const pad = Math.max(ew, eh) * 0.02
+    // Small details painted in the field colour (the dots and letter holes in
+    // Saudi Arabia's shahada) are really holes. Cut them out with a mask, so
+    // the new flag shows through instead of specks of the old one.
+    const rootCtm = root.getScreenCTM().inverse()
+    const knock = knockout ? keep.filter(k => fieldFills.has(fillOf(k.el))) : []
+    const ns = 'http://www.w3.org/2000/svg'
+    let mask = null
+    if (knock.length) {
+      mask = document.createElementNS(ns, 'mask')
+      mask.setAttribute('id', `ko-${code}`)
+      mask.setAttribute('maskUnits', 'userSpaceOnUse')
+      for (const [a, v] of [['x', ex - pad], ['y', ey - pad], ['width', ew + 2 * pad], ['height', eh + 2 * pad]]) mask.setAttribute(a, String(+v.toFixed(2)))
+      const bg = document.createElementNS(ns, 'rect')
+      for (const [a, v] of [['x', ex - pad], ['y', ey - pad], ['width', ew + 2 * pad], ['height', eh + 2 * pad]]) bg.setAttribute(a, String(+v.toFixed(2)))
+      bg.setAttribute('fill', '#fff')
+      mask.appendChild(bg)
+      for (const k of knock) {
+        const m = rootCtm.multiply(k.el.getScreenCTM())
+        const c = k.el.cloneNode(true)
+        c.removeAttribute('id'); c.removeAttribute('class'); c.removeAttribute('style')
+        c.setAttribute('fill', '#000'); c.setAttribute('stroke', 'none')
+        c.setAttribute('fill-rule', getComputedStyle(k.el).fillRule)
+        c.setAttribute('transform', `matrix(${[m.a, m.b, m.c, m.d, m.e, m.f].map(n => +n.toFixed(4)).join(' ')})`)
+        mask.appendChild(c)
+        drop.push(k.el)
+      }
+    }
+    drop.forEach(el => el.remove())
+    if (mask) {
+      let defs = root.querySelector(':scope > defs')
+      if (!defs) { defs = document.createElementNS(ns, 'defs'); root.insertBefore(defs, root.firstChild) }
+      defs.appendChild(mask)
+      const g = document.createElementNS(ns, 'g')
+      g.setAttribute('mask', `url(#ko-${code})`)
+      for (const n of [...root.childNodes]) if (n !== defs) g.appendChild(n)
+      root.appendChild(g)
+    }
     root.setAttribute('viewBox', `${(ex - pad).toFixed(2)} ${(ey - pad).toFixed(2)} ${(ew + 2 * pad).toFixed(2)} ${(eh + 2 * pad).toFixed(2)}`)
     root.removeAttribute('width'); root.removeAttribute('height'); root.removeAttribute('id')
     return { svg: root.outerHTML, w: ew + 2 * pad, h: eh + 2 * pad, parts: keep.length, detail, area: (ew * eh) / (vb.width * vb.height) }
-  }, svg)
+  }, [svg, code, KNOCKOUT.has(code)])
   if (!res || res.detail < 900 || res.area < 0.004) continue
   // Prefix ids so an emblem can sit inside any flag without id clashes.
   const out = res.svg
