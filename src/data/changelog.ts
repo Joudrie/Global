@@ -17,6 +17,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       "The phone's Back button takes you home instead of leaving the site.",
       "The Codex keeps your search and place when you switch tabs, opens Flag of the Day right on its entry, and finds countries by any name.",
       "Screen readers hear \"Flag 2 of 4\" on picture answers, never the answer itself, and more buttons and fields have names.",
+      "Flag facts checked flag by flag: stripes, stars, crescents, suns and colours are fixed in Flag DNA, Flagle, Describe It, Higher or Lower and Symbol Hunt (Kazakhstan has no crescent; Malawi's sun isn't a star).",
+      "Odd One Out's odd one is always really odd: fuller country lists, no countries that arguably belong, and the answers spread across far more flags.",
+      "Flag Families never has two right ways to sort, and Symbol Hunt no longer marks a right tap wrong.",
+      "Corrected tips and facts for Turkey, Cyprus, Liechtenstein, Mozambique, Kazakhstan, Croatia, San Marino, Chile, Lebanon and more. Malay has its own sentence in Language Quiz, and Crimea is listed once.",
     ],
   },
   {
