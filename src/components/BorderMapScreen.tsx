@@ -144,7 +144,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         {/* Input */}
         {!over && (
           <div style={{ position: "relative" }}>
-            <input ref={inputRef} value={input}
+            <input aria-label="Type a country" ref={inputRef} value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               placeholder="Type a bordering country…" autoComplete="off"

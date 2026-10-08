@@ -140,7 +140,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
           </>
         ) : (
           <div className="w-full max-w-sm relative">
-            <input value={input} autoFocus autoComplete="off"
+            <input aria-label="Type a country" value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}

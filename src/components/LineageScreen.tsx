@@ -197,7 +197,7 @@ function LineageGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           </div>
         ) : (
           <div className="w-full max-w-sm relative">
-            <input value={input} autoFocus autoComplete="off"
+            <input aria-label="Type a country" value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               onKeyDown={e => { if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) choose(pick.name) } }}

@@ -85,7 +85,8 @@ function freshGame(): GameState {
   }
 }
 
-const TILE_W = 90
+// 4:3, like the flag artwork, so the nine slices tile the whole flag.
+const TILE_W = 80
 const TILE_H = 60
 
 export default function TheComposerScreen({ onBack }: Props) {
@@ -95,9 +96,11 @@ export default function TheComposerScreen({ onBack }: Props) {
   const [input, setInput]       = useState("")
   const [showDrop, setShowDrop] = useState(false)
 
+  // A country can only be guessed once: a repeat would flip another tile and cost points.
   const matches = useMemo(() => {
-    return matchNames(FLAGS, input, 6)
-  }, [input])
+    const guessed = new Set(game.guesses.map(g => g.flag.code))
+    return matchNames(FLAGS.filter(f => !guessed.has(f.code)), input, 6)
+  }, [input, game.guesses])
 
   const handleGuess = (flag: FlagRecord) => {
     setInput("")
@@ -118,8 +121,9 @@ export default function TheComposerScreen({ onBack }: Props) {
     const tile  = nextTile(level, game.flipped)
     setGame(g => {
       const newFlipped = new Set(g.flipped)
-      newFlipped.add(tile)
-      return { ...g, flipped: newFlipped, guesses: [...g.guesses, { flag, level }] }
+      if (tile !== null) newFlipped.add(tile)
+      // Every tile open: the round is over, as if given up.
+      return { ...g, flipped: newFlipped, guesses: [...g.guesses, { flag, level }], gaveUp: newFlipped.size >= 9 }
     })
   }
 
@@ -231,7 +235,7 @@ export default function TheComposerScreen({ onBack }: Props) {
         {/* Type-in */}
         {!done && (
           <div className="w-full max-w-sm relative">
-            <input
+            <input aria-label="Type a country"
               value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onKeyDown={e => {
@@ -253,7 +257,6 @@ export default function TheComposerScreen({ onBack }: Props) {
                     onMouseDown={() => handleGuess(flag)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:brightness-125 transition-all"
                     style={{ background: "transparent", borderBottom: `1px solid ${T.line}` }}>
-                    <img src={flag.flagUrl} alt="" style={{ width: 32, height: 21, objectFit: "cover", borderRadius: 3 }} />
                     <span style={{ color: T.text, fontWeight: 600 }}>{flag.name}</span>
                     <span style={{ color: T.dim, fontSize: 11, marginLeft: "auto" }}>{flag.code}</span>
                   </button>

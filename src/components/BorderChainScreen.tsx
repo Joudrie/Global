@@ -151,7 +151,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
 
         <div style={{ position: "relative", marginTop: "auto" }}>
-          <input ref={inputRef} value={input}
+          <input aria-label="Type a country" ref={inputRef} value={input}
             onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
             onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
             placeholder={`Borders ${NAME(current)}…`} autoComplete="off"

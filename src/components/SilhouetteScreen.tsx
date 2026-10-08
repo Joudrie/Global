@@ -180,7 +180,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
         {/* Type-in */}
         {!revealed && (
           <div className="w-full max-w-sm relative">
-            <input
+            <input aria-label="Type a country"
               ref={inputRef}
               value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
@@ -199,7 +199,6 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                   <button key={flag.code} onMouseDown={() => submitGuess(flag)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:brightness-125 transition-all"
                     style={{ background: "transparent", borderBottom: `1px solid ${T.line}` }}>
-                    <FlagImage code={flag.code} style={{ width: 32, height: 21, objectFit: "cover", borderRadius: 3 }} />
                     <span style={{ color: T.text, fontWeight: 600 }}>{flag.name}</span>
                     <span style={{ color: T.dim, fontSize: 11, marginLeft: "auto" }}>{flag.code}</span>
                   </button>

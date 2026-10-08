@@ -5,6 +5,7 @@ import type { FlagRecord } from '../data/flags'
 import { shuffleWithSeed, seededRandom, todayString } from '../utils/prng'
 import { scorePhrase } from '../utils/quiz'
 import { shareOrCopy } from '../utils/share'
+import { matchNames, pickOnEnter } from '../utils/pickOnEnter'
 import CountryOutline from './CountryOutline'
 import { T, ACCENT, tint } from '../ui/tokens'
 import { ScreenHeader } from "./ui"
@@ -35,8 +36,12 @@ function buildChoices(target: FlagRecord, seed: string): FlagRecord[] {
   return [target, ...picks.slice(0, 3)].sort(() => rng() - 0.5)
 }
 
+// Island nations whose outline is unreadable: scattered specks (Micronesia,
+// Tuvalu) or, for Kiribati, a shape split across the 180° line.
+const TOO_SMALL = new Set(["KI", "FM", "MH", "TV", "PW", "TO", "MV"])
+
 function buildQuiz(seed: string, count = 10): GeoQuestion[] {
-  const shuffled = shuffleWithSeed(FLAGS, seed).slice(0, count)
+  const shuffled = shuffleWithSeed(FLAGS.filter(f => !TOO_SMALL.has(f.code)), seed).slice(0, count)
   return shuffled.map(target => ({
     target,
     choices: buildChoices(target, seed),
@@ -64,11 +69,8 @@ export default function GeoQuizScreen({ onBack }: Props) {
   const q = questions[idx]
   useEffect(() => { setSelected(null); setInput('') }, [idx, seed])
 
-  const matches = useMemo(() => {
-    const qq = input.trim().toLowerCase()
-    if (qq.length < 1) return []
-    return FLAGS.filter(f => f.name.toLowerCase().includes(qq) || f.code.toLowerCase() === qq).slice(0, 6)
-  }, [input])
+  const matches = useMemo(() => matchNames(FLAGS, input, 6), [input])
+  const [typeHint, setTypeHint] = useState(false)
 
   const resetGame = () => {
     setSeed(Date.now().toString())
@@ -245,20 +247,24 @@ export default function GeoQuizScreen({ onBack }: Props) {
               <>
                 <input
                   value={input} autoFocus autoComplete="off"
-                  onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+                  onChange={e => { setInput(e.target.value); setShowDrop(true); setTypeHint(false) }}
                   onFocus={() => setShowDrop(true)}
                   onBlur={() => setTimeout(() => setShowDrop(false), 150)}
                   onKeyDown={e => {
-                    if (e.key !== 'Enter' || matches.length === 0) return
-                    // Prefer an exact name/code match so typing the full word
-                    // "Niger" submits Niger, not the substring match Nigeria.
-                    const qq = input.trim().toLowerCase()
-                    const exact = matches.find(m => m.name.toLowerCase() === qq || m.code.toLowerCase() === qq)
-                    handleType(exact ?? matches[0])
+                    if (e.key !== 'Enter' || !input.trim()) return
+                    // An exact name ("Niger", "UK") or the only match; never a guess.
+                    const pick = pickOnEnter(matches, input)
+                    if (pick) handleType(pick); else setTypeHint(true)
                   }}
+                  aria-label="Name the country"
                   placeholder="Name the country…"
                   className="w-full px-4 py-3.5 rounded-2xl outline-none font-semibold"
                   style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
+                {typeHint && (
+                  <p role="status" className="text-xs mt-1.5" style={{ color: T.muted }}>
+                    {matches.length ? "Pick one from the list" : "No country matches that"}
+                  </p>
+                )}
                 {showDrop && matches.length > 0 && (
                   <div className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden z-20"
                     style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 8px 32px ${tint(T.text, 0.18)}` }}>

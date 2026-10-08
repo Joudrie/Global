@@ -59,7 +59,17 @@ export default function TierListScreen({ onBack }: Props) {
   const flagsIn = (tier: string) =>
     flags.filter(f => (placement[f.code] ?? POOL) === tier)
 
-  const resetAll = () => { setPlacement({}); setSelected(null) }
+  // Reset wipes this region's saved list, so it takes a second tap to confirm.
+  const [confirmReset, setConfirmReset] = useState(false)
+  useEffect(() => {
+    if (!confirmReset) return
+    const t = window.setTimeout(() => setConfirmReset(false), 3000)
+    return () => window.clearTimeout(t)
+  }, [confirmReset])
+  const resetAll = () => {
+    if (!confirmReset) { setConfirmReset(true); return }
+    setPlacement({}); setSelected(null); setConfirmReset(false)
+  }
 
   const FlagChip = ({ code, url, name }: { code: string; url: string; name: string }) => (
     <div
@@ -101,7 +111,7 @@ export default function TierListScreen({ onBack }: Props) {
         onBack={onBack}
         right={
           <button onClick={resetAll} className="px-3 h-9 rounded-full text-xs font-bold geo-tap"
-            style={{ background: T.surface, border: `1px solid ${tint(T.danger, 0.35)}`, color: T.danger, cursor: 'pointer' }}>Reset</button>
+            style={{ background: confirmReset ? T.danger : T.surface, border: `1px solid ${tint(T.danger, 0.35)}`, color: confirmReset ? T.onAccent : T.danger, cursor: 'pointer', minHeight: 44 }}>{confirmReset ? "Tap again to clear" : "Reset"}</button>
         } />
 
       {/* Region selector */}

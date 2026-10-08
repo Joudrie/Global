@@ -49,7 +49,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   useEffect(() => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) return
     // Opaque scratch cover — ink-dark (game content, must hide the flag)
     ctx.fillStyle = T.text
@@ -59,7 +59,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const scratch = useCallback((clientX: number, clientY: number) => {
     const canvas = canvasRef.current
     if (!canvas) return
-    const ctx = canvas.getContext('2d')
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })
     if (!ctx) return
     const rect = canvas.getBoundingClientRect()
     const x    = (clientX - rect.left) * (CANVAS_W / rect.width)
@@ -84,8 +84,10 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const onMouseDown  = (e: React.MouseEvent)  => { isPointerDown.current = true;  scratch(e.clientX, e.clientY) }
   const onMouseMove  = (e: React.MouseEvent)  => { if (isPointerDown.current) scratch(e.clientX, e.clientY) }
   const onMouseUp    = ()                     => { isPointerDown.current = false }
-  const onTouchStart = (e: React.TouchEvent) => { e.preventDefault(); isPointerDown.current = true; scratch(e.touches[0].clientX, e.touches[0].clientY) }
-  const onTouchMove  = (e: React.TouchEvent) => { e.preventDefault(); scratch(e.touches[0].clientX, e.touches[0].clientY) }
+  // No preventDefault: React's touch listeners are passive, and the canvas's
+  // touch-action: none already stops the page scrolling.
+  const onTouchStart = (e: React.TouchEvent) => { isPointerDown.current = true; scratch(e.touches[0].clientX, e.touches[0].clientY) }
+  const onTouchMove  = (e: React.TouchEvent) => { scratch(e.touches[0].clientX, e.touches[0].clientY) }
   const onTouchEnd   = ()                    => { isPointerDown.current = false }
 
   const handleGuess = (flag: FlagRecord) => {
@@ -185,7 +187,7 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
             <p className="text-sm text-center mb-3 font-semibold" style={{ color: T.muted }}>
               Which flag did you reveal?
             </p>
-            <input
+            <input aria-label="Type a country"
               ref={inputRef}
               autoFocus
               value={input}
@@ -209,7 +211,6 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                     onMouseDown={() => handleGuess(flag)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:brightness-125 transition-all"
                     style={{ background: "transparent", borderBottom: `1px solid ${T.line}` }}>
-                    <img src={flag.flagUrl} alt="" style={{ width: 32, height: 21, objectFit: "cover", borderRadius: 3 }} />
                     <span style={{ color: T.text, fontWeight: 600 }}>{flag.name}</span>
                     <span style={{ color: T.dim, fontSize: 11, marginLeft: "auto" }}>{flag.code}</span>
                   </button>

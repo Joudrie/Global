@@ -35,14 +35,17 @@ function buildSteps(target: SubFlag): Step[] {
   const sameContCountries = SUB_FLAGS
     .filter(s => s.continent === target.continent && s.countryName !== target.countryName)
     .map(s => s.countryName)
+  // Never a twin of the answer: some subdivisions share one flag (Sharjah and
+  // Ras al-Khaimah), and picking the twin would be marked wrong.
   const sameCountryRegions = SUB_FLAGS
-    .filter(s => s.countryCode === target.countryCode && s.name !== target.name)
+    .filter(s => s.countryCode === target.countryCode && s.name !== target.name && s.flagUrl !== target.flagUrl)
     .map(s => s.name)
+  const twins = new Set(SUB_FLAGS.filter(s => s.flagUrl === target.flagUrl).map(s => s.name))
 
   return [
-    { label: "Which continent?", choices: shuffle(SUB_CONTINENTS.map(c => c.name)), answer: target.continent },
+    { label: "Which region?", choices: shuffle(SUB_CONTINENTS.map(c => c.name)), answer: target.continent },
     { label: "Which country?", choices: fourChoices(target.countryName, sameContCountries, ALL_COUNTRIES), answer: target.countryName },
-    { label: "Which subdivision?", choices: fourChoices(target.name, sameCountryRegions, ALL_REGIONS), answer: target.name },
+    { label: "Which subdivision?", choices: fourChoices(target.name, sameCountryRegions, ALL_REGIONS.filter(n => !twins.has(n))), answer: target.name },
   ]
 }
 
@@ -111,7 +114,7 @@ function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props &
                 onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
             </div>
             <div className="flex justify-center gap-2">
-              {["Continent", "Country", "Region"].map((l, i) => (
+              {["Region", "Country", "Subdivision"].map((l, i) => (
                 <span key={l} className="px-2 py-1 rounded-full" style={{ fontSize: 12,
                   background: tint(results[i] ? T.green : T.danger, 0.13), color: results[i] ? T.green : T.danger, border: `1px solid ${tint(results[i] ? T.green : T.danger, 0.3)}` }}>
                   {results[i] ? "✓" : "✗"} {l}

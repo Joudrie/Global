@@ -6,6 +6,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
+import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -114,13 +115,7 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
 
   const guessedCodes = useMemo(() => new Set(guesses.map(g => g.flag.code)), [guesses])
 
-  const matches = useMemo(() => {
-    const q = input.trim().toLowerCase()
-    if (q.length < 1) return []
-    return FLAGS
-      .filter(f => (f.name.toLowerCase().includes(q) || f.code.toLowerCase() === q) && !guessedCodes.has(f.code))
-      .slice(0, 6)
-  }, [input, guessedCodes])
+  const matches = useMemo(() => matchNames(FLAGS.filter(f => !guessedCodes.has(f.code)), input, 6), [input, guessedCodes])
 
   const submitGuess = (flag: FlagRecord) => {
     if (phase !== "playing") return
@@ -183,6 +178,8 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)}
               onBlur={() => setTimeout(() => setShowDrop(false), 200)}
+              onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submitGuess(pick) } }}
+              enterKeyHint="go" aria-label="Guess the country"
               placeholder="Type a country…"
               className="w-full px-4 py-3 rounded-xl text-sm font-medium"
               style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, outline: "none" }}

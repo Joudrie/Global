@@ -144,7 +144,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         ) : (
           /* Type-in */
           <div className="w-full max-w-sm relative">
-            <input
+            <input aria-label="Type a country"
               ref={inputRef}
               value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
@@ -167,7 +167,6 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                     onMouseDown={() => submitGuess(flag)}
                     className="w-full flex items-center gap-3 px-4 py-3 hover:brightness-95 transition-all"
                     style={{ background: "transparent", borderBottom: `1px solid ${T.line}` }}>
-                    <img src={flag.flagUrl} alt="" style={{ width: 32, height: 21, objectFit: "cover", borderRadius: 3 }} />
                     <span style={{ color: T.text, fontWeight: 600 }}>{flag.name}</span>
                     <span style={{ color: T.dim, fontSize: 11, marginLeft: "auto", fontFamily: FONT.mono }}>{flag.code}</span>
                   </button>

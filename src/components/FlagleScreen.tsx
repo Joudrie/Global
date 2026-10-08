@@ -153,7 +153,7 @@ export default function FlagleScreen({ onBack }: Props) {
         {/* Input or result */}
         {!finished ? (
           <div className="w-full max-w-sm relative mt-1">
-            <input value={input} autoComplete="off"
+            <input aria-label="Type a country" value={input} autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}
