@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-08",
+    title: "Connections, rebuilt",
+    items: [
+      "The daily Connections board now mixes four kinds of tile: countries, capitals, flags and what each country calls itself, like Deutschland, Nippon or Aotearoa.",
+      "52 brand-new puzzles, from Union Jack flags and capitals on the Danube to capitals once named after a person.",
+      "Every solved group spells out its answers, so Österreich shows as Austria and each flag gets its name.",
+    ],
+  },
+  {
+    date: "2026-10-08",
     title: "Fairer games, everywhere",
     items: [
       "Every game was checked answer by answer. Flag Timeline now orders every country's flags by year, and flags adopted in the same year count either way round.",
