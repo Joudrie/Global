@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FLAGS } from "../data/flags"
-import { SYMBOLS } from "../data/flagSymbols"
+import { SYMBOLS, SAFE_DECOY_IDS } from "../data/flagSymbols"
 import type { SymbolDef } from "../data/flagSymbols"
 import { OTHER_IDENTITY_FLAGS } from "../data/identityFlags"
 import { T, ACCENT } from "../ui/tokens"
@@ -13,6 +13,7 @@ interface Props { onBack: () => void }
 const ROUNDS = 5
 const GRID = 15
 const shuffle = <X,>(a: X[]): X[] => [...a].sort(() => Math.random() - 0.5)
+const SAFE_DECOYS = OTHER_IDENTITY_FLAGS.filter(f => SAFE_DECOY_IDS.includes(f.id) && !f.noFlag)
 
 // A grid tile is either a real country flag (by code) or a non-country
 // "identity" flag (rendered from a URL). Identity tiles are never a match —
@@ -26,12 +27,14 @@ function buildRounds(): Round[] {
     const nMatch = Math.min(pool.length, 4 + Math.floor(Math.random() * 4)) // 4–7 present
     const matches = shuffle(pool).slice(0, nMatch)
     const matchCells: Cell[] = matches.map(code => ({ key: "c:" + code, code, name: FLAGS.find(f => f.code === code)?.name, match: true }))
-    // 0–2 identity flags as decoys to introduce them
+    // 0–2 identity flags as decoys to introduce them. Only ones checked to
+    // carry none of the hunt's symbols, so a decoy never has the round's symbol.
     const nIdentity = matchCells.length < GRID - 4 ? Math.floor(Math.random() * 3) : 0
-    const idCells: Cell[] = shuffle(OTHER_IDENTITY_FLAGS).slice(0, nIdentity)
+    const idCells: Cell[] = shuffle(SAFE_DECOYS).slice(0, nIdentity)
       .map(f => ({ key: "i:" + f.id, url: f.flagUrl, name: f.name, match: false }))
     const need = GRID - matchCells.length - idCells.length
-    const fillers: Cell[] = shuffle(FLAGS.filter(f => !sym.codes.has(f.code))).slice(0, need)
+    // Wrong answers skip flags where the symbol is there but arguable (sym.also).
+    const fillers: Cell[] = shuffle(FLAGS.filter(f => !sym.codes.has(f.code) && !sym.also.has(f.code))).slice(0, need)
       .map(f => ({ key: "c:" + f.code, code: f.code, name: f.name, match: false }))
     return { sym, grid: shuffle([...matchCells, ...idCells, ...fillers]), matchCount: matchCells.length }
   })

@@ -1365,7 +1365,7 @@ export const ETHNIC_FLAGS: EthnicRegion[] = [
       { name: "Chinese from West Borneo", file: "Lanfang Republic Reconstructed Flag.svg", note: "Hakka Chinese miners of West Borneo who formed the Lanfang Republic, a self-governing kongsi federation that lasted from 1777 until Dutch annexation." },
       { name: "Cilician Armenians", file: "Flag of the Rubenid Dynasty.svg", note: "The Armenians of the medieval Kingdom of Cilicia on the Mediterranean coast, an ally of the Crusaders under the Rubenid dynasty." },
       { name: "Danzig Germans", file: "Flag_of_the_Free_City_of_Danzig.svg", note: "The German inhabitants of the Free City of Danzig (now Gdańsk, Poland), a semi-autonomous city-state between the World Wars." },
-      { name: "British subjecters", file: "British Empire flag (1930).svg", note: "Subjects of the British Empire — at its height the largest empire in history, spanning roughly a quarter of the globe." },
+      { name: "British subjects", file: "British Empire flag (1930).svg", note: "Subjects of the British Empire — at its height the largest empire in history, spanning roughly a quarter of the globe." },
       { name: "Old Poles", file: "Flag of the Kingdom of Poland.svg", note: "The people of the early Kingdom of Poland, whose crowned white-eagle banner remains Poland's national emblem." },
       { name: "Middle Poles", file: "Chorągiew królewska króla Zygmunta III Wazy.svg", note: "Poles of the Polish–Lithuanian Commonwealth era; this royal banner belonged to King Sigismund III Vasa." },
       { name: "Meryans", file: "Modern flag of Merya people.svg", note: "A Finnic people of central Russia, assimilated into the Russians centuries ago; the flag is a modern revival emblem." },

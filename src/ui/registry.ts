@@ -30,7 +30,7 @@ const flagProgress = (s: AppState) => ({ done: s.learnedFlags.length, total: FLA
 // Number of guessable subdivision flags (SUB_FLAGS.length in data/subdivisions.ts).
 // A constant so the home screen does not load every subdivision table just to
 // show a progress total; scripts/bundle.test.mjs fails if it drifts.
-export const SUB_FLAG_COUNT = 1579
+export const SUB_FLAG_COUNT = 1577
 const subProgress = (s: AppState) => ({ done: s.learnedSubs.length, total: SUB_FLAG_COUNT })
 
 // Single source of truth. Adding a destination (or a whole new regional set)

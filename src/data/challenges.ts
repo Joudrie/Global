@@ -4935,9 +4935,9 @@ export const CHALLENGE_CONTINENTS: ChallengeContinent[] = [
         ],
       },
 
-      // ── Russia (85 federal subjects) ────────────────────────────────────
+      // ── Russia (83 federal subjects) ────────────────────────────────────
       {
-        code: "RU", name: "Russia", emoji: "🇷🇺", subTitle: "85 Federal Subjects", locked: false,
+        code: "RU", name: "Russia", emoji: "🇷🇺", subTitle: "83 Federal Subjects", locked: false,
         subRegions: [
           // Republics
           { code: "ru-ad",  name: "Adygea",                  flagUrl: wiki("Flag of Adygea.svg"),                         group: "Republics" },
@@ -4946,9 +4946,8 @@ export const CHALLENGE_CONTINENTS: ChallengeContinent[] = [
           { code: "ru-bu",  name: "Buryatia",                 flagUrl: wiki("Flag of Buryatia.svg"),                        group: "Republics" },
           { code: "ru-ce",  name: "Chechnya",                 flagUrl: wiki("Flag of the Chechen Republic.svg"),            group: "Republics" },
           { code: "ru-cu",  name: "Chuvashia",                flagUrl: wiki("Flag of Chuvashia.svg"),                       group: "Republics" },
-          // Crimea: annexed from Ukraine in 2014; included here to match Russia's own
-          // "85 federal subjects" count (which also adds the federal city of Sevastopol).
-          { code: "ru-cr",  name: "Crimea",                   flagUrl: wiki("Flag of Crimea.svg"),                          group: "Republics" },
+          // Crimea and Sevastopol are internationally recognised as part of Ukraine and
+          // are listed under Ukraine only, so Russia has the 83 subjects it had before 2014.
           { code: "ru-da",  name: "Dagestan",                 flagUrl: wiki("Flag of Dagestan.svg"),                        group: "Republics" },
           { code: "ru-in",  name: "Ingushetia",               flagUrl: wiki("Flag of Ingushetia.svg"),                      group: "Republics" },
           { code: "ru-kb",  name: "Kabardino-Balkaria",       flagUrl: wiki("Flag of Kabardino-Balkaria.svg"),              group: "Republics" },
@@ -4977,7 +4976,6 @@ export const CHALLENGE_CONTINENTS: ChallengeContinent[] = [
           // Federal Cities
           { code: "ru-mow", name: "Moscow",                   flagUrl: wiki("Flag of Moscow, Russia.svg"),                  group: "Federal Cities" },
           { code: "ru-spb", name: "Saint Petersburg",         flagUrl: wiki("Flag of Saint Petersburg.svg"),                group: "Federal Cities" },
-          { code: "ru-sev", name: "Sevastopol",               flagUrl: wiki("Flag of Sevastopol.svg"),                      group: "Federal Cities" },
           // Oblasts
           { code: "ru-amu", name: "Amur Oblast",              flagUrl: wiki("Flag of Amur Oblast.svg"),                     group: "Oblasts" },
           { code: "ru-ark", name: "Arkhangelsk Oblast",       flagUrl: wiki("Flag of Arkhangelsk Oblast.svg"),              group: "Oblasts" },

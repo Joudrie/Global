@@ -26,6 +26,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       "The phone's Back button takes you home instead of leaving the site.",
       "The Codex keeps your search and place when you switch tabs, opens Flag of the Day right on its entry, and finds countries by any name.",
       "Screen readers hear \"Flag 2 of 4\" on picture answers, never the answer itself, and more buttons and fields have names.",
+      "Flag facts checked flag by flag: stripes, stars, crescents, suns and colours are fixed in Flag DNA, Flagle, Describe It, Higher or Lower and Symbol Hunt (Kazakhstan has no crescent; Malawi's sun isn't a star).",
+      "Odd One Out's odd one is always really odd: fuller country lists, no countries that arguably belong, and the answers spread across far more flags.",
+      "Flag Families never has two right ways to sort, and Symbol Hunt no longer marks a right tap wrong.",
+      "Corrected tips and facts for Turkey, Cyprus, Liechtenstein, Mozambique, Kazakhstan, Croatia, San Marino, Chile, Lebanon and more. Malay has its own sentence in Language Quiz, and Crimea is listed once.",
     ],
   },
   {
@@ -47,6 +51,10 @@ export const CHANGELOG: ChangelogEntry[] = [
       "New symbols: mountains and waves.",
       "Saudi Arabia's emblem no longer leaves green specks on other flags.",
       "Selection boxes now hug each shape, Escape always deselects, and dragging the colour picker is one undo step.",
+      "Much smoother on phones: dragging a symbol no longer redraws the whole flag, and a pinch works with your fingers on the symbol.",
+      "Real flags show their true colours in the colour strip (no more stray black on the US, UK, Nepal or Brazil), and tapping picks the part under your finger.",
+      "Changing the flag's shape keeps a crest together, undo keeps your flag's name and motto, and taps that change nothing no longer fill the undo list.",
+      "Downloads wait for emblems, the nation card no longer puts a white box behind Nepal, edits save when you switch apps, and a broken flag link says so.",
     ],
   },
   {

@@ -258,6 +258,17 @@ SYMBOLS.push(
 export const FULL_WIDTH_SYMBOLS = new Set<SymbolKind>(["stripe", "nordic", "saltire"])
 export const symbolOf = (k: Overlay["kind"]) => SYMBOLS.find(s => s.kind === k) ?? SYMBOLS[0]
 
+/** Symbols refitted to a new flag height `h1` (from `h0`). A shorter flag
+ *  shrinks them, and the gaps between them, evenly about its centre, so a
+ *  crest stays in one piece and on the flag; a taller one keeps them as they
+ *  are, centred. Full-width symbols keep spanning the flag. */
+export function refitOverlays(overlays: Overlay[], h0: number, h1: number): Overlay[] {
+  const k = h1 / h0, u = Math.min(k, 1)
+  return overlays.map(o => (FULL_WIDTH_SYMBOLS.has(o.kind as SymbolKind)
+    ? { ...o, y: o.y * k }
+    : { ...o, x: FLAG_W / 2 + (o.x - FLAG_W / 2) * u, y: h1 / 2 + (o.y - h0 / 2) * u, size: Math.max(4, Math.round(o.size * u)) }))
+}
+
 export const overlayTransform = (o: Overlay, scaled = true) =>
   `translate(${o.x.toFixed(1)} ${o.y.toFixed(1)}) rotate(${o.rot})${scaled ? ` scale(${(o.size / 2).toFixed(2)})` : ""}`
 

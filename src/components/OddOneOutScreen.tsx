@@ -3,6 +3,8 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS } from "../data/flagAttribs"
 import type { FlagAttribs } from "../data/flagAttribs"
+import { FACTS, OFFICIAL } from "../data/countryFacts"
+import type { Fact } from "../data/countryFacts"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, choiceLabel } from "./gameUi"
@@ -15,16 +17,20 @@ const ACC = ACCENT.play
 // blends in better. We reward shared colours and matching the group's majority
 // feature profile, and heavily penalise a distinctive "tell" the group lacks
 // (e.g. a Nordic cross among Middle-Eastern flags), so the answer can't be
-// spotted by look alone.
+// spotted by look alone. Colours are compared as an overlap ratio (shared
+// colours over all colours of the pair), so a many-coloured flag like South
+// Africa's doesn't blend in with everything just by having more colours.
 function visualScore(oddCode: string, three: FlagRecord[]): number {
   const oa = FLAG_ATTRIBS[oddCode]
   if (!oa) return -Infinity
   const inAttrs = three.map(t => FLAG_ATTRIBS[t.code]).filter(Boolean) as FlagAttribs[]
   if (inAttrs.length === 0) return 0
-  let s = 0
-  const colorFreq: Record<string, number> = {}
-  inAttrs.forEach(a => a.colors.forEach(c => { colorFreq[c] = (colorFreq[c] || 0) + 1 }))
-  oa.colors.forEach(c => { s += (colorFreq[c] || 0) * 1.5 })
+  let overlap = 0
+  for (const a of inAttrs) {
+    const shared = oa.colors.filter(c => a.colors.includes(c)).length
+    overlap += shared / new Set([...oa.colors, ...a.colors]).size
+  }
+  let s = (overlap / inAttrs.length) * 6
   for (const f of FEATURES) {
     const inCount = inAttrs.filter(a => a[f]).length
     if (oa[f] && inCount === 0) s -= 3
@@ -58,16 +64,17 @@ interface Category {
   question: string    // "Which does NOT..."
   themeLabel: string  // "The other 3 are all..."
   codes: Set<string>
+  // Countries a player could fairly argue either way (a `maybe` in
+  // countryFacts, a transcontinental country for a region, a speck of red in a
+  // coat of arms). They never appear in this category's rounds, neither in
+  // the group nor as the odd one out.
+  unsure: Set<string>
 }
 
-const ENGLISH_CODES = new Set(['GB','US','AU','NZ','CA','IE','ZA','NG','KE','GH','UG','ZM','ZW','JM','TT','BB','SG','IN','PK','MT','CY','PH','CM','ET'])
-const LANDLOCKED    = new Set(['AT','CH','CZ','HU','SK','LI','LU','BY','MD','AM','KZ','KG','TJ','TM','UZ','MN','NP','BT','AF','ML','NE','BF','MR','CF','SS','BI','RW','UG','MW','ZM','ZW','BW','LS','SZ','BO','PY'])
-const ISLANDS       = new Set(['GB','IE','IS','MT','CY','JP','PH','ID','LK','MV','SG','TL','CU','JM','HT','DO','TT','BB','LC','AG','DM','GD','KN','VC','BS','NZ','FJ','PG','SB','VU','WS','TO','KI','TV','NR','PW','FM','MH','MG','MU','SC','CV','ST','KM'])
-const MONARCHIES    = new Set(['GB','SE','NO','DK','NL','BE','ES','LU','MC','LI','JP','TH','MY','BN','JO','SA','AE','KW','QA','BH','OM','MA','LS','SZ','AU','NZ','CA','JM','BB','TT'])
-const EU_MEMBERS    = new Set(['AT','BE','BG','HR','CY','CZ','DK','EE','FI','FR','DE','GR','HU','IE','IT','LV','LT','LU','MT','NL','PL','PT','RO','SK','SI','ES','SE'])
-const MEDITERR      = new Set(['ES','FR','IT','HR','ME','AL','GR','TR','SY','LB','IL','EG','LY','TN','DZ','MA','MT','CY'])
-const G20           = new Set(['AR','AU','BR','CA','CN','FR','DE','IN','ID','IT','JP','KR','MX','RU','SA','ZA','TR','GB','US'])
-const NATO          = new Set(['AL','BE','BG','CA','HR','CZ','DK','EE','FI','FR','DE','GR','HU','IS','IT','LV','LT','LU','ME','NL','MK','NO','PL','PT','RO','SK','SI','ES','TR','GB','US'])
+// Country facts come from the hand-checked lists in countryFacts.ts (shared
+// with Connections), so `yes` countries form the group and `maybe` ones sit out.
+const fromFact = (f: Fact) => ({ codes: new Set(f.yes), unsure: new Set(f.maybe ?? []) })
+
 // These two categories ask about a VISUAL property, so they must be derived from
 // the same FLAG_ATTRIBS that the answer reveal trusts — not a hand-curated list.
 // Otherwise the complement (outPool) contains flags that still have the property,
@@ -75,77 +82,80 @@ const NATO          = new Set(['AL','BE','BG','CA','HR','CZ','DK','EE','FI','FR'
 // "odd one" that is itself red / has a star — an unsolvable round.
 const RED_FLAG      = new Set(FLAGS.filter(f => FLAG_ATTRIBS[f.code]?.colors.includes('red')).map(f => f.code))
 const CRESCENT_STAR = new Set(FLAGS.filter(f => { const a = FLAG_ATTRIBS[f.code]; return a?.crescent || a?.star }).map(f => f.code))
+// Red only in a small detail of the emblem (a cap, a cord, a bird's breast, a jewel).
+const RED_DETAIL    = new Set(['SV', 'NI', 'GT', 'VA', 'SM', 'BT'])
+// Stars or crescents some players see and others don't (in a coat of arms, a stylised moon).
+const STAR_DETAIL   = new Set([...(FACTS.flagStar.maybe ?? []), ...(FACTS.flagCrescent.maybe ?? [])])
 
-function regionCat(region: FlagRecord['region'], label?: string): Category {
-  const codes = new Set(FLAGS.filter(f => f.region === region).map(f => f.code))
+function regionCat(region: FlagRecord['region'], from: string, label: string, also: string[] = [], unsure: string[] = []): Category {
+  const codes = new Set(FLAGS.filter(f => f.region === region || also.includes(f.code)).map(f => f.code))
+  for (const c of unsure) codes.delete(c)
   return {
     id: `region-${region}`,
-    question: `Which flag is NOT from ${region}?`,
-    themeLabel: `${label ?? region} flags`,
+    question: `Which flag is NOT from ${from}?`,
+    themeLabel: label,
     codes,
+    unsure: new Set(unsure),
   }
 }
 
+const MIDDLE_EAST = FLAGS.filter(f => f.region === 'Middle East').map(f => f.code)
+
 const CATEGORIES: Category[] = [
-  { id: 'english',     question: 'Which country does NOT have English as an official language?', themeLabel: 'official English-speaking countries', codes: ENGLISH_CODES },
-  { id: 'landlocked',  question: 'Which country is NOT landlocked?',                             themeLabel: 'landlocked countries (no sea access)', codes: LANDLOCKED    },
-  { id: 'island',      question: 'Which country is NOT an island nation?',                       themeLabel: 'island nations',                        codes: ISLANDS       },
-  { id: 'monarchy',    question: 'Which country is NOT a monarchy?',                             themeLabel: 'monarchies',                            codes: MONARCHIES    },
-  { id: 'eu',          question: 'Which country is NOT in the EU?',                              themeLabel: 'EU member states',                      codes: EU_MEMBERS    },
-  { id: 'mediterr',    question: 'Which country does NOT border the Mediterranean?',             themeLabel: 'Mediterranean countries',               codes: MEDITERR      },
-  { id: 'g20',         question: 'Which country is NOT in the G20?',                             themeLabel: 'G20 nations',                           codes: G20           },
-  { id: 'nato',        question: 'Which country is NOT a NATO member?',                          themeLabel: 'NATO members',                          codes: NATO          },
-  { id: 'red',         question: 'Which flag does NOT feature any red?',                          themeLabel: 'flags that feature red',                codes: RED_FLAG      },
-  { id: 'crescent',    question: 'Which flag does NOT have a crescent or star symbol?',          themeLabel: 'crescent & star flags',                 codes: CRESCENT_STAR },
-  regionCat('Europe'),
-  regionCat('Africa'),
-  regionCat('Asia'),
-  regionCat('Americas'),
-  regionCat('Oceania'),
-  regionCat('Middle East', 'Middle Eastern'),
+  { id: 'english',     question: 'Which country does NOT have English as an official language?', themeLabel: 'official English-speaking countries', ...fromFact(OFFICIAL.en) },
+  { id: 'landlocked',  question: 'Which country is NOT landlocked?',                             themeLabel: 'landlocked countries (no sea access)', ...fromFact(FACTS.landlocked) },
+  { id: 'island',      question: 'Which country is NOT an island nation?',                       themeLabel: 'island nations',                        ...fromFact(FACTS.island) },
+  { id: 'monarchy',    question: 'Which country is NOT a monarchy?',                             themeLabel: 'monarchies',                            ...fromFact(FACTS.monarchy) },
+  { id: 'eu',          question: 'Which country is NOT in the EU?',                              themeLabel: 'EU member states',                      ...fromFact(FACTS.eu) },
+  { id: 'mediterr',    question: 'Which country does NOT border the Mediterranean?',             themeLabel: 'Mediterranean countries',               ...fromFact(FACTS.mediterranean) },
+  { id: 'g20',         question: 'Which country is NOT in the G20?',                             themeLabel: 'G20 nations',                           ...fromFact(FACTS.g20) },
+  { id: 'nato',        question: 'Which country is NOT a NATO member?',                          themeLabel: 'NATO members',                          ...fromFact(FACTS.nato) },
+  { id: 'red',         question: 'Which flag does NOT feature any red?',                          themeLabel: 'flags that feature red',                codes: RED_FLAG, unsure: RED_DETAIL },
+  { id: 'crescent',    question: 'Which flag does NOT have a crescent or star symbol?',          themeLabel: 'crescent & star flags',                 codes: CRESCENT_STAR, unsure: STAR_DETAIL },
+  // Countries in two continents (or counted in either) sit out of the region they could belong to.
+  regionCat('Europe', 'Europe', 'European flags', [], ['TR', 'GE', 'AM', 'AZ', 'KZ']),
+  regionCat('Africa', 'Africa', 'African flags'),
+  // The Middle East is part of Asia, so its flags count as Asian here.
+  regionCat('Asia', 'Asia', 'Asian flags', MIDDLE_EAST, ['TR', 'RU', 'EG', 'CY']),
+  regionCat('Americas', 'the Americas', 'flags from the Americas'),
+  regionCat('Oceania', 'Oceania', 'flags from Oceania', [], ['ID', 'TL']),
+  regionCat('Middle East', 'the Middle East', 'Middle Eastern flags', [], ['EG', 'CY']),
 ]
+
+// One round from one category, or null if it can't make a fair one. `usedOdd`
+// holds this game's earlier answers so the same flag isn't the answer twice.
+function buildRound(cat: Category, usedOdd: Set<string>): Round | null {
+  const inPool  = FLAGS.filter(f => cat.codes.has(f.code) && !cat.unsure.has(f.code))
+  const outPool = FLAGS.filter(f => !cat.codes.has(f.code) && !cat.unsure.has(f.code) && !usedOdd.has(f.code))
+  if (inPool.length < 3 || outPool.length < 1) return null
+
+  const three = [...inPool].sort(() => Math.random() - 0.5).slice(0, 3)
+  // Make it HARD: choose an outlier that visually blends in with the in-group
+  // (shared palette/symbols, no obvious tell), so you can't just spot the odd
+  // flag — you have to actually know the fact.
+  const odd = pickBlendingOutlier(three, outPool)
+  usedOdd.add(odd.code)
+  const all = [...three, odd].sort(() => Math.random() - 0.5)
+  return { question: cat.question, themeLabel: cat.themeLabel, flags: all, oddIndex: all.indexOf(odd) }
+}
 
 function buildRounds(count: number): Round[] {
   const rounds: Round[] = []
+  const usedOdd = new Set<string>()
   const shuffledCats = [...CATEGORIES].sort(() => Math.random() - 0.5)
 
   for (const cat of shuffledCats) {
     if (rounds.length >= count) break
-
-    const inPool  = FLAGS.filter(f => cat.codes.has(f.code))
-    const outPool = FLAGS.filter(f => !cat.codes.has(f.code))
-    if (inPool.length < 3 || outPool.length < 1) continue
-
-    const three = [...inPool].sort(() => Math.random() - 0.5).slice(0, 3)
-    // Make it HARD: choose an outlier that visually blends in with the in-group
-    // (shared palette/symbols, no obvious tell), so you can't just spot the odd
-    // flag — you have to actually know the fact.
-    const odd   = pickBlendingOutlier(three, outPool)
-    const all   = [...three, odd].sort(() => Math.random() - 0.5)
-
-    rounds.push({
-      question: cat.question,
-      themeLabel: cat.themeLabel,
-      flags: all,
-      oddIndex: all.indexOf(odd),
-    })
+    const r = buildRound(cat, usedOdd)
+    if (r) rounds.push(r)
   }
 
   // Fallback: reuse any category that can actually produce a valid round. Guard
   // against degenerate pools so we never loop forever or push a malformed round.
-  while (rounds.length < count) {
-    const valid = CATEGORIES.filter(c => {
-      const inN = FLAGS.filter(f => c.codes.has(f.code)).length
-      return inN >= 3 && inN < FLAGS.length
-    })
-    if (valid.length === 0) break
-    const cat     = valid[Math.floor(Math.random() * valid.length)]
-    const inPool  = FLAGS.filter(f => cat.codes.has(f.code))
-    const outPool = FLAGS.filter(f => !cat.codes.has(f.code))
-    const three   = [...inPool].sort(() => Math.random() - 0.5).slice(0, 3)
-    const odd     = pickBlendingOutlier(three, outPool)
-    const all     = [...three, odd].sort(() => Math.random() - 0.5)
-    rounds.push({ question: cat.question, themeLabel: cat.themeLabel, flags: all, oddIndex: all.indexOf(odd) })
+  for (let tries = 0; rounds.length < count && tries < 50; tries++) {
+    const cat = CATEGORIES[Math.floor(Math.random() * CATEGORIES.length)]
+    const r = buildRound(cat, usedOdd)
+    if (r) rounds.push(r)
   }
 
   return rounds
