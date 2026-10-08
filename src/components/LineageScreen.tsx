@@ -6,6 +6,7 @@ import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -201,7 +202,7 @@ function LineageGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             <input value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-              onKeyDown={e => { if (e.key === "Enter" && matches.length >= 1) choose(matches[0].name) }}
+              onKeyDown={e => { if (e.key === "Enter" && matches.length >= 1) choose((pickOnEnter(matches, input) ?? matches[0]).name) }}
               placeholder="Name the modern country…"
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
               style={{ background: T.surface, border: `1.5px solid ${tint(A, 0.4)}`, color: T.text, fontSize: 15 }} />

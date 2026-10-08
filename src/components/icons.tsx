@@ -8,7 +8,7 @@ import {
   MapPinned, Waypoints, Gift, ScanSearch, VenetianMask,
   Building2, Signpost, FolderTree, Scale,
   ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Heart, TrendingUp, Pencil, Mail,
-  Pipette, Grid2x2,
+  Pipette, Grid2x2, PenTool, Rainbow, Building, RotateCcw,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -37,6 +37,7 @@ const MAP: Record<string, LucideIcon> = {
   symbolhunt: ScanSearch, twotruths: VenetianMask, forgery: ScanSearch,
   capitalmatch: Building2, oddborder: Signpost, continentsort: FolderTree, statclash: Scale,
   worldcup: Trophy, connections: Grid2x2, mail: Mail,
+  flagstudio: PenTool, prideroulette: Rainbow, uscityflags: Building, intro: RotateCcw,
   // semantic names for result headers, buttons and labels (instead of emoji)
   trophy: Trophy, award: Award, target: Target, compass: Compass, flame: Flame, crown: Crown,
   check: Check, moon: Moon,

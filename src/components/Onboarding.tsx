@@ -4,6 +4,7 @@ import { Compass, BookOpen } from "lucide-react"
 import { T, ACCENT, tint, FONT } from "../ui/tokens"
 import EarthLogo from "./EarthLogo"
 import FlagImage from "./FlagImage"
+import { GAME_COUNT } from "../ui/registry"
 
 export const ONBOARDED_KEY = "globalio_onboarded"
 
@@ -37,7 +38,7 @@ const SLIDES: Slide[] = [
     left: <FlagImage code="br" style={FLANK} />,
     right: <FlagImage code="vu" style={FLANK} />,
     title: "Welcome to Globalio",
-    body: "Learn every flag in the world through 50 quick games, and a flag codex that doubles as a real reference tool.",
+    body: `Learn every flag in the world through ${GAME_COUNT} quick games, and a flag codex that doubles as a real reference tool.`,
   },
   {
     center: <Compass size={44} strokeWidth={1.5} color={ACCENT.codex} absoluteStrokeWidth />,

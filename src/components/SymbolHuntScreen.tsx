@@ -76,7 +76,7 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
           <ResultCard>
             <ResultHeader icon="symbolhunt" accent={ACCENT.play}
               title={`${hits} of ${total} symbols found`}
-              score={misses ? `${misses} wrong pick${misses === 1 ? "" : "s"}` : "Flawless, no wrong picks"} />
+              score={misses ? `${misses} wrong pick${misses === 1 ? "" : "s"}` : hits ? "Flawless, no wrong picks" : "No flags picked"} />
           </ResultCard>
           <PrimaryButton onClick={onReplay} accent={ACCENT.play}>Play again</PrimaryButton>
           <SecondaryButton onClick={onBack}>Home</SecondaryButton>

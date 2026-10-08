@@ -6,6 +6,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -53,12 +54,14 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }, [primary])
 
   const done = found.size === targets.length
+  // Giving up ends the round too: the rest are drawn and the result shows.
+  const over = done || revealed
   const matches = input.trim().length
     ? FLAGS.filter(f => f.name.toLowerCase().includes(input.trim().toLowerCase())).slice(0, 6)
     : []
 
   const submit = (code: string) => {
-    if (done) return
+    if (over) return
     setInput(""); setShowDrop(false)
     if (targetSet.has(code) && !found.has(code)) {
       setFound(s => new Set(s).add(code))
@@ -72,7 +75,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length >= 1) submit(matches[0].code)
+    if (e.key === "Enter" && matches.length >= 1) submit((pickOnEnter(matches, input) ?? matches[0]).code)
     if (e.key === "Escape") { setInput(""); setShowDrop(false) }
   }
 
@@ -85,7 +88,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <ScreenHeader title="Border Map" subtitle={done ? "All neighbours found" : "Name every neighbour"} onBack={onBack}
+      <ScreenHeader title="Border Map" subtitle={done ? "All neighbours found" : revealed ? "Revealed" : "Name every neighbour"} onBack={onBack}
         right={<HeaderStat accent={ACCENT.codex}>{found.size} / {targets.length}</HeaderStat>} />
       <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 12, padding: "0 16px 4px" }}>
         <div style={{ width: 38, height: 26, borderRadius: 4, overflow: "hidden", border: `1px solid ${T.line}`, flexShrink: 0 }}>
@@ -117,7 +120,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
 
         {/* Found chips */}
-        {found.size > 0 && !done && (
+        {found.size > 0 && !over && (
           <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {[...found].map(c => (
               <span key={c} className="geo-mono" style={{ fontSize: 11, padding: "4px 8px", borderRadius: 999, background: tint(ACCENT.codex, 0.14), color: ACCENT.codex, border: `1px solid ${tint(ACCENT.codex, 0.35)}` }}>{NAME(c)}</span>
@@ -125,12 +128,13 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           </div>
         )}
 
-        {done && (
+        {over && (
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <ResultCard>
               <ResultHeader icon="bordermap" accent={ACCENT.codex}
-                title={`All ${targets.length} neighbours!`}
-                score={misses === 0 ? "Flawless, no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`} />
+                title={done ? `All ${targets.length} neighbours!` : `${found.size} of ${targets.length} neighbours`}
+                score={!done ? `The ${targets.length - found.size} you missed are shown in red.`
+                  : misses === 0 ? "Flawless, no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`} />
             </ResultCard>
             <PrimaryButton onClick={onReplay} accent={ACCENT.codex}>New country</PrimaryButton>
             <SecondaryButton onClick={onBack}>Home</SecondaryButton>
@@ -138,7 +142,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         )}
 
         {/* Input */}
-        {!done && (
+        {!over && (
           <div style={{ position: "relative" }}>
             <input ref={inputRef} value={input}
               onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
