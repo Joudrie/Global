@@ -29,6 +29,7 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
   const [rounds] = useState(buildRounds)
   const [idx, setIdx] = useState(0)
   const [sel, setSel] = useState<string | null>(null)        // selected flag code
+  const [selCap, setSelCap] = useState<string | null>(null)  // or a capital tapped first (its country code)
   const [matched, setMatched] = useState<Set<string>>(new Set())
   const [wrong, setWrong] = useState<string | null>(null)
   const [mistakes, setMistakes] = useState(0)
@@ -36,23 +37,34 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
 
   const round = rounds[idx]
 
-  const pickCapital = (code: string) => {
-    if (matched.has(code)) return
-    if (!sel) return
-    if (sel === code) {
+  // Match either way round: flag then capital, or capital then flag. Tapping
+  // the selected one again deselects it.
+  const tryPair = (flag: string, cap: string) => {
+    if (flag === cap) {
+      const code = flag
       const next = new Set(matched).add(code)
-      setMatched(next); setSel(null)
+      setMatched(next); setSel(null); setSelCap(null)
       if (next.size === round.left.length) {
         setTimeout(() => {
           if (idx + 1 >= rounds.length) { setDone(true); return }
-          setIdx(i => i + 1); setMatched(new Set()); setSel(null)
+          setIdx(i => i + 1); setMatched(new Set()); setSel(null); setSelCap(null)
         }, 350)
       }
     } else {
-      if (wrong === code) return   // a double tap is one mistake
-      setWrong(code); setMistakes(m => m + 1)
+      if (wrong === cap) return   // a double tap is one mistake
+      setWrong(cap); setMistakes(m => m + 1)
       setTimeout(() => setWrong(null), 600)
     }
+  }
+  const pickFlag = (code: string) => {
+    if (matched.has(code)) return
+    if (selCap) { tryPair(code, selCap); return }
+    setSel(s => (s === code ? null : code))
+  }
+  const pickCapital = (code: string) => {
+    if (matched.has(code)) return
+    if (sel) { tryPair(sel, code); return }
+    setSelCap(c => (c === code ? null : code))
   }
 
   if (done) {
@@ -75,7 +87,7 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
-      <ScreenHeader title="Capital Match" subtitle="Tap a flag, then its capital city" onBack={onBack}
+      <ScreenHeader title="Capital Match" subtitle="Tap a flag and its capital city" onBack={onBack}
         right={<div style={{ display: "flex", gap: 6 }}>
           {mistakes > 0 && <HeaderStat label="Mistakes" accent={T.danger}>{mistakes}</HeaderStat>}
           <HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>
@@ -89,10 +101,10 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
               const isMatched = matched.has(c.code)
               const isSel = sel === c.code
               return (
-                <button key={c.code} onClick={() => !isMatched && setSel(isSel ? null : c.code)} className="geo-tap"
+                <button key={c.code} onClick={() => pickFlag(c.code)} aria-pressed={isSel} className="geo-tap"
                   style={{ display: "flex", alignItems: "center", gap: 8, padding: 7, borderRadius: 10, flex: 1,
                     background: isMatched ? tint(ACCENT.learn, 0.12) : T.surface,
-                    border: `2px solid ${isMatched ? ACCENT.learn : isSel ? ACCENT.codex : T.line}`,
+                    border: `2px solid ${isMatched ? ACCENT.learn : isSel ? ACCENT.codex : selCap ? tint(ACCENT.codex, 0.5) : T.line}`,
                     opacity: isMatched ? 0.55 : 1, transition: "border-color 0.15s, background 0.15s, opacity 0.2s" }}>
                   <div style={{ width: 58, height: 39, borderRadius: 5, overflow: "hidden", flexShrink: 0, border: `1px solid ${T.line}` }}>
                     <FlagImage code={c.code} style={{ width: "100%", height: "100%", objectFit: "cover" }} />
@@ -107,11 +119,12 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
             {round.right.map(c => {
               const isMatched = matched.has(c.code)
               const isWrong = wrong === c.code
+              const isSelCap = selCap === c.code
               return (
-                <button key={c.code} onClick={() => pickCapital(c.code)} disabled={isMatched} className={`geo-tap ${isWrong ? "animate-wrong-shake" : ""}`}
+                <button key={c.code} onClick={() => pickCapital(c.code)} disabled={isMatched} aria-pressed={isSelCap} className={`geo-tap ${isWrong ? "animate-wrong-shake" : ""}`}
                   style={{ display: "flex", alignItems: "center", padding: "8px 12px", borderRadius: 10, flex: 1,
                     background: isMatched ? tint(ACCENT.learn, 0.12) : isWrong ? tint(T.danger, 0.12) : T.surface,
-                    border: `2px solid ${isMatched ? ACCENT.learn : isWrong ? T.danger : sel ? tint(ACCENT.codex, 0.5) : T.line}`,
+                    border: `2px solid ${isMatched ? ACCENT.learn : isWrong ? T.danger : isSelCap ? ACCENT.codex : sel ? tint(ACCENT.codex, 0.5) : T.line}`,
                     opacity: isMatched ? 0.55 : 1, transition: "border-color 0.15s" }}>
                   <span style={{ fontFamily: FONT.display, fontWeight: 600, fontSize: 13, color: T.text, textAlign: "left" }}>{c.capital}</span>
                   {isMatched && <span style={{ marginLeft: "auto", color: ACCENT.learn }}>✓</span>}

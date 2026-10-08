@@ -53,14 +53,15 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
   const [result, setResult] = useState<null | { correct: boolean }>(null)
+  const [wrongGuesses, setWrongGuesses] = useState<string[]>([])   // this round's misses, shown so they aren't repeated
   const [scores, setScores] = useState<number[]>([])
   const [done, setDone] = useState(false)
 
   const round = rounds[idx]
 
   const matches = useMemo(() => {
-    return matchNames(FLAGS, input, 5)
-  }, [input])
+    return matchNames(FLAGS.filter(f => !wrongGuesses.includes(f.name)), input, 5)
+  }, [input, wrongGuesses])
 
   const submit = (f: FlagRecord) => {
     if (result) return
@@ -70,6 +71,8 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
       const pts = Math.max(100, 600 - (shown - 2) * 100)
       setScores(s => [...s, pts]); setResult({ correct: true })
     } else {
+      if (wrongGuesses.includes(f.name)) return   // a repeat costs nothing
+      setWrongGuesses(w => [...w, f.name])
       // reveal one more clue; if out of clues, fail the round
       if (shown < round.clues.length) setShown(s => s + 1)
       else { setScores(s => [...s, 0]); setResult({ correct: false }) }
@@ -78,7 +81,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
   const next = () => {
     if (idx + 1 >= ROUNDS) { setDone(true); return }
-    setIdx(i => i + 1); setShown(2); setInput(""); setResult(null)
+    setIdx(i => i + 1); setShown(2); setInput(""); setResult(null); setWrongGuesses([])
   }
 
   if (done) {
@@ -116,7 +119,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             </p>
           ))}
           {!result && shown < round.clues.length && (
-            <p className="text-xs mt-1" style={{ color: T.dim }}>{round.clues.length - shown} more clue(s) on a wrong guess</p>
+            <p className="text-xs mt-1" style={{ color: T.dim }}>{round.clues.length - shown === 1 ? "1 more clue" : `${round.clues.length - shown} more clues`} on a wrong guess</p>
           )}
         </div>
 
@@ -140,6 +143,9 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
           </>
         ) : (
           <div className="w-full max-w-sm relative">
+            {wrongGuesses.length > 0 && (
+              <p className="text-xs mb-2" style={{ color: T.danger }}>✗ {wrongGuesses.join(" · ")}</p>
+            )}
             <input aria-label="Type a country" value={input} autoFocus autoComplete="off"
               onChange={e => { setInput(e.target.value); setShowDrop(true) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}

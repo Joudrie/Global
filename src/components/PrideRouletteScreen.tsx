@@ -54,6 +54,21 @@ export default function PrideRouletteScreen({ onBack }: Props) {
     setSeed(s => s + 1); setIdx(0); setScore(0); setPicked(null); setDone(false)
   }
 
+  // Switching 10/All mid-run restarts it, so that takes a second tap; tapping
+  // the length you're already on does nothing.
+  const [confirmLen, setConfirmLen] = useState<number | null>(null)
+  useEffect(() => {
+    if (confirmLen === null) return
+    const t = window.setTimeout(() => setConfirmLen(null), 3000)
+    return () => window.clearTimeout(t)
+  }, [confirmLen])
+  const midRun = !done && (idx > 0 || picked !== null)
+  const chooseLen = (n: number) => {
+    if (n === len) { setConfirmLen(null); return }
+    if (midRun && confirmLen !== n) { setConfirmLen(n); return }
+    setConfirmLen(null); restart(n)
+  }
+
   const pick = (id: string) => {
     if (answered) return
     setPicked(id)
@@ -96,8 +111,8 @@ export default function PrideRouletteScreen({ onBack }: Props) {
           {[["10", DEFAULT_LEN], ["All", LGBTQ_FLAGS.length]].map(([label, n]) => {
             const on = len === n
             return (
-              <button key={label} onClick={() => restart(n as number)}
-                style={{ fontSize: 11.5, fontWeight: 700, padding: "5px 14px", borderRadius: 999, border: "none", cursor: "pointer", background: on ? ACCENT.play : "transparent", color: on ? T.onAccent : T.muted }}>{label}</button>
+              <button key={label} onClick={() => chooseLen(n as number)} aria-pressed={on}
+                style={{ fontSize: 11.5, fontWeight: 700, padding: "5px 14px", minHeight: 32, borderRadius: 999, border: "none", cursor: "pointer", background: on ? ACCENT.play : confirmLen === n ? T.danger : "transparent", color: on || confirmLen === n ? T.onAccent : T.muted }}>{confirmLen === n ? "Restart?" : label}</button>
             )
           })}
         </div>

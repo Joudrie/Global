@@ -61,6 +61,14 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const [winners, setWinners] = useState<FlagRecord[]>([])
   const [champion, setChampion] = useState<FlagRecord | null>(null)
   const [history, setHistory] = useState<Match[]>([])
+  // The bracket before each pick, so a mis-tapped vote can be taken back.
+  const [undoStack, setUndoStack] = useState<{ field: FlagRecord[]; pair: number; winners: FlagRecord[]; history: Match[] }[]>([])
+  const undo = () => {
+    const prev = undoStack[undoStack.length - 1]
+    if (!prev) return
+    setField(prev.field); setPair(prev.pair); setWinners(prev.winners); setHistory(prev.history)
+    setChampion(null); setUndoStack(u => u.slice(0, -1))
+  }
 
   const start = (s: Scope) => {
     const pool = s === "World" ? FLAGS : getFlagsByRegion(s)
@@ -69,7 +77,7 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     const size = full ? pool.length : fieldSize(pool.length)
     setScope(s)
     setField(shuffle(pool).slice(0, size))
-    setPair(0); setWinners([]); setChampion(null); setHistory([])
+    setPair(0); setWinners([]); setChampion(null); setHistory([]); setUndoStack([])
   }
 
   // ── scope picker ──
@@ -115,6 +123,7 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     if (now - lastPick.current < 350) return
     lastPick.current = now
     const a = field[pair * 2], b = field[pair * 2 + 1]
+    setUndoStack(u => [...u, { field, pair, winners, history }])
     setHistory(h => [...h, { a, b, winnerCode: f.code, roundSize: field.length }])
     const nextWinners = [...winners, f]
     const pairs = Math.floor(field.length / 2)
@@ -167,6 +176,7 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
             <div className="flex flex-col gap-3">
               <PrimaryButton onClick={onReplay} accent={ACCENT.play}>New bracket</PrimaryButton>
+              <SecondaryButton onClick={undo}>Change the final pick</SecondaryButton>
               <SecondaryButton onClick={onBack}>Home</SecondaryButton>
             </div>
           </div>
@@ -192,6 +202,10 @@ function BracketGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
           <div className="text-sm font-black" style={{ color: ACCENT.play, fontFamily: FONT.display }}>VS</div>
           <FlagChoice flag={b} onPick={pick} />
         </div>
+        {undoStack.length > 0 && (
+          <button onClick={undo} className="geo-micro geo-tap"
+            style={{ fontSize: 11, color: T.muted, background: "transparent", minHeight: 44 }}>undo last pick</button>
+        )}
       </div>
     </div>
   )
