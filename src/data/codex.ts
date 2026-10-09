@@ -1,4 +1,4 @@
-import { commonsFlag } from "./flagUrl"
+import { fp } from "./flagUrl"
 
 export interface HistoricalFlag {
   fromYear: number
@@ -20,9 +20,9 @@ export interface CodexEntry {
   flagHistory: HistoricalFlag[]
 }
 
-/** Wikimedia Commons file → a stable image URL: LOCAL_FLAGS repair/copy, then
- *  our /cf/ copy (HOSTED_FLAGS), else the live Commons hotlink. See flagUrl.ts. */
-export const fp = (file: string): string => commonsFlag(file)
+// fp lives in flagUrl.ts (so data files can use it without this big module);
+// re-exported here for older imports.
+export { fp }
 
 const FLAG_HISTORY: Record<string, HistoricalFlag[]> = {
   CA: [

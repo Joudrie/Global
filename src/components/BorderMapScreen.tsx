@@ -1,20 +1,16 @@
 import { useState, useRef, useLayoutEffect, useMemo } from "react"
-import worldMap from "@svg-maps/world"
+import { WORLD_VIEWBOX as FULL_VB } from "virtual:world-outlines"
 import { FLAGS } from "../data/flags"
 import { neighborsOf, countriesWithBorders } from "../data/borders"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
+import { hasOutline as hasPath, useOutlines } from "./CountryOutline"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
 import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
-const PATHS = new Map<string, string>(
-  (worldMap as { locations: { id: string; path: string }[] }).locations.map(l => [l.id, l.path])
-)
-const FULL_VB = (worldMap as { viewBox: string }).viewBox
-const hasPath = (code: string) => PATHS.has(code.toLowerCase())
 const NAME = (code: string) => FLAGS.find(f => f.code === code)?.name ?? code
 
 const SEA = () => "#E6E9DD"
@@ -31,6 +27,8 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const primary = useMemo(() => ELIGIBLE[Math.floor(Math.random() * ELIGIBLE.length)], [])
   const targets = useMemo(() => neighborsOf(primary).filter(hasPath), [primary])
   const targetSet = useMemo(() => new Set(targets), [targets])
+  // The primary's and every neighbour's outline (small chunks), loaded together.
+  const paths = useOutlines([primary, ...targets])
 
   const [found, setFound] = useState<Set<string>>(new Set())
   const [input, setInput] = useState("")
@@ -51,7 +49,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
     // (especially on wide desktop screens) and neighbours stay visible.
     const pad = Math.max(b.width, b.height) * 0.95
     setVb(`${b.x - pad} ${b.y - pad} ${b.width + pad * 2} ${b.height + pad * 2}`)
-  }, [primary])
+  }, [primary, paths])
 
   const done = found.size === targets.length
   // Giving up ends the round too: the rest are drawn and the result shows.
@@ -104,9 +102,9 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         <div style={{ position: "relative", borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}`, background: SEA(), flex: 1, minHeight: 300, maxHeight: "55vh" }}>
           <svg viewBox={vb ?? FULL_VB} width="100%" height="100%" preserveAspectRatio="xMidYMid meet" style={{ display: "block", opacity: vb ? 1 : 0, transition: "opacity 0.25s" }}>
             {/* hidden measuring path (also the primary fill) */}
-            <path ref={primRef} d={PATHS.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke="#B98A2E" strokeWidth={0.4} />
-            {drawn.filter(d => !d.isPrimary).map(d => (
-              <path key={d.code} d={PATHS.get(d.code.toLowerCase())!} fill={d.fill}
+            {paths && <path ref={primRef} d={paths.get(primary.toLowerCase())!} fill={PRIMARY_FILL} stroke="#B98A2E" strokeWidth={0.4} />}
+            {paths && drawn.filter(d => !d.isPrimary).map(d => (
+              <path key={d.code} d={paths.get(d.code.toLowerCase())!} fill={d.fill}
                 stroke="#00000022" strokeWidth={0.4} />
             ))}
           </svg>

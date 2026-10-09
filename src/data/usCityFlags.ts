@@ -1,4 +1,4 @@
-import { fp } from "./codex"
+import { fp } from "./flagUrl"
 
 // US municipal flags. Wikimedia-hosted (filenames best-effort — this is why the
 // Codex section is labelled "Beta"). Broken ones degrade gracefully.

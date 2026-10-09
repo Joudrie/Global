@@ -5,7 +5,7 @@ import { HISTORY_NOTES } from "../data/historyNotes"
 import type { HistoryNote } from "../data/historyNotes"
 import { ADDED_FLAGS } from "../data/addedFlags"
 import { STATE_CANDIDATES } from "../data/formerStatesCandidates"
-import { fp } from "../data/codex"
+import { fp } from "../data/flagUrl"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 

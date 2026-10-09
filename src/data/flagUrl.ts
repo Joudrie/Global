@@ -7,6 +7,8 @@ import { FILEPATH, hostUrl, hostedFile } from "./hostedUrl"
 //   2. HOSTED_FLAGS: our same-origin copy under /cf/ (scripts/flags/cf).
 //   3. The live Commons hotlink, so anything not yet hosted still renders.
 // Keep this out of the home screen's initial bundle: both maps are large.
+// The build resolves data files' fp("literal") calls ahead of time
+// (scripts/flag-urls.mjs), so screens that only read that data never load it.
 
 export { canonName, commonsFileOf, hostUrl, hostedFile } from "./hostedUrl"
 
@@ -16,3 +18,6 @@ export function commonsFlag(file: string): string {
   if (local !== undefined) return local.startsWith("http") ? hostUrl(local) : local
   return hostedFile(file) ?? FILEPATH + file
 }
+
+/** Wikimedia Commons file → a stable image URL (commonsFlag), the data files' shorthand. */
+export const fp = (file: string): string => commonsFlag(file)

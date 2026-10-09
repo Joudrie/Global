@@ -1,4 +1,5 @@
-import worldMap from "@svg-maps/world"
+// The whole world at the detail this map can show (scripts/world-paths.mjs).
+import { WORLD_VIEWBOX, WORLD_COARSE } from "virtual:world-coarse"
 import { FLAGS, REGIONS } from "../data/flags"
 import type { AppState } from "../utils/storage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
@@ -32,13 +33,13 @@ export default function ProgressMapScreen({ state, onBack }: Props) {
       {/* Real world map — each learned country fills ochre */}
       <div className="px-4 pt-2">
         <div style={{ borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}`, background: OCEAN }}>
-          <svg viewBox={worldMap.viewBox} width="100%" style={{ display: "block" }} role="img" aria-label={`World map: ${learned.size} countries learned`}>
-            {worldMap.locations.map(loc => {
-              const lit = learned.has(loc.id.toUpperCase())
+          <svg viewBox={WORLD_VIEWBOX} width="100%" style={{ display: "block" }} role="img" aria-label={`World map: ${learned.size} countries learned`}>
+            {WORLD_COARSE.map(([id, d]) => {
+              const lit = learned.has(id.toUpperCase())
               return (
                 <path
-                  key={loc.id}
-                  d={loc.path}
+                  key={id}
+                  d={d}
                   fill={lit ? LIT : UNLIT}
                   stroke={OCEAN}
                   strokeWidth={0.4}

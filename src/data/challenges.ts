@@ -28,6 +28,8 @@ import { commonsFlag } from "./flagUrl"
 
 // Self-hosted copy when available (LOCAL_FLAGS, then HOSTED_FLAGS under /cf/);
 // empty string = dead link with no replacement; otherwise the live Commons redirect.
+// The build resolves wiki("…") calls ahead of time (scripts/flag-urls.mjs keeps
+// a copy of this line: change both together).
 const wiki = (file: string): string => commonsFlag(file.replace(/ /g, '_'))
 
 // ── UNITED STATES (50 states) ─────────────────────────────────────────────────

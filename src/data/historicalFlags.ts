@@ -1,4 +1,4 @@
-import { fp } from "./codex"
+import { fp } from "./flagUrl"
 
 export type HistoricalRegion = "Europe" | "Asia & Oceania" | "Americas" | "Africa & Middle East"
 
