@@ -80,7 +80,8 @@ const people = m => m >= 1000 ? `about ${(m / 1000).toFixed(1)} billion` : m >= 
   : `about ${Number((m * 1e6).toPrecision(2)).toLocaleString('en')}`
 const km2 = a => {
   const k = a * 1000
-  const r = k >= 100000 ? Math.round(k / 1000) * 1000 : k >= 1000 ? Math.round(k / 100) * 100 : Math.round(k)
+  // Vatican City is 0.49 km²: keep two decimals below 1 km² instead of "about 0".
+  const r = k >= 100000 ? Math.round(k / 1000) * 1000 : k >= 1000 ? Math.round(k / 100) * 100 : k >= 10 ? Math.round(k) : Number(k.toPrecision(2))
   return `about ${r.toLocaleString('en')} km²`
 }
 // Country names in a sentence: "the United States", "the Netherlands' flag".
@@ -97,6 +98,14 @@ const clip = (s, max = 158) => {
   if (stop >= max * 0.6) return cut.slice(0, stop + 1)
   return `${cut.slice(0, cut.lastIndexOf(' ')).replace(/[,;:–-]+$/, '')}…`
 }
+// BreadcrumbList structured data matching the visible crumbs: [[name, path], …].
+const crumbs = trail => ({
+  '@context': 'https://schema.org', '@type': 'BreadcrumbList',
+  itemListElement: trail.map(([name, p], i) => ({ '@type': 'ListItem', position: i + 1, name, item: `${ORIGIN}${p}` })),
+})
+// Each country page shares its own card (public/og/flags, from scripts/og/flagCards.mjs).
+const flagCard = code => fs.existsSync(path.join(ROOT, 'public/og/flags', `${code.toLowerCase()}.jpg`))
+  ? `${ORIGIN}/og/flags/${code.toLowerCase()}.jpg` : undefined
 const list = xs => xs.length < 2 ? xs.join('') : `${xs.slice(0, -1).join(', ')} and ${xs[xs.length - 1]}`
 const words = html => html.replace(/<[^>]+>/g, ' ').split(/\s+/).filter(Boolean).length
 
@@ -126,7 +135,8 @@ const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
 // `ads: false` for utility pages (contact, 404) where an ad would sit on a page
 // with little content of its own; hate-symbol pages never get the script.
 const FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap'
-function page({ title, description, canonical, body, noindex = false, ads = true, ogImage = `${ORIGIN}/og-image.jpg`, jsonLd = null }) {
+function page({ title, description, canonical, body, noindex = false, ads = true, ogImage, jsonLd = null }) {
+  ogImage ??= `${ORIGIN}/og-image.jpg`
   const adScript = ads && !noindex && !showsHateSymbol(body)
   return `<!doctype html>
 <html lang="en">
@@ -333,7 +343,7 @@ ${related.map(h => `
 ${territories.length ? `<h2>Territories &amp; dependencies</h2>
 ${territories.map(t => `
 <div class="entry">
-  ${img(t.noFlag ? '' : t.flagUrl, `Flag of ${t.name}`)}
+  ${img(t.noFlag ? flag.flagUrl : t.flagUrl, t.noFlag ? `Flag of ${name}, flown in ${t.name}` : `Flag of ${t.name}`)}
   <div><div class="when">${esc(t.status)}</div><h3>${esc(t.name)}</h3><p>${esc(t.note)}</p></div>
 </div>`).join('')}` : ''}
 ${subs.length ? `<h2>Regional flags of ${esc(name)}</h2>
@@ -353,7 +363,10 @@ ${sameColours.map(c => `<a class="card" href="/flags/${slug(c.code)}/">${img(c.f
 </div>` : ''}
 <a class="cta" href="/">Play Globalio and learn ${esc(poss(name))} flag</a>
 `
-  return page({ title, description, canonical: `${ORIGIN}/flags/${slug(flag.code)}/`, body })
+  return page({
+    title, description, canonical: `${ORIGIN}/flags/${slug(flag.code)}/`, body, ogImage: flagCard(flag.code),
+    jsonLd: crumbs([['Home', '/'], ['Country flags', '/flags/'], [flag.name, `/flags/${slug(flag.code)}/`]]),
+  })
 }
 
 // ── hub page: /flags/ ────────────────────────────────────────────────────────
@@ -419,6 +432,7 @@ ${items.map(h => {
     title: [`Historical flags of ${inRegion(region)}: lost states | Globalio`, `Historical flags of ${inRegion(region)} | Globalio`].find(t => t.length <= 65) ?? `Historical flags of ${inRegion(region)} | Globalio`,
     description: `The flags of ${items.length} former states, empires and kingdoms of ${inRegion(region)}, with the history behind each one.`,
     canonical: `${ORIGIN}/historical/${slug(region)}/`,
+    jsonLd: crumbs([['Home', '/'], ['Historical flags', '/historical/'], [region, `/historical/${slug(region)}/`]]),
     body,
   })
 }
@@ -483,6 +497,7 @@ ${items.map(f => `
     title: [`${cat} flags: ${items.length} flags and their meaning | Globalio`, `${cat} flags and their meaning | Globalio`].find(t => t.length <= 65) ?? `${cat} flags | Globalio`,
     description: `${ID_INTRO[cat] ?? ''} ${items.length} flags with the story behind each one.`.trim(),
     canonical: `${ORIGIN}/identity/${slug(cat)}/`,
+    jsonLd: crumbs([['Home', '/'], ['Identity flags', '/identity/'], [cat, `/identity/${slug(cat)}/`]]),
     body,
   })
 }

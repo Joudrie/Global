@@ -71,6 +71,8 @@ const RAW: Record<string, Stat> = {
   KN: { pop: 0.048, area: 0.26 }, MH: { pop: 0.042, area: 0.18 }, LI: { pop: 0.04, area: 0.16 },
   MC: { pop: 0.036, area: 0.002 }, SM: { pop: 0.034, area: 0.061 }, PW: { pop: 0.018, area: 0.46 },
   NR: { pop: 0.013, area: 0.021 }, TV: { pop: 0.011, area: 0.026 },
+  CH: { pop: 8.8, area: 41.3 }, XK: { pop: 1.6, area: 10.9 }, BH: { pop: 1.5, area: 0.78 },
+  MV: { pop: 0.52, area: 0.3 }, VC: { pop: 0.1, area: 0.389 }, VA: { pop: 0.0008, area: 0.00049 },
 }
 
 const CODES = new Set(FLAGS.map(f => f.code))

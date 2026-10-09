@@ -4,6 +4,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-09",
+    title: "Sharper forgeries, better shares",
+    items: [
+      "Flag Forgery's fakes are redrawn from the real flags, so they're as crisp as the genuine ones and only the doctored detail gives them away.",
+      "Sharing a country page now shows that country's flag in the preview.",
+      "Population and area for Switzerland, Kosovo, Bahrain, the Maldives, Saint Vincent and the Vatican, and French overseas regions show the flag they fly.",
+    ],
+  },
+  {
     date: "2026-10-08",
     title: "Connections, rebuilt",
     items: [
