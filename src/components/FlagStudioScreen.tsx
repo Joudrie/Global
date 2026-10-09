@@ -452,10 +452,13 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   // flag's; "Next mix" cycles the other pairings. Every mix is painted from
   // the flag as it was before mixing, so cycling never compounds.
   type Mix = {
-    from: Design; main: string[]; plans: string[][]; step: number; name: string; label: string
+    from: Design; main: string[]; plans: string[][]; step: number; name: string; label: string; donor?: string
     f: (string | null)[]; s: (string | null)[]; group: Map<string, string>; result: Design
   }
   const [mix, setMix] = useState<Mix | null>(null)
+  const [tplMode, setTplMode] = useState<"start" | "mix">("start")
+  // Phone, browsing colours: the flag stays pinned (smaller) above the list.
+  const pinned = !wide && tab === "templates" && tplMode === "mix"
 
   // First visit: a small "Click me!" on Shuffle, gone at the first tap anywhere.
   const HINT_KEY = "globalio_fs_shuffle_hint"
@@ -503,9 +506,9 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     setFuture([])
     setDesign(result)
     setShareUrl(null)
-    setMix({ ...m, result })
+    setMix({ ...m, result, donor: code })
     setSel(null)
-    if (!wide) setTab("edit")
+    // Stay in the list, so the next country is one tap away.
   }
   const nextMix = () => {
     if (!mix || !mixing) return
@@ -924,9 +927,9 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const upp = FLAG_W / Math.max(200, ovRef.current?.getBoundingClientRect().width || 760)
 
   const stage = (
-    <div className="fs-stage">
+    <div className={`fs-stage${pinned ? " pinned" : ""}`}>
       <div className="fs-table" onClick={e => { if (e.target === e.currentTarget) setSel(null) }}>
-        <div className="fs-flag" style={{ aspectRatio: `${FLAG_W} / ${flagH}`, width: `min(100%, 760px, calc(68vh * ${(FLAG_W / flagH).toFixed(4)}))`, touchAction: selOverlay ? "none" : undefined }}
+        <div className="fs-flag" style={{ aspectRatio: `${FLAG_W} / ${flagH}`, width: `min(100%, 760px, calc(${pinned ? 24 : 68}vh * ${(FLAG_W / flagH).toFixed(4)}))`, touchAction: selOverlay ? "none" : undefined }}
           onPointerDownCapture={onFlagPointerDown} onPointerMove={onFlagPointerMove} onPointerUp={onFlagPointerUp} onPointerCancel={onFlagPointerUp}>
           {composed ? (
             <>
@@ -1185,7 +1188,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   )
 
   const content: Record<Tab, ReactNode> = {
-    templates: <TemplatesPanel onPick={switchTo} onMix={startMix} current={design.base} mixInto={mixing ? mix!.label.split(" + ")[0] : countryOf(design.base)?.name ?? design.name} />,
+    templates: <TemplatesPanel onPick={switchTo} onMix={startMix} mode={tplMode} onMode={setTplMode} mixedWith={mixing ? mix!.donor : undefined} current={design.base} mixInto={mixing ? mix!.label.split(" + ")[0] : countryOf(design.base)?.name ?? design.name} />,
     symbols: symbolsPanel,
     emblems: <EmblemsPanel onAdd={addEmblem} onError={setNotice} />,
     edit: editPanel,
@@ -1226,10 +1229,10 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
 // ── Panels ─────────────────────────────────────────────────────────────────
 
-function TemplatesPanel({ onPick, onMix, current, mixInto }:
-  { onPick: (d: Design) => void; onMix: (code: string) => void; current: string; mixInto: string }) {
+function TemplatesPanel({ onPick, onMix, mode, onMode: setMode, mixedWith, current, mixInto }:
+  { onPick: (d: Design) => void; onMix: (code: string) => void; mode: "start" | "mix"; onMode: (m: "start" | "mix") => void
+    mixedWith?: string; current: string; mixInto: string }) {
   // Tapping a flag either starts from it, or paints the current flag in its colours.
-  const [mode, setMode] = useState<"start" | "mix">("start")
   const [q, setQ] = useState("")
   const [region, setRegion] = useState<(typeof REGIONS)[number]>("All")
   const flags = useMemo(() => {
@@ -1279,7 +1282,7 @@ function TemplatesPanel({ onPick, onMix, current, mixInto }:
       )}
       <div className="fs-tgrid">
         {flags.map(f => (
-          <button key={f.code} className={`fs-card${mode === "start" && current === countryBase(f.code) ? " on" : ""}`}
+          <button key={f.code} className={`fs-card${(mode === "start" ? current === countryBase(f.code) : mixedWith === f.code) ? " on" : ""}`}
             aria-label={mode === "mix" ? `Mix in ${f.name}'s colours` : undefined}
             onClick={() => (mode === "mix" ? onMix(f.code) : onPick(newDesign(countryBase(f.code), `New ${f.name}`)))}>
             {STUDIO_FLAGS[f.code.toLowerCase()]
@@ -1480,6 +1483,9 @@ const CSS = `
 .fs-right { border-left: 1px solid ${T.line}; background: ${T.surface}; display: grid; align-content: start; }
 .fs-right .fs-panel + .fs-panel { border-top: 1px solid ${T.line}; }
 .fs-stage { background: ${T.void}; display: flex; flex-direction: column; min-width: 0; position: relative; }
+.fs-stage.pinned { position: sticky; top: 0; z-index: 5; box-shadow: 0 6px 14px -10px rgba(31,58,60,.5); }
+.fs-stage.pinned .fs-table { padding: 10px 16px; }
+.fs-stage.pinned .fs-strip { display: none; }
 .fs-grid > .fs-stage { position: sticky; top: 0; height: calc(100vh - var(--fs-head, 78px)); align-self: start; }
 .fs-table { flex: 1; display: grid; place-items: center; padding: 28px 16px; overflow: hidden;
   background-image: linear-gradient(${tint(T.text, 0.06)} 1px, transparent 1px), linear-gradient(90deg, ${tint(T.text, 0.06)} 1px, transparent 1px);

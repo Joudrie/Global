@@ -9,6 +9,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     items: [
       "New in Templates: \"Mix in its colours\". Pick a flag, then tap another to paint the first in the second's colours: Sweden in Poland's red and white, Saudi Arabia in Ireland's green and orange.",
       "\"Next mix\" cycles through the other ways the colours can pair up. Crests and emblems keep their own colours, and Undo takes the whole mix back.",
+      "On phones you stay in the list while you mix, with your flag pinned at the top, so you can tap country after country to compare colour schemes.",
       "Flag Studio now opens on Barbados.",
     ],
   },
