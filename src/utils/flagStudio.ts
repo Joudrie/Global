@@ -734,3 +734,67 @@ export function saveStore(s: Store): boolean {
     return true
   } catch { return false /* the design still works for this visit */ }
 }
+
+// ── Mixing: this flag in that flag's colours ──────────────────────────────
+// A flag's main colours (largest first) are repainted with another flag's.
+// The first plan keeps the field when both flags share it (Saudi Arabia with
+// Ireland stays green) and brings in the other flag's new colours before
+// repeating ones (the writing turns orange, not white); the rest run through
+// every other pairing, so "Next mix" can cycle them.
+
+const hexRgb = (h: string) => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16))
+/** Straight-line distance between two #rrggbb colours (0–441). */
+export const hexDistance = (a: string, b: string) => {
+  const p = hexRgb(a), q = hexRgb(b)
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2])
+}
+const NEAR = 40
+
+function* permutations(n: number): Generator<number[]> {
+  const a = [...Array(n).keys()]
+  yield [...a]
+  // Heap's algorithm, iterative.
+  const c = Array(n).fill(0)
+  for (let i = 1; i < n;) {
+    if (c[i] < i) {
+      const k = i % 2 ? c[i] : 0
+      ;[a[i], a[k]] = [a[k], a[i]]
+      yield [...a]
+      c[i]++; i = 1
+    } else { c[i] = 0; i++ }
+  }
+}
+
+/** Target colours for `base` (main colours, largest first), one plan per pairing. */
+export function mixPlans(base: string[], donor: string[], max = 24): string[][] {
+  if (!base.length || !donor.length) return []
+  const first: string[] = []
+  const used = new Set<string>()
+  base.forEach((b, j) => {
+    const free = donor.filter(d => !used.has(d))
+    const fresh = free.filter(d => !base.some(x => hexDistance(x, d) <= NEAR))
+    const pick = (j === 0 ? donor.find(d => hexDistance(d, b) <= NEAR) : undefined)
+      ?? fresh[0] ?? free[0] ?? donor[j % donor.length]
+    used.add(pick)
+    first.push(pick)
+  })
+  const plans = [first]
+  const seen = new Set([first.join()])
+  const same = (p: string[]) => p.every((c, j) => hexDistance(c, base[j]) <= 8)
+  for (const perm of permutations(Math.min(donor.length, 6))) {
+    if (plans.length >= max) break
+    const plan = base.map((_, j) => donor[perm[j % perm.length]])
+    const key = plan.join()
+    if (seen.has(key) || same(plan)) continue
+    seen.add(key)
+    plans.push(plan)
+  }
+  return plans
+}
+
+/** The new colour for `hex` under a plan: its nearest main colour's target, or unchanged. */
+export function mixColor(hex: string, base: string[], plan: string[]): string | undefined {
+  let best = -1, bd = NEAR + 1
+  base.forEach((b, j) => { const d = hexDistance(hex, b); if (d < bd) { bd = d; best = j } })
+  return best >= 0 ? plan[best] : undefined
+}

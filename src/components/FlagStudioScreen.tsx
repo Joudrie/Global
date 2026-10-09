@@ -1,6 +1,6 @@
 import { useState, useEffect, useLayoutEffect, useMemo, useRef, useCallback } from "react"
 import type { PointerEvent as ReactPointerEvent, MouseEvent as ReactMouseEvent, ReactNode } from "react"
-import { Undo2, Redo2, Shuffle, Download, Link2, Trash2, Copy, ArrowUp, ArrowDown, Search, Dices, Minus, Plus, ImagePlus } from "lucide-react"
+import { Undo2, Redo2, Shuffle, Download, Link2, Trash2, Copy, ArrowUp, ArrowDown, Search, Dices, Minus, Plus, ImagePlus, RefreshCw, X } from "lucide-react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { BackButton } from "./ui"
 import FlagImage from "./FlagImage"
@@ -11,11 +11,12 @@ import {
   newDesign, newId, loadBase, composeBase, composeFull, svgDataUri, svgToPng, downloadBlob,
   fileSlug, encodeDesign, decodeDesign, loadStore, saveStore, toHex,
   loadEmblem, ensureEmblems, emblemInner, emblemPng, imageInner, overlaySize, prepareUpload,
-  countryBase, stripesDesign, randomDesign, baseTextSync, svgOwnRatio, FULL_WIDTH_SYMBOLS, refitOverlays,
+  countryBase, stripesDesign, randomDesign, baseTextSync, svgOwnRatio, FULL_WIDTH_SYMBOLS, refitOverlays, mixPlans, mixColor,
 } from "../utils/flagStudio"
 import { nationCard, canvasBlob } from "../utils/nationCard"
 import { STUDIO_FLAGS } from "../data/studioFlags"
 import { EMBLEMS } from "../data/emblems"
+import { FLAG_PALETTES } from "../data/flagPalettes"
 import type { Design, Overlay, SymbolKind } from "../utils/flagStudio"
 
 const ACC = ACCENT.play
@@ -134,7 +135,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const wide = useWide()
   const store = useMemo(loadStore, [])
   const shared = useMemo(() => (initialDesign ? decodeDesign(initialDesign) : null), [initialDesign])
-  const [design, setDesign] = useState<Design>(() => shared ?? store.current ?? stripesDesign("v", ["#0b3d91", "#ffffff", "#c8102e"], "My flag"))
+  const [design, setDesign] = useState<Design>(() => shared ?? store.current ?? newDesign(countryBase("BB"), "New Barbados"))
   const [saved, setSaved] = useState<Design[]>(store.saved)
   const [past, setPast] = useState<Design[]>([])
   const [future, setFuture] = useState<Design[]>([])
@@ -368,6 +369,8 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     setDesign(d => ({ ...d, ...patch, edited: true, updated: Date.now() }))
 
   // The name and motto aren't undo steps, so undo and redo carry them along.
+  // A name the studio gave a mix ("Sweden + Poland"): undoing the mix takes it back too.
+  const autoName = useRef<string | null>(null)
   const keepWords = useCallback((d: Design): Design => ({
     ...d, name: design.name, motto: design.motto,
     edited: d.edited || d.name !== design.name || (d.motto ?? "") !== (design.motto ?? ""),
@@ -375,7 +378,8 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   const undo = useCallback(() => {
     if (!past.length) return
     setFuture(f => [design, ...f])
-    setDesign(keepWords(past[past.length - 1]))
+    const prev = past[past.length - 1]
+    setDesign(autoName.current === design.name ? prev : keepWords(prev))
     setPast(p => p.slice(0, -1))
   }, [past, design, keepWords])
   const redo = useCallback(() => {
@@ -441,6 +445,74 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
     const overlays = design.overlays.map(o => ({ ...o, color: pick(o.color.toLowerCase()) ?? o.color }))
     commit({ ...design, parts, overlays })
     setSel(null)
+  }
+
+  // ── Mixing: this flag in another flag's colours ──
+  // The flag's main colours (largest first) are repainted with the other
+  // flag's; "Next mix" cycles the other pairings. Every mix is painted from
+  // the flag as it was before mixing, so cycling never compounds.
+  type Mix = {
+    from: Design; main: string[]; plans: string[][]; step: number; name: string; label: string
+    f: (string | null)[]; s: (string | null)[]; group: Map<string, string>; result: Design
+  }
+  const [mix, setMix] = useState<Mix | null>(null)
+
+  // First visit: a small "Click me!" on Shuffle, gone at the first tap anywhere.
+  const HINT_KEY = "globalio_fs_shuffle_hint"
+  const [hint, setHint] = useState(() => { try { return !shared && !localStorage.getItem(HINT_KEY) } catch { return false } })
+  useEffect(() => {
+    if (!hint) return
+    const done = () => { setHint(false); try { localStorage.setItem(HINT_KEY, "1") } catch { /* ignore */ } }
+    window.addEventListener("pointerdown", done, { capture: true, once: true })
+    window.addEventListener("keydown", done, { capture: true, once: true })
+    return () => { window.removeEventListener("pointerdown", done, { capture: true }); window.removeEventListener("keydown", done, { capture: true }) }
+  }, [hint])
+  const mixing = !!mix && mix.result === design
+  const countryOf = (base: string) => FLAGS.find(f => countryBase(f.code) === base)
+  const mainColours = (): string[] => {
+    const country = countryOf(design.base)
+    const pal = country && !Object.keys(design.parts).length ? FLAG_PALETTES[country.code]?.map(([h]) => h) : undefined
+    if (pal?.length) return pal
+    const total = strip.reduce((a, c) => a + c.count, 0) || 1
+    return strip.filter(c => c.count / total >= 0.02).slice(0, 6).map(c => c.hex)
+  }
+  const paintMix = (m: Omit<Mix, "result">): Design => {
+    const plan = m.plans[m.step]
+    const pick = (c: string | null) => (c ? mixColor(m.group.get(c) ?? c, m.main, plan) : undefined)
+    const parts = { ...m.from.parts }
+    m.f.forEach((c, i) => { const n = pick(c); if (n) parts[i] = { ...parts[i], f: n } })
+    m.s.forEach((c, i) => { const n = pick(c); if (n) parts[i] = { ...parts[i], s: n } })
+    const overlays = m.from.overlays.map(o => ({ ...o, color: pick(o.color.toLowerCase()) ?? o.color }))
+    return { ...m.from, name: m.name, parts, overlays, edited: true, updated: Date.now() }
+  }
+  const startMix = (code: string) => {
+    const donor = FLAGS.find(f => f.code === code)
+    const pal = FLAG_PALETTES[code]?.map(([h]) => h) ?? []
+    const main = mainColours()
+    const plans = mixPlans(main, pal)
+    if (!donor || !plans.length || !strip.length) { setNotice("Those are already this flag's colours. Try another flag."); return }
+    const baseName = mixing ? mix!.label.split(" + ")[0] : countryOf(design.base)?.name ?? design.name
+    const label = `${baseName} + ${donor.name}`
+    const plain = /^(New |My flag$)/.test(design.name) || design.name.includes(" + ")
+    const m = { from: mixing ? mix!.from : design, main: mixing ? mix!.main : main, plans: mixing ? mixPlans(mix!.main, pal) : plans, step: 0,
+      name: plain ? label : design.name, label, f: mixing ? mix!.f : [...eff.current.f], s: mixing ? mix!.s : [...eff.current.s], group: mixing ? mix!.group : new Map(eff.current.group) }
+    const result = paintMix(m)
+    autoName.current = plain ? label : null
+    // Like commit(), but keeps this exact object so the mix bar knows it's current.
+    setPast(p => [...p.slice(-99), design])
+    setFuture([])
+    setDesign(result)
+    setShareUrl(null)
+    setMix({ ...m, result })
+    setSel(null)
+    if (!wide) setTab("edit")
+  }
+  const nextMix = () => {
+    if (!mix || !mixing) return
+    const m = { ...mix, step: (mix.step + 1) % mix.plans.length }
+    const result = paintMix(m)
+    setDesign(result)   // one undo step for the whole cycle: Undo goes back to before the mix
+    setMix({ ...m, result })
   }
 
   const addSymbol = (kind: SymbolKind) => {
@@ -839,7 +911,10 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
         <IconBtn label="Undo" onClick={undo} disabled={!past.length}><Undo2 size={17} /></IconBtn>
         <IconBtn label="Redo" onClick={redo} disabled={!future.length}><Redo2 size={17} /></IconBtn>
         <IconBtn label="Random flag" onClick={randomize} text="Random"><Dices size={16} /></IconBtn>
-        <IconBtn label="Shuffle colours" onClick={shuffleColors} disabled={!strip.length} text="Shuffle"><Shuffle size={16} /></IconBtn>
+        <span style={{ position: "relative", display: "inline-flex" }}>
+          <IconBtn label="Shuffle colours" onClick={shuffleColors} disabled={!strip.length} text="Shuffle"><Shuffle size={16} /></IconBtn>
+          {hint && <span className="fs-hint" aria-hidden="true">Click me!</span>}
+        </span>
         {wide && <IconBtn label="Copy share link" onClick={share} text="Share"><Link2 size={16} /></IconBtn>}
       </div>
     </header>
@@ -926,6 +1001,13 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
           )}
         </div>
       </div>
+      {mixing && (
+        <div className="fs-mixbar" role="status">
+          <span style={{ minWidth: 0 }}><b>{mix!.label}</b> <span style={{ color: T.muted }}>· mix {mix!.step + 1} of {mix!.plans.length}</span></span>
+          {mix!.plans.length > 1 && <IconBtn label="Next mix" onClick={nextMix} text="Next mix"><RefreshCw size={15} /></IconBtn>}
+          <IconBtn label="Close" onClick={() => setMix(null)}><X size={15} /></IconBtn>
+        </div>
+      )}
       <div className="fs-strip" aria-label="Colours in this flag">
         <span className="fs-label">In this flag</span>
         <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
@@ -1103,7 +1185,7 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
   )
 
   const content: Record<Tab, ReactNode> = {
-    templates: <TemplatesPanel onPick={switchTo} current={design.base} />,
+    templates: <TemplatesPanel onPick={switchTo} onMix={startMix} current={design.base} mixInto={mixing ? mix!.label.split(" + ")[0] : countryOf(design.base)?.name ?? design.name} />,
     symbols: symbolsPanel,
     emblems: <EmblemsPanel onAdd={addEmblem} onError={setNotice} />,
     edit: editPanel,
@@ -1144,7 +1226,10 @@ export default function FlagStudioScreen({ onBack, initialDesign }: Props) {
 
 // ── Panels ─────────────────────────────────────────────────────────────────
 
-function TemplatesPanel({ onPick, current }: { onPick: (d: Design) => void; current: string }) {
+function TemplatesPanel({ onPick, onMix, current, mixInto }:
+  { onPick: (d: Design) => void; onMix: (code: string) => void; current: string; mixInto: string }) {
+  // Tapping a flag either starts from it, or paints the current flag in its colours.
+  const [mode, setMode] = useState<"start" | "mix">("start")
   const [q, setQ] = useState("")
   const [region, setRegion] = useState<(typeof REGIONS)[number]>("All")
   const flags = useMemo(() => {
@@ -1154,10 +1239,19 @@ function TemplatesPanel({ onPick, current }: { onPick: (d: Design) => void; curr
       .sort((a, b) => a.name.localeCompare(b.name))
   }, [q, region])
   const layouts = useMemo(() => LAYOUTS.map(l => ({ ...l, uri: svgDataUri(layoutSvg(l.body)) })), [])
-  const showLayouts = !q.trim() && region === "All"
+  const showLayouts = mode === "start" && !q.trim() && region === "All"
 
   return (
     <div className="fs-panel">
+      <div className="fs-chips" role="radiogroup" aria-label="What tapping a flag does">
+        <button role="radio" aria-checked={mode === "start"} className={`fs-pill${mode === "start" ? " on" : ""}`} onClick={() => setMode("start")}>Start from a flag</button>
+        <button role="radio" aria-checked={mode === "mix"} className={`fs-pill${mode === "mix" ? " on" : ""}`} onClick={() => setMode("mix")}>Mix in its colours</button>
+      </div>
+      {mode === "mix" && (
+        <span style={{ fontSize: 13, color: T.muted }}>
+          Tap a flag to paint <b style={{ color: T.text }}>{mixInto}</b> in its colours. Crests and emblems keep theirs; "Next mix" tries other pairings.
+        </span>
+      )}
       <label className="fs-searchbox">
         <Search size={16} color={T.muted} aria-hidden="true" />
         <input id="fs-search" className="fs-search bare" placeholder={`Search ${FLAGS.length} flags`} value={q}
@@ -1185,8 +1279,9 @@ function TemplatesPanel({ onPick, current }: { onPick: (d: Design) => void; curr
       )}
       <div className="fs-tgrid">
         {flags.map(f => (
-          <button key={f.code} className={`fs-card${current === countryBase(f.code) ? " on" : ""}`}
-            onClick={() => onPick(newDesign(countryBase(f.code), `New ${f.name}`))}>
+          <button key={f.code} className={`fs-card${mode === "start" && current === countryBase(f.code) ? " on" : ""}`}
+            aria-label={mode === "mix" ? `Mix in ${f.name}'s colours` : undefined}
+            onClick={() => (mode === "mix" ? onMix(f.code) : onPick(newDesign(countryBase(f.code), `New ${f.name}`)))}>
             {STUDIO_FLAGS[f.code.toLowerCase()]
               ? <img src={STUDIO_FLAGS[f.code.toLowerCase()][0]} alt="" loading="lazy" decoding="async" className="fs-thumb" />
               : <FlagImage code={f.code} alt="" className="fs-thumb" />}
@@ -1425,6 +1520,11 @@ const CSS = `
 @media (prefers-reduced-motion: reduce) { .fs-sel { animation: none; } }
 .fs-loading { position: absolute; inset: 0; display: grid; place-items: center; padding: 16px; text-align: center; color: ${T.muted}; font-size: 14px; }
 .fs-strip { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 12px 16px; background: ${T.surface}; border-top: 1px solid ${T.line}; }
+.fs-hint { position: absolute; top: -9px; right: -8px; padding: 2px 7px; border-radius: 999px; background: ${ACCENT.play}; color: ${T.onAccent}; font-size: 10px; font-weight: 700; white-space: nowrap; pointer-events: none; box-shadow: 0 2px 6px rgba(31,58,60,.25); animation: fs-hint-bob 1.6s ease-in-out infinite; }
+@keyframes fs-hint-bob { 50% { transform: translateY(-3px); } }
+@media (prefers-reduced-motion: reduce) { .fs-hint { animation: none; } }
+.fs-mixbar { display: flex; align-items: center; gap: 8px; padding: 8px 16px; background: ${tint(ACCENT.play, 0.1)}; border-top: 1px solid ${T.line}; font-size: 13px; color: ${T.text}; }
+.fs-mixbar > span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .fs-label { font-size: 11px; font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: ${T.muted}; }
 .fs-chip { width: 30px; height: 30px; border-radius: 8px; border: 2px solid ${T.surface}; box-shadow: 0 0 0 1px ${tint(T.text, 0.25)}; cursor: pointer; padding: 0; }
 .fs-chip.big { width: 100%; height: auto; aspect-ratio: 1; border-radius: 50%; }
