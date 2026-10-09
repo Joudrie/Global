@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-09",
+    title: "Flag Studio: mix two flags",
+    items: [
+      "New in Templates: \"Mix in its colours\". Pick a flag, then tap another to paint the first in the second's colours: Sweden in Poland's red and white, Saudi Arabia in Ireland's green and orange.",
+      "\"Next mix\" cycles through the other ways the colours can pair up. Crests and emblems keep their own colours, and Undo takes the whole mix back.",
+      "Flag Studio now opens on Barbados.",
+    ],
+  },
+  {
+    date: "2026-10-09",
     title: "Faster on phones, sharper forgeries",
     items: [
       "The Codex tab opens in a blink: each collection loads when you open it, instead of every flag up front.",
