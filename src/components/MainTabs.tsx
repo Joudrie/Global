@@ -14,6 +14,7 @@ import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassI
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
+import { WordUpSlide, ReignSlide } from "./MakerSlides"
 import AdBox from "./AdBox"
 import { AD_SLOTS, SUPPORTER_LIVE } from "../ads"
 
@@ -224,12 +225,8 @@ function TodayTab({ state, today, dailyDone, launch, onNavigate, onGoCodex, onGo
         { accent: ACCENT.learn, eyebrow: "Did you know?", title: dyk.name,
           body: dyk.funFact, cta: "More fun facts", onClick: () => onNavigate("funfact"),
           cover: dyk.code },
-        { accent: T.warm, watermark: "codex", eyebrow: "More from the maker", title: "Two more free projects",
-          body: "Crown & Succession: every ruler of 48 countries, from the pharaohs to today. WordUp: type any word and see where it came from.",
-          cta: "", links: [
-            { label: "Crown & Succession", href: "https://joudrie.github.io/reign/" },
-            { label: "WordUp", href: "https://joudrie.github.io/WordUp/" },
-          ] },
+        { accent: "#6c3ce1", eyebrow: "WordUp", title: "WordUp", body: "", cta: "", custom: <WordUpSlide /> },
+        { accent: "#8a1c2b", eyebrow: "Crown & Succession", title: "Crown & Succession", body: "", cta: "", custom: <ReignSlide /> },
       ]} />
 
       {/* Quick Play — instant fun, charged up */}
@@ -373,8 +370,8 @@ function SiteLinks() {
 interface SlideData {
   accent: string; eyebrow: string; title: string; body: string; cta: string
   onClick?: () => void; art?: ReactNode; watermark?: string
-  /** Outbound links shown as buttons instead of the single CTA (opens a new tab). */
-  links?: { label: string; href: string }[]
+  /** A fully custom slide (used for the maker's other projects, in their own style). */
+  custom?: ReactNode
   /** A flag code — renders the slide as a full-bleed flag poster instead of the
    *  paper-card layout, so the deck mixes two visual formats as you swipe. */
   cover?: string
@@ -475,7 +472,8 @@ function HeroDeck({ slides }: { slides: SlideData[] }) {
 /* One deck slide — fills the deck's fixed height, text on the left, optional
    poster art on the right (or a big etched watermark behind). The whole card is
    tappable (handled by HeroDeck); the CTA stays a real button for keyboard. */
-function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark, cover, links }: SlideData) {
+function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark, cover, custom }: SlideData) {
+  if (custom) return <>{custom}</>
   const disabled = !onClick
   if (cover) {
     // Flag-poster format: the flag fills the TOP of the card, fully visible with
@@ -531,25 +529,12 @@ function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark,
             flexShrink: 0, color: T.muted, fontSize: 12.5, marginTop: 6, lineHeight: 1.5,
             display: "-webkit-box", WebkitLineClamp: 3, WebkitBoxOrient: "vertical", overflow: "hidden",
           }}>{body}</div>
-          {links ? (
-            <div style={{ flexShrink: 0, display: "flex", flexWrap: "wrap", gap: 8, marginTop: 14 }}>
-              {links.map((l, i) => (
-                <a key={l.href} href={l.href} target="_blank" rel="noopener" onPointerDown={e => e.stopPropagation()} className="geo-tap"
-                  style={{ display: "inline-flex", alignItems: "center", gap: 6, padding: "10px 16px", borderRadius: 999, minHeight: 44, textDecoration: "none",
-                    background: i === 0 ? accent : T.surface, color: i === 0 ? T.onAccent : T.text, border: `1px solid ${i === 0 ? accent : T.line}` }}>
-                  <span style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: 14 }}>{l.label}</span>
-                  <span aria-hidden style={{ fontSize: 14 }}>↗</span>
-                </a>
-              ))}
-            </div>
-          ) : (
           <button onClick={onClick} onPointerDown={e => e.stopPropagation()} disabled={disabled}
             className={disabled ? "" : "geo-tap"}
             style={{ flexShrink: 0, alignSelf: "flex-start", marginTop: 14, display: "inline-flex", alignItems: "center", gap: 8, padding: "11px 20px", borderRadius: 999, minHeight: 44, background: accent, color: T.onAccent, cursor: disabled ? "default" : "pointer" }}>
             <span style={{ fontFamily: FONT.display, fontWeight: 700, fontSize: 14.5 }}>{cta}</span>
             {!disabled && <span style={{ fontSize: 15 }}>→</span>}
           </button>
-          )}
         </div>
         {art}
       </div>
