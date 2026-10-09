@@ -1,4 +1,4 @@
-import { fp } from "./codex"
+import { fp } from "./flagUrl"
 import type { HistoricalFlag } from "./codex"
 
 // The United Kingdom is the one Codex country that drills down into its

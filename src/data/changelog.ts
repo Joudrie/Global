@@ -4,6 +4,18 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-09",
+    title: "Faster on phones, sharper forgeries",
+    items: [
+      "The Codex tab opens in a blink: each collection loads when you open it, instead of every flag up front.",
+      "Geography, Border Map and the Progress Map draw the same country shapes from a fraction of the data.",
+      "Historical Flag, Identity Flags, Dead or Alive, Challenge Mode and a dozen other games download up to four times less before they start.",
+      "Flag Forgery's fakes are redrawn from the real flags, so they're as crisp as the genuine ones and only the doctored detail gives them away.",
+      "Sharing a country page now shows that country's flag in the preview.",
+      "Population and area for Switzerland, Kosovo, Bahrain, the Maldives, Saint Vincent and the Vatican, and French overseas regions show the flag they fly.",
+    ],
+  },
+  {
     date: "2026-10-08",
     title: "Connections, rebuilt",
     items: [

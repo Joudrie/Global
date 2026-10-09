@@ -1,6 +1,6 @@
-import { useRef, useState, useLayoutEffect } from "react"
+import { useRef, useState, useEffect, useLayoutEffect } from "react"
 import type { CSSProperties } from "react"
-import worldMap from "@svg-maps/world"
+import { WORLD_VIEWBOX, OUTLINES } from "virtual:world-outlines"
 
 /**
  * Renders a single country's outline from the local @svg-maps/world path data
@@ -9,13 +9,35 @@ import worldMap from "@svg-maps/world"
  * outlines silently failed to load. Drawing the vector path locally is reliable
  * and instant. For the handful of codes the map doesn't include, we fall back
  * to the mapsicon image so nothing renders blank.
+ *
+ * Each country's path is its own small chunk, simplified at build time by
+ * scripts/world-paths.mjs, so a screen loads only the outlines it draws.
  */
-const PATHS = new Map<string, string>(
-  (worldMap as { locations: { id: string; path: string }[] }).locations.map(l => [l.id, l.path])
-)
+const PATHS = new Map<string, string>()
 
 export function hasOutline(code: string): boolean {
-  return PATHS.has(code.toLowerCase())
+  return code.toLowerCase() in OUTLINES
+}
+
+/** Starts loading these outlines (e.g. a whole quiz round up front). Never
+ *  rejects: one that fails to load is simply missing, and tried again next time. */
+export function loadOutlines(codes: string[]): Promise<void> {
+  const want = codes.map(c => c.toLowerCase()).filter(c => !PATHS.has(c) && c in OUTLINES)
+  return Promise.all(want.map(c => OUTLINES[c]().then(m => { PATHS.set(c, m.default) }, () => {}))).then(() => {})
+}
+
+/** Paths by lower-case code once all of `codes` have loaded; null until then. */
+export function useOutlines(codes: string[]): Map<string, string> | null {
+  const key = codes.join()
+  const ready = () => codes.every(c => PATHS.has(c.toLowerCase()) || !hasOutline(c))
+  const [loaded, setLoaded] = useState(() => (ready() ? key : null))
+  useEffect(() => {
+    if (ready()) { setLoaded(key); return }
+    let live = true
+    loadOutlines(codes).then(() => { if (live) setLoaded(key) })
+    return () => { live = false }
+  }, [key])
+  return loaded === key ? PATHS : null
 }
 
 interface Props {
@@ -26,7 +48,7 @@ interface Props {
 }
 
 export default function CountryOutline({ code, fill = "#fff", className, style }: Props) {
-  const path = PATHS.get(code.toLowerCase())
+  const path = useOutlines([code])?.get(code.toLowerCase())
   const pathRef = useRef<SVGPathElement>(null)
   const svgRef = useRef<SVGSVGElement>(null)
   const [vb, setVb] = useState<string | null>(null)
@@ -58,7 +80,7 @@ export default function CountryOutline({ code, fill = "#fff", className, style }
     return () => io.disconnect()
   }, [code, path])
 
-  if (!path) {
+  if (!hasOutline(code)) {
     // Fallback for codes not present in the local map: mapsicon raster.
     const c = code.toLowerCase()
     return (
@@ -82,12 +104,12 @@ export default function CountryOutline({ code, fill = "#fff", className, style }
   return (
     <svg
       ref={svgRef}
-      viewBox={vb ?? "0 0 1010 666"}
+      viewBox={vb ?? WORLD_VIEWBOX}
       className={className}
       style={{ ...style, opacity: ready ? 1 : 0, transition: "opacity 0.2s" }}
       preserveAspectRatio="xMidYMid meet"
     >
-      <path ref={pathRef} d={path} fill={fill} />
+      {path && <path ref={pathRef} d={path} fill={fill} />}
     </svg>
   )
 }

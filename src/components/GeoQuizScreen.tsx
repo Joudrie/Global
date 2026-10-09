@@ -6,7 +6,7 @@ import { shuffleWithSeed, seededRandom, todayString } from '../utils/prng'
 import { scorePhrase } from '../utils/quiz'
 import { shareOrCopy } from '../utils/share'
 import { matchNames, pickOnEnter } from '../utils/pickOnEnter'
-import CountryOutline from './CountryOutline'
+import CountryOutline, { loadOutlines } from './CountryOutline'
 import { T, ACCENT, tint } from '../ui/tokens'
 import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
@@ -52,6 +52,8 @@ export default function GeoQuizScreen({ onBack }: Props) {
   const [seed, setSeed] = useState(() => Date.now().toString())
   // A new seed on "Play again" deals a fresh set of countries.
   const questions = useMemo<GeoQuestion[]>(() => buildQuiz(seed), [seed])
+  // Each outline is its own small chunk: fetch the whole round's up front.
+  useEffect(() => { loadOutlines(questions.map(q => q.target.code)) }, [questions])
   const [idx, setIdx] = useState(0)
   const [selected, setSelected] = useState<number | null>(null)
   const [score, setScore] = useState(0)

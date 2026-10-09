@@ -1,6 +1,6 @@
 import { useState } from "react"
 import { FLAGS } from "../data/flags"
-import { fp } from "../data/codex"
+import { fp } from "../data/flagUrl"
 import { ETHNIC_FLAGS } from "../data/ethnicFlags"
 import { HISTORICAL_FLAGS } from "../data/historicalFlags"
 import { IDENTITY_FLAGS } from "../data/identityFlags"

@@ -1,4 +1,4 @@
-import { fp } from "./codex"
+import { fp } from "./flagUrl"
 
 // Present-day dependent territories tied to a sovereign country — Crown
 // Dependencies and British Overseas Territories under the UK, the Caribbean

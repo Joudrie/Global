@@ -49,9 +49,13 @@ function buildDeck(): Card[] {
 }
 
 const cardName = (c: Card) => c.fake ? c.forgery.name : c.flag.name
+// Fakes and genuine flags must render identically, or the frame gives the
+// answer away. Every artwork (public/flags and public/fakes) is a 640×480 SVG,
+// so both fill the 3:2 card with the same cover crop.
+const CARD_IMG_STYLE = { width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" } as const
 const cardImg = (c: Card) => c.fake
-  ? <img src={c.forgery.src} alt="" draggable={false} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }} />
-  : <FlagImage code={c.flag.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block", pointerEvents: "none" }} />
+  ? <img src={c.forgery.src} alt="" draggable={false} loading="lazy" decoding="async" style={CARD_IMG_STYLE} />
+  : <FlagImage code={c.flag.code} style={CARD_IMG_STYLE} />
 
 interface Verdict { ok: boolean; text: string }
 

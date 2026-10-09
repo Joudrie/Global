@@ -1,5 +1,6 @@
 // The home screen avoids importing big data modules by keeping a few copied
-// values (see src/data/posterShapes.ts and SUB_FLAG_COUNT in src/ui/registry.ts).
+// values (see src/data/posterShapes.ts, SUB_FLAG_COUNT in src/ui/registry.ts and
+// CODEX_COUNTS in src/data/codexCounts.ts).
 // These tests fail if the copies drift from their sources.
 import test from 'node:test'
 import assert from 'node:assert/strict'
@@ -24,15 +25,35 @@ test('poster subdivision flags match SUB_FLAGS', async () => {
   }
 })
 
-test('poster shapes match @svg-maps/world', async () => {
-  // The package ships ESM in a .js file without "type": "module"; read it as data.
-  const text = fs.readFileSync(path.join(ROOT, 'node_modules/@svg-maps/world/index.js'), 'utf8')
-  const world = JSON.parse(text.slice(text.indexOf('{'), text.lastIndexOf('}') + 1))
-  const { POSTER_SHAPES, POSTER_MAP_VIEWBOX } = await src('data/posterShapes.ts')
-  assert.equal(POSTER_MAP_VIEWBOX, world.viewBox)
-  for (const [id, d] of Object.entries(POSTER_SHAPES)) {
-    assert.equal(d, world.locations.find(l => l.id === id)?.path, id)
-  }
+test('poster shapes match the simplified world map', async () => {
+  const { buildWorldPaths, readWorld, posterFile, POSTER_FILE } = await import(path.join(ROOT, 'scripts/world-paths.mjs'))
+  const { POSTER_MAP_VIEWBOX } = await src('data/posterShapes.ts')
+  assert.equal(POSTER_MAP_VIEWBOX, readWorld().viewBox)
+  assert.ok(fs.readFileSync(POSTER_FILE, 'utf8') === posterFile(buildWorldPaths().detail),
+    'src/data/posterShapes.ts is stale: run scripts/world-paths.mjs (see its header)')
+})
+
+test('CODEX_COUNTS match the Codex galleries', async () => {
+  const { CODEX_COUNTS } = await src('data/codexCounts.ts')
+  const g = await src('data/codexGalleries.ts')
+  const { ETHNIC_FLAGS } = await src('data/ethnicFlags.ts')
+  const { IDENTITY_FLAGS, IDENTITY_CATEGORIES, SIGNAL_FLAGS } = await src('data/identityFlags.ts')
+  const { EXTINCT_STATES } = await src('data/extinctStates.ts')
+  const { HISTORICAL_FLAGS } = await src('data/historicalFlags.ts')
+  const { ORG_FLAGS } = await src('data/orgFlags.ts')
+  const { US_CITY_FLAGS } = await src('data/usCityFlags.ts')
+  const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  const inCat = c => IDENTITY_FLAGS.filter(f => f.category === c).length
+  assert.deepEqual(CODEX_COUNTS, {
+    mega: ALL_FLAGS_AZ.length,
+    peoples: g.rowCount(g.peoplesRegions(ETHNIC_FLAGS, IDENTITY_FLAGS)),
+    identity: IDENTITY_CATEGORIES.filter(g.isIdentityMain).map(c => [c, inCat(c)]),
+    micronations: inCat('Micronations'),
+    extinct: g.rowCount(g.extinctRegions(EXTINCT_STATES, HISTORICAL_FLAGS)),
+    usCities: US_CITY_FLAGS.length,
+    orgs: g.rowCount(g.orgRegions(ORG_FLAGS)),
+    signal: SIGNAL_FLAGS.length,
+  }, 'update src/data/codexCounts.ts')
 })
 
 test('onboarding flags match fp()', async () => {
