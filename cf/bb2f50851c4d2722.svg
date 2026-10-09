@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" xml:space="preserve" id="flag_Forest-Finns" width="800" height="500" version="1.1">
+  <g id="flag">
+    <path id="rectgrn" fill="#5f9d66" d="M0 0h800v500H0z"/>
+    <g id="red" fill="#a00">
+      <path id="redVert" d="M246 0h105v500H246z"/>
+      <path id="redHoriz" d="M-302.5 0h105v800h-105z" transform="rotate(-90)"/>
+      <path id="path2" fill-opacity="1" stroke="none" stroke-width="304.182" d="M298.5 508.79642 87.986499 250 298.5-8.79642 509.0135 250Z" paint-order="stroke"/>
+    </g>
+    <g id="ylw" fill="#fdda3b">
+      <path id="ylwVert" d="M272.25 0h52.5v500h-52.5z"/>
+      <path id="ylwHoriz" d="M-276.25 0h52.5v800h-52.5z" transform="rotate(-90)"/>
+      <path id="ylwOutline" fill-opacity="1" stroke="none" stroke-width="170.192" d="M298.5 467.19741 121.8245 250 298.5 32.80259 475.1755 250Z" paint-order="stroke"/>
+    </g>
+    <path id="path1" fill="#000" stroke="none" stroke-width="105" d="m298.5 384-109-134 109-134 109 134z" paint-order="stroke"/>
+  </g>
+</svg>

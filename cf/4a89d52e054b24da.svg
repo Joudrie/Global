@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   inkscape:version="1.3 (0e150ed6c4, 2023-07-21)"
+   sodipodi:docname="State_flag_of_East_Karelia_(1920-1922).svg"
+   id="svg8"
+   version="1.1"
+   viewBox="0 0 214.3125 120.12085"
+   height="454.00003"
+   width="810"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:dc="http://purl.org/dc/elements/1.1/">
+  <defs
+     id="defs2" />
+  <sodipodi:namedview
+     inkscape:object-nodes="true"
+     inkscape:showpageshadow="false"
+     inkscape:window-maximized="1"
+     inkscape:window-y="-9"
+     inkscape:window-x="-9"
+     inkscape:window-height="1007"
+     inkscape:window-width="1920"
+     units="px"
+     showgrid="false"
+     inkscape:document-rotation="0"
+     inkscape:current-layer="g1777"
+     inkscape:document-units="px"
+     inkscape:cy="227.18492"
+     inkscape:cx="405"
+     inkscape:zoom="1.1950617"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     borderopacity="1.0"
+     bordercolor="#666666"
+     pagecolor="#ffffff"
+     id="base"
+     inkscape:snap-others="false"
+     inkscape:lockguides="true"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1" />
+  <metadata
+     id="metadata5">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     transform="translate(-185.35874,208.4826)"
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Шар 1">
+    <g
+       transform="matrix(0.26458334,0,0,0.26458334,185.35874,-366.73312)"
+       id="g1777"
+       style="display:inline">
+      <path
+         sodipodi:nodetypes="ccccc"
+         d="M 9.01e-6,598.11218 H 809.99999 V 1052.1122 H 9.01e-6 Z"
+         style="fill:#008100;stroke-width:2.30645"
+         id="path1755" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         style="fill:#ff0000;stroke-width:2.2887"
+         inkscape:connector-curvature="0"
+         d="M 9.01e-6,757.61218 H 809.99999 V 892.61217 H 9.01e-6 Z"
+         id="path1759" />
+      <path
+         id="path1761"
+         d="M 366.49997,598.11218 V 1052.1122 H 231.49999 V 598.11218 Z"
+         inkscape:connector-curvature="0"
+         style="fill:#ff0000;stroke-width:1.71346"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         id="path1763"
+         style="fill:#000000;stroke-width:2.2934"
+         d="M 9.01e-6,785.11218 H 809.99999 v 80 H 9.01e-6 Z"
+         sodipodi:nodetypes="ccccc" />
+      <path
+         sodipodi:nodetypes="ccccc"
+         d="M 338.99997,598.11218 V 1052.1122 H 258.99998 V 598.11218 Z"
+         style="fill:#000000;stroke-width:1.71698"
+         id="path1765" />
+    </g>
+  </g>
+</svg>

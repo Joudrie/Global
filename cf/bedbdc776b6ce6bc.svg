@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="svg1" width="900" height="600" version="1.1" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg">
+ <g id="layer1">
+  <rect id="rect1" width="900" height="200" style="fill-rule:evenodd;fill:#dc241f"/>
+  <rect id="rect2" y="400" width="900" height="200" style="fill-rule:evenodd;fill:#fbde4a"/>
+  <rect id="rect3" y="200" width="900" height="200" style="fill-rule:evenodd;fill:#ffffff"/>
+  <path id="path1" d="m450 159.677 36.1917 110.988h108.575l-89.2727 62.7321 36.1915 108.575-91.6854-67.5577-91.6855 67.5577 36.1916-108.575-89.2727-62.7321h108.575z" style="fill:#ffffff;stroke-width:6;stroke:#000000"/>
+ </g>
+</svg>

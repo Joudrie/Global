@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="825pt"
+   height="525pt"
+   viewBox="0 0 825 525"
+   preserveAspectRatio="xMidYMid meet"
+   id="svg2">
+  <defs
+     id="defs26" />
+  <metadata
+     id="metadata4">
+Created by potrace 1.11, written by Peter Selinger 2001-2013
+<rdf:RDF>
+  <cc:Work
+     rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type
+       rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+    <dc:title></dc:title>
+  </cc:Work>
+</rdf:RDF>
+</metadata>
+  <path
+     id="rect3003-7"
+     style="fill:#134a05;fill-opacity:1;stroke:none;stroke-width:1.37288"
+     d="M 0,0 H 825 V 525 H 0 Z" />
+  <path
+     id="path1081"
+     style="font-variation-settings:normal;vector-effect:none;fill:#ffffff;fill-opacity:1;stroke:none;stroke-width:0.749999;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:8.5;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;stop-color:#000000"
+     d="M 346.42068,67.500003 V 186.48268 l 59.0514,59.05138 V 126.55137 Z m 132.15865,0 -59.05133,59.051367 v 118.98269 l 59.05133,-59.05138 z M 217.5,196.42067 l 59.05139,59.05137 h 118.98122 l -59.05133,-59.05137 z m 271.01879,0 -59.0514,59.05137 H 548.44868 L 607.5,196.42067 Z M 276.55139,269.52797 217.5,328.57934 h 118.98128 l 59.05133,-59.05137 z m 152.916,0 59.0514,59.05137 H 607.5 l -59.05132,-59.05137 z m -23.99531,9.93942 -59.0514,59.05138 V 457.5 l 59.0514,-59.05137 z m 14.05592,0 V 398.44863 L 478.57933,457.5 V 338.51877 Z" />
+</svg>

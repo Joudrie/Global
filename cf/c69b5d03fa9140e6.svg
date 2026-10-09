@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg9"
+   width="1200"
+   height="600"
+   viewBox="0 0 1200 600"
+   sodipodi:docname="Flag of the Mizos.svg"
+   inkscape:version="1.2.1 (9c6d41e4, 2022-07-14)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs13" />
+  <sodipodi:namedview
+     id="namedview11"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:zoom="0.17875827"
+     inkscape:cx="422.35808"
+     inkscape:cy="262.9249"
+     inkscape:window-width="1309"
+     inkscape:window-height="430"
+     inkscape:window-x="0"
+     inkscape:window-y="32"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="layer1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:showpageshadow="2"
+     inkscape:deskcolor="#d1d1d1" />
+  <g
+     inkscape:groupmode="layer"
+     id="layer1"
+     inkscape:label="Image 1"
+     style="display:inline">
+    <rect
+       style="fill:#ffffff;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0"
+       id="rect122"
+       width="1200"
+       height="600"
+       x="8.9918494e-06"
+       y="8.0455475e-06" />
+    <rect
+       style="display:inline;fill:#0038b8;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0"
+       id="rect122-9"
+       width="1200"
+       height="300"
+       x="8.9918494e-06"
+       y="300" />
+  </g>
+  <g
+     inkscape:groupmode="layer"
+     id="layer2"
+     inkscape:label="Image 2"
+     style="display:inline">
+    <circle
+       style="fill:#ce111f;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:0"
+       id="path5011"
+       cx="599.15607"
+       cy="304.51648"
+       r="175" />
+  </g>
+</svg>

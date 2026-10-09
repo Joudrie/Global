@@ -1,0 +1,171 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="900"
+   height="600"
+   viewBox="-45 -30 90 60"
+   fill="#2C2C6F"
+   version="1.1"
+   id="svg34"
+   sodipodi:docname="Bengali language.svg"
+   inkscape:version="1.0.1 (3bc2e813f5, 2020-09-07)">
+  <metadata
+     id="metadata40">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title>Bengali language</dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs38" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1366"
+     inkscape:window-height="706"
+     id="namedview36"
+     showgrid="false"
+     inkscape:zoom="0.58502875"
+     inkscape:cx="230.56259"
+     inkscape:cy="246.76788"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg34"
+     inkscape:document-rotation="0" />
+  <title
+     id="title2">Bengali language</title>
+  <g
+     id="g86">
+    <path
+       fill="#ffffff"
+       d="M 0,-30 H 45 V 30 H 0 Z"
+       id="path4"
+       style="stroke-width:0.707107" />
+    <path
+       fill="#f15b25"
+       d="m 0,-30 h 45 v 20 H 0 Z"
+       id="path6"
+       style="stroke-width:0.707107" />
+    <path
+       fill="#006934"
+       d="M 0,10 H 45 V 30 H 0 Z"
+       id="path8"
+       style="stroke-width:0.707107" />
+    <g
+       id="g56"
+       transform="translate(22.5)">
+      <circle
+         r="9.25"
+         id="circle10"
+         cx="0"
+         cy="0" />
+      <circle
+         fill="#ffffff"
+         r="8"
+         id="circle12"
+         cx="0"
+         cy="0" />
+      <circle
+         r="1.6"
+         id="circle14"
+         cx="0"
+         cy="0" />
+      <g
+         id="d">
+        <g
+           id="c">
+          <g
+             id="b">
+            <g
+               id="a">
+              <path
+                 d="M 0,-8 0.3,-3.18591 0,-0.80235 -0.3,-3.18591 Z"
+                 id="path16" />
+              <circle
+                 transform="rotate(7.5)"
+                 r="0.34999999"
+                 cy="-8"
+                 id="circle18"
+                 cx="0" />
+            </g>
+            <use
+               xlink:href="#a"
+               transform="scale(-1)"
+               id="use21"
+               x="0"
+               y="0"
+               width="100%"
+               height="100%" />
+          </g>
+          <use
+             xlink:href="#b"
+             transform="rotate(15)"
+             id="use24"
+             x="0"
+             y="0"
+             width="100%"
+             height="100%" />
+        </g>
+        <use
+           xlink:href="#c"
+           transform="rotate(30)"
+           id="use27"
+           x="0"
+           y="0"
+           width="100%"
+           height="100%" />
+      </g>
+      <use
+         xlink:href="#d"
+         transform="rotate(60)"
+         id="use30"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" />
+      <use
+         xlink:href="#d"
+         transform="rotate(120)"
+         id="use32"
+         x="0"
+         y="0"
+         width="100%"
+         height="100%" />
+    </g>
+  </g>
+  <g
+     id="g92"
+     transform="translate(0,0.281153)">
+    <path
+       fill="#006a4e"
+       d="M -45,-30.281153 H 0 v 60 h -45 z"
+       id="path2"
+       style="stroke-width:0.0670821" />
+    <circle
+       cx="-22.5"
+       cy="-0.28115299"
+       r="15"
+       fill="#f42a41"
+       id="circle4"
+       style="stroke-width:0.075" />
+  </g>
+</svg>

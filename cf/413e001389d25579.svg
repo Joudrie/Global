@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   width="900mm"
+   height="600mm"
+   viewBox="0 0 900 600"
+   version="1.1"
+   id="svg1"
+   xml:space="preserve"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1" /><g
+     id="layer1"><rect
+       style="fill:#00abc2;fill-opacity:1;stroke-width:1.01552"
+       id="rect4"
+       width="900"
+       height="600"
+       x="0"
+       y="-3.5527137e-15" /><g
+       id="g5"
+       transform="matrix(1.4425714,0,0,1.4944768,-1026.5299,-53.430395)"
+       style="fill:#fbd707;fill-opacity:1">
+	
+	<g
+   id="g4"
+   transform="translate(735.54029,76.491055)"
+   style="fill:#fbd707;fill-opacity:1">
+		<rect
+   x="108"
+   y="60"
+   class="st1"
+   width="360"
+   height="40"
+   id="rect2"
+   style="fill:#fbd707;fill-opacity:1" />
+		<rect
+   x="268"
+   y="60"
+   class="st1"
+   width="40"
+   height="200"
+   id="rect3"
+   style="fill:#fbd707;fill-opacity:1" />
+		<path
+   class="st1"
+   d="m 418,160 v 0 -100 h -40 v 100 c 0,50 30,100 90,100 0,-14.8 0,-29.6 0,-44.4 -33.3,0 -50,-27.8 -50,-55.6 z"
+   id="path3"
+   style="fill:#fbd707;fill-opacity:1" />
+		<path
+   class="st1"
+   d="m 158,160 v 0 -100 h 40 v 100 c 0,50 -30,100 -90,100 0,-14.8 0,-29.6 0,-44.4 33.3,0 50,-27.8 50,-55.6 z"
+   id="path4"
+   style="fill:#fbd707;fill-opacity:1" />
+	</g>
+</g></g><style
+     type="text/css"
+     id="style1">
+	.st0{fill:#00CCFF;}
+	.st1{fill:#FFFF00;}
+</style></svg>

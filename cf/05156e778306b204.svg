@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="flag" width="900" height="600" version="1.1" viewBox="0 0 9 6" xmlns="http://www.w3.org/2000/svg">
+ <g>
+  <path id="red" d="m0 2h9v2h-9z" fill="#bd0608"/>
+  <path id="blue" d="M0 0h9v2H0z" fill="#030190"/>
+  <path id="green" d="m0 5v-1h9v2h-9z" fill="#017317"/>
+ </g>
+</svg>
