@@ -1,0 +1,307 @@
+<title>Curio — Design System</title>
+<style>
+  :root{
+    --paper:#E9E3D0; --paper-card:#F8F4E7; --ink:#1C2521; --ink-soft:#4B564E;
+    --teal:#1F5C52; --teal-strong:#163F38; --ochre:#B9791C; --ochre-soft:#E8D3A4;
+    --stamp:#A9402A; --gold:#C79A2E; --plum:#6B4E8A;
+    --line:rgba(28,37,33,0.14); --line-strong:rgba(28,37,33,0.28);
+    --shadow:0 1px 0 rgba(28,37,33,0.06),0 8px 20px -14px rgba(28,37,33,0.35);
+    --r-sm:6px; --r-md:12px; --r-lg:16px; --r-pill:999px;
+  }
+  :root[data-theme="dark"]{
+    --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+    --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+    --stamp:#E08669; --gold:#E7C766; --plum:#B79BD8;
+    --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+    --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+      --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+      --stamp:#E08669; --gold:#E7C766; --plum:#B79BD8;
+      --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+      --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:52px 22px 120px;}
+  h1,h2,h3,h4{font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:600;color:var(--ink);text-wrap:balance;margin:0;}
+  .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;}
+  p{margin:0 0 13px;max-width:70ch;}
+  .soft{color:var(--ink-soft);}
+  b{color:var(--ink);}
+
+  .masthead{border:1px solid var(--line-strong);border-radius:3px;background:var(--paper-card);box-shadow:var(--shadow);padding:30px 32px;position:relative;overflow:hidden;}
+  .masthead::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--ochre);}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:999px;padding:4px 11px;margin-bottom:16px;}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--ochre);}
+  .masthead h1{font-size:44px;letter-spacing:-.015em;}
+  .masthead .tagline{font-size:17.5px;color:var(--ink-soft);margin-top:10px;max-width:58ch;}
+
+  section{margin-top:50px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;border-bottom:2px solid var(--line-strong);padding-bottom:8px;}
+  .sec-num{font-family:ui-monospace,monospace;font-size:13px;color:var(--ochre);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;padding:2px 7px;}
+  .sec-head h2{font-size:24px;}
+  .sec-intro{color:var(--ink-soft);font-size:14.5px;margin:4px 0 18px;max-width:72ch;}
+  h3{font-size:16px;margin:20px 0 8px;}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:18px 0 8px;}
+
+  /* swatches */
+  .swatches{display:grid;grid-template-columns:repeat(auto-fill,minmax(132px,1fr));gap:10px;margin:12px 0;}
+  .sw{border:1px solid var(--line-strong);border-radius:var(--r-sm);overflow:hidden;background:var(--paper-card);}
+  .sw .chip{height:56px;}
+  .sw .meta{padding:7px 9px;}
+  .sw .nm{font-size:12px;font-weight:600;}
+  .sw .vr{font-family:ui-monospace,monospace;font-size:10px;color:var(--ink-soft);}
+  .sw .use{font-size:10.5px;color:var(--ink-soft);margin-top:3px;line-height:1.3;}
+
+  /* type scale */
+  .typerow{display:flex;align-items:baseline;gap:16px;border-bottom:1px dashed var(--line);padding:10px 0;flex-wrap:wrap;}
+  .typerow .spec{font-family:ui-monospace,monospace;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;min-width:190px;}
+  .typerow .samp{color:var(--ink);line-height:1.12;}
+
+  /* spacing scale */
+  .spaces{display:flex;align-items:flex-end;gap:14px;flex-wrap:wrap;margin:12px 0;}
+  .spc{text-align:center;}
+  .spc .bar{background:var(--teal);border-radius:2px;width:26px;margin:0 auto;}
+  .spc .lb{font-family:ui-monospace,monospace;font-size:9.5px;color:var(--ink-soft);margin-top:5px;}
+
+  /* component demos */
+  .demo{border:1px solid var(--line-strong);border-radius:var(--r-md);background:var(--paper-card);box-shadow:var(--shadow);padding:20px;margin:12px 0;display:flex;flex-wrap:wrap;gap:14px;align-items:center;}
+  .demo.col{flex-direction:column;align-items:stretch;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;font-weight:700;font-size:14.5px;border-radius:var(--r-md);padding:12px 20px;letter-spacing:.01em;cursor:default;}
+  .btn.primary{background:var(--teal);color:var(--paper-card);}
+  :root[data-theme="dark"] .btn.primary{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .btn.primary{color:#0e1512;}}
+  .btn.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);font-weight:600;}
+  .btn.link{background:none;color:var(--ink-soft);text-decoration:none;font-weight:600;font-size:12.5px;padding:8px;}
+  .chip{font-family:ui-monospace,monospace;font-size:11px;border:1px solid var(--line-strong);border-radius:var(--r-pill);padding:6px 12px;color:var(--ink-soft);}
+  .chip.on{background:var(--teal);border-color:var(--teal);color:var(--paper-card);font-weight:700;}
+  :root[data-theme="dark"] .chip.on{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .chip.on{color:#0e1512;}}
+  .tg{font-family:ui-monospace,monospace;font-size:9.5px;border:1px solid var(--line-strong);border-radius:4px;padding:3px 7px;color:var(--ink-soft);}
+  .card-eg{border:1px solid var(--line-strong);border-radius:var(--r-lg);background:var(--paper);padding:16px 15px;max-width:260px;position:relative;overflow:hidden;box-shadow:var(--shadow);}
+  .card-eg .wash{position:absolute;inset:0;background:radial-gradient(120% 80% at 100% 0%,rgba(31,92,82,0.10),transparent 60%);pointer-events:none;}
+  .card-eg .eb{font-family:ui-monospace,monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ochre);}
+  .card-eg h4{font-family:ui-serif,Georgia,serif;font-size:19px;margin-top:6px;line-height:1.2;}
+
+  /* stamp demo */
+  .stamps{display:flex;gap:10px;}
+  .st{width:48px;height:48px;border-radius:50%;border:2px dashed var(--line-strong);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-weight:700;font-size:17px;color:var(--ink-soft);}
+  .st.sel{border-style:solid;border-color:var(--stamp);color:var(--stamp);transform:rotate(-8deg) scale(1.1);border-width:2.5px;box-shadow:0 3px 10px -4px var(--stamp);}
+
+  /* token demo */
+  .toks{display:flex;gap:8px;flex-wrap:wrap;}
+  .tok{width:34px;height:34px;border-radius:8px;display:flex;align-items:center;justify-content:center;}
+  .tok.t1{background:var(--teal);}.tok.t2{background:var(--ochre);}.tok.t3{background:var(--stamp);}.tok.t4{background:var(--plum);}.tok.t5{background:var(--gold);}
+
+  /* icon grid */
+  .icons{display:grid;grid-template-columns:repeat(auto-fill,minmax(90px,1fr));gap:10px;margin:12px 0;}
+  .ico{border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--paper-card);padding:12px 8px;text-align:center;}
+  .ico svg{width:24px;height:24px;stroke:var(--ink);fill:none;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;}
+  .ico .n{font-family:ui-monospace,monospace;font-size:9px;color:var(--ink-soft);margin-top:7px;}
+
+  /* motion table */
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+  th,td{text-align:left;padding:9px 11px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;border-bottom:1px solid var(--line-strong);}
+  td b{color:var(--ink);}
+  .tbl-scroll{overflow-x:auto;}
+
+  /* do/dont */
+  .dd{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:12px 0;}
+  @media (max-width:640px){.dd{grid-template-columns:1fr;}}
+  .dd .c{border:1px solid var(--line-strong);border-radius:var(--r-sm);padding:13px 15px;font-size:13.2px;}
+  .dd .c.do{border-left:3px solid var(--teal);}
+  .dd .c.dont{border-left:3px solid var(--stamp);}
+  .dd .c .t{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;margin-bottom:6px;}
+  .dd .c.do .t{color:var(--teal);}.dd .c.dont .t{color:var(--stamp);}
+  .dd .c ul{margin:0;padding-left:16px;}
+  .dd .c li{margin-bottom:4px;color:var(--ink-soft);}
+
+  .callout{border:1px solid var(--line-strong);border-left:3px solid var(--ochre);background:var(--paper-card);border-radius:4px;padding:13px 16px;margin:14px 0;font-size:13.6px;color:var(--ink-soft);}
+  .callout b{color:var(--ink);}
+
+  hr.rule{border:none;border-top:1px dashed var(--line-strong);margin:44px 0 0;}
+  footer{margin-top:34px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-soft);text-align:center;}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="kicker"><span class="dot"></span> DESIGN SYSTEM · v0.4 · PAIRS WITH THE MASTER SPEC</span>
+    <h1>Curio Design System</h1>
+    <div class="tagline">"Chill Cartography for hobbies." A calm paper foundation with tactile, alive motion. Warm parchment, faded golden accents, midnight-teal ink, a rust stamp, and one plum spark reserved for joy. Every token here is the same one this page renders with.</div>
+  </div>
+
+  <!-- 01 COLOR -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Color</h2></div>
+    <p class="sec-intro">A brand-owned, low-saturation palette — the visible form of the anti-doomscroll pitch. It's distinctive in a category of screaming apps. The rule: <b>calm everywhere, one bright spark (plum/gold) reserved only for celebration.</b></p>
+    <h3>Core tokens</h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#E9E3D0"></div><div class="meta"><div class="nm">Paper</div><div class="vr">#E9E3D0</div><div class="use">App background</div></div></div>
+      <div class="sw"><div class="chip" style="background:#F8F4E7"></div><div class="meta"><div class="nm">Paper Card</div><div class="vr">#F8F4E7</div><div class="use">Card surfaces</div></div></div>
+      <div class="sw"><div class="chip" style="background:#1C2521"></div><div class="meta"><div class="nm">Ink</div><div class="vr">#1C2521</div><div class="use">Primary text</div></div></div>
+      <div class="sw"><div class="chip" style="background:#4B564E"></div><div class="meta"><div class="nm">Ink Soft</div><div class="vr">#4B564E</div><div class="use">Secondary text</div></div></div>
+      <div class="sw"><div class="chip" style="background:#1F5C52"></div><div class="meta"><div class="nm">Teal</div><div class="vr">#1F5C52</div><div class="use">Primary action, brand</div></div></div>
+      <div class="sw"><div class="chip" style="background:#163F38"></div><div class="meta"><div class="nm">Teal Strong</div><div class="vr">#163F38</div><div class="use">Share-card ground</div></div></div>
+      <div class="sw"><div class="chip" style="background:#B9791C"></div><div class="meta"><div class="nm">Ochre</div><div class="vr">#B9791C</div><div class="use">Category eyebrows</div></div></div>
+      <div class="sw"><div class="chip" style="background:#A9402A"></div><div class="meta"><div class="nm">Stamp</div><div class="vr">#A9402A</div><div class="use">The rating stamp only</div></div></div>
+    </div>
+    <h3>The joy spark <span class="soft" style="font-family:ui-serif;font-size:13px;font-weight:400;">— the UI-analysis fix for "calm feels dead"</span></h3>
+    <div class="swatches">
+      <div class="sw"><div class="chip" style="background:#6B4E8A"></div><div class="meta"><div class="nm">Plum</div><div class="vr">#6B4E8A</div><div class="use">Celebration / completion only</div></div></div>
+      <div class="sw"><div class="chip" style="background:#C79A2E"></div><div class="meta"><div class="nm">Gold</div><div class="vr">#C79A2E</div><div class="use">Milestone glints</div></div></div>
+    </div>
+    <div class="callout"><b>Both themes are token-level.</b> Dark mode is a deep forest-paper world (this doc is rendering it if your device is dark) — atmospheric and on-brand for evening use. Don't invert; the dark tokens are tuned separately. <b>Contrast is a known risk</b> of a muted palette — every text/background pair must clear WCAG AA (4.5:1 small, 3:1 large) at its real size, and meaning is never carried by color alone.</div>
+  </section>
+
+  <!-- 02 TYPE -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Typography</h2></div>
+    <p class="sec-intro">Three roles: a <b>serif display</b> (warmth, editorial calm), a <b>humanist sans</b> for body (legibility at arm's length), and a <b>monospace</b> for data/labels (the "catalog" texture). The round-3 fix: a hard <b>size floor</b>, because the charming mono was getting pushed illegibly small.</p>
+    <div style="border:1px solid var(--line-strong);border-radius:var(--r-sm);background:var(--paper-card);padding:6px 20px 14px;box-shadow:var(--shadow);">
+      <div class="typerow"><span class="spec">Display · serif 600 · 28–34px</span><span class="samp" style="font-family:ui-serif,Georgia,serif;font-size:30px;">How did that feel?</span></div>
+      <div class="typerow"><span class="spec">Title · serif 600 · 20–24px</span><span class="samp" style="font-family:ui-serif,Georgia,serif;font-size:22px;">Shoot a bird, rule of thirds</span></div>
+      <div class="typerow"><span class="spec">Body · sans 400 · 15px</span><span class="samp" style="font-size:15px;">Put the subject off-center — the eye reads it as alive.</span></div>
+      <div class="typerow"><span class="spec">Label / eyebrow · mono 700 · 12px FLOOR</span><span class="samp mono" style="font-size:12px;letter-spacing:.08em;">MICRO-LESSON · PHOTOGRAPHY</span></div>
+      <div class="typerow"><span class="spec">Tag · mono 600 · 11px min</span><span class="samp mono" style="font-size:11px;letter-spacing:.03em;">FREE · 15 MIN · OUTDOORS</span></div>
+      <div class="typerow" style="border-bottom:none;"><span class="spec" style="color:var(--stamp);">✕ Never · sub-11px, mono body</span><span class="samp mono" style="font-size:8.5px;color:var(--stamp);letter-spacing:.06em;">DON'T SHIP TEXT THIS SMALL</span></div>
+    </div>
+    <div class="callout"><b>Rules:</b> nothing below 11px, ever; monospace floors at 12px (it reads smaller than sans); mono is for eyebrows/tags/stats only, <b>never body copy</b>; headings get <span class="mono">text-wrap:balance</span>; running text stays near 65 characters wide.</div>
+  </section>
+
+  <!-- 03 SPACING / RADII / ELEVATION -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Spacing, radii &amp; elevation</h2></div>
+    <div class="eyebrow">Spacing scale (4px base)</div>
+    <div class="spaces">
+      <div class="spc"><div class="bar" style="height:4px"></div><div class="lb">4</div></div>
+      <div class="spc"><div class="bar" style="height:8px"></div><div class="lb">8</div></div>
+      <div class="spc"><div class="bar" style="height:12px"></div><div class="lb">12</div></div>
+      <div class="spc"><div class="bar" style="height:16px"></div><div class="lb">16</div></div>
+      <div class="spc"><div class="bar" style="height:24px"></div><div class="lb">24</div></div>
+      <div class="spc"><div class="bar" style="height:32px"></div><div class="lb">32</div></div>
+      <div class="spc"><div class="bar" style="height:48px"></div><div class="lb">48</div></div>
+    </div>
+    <p class="soft" style="font-size:13.5px;">Lay out with flex/grid + <span class="mono">gap</span>, never per-element margins. Screen gutters: 16px. Card padding: 16px. Section rhythm: 24–32px.</p>
+    <div class="eyebrow">Radii</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;">
+      <div style="text-align:center"><div style="width:60px;height:44px;background:var(--paper-card);border:1px solid var(--line-strong);border-radius:6px;"></div><div class="mono" style="font-size:10px;color:var(--ink-soft);margin-top:5px">sm · 6</div></div>
+      <div style="text-align:center"><div style="width:60px;height:44px;background:var(--paper-card);border:1px solid var(--line-strong);border-radius:12px;"></div><div class="mono" style="font-size:10px;color:var(--ink-soft);margin-top:5px">md · 12</div></div>
+      <div style="text-align:center"><div style="width:60px;height:44px;background:var(--paper-card);border:1px solid var(--line-strong);border-radius:16px;"></div><div class="mono" style="font-size:10px;color:var(--ink-soft);margin-top:5px">lg · 16</div></div>
+      <div style="text-align:center"><div style="width:60px;height:44px;background:var(--paper-card);border:1px solid var(--line-strong);border-radius:999px;"></div><div class="mono" style="font-size:10px;color:var(--ink-soft);margin-top:5px">pill</div></div>
+    </div>
+    <p class="soft" style="font-size:13.5px;margin-top:12px;">Elevation is deliberately low and paper-like — a hairline border + one soft shadow. No heavy Material drop-shadows; cards feel like stock on a desk, not floating glass.</p>
+  </section>
+
+  <!-- 04 ICONOGRAPHY -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Iconography</h2></div>
+    <p class="sec-intro"><b>Etched line icons, one consistent stroke weight, never emoji</b> — anywhere in the app's own chrome. (Emoji are fine only inside user-written reflections.) Reuse the Lucide-style set the brand already ships.</p>
+    <div class="icons">
+      <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><div class="n">today</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M10 7.5h4M10 16.5h4"/></svg><div class="n">cabinet</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16"/></svg><div class="n">catalog</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><div class="n">you</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M5 12l5 5L19 7"/></svg><div class="n">done</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 3v18M3 12h18"/></svg><div class="n">add</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M4 17v3h3M20 7V4h-3M14 10l6-6M10 14l-6 6"/></svg><div class="n">reroll</div></div>
+      <div class="ico"><svg viewBox="0 0 24 24"><path d="M12 15V3M8 7l4-4 4 4M4 15v4a2 2 0 002 2h12a2 2 0 002-2v-4"/></svg><div class="n">share</div></div>
+    </div>
+  </section>
+
+  <!-- 05 COMPONENTS -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Components</h2></div>
+
+    <div class="eyebrow">Buttons — one primary per screen</div>
+    <div class="demo">
+      <span class="btn primary">Start today's curio</span>
+      <span class="btn ghost">Deal another</span>
+      <span class="btn link">Not feeling it? →</span>
+    </div>
+    <p class="soft" style="font-size:13px;">Exactly one filled (primary) button per screen; everything else is ghost or a text link. Min touch target 44px. Primary CTAs live in the bottom thumb zone.</p>
+
+    <div class="eyebrow">Chips — filters &amp; budget moods</div>
+    <div class="demo">
+      <span class="chip on">🌙 Cozy in</span>
+      <span class="chip">Killing 15 min</span>
+      <span class="chip">Out &amp; about</span>
+      <span class="tg">FREE</span><span class="tg">15 MIN</span><span class="tg">OUTDOORS</span>
+    </div>
+
+    <div class="eyebrow">Challenge card — the hero object</div>
+    <div class="demo">
+      <div class="card-eg"><div class="wash"></div>
+        <div class="eb">Photography · Dabble</div>
+        <h4>Shoot a bird using the rule of thirds</h4>
+        <div style="font-size:12px;color:var(--ink-soft);margin-top:8px;">Grid the frame in thirds, put the bird off-center, take five shots.</div>
+        <div style="display:flex;gap:5px;margin-top:11px;"><span class="tg">FREE</span><span class="tg">15 MIN</span></div>
+      </div>
+      <p class="soft" style="font-size:13px;max-width:34ch;">Paper-stock card, hairline border, a soft watercolour wash in the corner on the hero. Serif title, mono eyebrow with category · level, mono tags. The wash is the one bit of "alive" texture at rest.</p>
+    </div>
+
+    <div class="eyebrow">The stamp — the signature interaction</div>
+    <div class="demo">
+      <div class="stamps"><span class="st">1</span><span class="st">2</span><span class="st">3</span><span class="st sel">4</span><span class="st">5</span></div>
+      <p class="soft" style="font-size:13px;max-width:32ch;">48px targets, generous gap. Selected state rotates like a real rubber stamp and gains the rust color + a soft shadow. This static look is only half — see Motion (§06).</p>
+    </div>
+
+    <div class="eyebrow">Cabinet tokens — collected specimens</div>
+    <div class="demo">
+      <div class="toks"><span class="tok t1"></span><span class="tok t2"></span><span class="tok t3"></span><span class="tok t4"></span><span class="tok t5"></span></div>
+      <p class="soft" style="font-size:13px;max-width:34ch;">Placeholder squares here; in-product these are <b>parametric illustrated specimens</b> — a per-drawer shape family with per-skill variation. Never show empty ghost slots (avoids completionism anxiety). Growth only.</p>
+    </div>
+  </section>
+
+  <!-- 06 MOTION -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Motion &amp; tactility</h2></div>
+    <p class="sec-intro">The most important section. Static, the calm aesthetic risks feeling <i>dead</i> to a young audience. Motion is how we prove it's <b>calm, not lifeless.</b> Spend the energy budget on three signature moments — everything else stays quiet.</p>
+    <div class="tbl-scroll"><table>
+      <tr><th>Signature moment</th><th>Motion</th><th>Haptic / sound</th><th>Feel</th></tr>
+      <tr><td><b>The Stamp</b><br><span class="soft">rating a challenge</span></td><td>Press-down + slight rotate + settle, the number "inking" in rust</td><td>A firm thunk + a soft paper-press sound</td><td>The app's defining moment — like stamping a passport. Satisfying enough to do for its own sake.</td></tr>
+      <tr><td><b>The Deal</b><br><span class="soft">dealing a new hand</span></td><td>Cards slide in and settle with a real card's weight and overshoot-free ease</td><td>A soft shuffle whisper</td><td>Tactile, physical, "these are real cards."</td></tr>
+      <tr><td><b>The Landing</b><br><span class="soft">completion → cabinet</span></td><td>The new specimen token eases into its drawer slot; a single plum/gold glint</td><td>A gentle chime + light haptic</td><td>The reward. The one moment the joy-spark color appears.</td></tr>
+    </table></div>
+    <div class="callout"><b>Motion principles:</b> calm easing (no springy bounce-fest — that reads as childish/AI), short durations (150–350ms), one thing moving at a time, and <b>always respect <span class="mono">prefers-reduced-motion</span></b> (fall back to a simple cross-fade + the haptic). Never slot-machine energy — this is a passport stamp, not a jackpot.</div>
+  </section>
+
+  <!-- 07 DO / DONT -->
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>Do &amp; don't</h2></div>
+    <div class="dd">
+      <div class="c do"><div class="t">Do</div><ul>
+        <li>Keep the calm paper foundation — it's the brand's biggest asset.</li>
+        <li>Spend energy on motion &amp; the three signature moments.</li>
+        <li>One filled primary button per screen; CTAs in the thumb zone.</li>
+        <li>Line icons, consistent stroke, everywhere in chrome.</li>
+        <li>Design empty/offline/loading states in-voice, paper-toned skeletons.</li>
+        <li>Show what you've collected, never what's missing.</li>
+      </ul></div>
+      <div class="c dont"><div class="t">Don't</div><ul>
+        <li>Let it feel like a museum — static + all-muted = dead.</li>
+        <li>Ship text under 11px, or monospace body copy.</li>
+        <li>Use emoji in the app's own chrome (only in user reflections).</li>
+        <li>Stack two competing filled CTAs (the Today-screen slip).</li>
+        <li>Show empty ghost cabinet slots (smuggles back streak-anxiety).</li>
+        <li>Use bouncy/springy or slot-machine motion — stay premium-calm.</li>
+      </ul></div>
+    </div>
+  </section>
+
+  <div class="callout" style="border-left-color:var(--teal);margin-top:30px;">
+    <b>The design north star:</b> "calm <i>and</i> alive." Nobody in the daily-habit / hobby space has pulled off both — they're either loud (Duolingo) or sterile. Curio's whole visual bet is that a warm paper world with three perfect tactile moments can feel more premium and more human than any confetti explosion. The foundation is ~80% there; the remaining 20% is motion and craft, not redesign.
+  </div>
+
+  <hr class="rule">
+  <footer>CURIO · DESIGN SYSTEM v0.4 · COLOR · TYPE · SPACE · ICONS · COMPONENTS · MOTION · PAIRS WITH THE MASTER SPEC</footer>
+
+</div>

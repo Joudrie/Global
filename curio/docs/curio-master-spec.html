@@ -1,0 +1,431 @@
+<title>Curio — Master Spec v0.4</title>
+<style>
+  :root{
+    --paper:#E9E3D0; --paper-card:#F8F4E7; --ink:#1C2521; --ink-soft:#4B564E;
+    --teal:#1F5C52; --teal-strong:#163F38; --ochre:#B9791C; --ochre-soft:#E8D3A4;
+    --stamp:#A9402A; --gold:#C79A2E; --plum:#6B4E8A;
+    --line:rgba(28,37,33,0.14); --line-strong:rgba(28,37,33,0.28);
+    --shadow:0 1px 0 rgba(28,37,33,0.06),0 8px 20px -14px rgba(28,37,33,0.35);
+  }
+  :root[data-theme="dark"]{
+    --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+    --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+    --stamp:#E08669; --gold:#E7C766; --plum:#B79BD8;
+    --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+    --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+      --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+      --stamp:#E08669; --gold:#E7C766; --plum:#B79BD8;
+      --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+      --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.62;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:860px;margin:0 auto;padding:52px 22px 120px;}
+  h1,h2,h3,h4{font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:600;color:var(--ink);text-wrap:balance;margin:0;}
+  .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;}
+  p{margin:0 0 13px;max-width:70ch;}
+  .soft{color:var(--ink-soft);}
+  b{color:var(--ink);}
+
+  .masthead{border:1px solid var(--line-strong);border-radius:3px;background:var(--paper-card);box-shadow:var(--shadow);padding:30px 32px;position:relative;overflow:hidden;}
+  .masthead::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--teal);}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:999px;padding:4px 11px;margin-bottom:16px;}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+  .masthead h1{font-size:46px;letter-spacing:-.015em;line-height:1.02;}
+  .masthead .tagline{font-size:18px;color:var(--ink-soft);margin-top:10px;max-width:54ch;}
+  .meta-row{display:flex;flex-wrap:wrap;gap:16px;margin-top:22px;padding-top:18px;border-top:1px dashed var(--line-strong);font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-soft);}
+  .meta-row b{color:var(--ink);font-weight:600;}
+
+  /* TOC */
+  .toc{columns:2;column-gap:26px;margin-top:26px;border:1px solid var(--line-strong);border-radius:5px;background:var(--paper-card);padding:16px 20px;box-shadow:var(--shadow);}
+  @media (max-width:640px){.toc{columns:1;}}
+  .toc a{display:block;font-size:13px;color:var(--ink-soft);text-decoration:none;padding:3px 0;border-bottom:1px solid var(--line);}
+  .toc a:last-child{border-bottom:none;}
+  .toc a b{font-family:ui-monospace,monospace;font-size:11px;color:var(--ochre);margin-right:8px;}
+  .toc a:hover{color:var(--teal);}
+
+  section{margin-top:48px;scroll-margin-top:20px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;border-bottom:2px solid var(--line-strong);padding-bottom:8px;}
+  .sec-num{font-family:ui-monospace,monospace;font-size:13px;color:var(--ochre);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;padding:2px 7px;}
+  .sec-head h2{font-size:25px;}
+  h3{font-size:17px;margin:22px 0 7px;}
+  .eyebrow{font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.09em;text-transform:uppercase;color:var(--teal);font-weight:700;margin:20px 0 6px;}
+
+  ul.clean{list-style:none;padding:0;margin:6px 0 12px;}
+  ul.clean li{position:relative;padding-left:20px;margin-bottom:5px;font-size:14.5px;}
+  ul.clean li::before{content:"◦";position:absolute;left:2px;color:var(--ochre);font-weight:700;}
+  ul.clean li b{color:var(--ink);}
+
+  pre{font-family:ui-monospace,monospace;font-size:12.3px;line-height:1.6;color:var(--ink);background:var(--paper-card);border:1px solid var(--line-strong);border-radius:5px;padding:16px 18px;overflow-x:auto;margin:14px 0;}
+  .cmt{color:var(--ink-soft);}
+
+  .loop{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin:14px 0;}
+  @media (max-width:640px){.loop{grid-template-columns:repeat(2,1fr);}}
+  .loop .step{border:1px solid var(--line-strong);border-radius:4px;background:var(--paper-card);padding:11px 10px;}
+  .loop .step .c{font-family:ui-monospace,monospace;font-size:10px;color:var(--teal);font-weight:700;}
+  .loop .step .l{font-size:12.5px;font-weight:600;margin-top:4px;}
+  .loop .step .s{font-size:11px;color:var(--ink-soft);margin-top:2px;}
+
+  table{width:100%;border-collapse:collapse;margin:12px 0;font-size:13px;}
+  th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:top;}
+  th{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);font-weight:700;border-bottom:1px solid var(--line-strong);}
+  td b{color:var(--ink);}
+  .tier-scroll{overflow-x:auto;}
+
+  .tiers{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin:14px 0;}
+  @media (max-width:640px){.tiers{grid-template-columns:1fr;}}
+  .tier{border:1px solid var(--line-strong);border-radius:5px;background:var(--paper-card);padding:14px 15px;}
+  .tier .tn{font-family:ui-serif,Georgia,serif;font-size:16px;font-weight:600;}
+  .tier .tt{font-family:ui-monospace,monospace;font-size:10px;color:var(--ochre);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  .tier p{font-size:12.8px;color:var(--ink-soft);margin:8px 0 0;}
+
+  .callout{border:1px solid var(--line-strong);border-left:3px solid var(--teal);background:var(--paper-card);border-radius:4px;padding:13px 16px;margin:14px 0;font-size:13.6px;color:var(--ink-soft);}
+  .callout b{color:var(--ink);}
+  .callout.warn{border-left-color:var(--stamp);}
+  .callout.money{border-left-color:var(--ochre);}
+
+  .pill{display:inline-block;font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.04em;text-transform:uppercase;font-weight:700;padding:2px 7px;border-radius:4px;background:var(--ochre-soft);color:var(--ink);margin-left:6px;vertical-align:middle;}
+  .pill.free{background:rgba(31,92,82,0.14);color:var(--teal);}
+  .pill.plus{background:rgba(185,121,28,0.16);color:var(--ochre);}
+  .pill.mvp{background:rgba(107,78,138,0.14);color:var(--plum);}
+
+  .road{border-left:2px solid var(--line-strong);padding-left:22px;margin-top:14px;}
+  .rp{position:relative;padding-bottom:20px;}
+  .rp:last-child{padding-bottom:0;}
+  .rp::before{content:"";position:absolute;left:-27px;top:3px;width:10px;height:10px;border-radius:50%;background:var(--teal);border:2px solid var(--paper);}
+  .rp .k{font-family:ui-monospace,monospace;font-size:11px;color:var(--teal);font-weight:700;text-transform:uppercase;letter-spacing:.05em;}
+  .rp h4{font-size:16px;margin:3px 0 4px;}
+  .rp p{font-size:13.4px;color:var(--ink-soft);margin:0;}
+
+  hr.rule{border:none;border-top:1px dashed var(--line-strong);margin:44px 0 0;}
+  footer{margin-top:34px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-soft);text-align:center;}
+  a{color:var(--teal);}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="kicker"><span class="dot"></span> MASTER SPEC · v0.4 · RECONCILES CONCEPT + AUDIT R1 + AUDIT R2 + UI</span>
+    <h1>Curio</h1>
+    <div class="tagline">A daily cabinet of curiosities. Swipe less, do more — one small real-world skill challenge a day, rated by how it felt, collected in a cabinet that only grows.</div>
+    <div class="meta-row">
+      <span><b>Working name</b> — Curio <span class="mono">(alt: Dabble — check trademark)</span></span>
+      <span><b>Status</b> — spec complete, pre-build</span>
+      <span><b>North Star</b> — challenges completed &amp; stamped / user / week</span>
+      <span><b>Catalog</b> — 24 drawers · 381 seed skills</span>
+    </div>
+  </div>
+
+  <nav class="toc">
+    <a href="#thesis"><b>00</b> The thesis &amp; what changed</a>
+    <a href="#loop"><b>01</b> The core loop &amp; the three tiers</a>
+    <a href="#find"><b>02</b> Finding today's challenge</a>
+    <a href="#person"><b>03</b> Personalization &amp; difficulty</a>
+    <a href="#challenge"><b>04</b> The challenge, ladders &amp; multi-day</a>
+    <a href="#stamp"><b>05</b> After: the stamp</a>
+    <a href="#cabinet"><b>06</b> Progression: the Cabinet</a>
+    <a href="#share"><b>07</b> Sharing &amp; virality</a>
+    <a href="#catalog"><b>08</b> Catalog &amp; data model</a>
+    <a href="#voice"><b>09</b> Voice &amp; sensitivity</a>
+    <a href="#money"><b>10</b> Monetization</a>
+    <a href="#onboard"><b>11</b> Onboarding</a>
+    <a href="#reengage"><b>12</b> Re-engagement</a>
+    <a href="#trust"><b>13</b> Trust, safety, privacy, a11y</a>
+    <a href="#states"><b>14</b> States &amp; edge cases</a>
+    <a href="#tech"><b>15</b> Tech, platform &amp; MVP</a>
+    <a href="#road"><b>16</b> Roadmap</a>
+    <a href="#open"><b>17</b> Open questions</a>
+  </nav>
+
+  <!-- 00 -->
+  <section id="thesis">
+    <div class="sec-head"><span class="sec-num">00</span><h2>The thesis &amp; what changed</h2></div>
+    <p>Most apps sell <i>more</i>. Curio sells <b>less, better</b>: instead of an infinite feed, it hands you <b>one thing to actually go do</b> today — pulled from a library of hundreds of small skills — teaches you a two-minute sliver of it, and asks only "how did that feel?" Trying is the win; skill is a side effect. You're replacing a scroll with something you made, learned, or noticed.</p>
+    <p>The product's success is measured by <b>challenges completed per user per week</b>, never time-in-app — a doomscroll replacement that maximized screen time would have failed on its own terms.</p>
+    <div class="eyebrow">Reconciled from three review rounds</div>
+    <ul class="clean">
+      <li><b>Round 1</b> added personalization (boost/mute), multi-day challenges, resources, safety notes, accessible alternates, and killed the open photo gallery.</li>
+      <li><b>Round 2</b> added the Right-Now tier, the Cabinet, freemium, difficulty/ladders, localization seams, data export, a North Star, and context awareness.</li>
+      <li><b>UI analysis</b> set the visual direction: keep the calm paper aesthetic, spend the energy budget on <b>motion and tactility</b>, fix type floors and contrast.</li>
+    </ul>
+  </section>
+
+  <!-- 01 -->
+  <section id="loop">
+    <div class="sec-head"><span class="sec-num">01</span><h2>The core loop &amp; the three tiers</h2></div>
+    <div class="loop">
+      <div class="step"><div class="c">S1</div><div class="l">Open</div><div class="s">greeted with today's pick</div></div>
+      <div class="step"><div class="c">S2</div><div class="l">Choose depth</div><div class="s">Right-Now / Today's / browse</div></div>
+      <div class="step"><div class="c">S3</div><div class="l">Do it</div><div class="s">micro-lesson + task</div></div>
+      <div class="step"><div class="c">S4</div><div class="l">Stamp 1–5</div><div class="s">how did it feel</div></div>
+      <div class="step"><div class="c">S5</div><div class="l">Collect / share</div><div class="s">token to cabinet, optional share</div></div>
+    </div>
+    <p>The critical addition from the audits: challenges come in <b>three effort tiers</b> so the app can meet the actual moment you reach for your phone — including the low-energy, in-bed, one-handed moment that doomscrolling owns.</p>
+    <div class="tiers">
+      <div class="tier"><div class="tn">Right Now</div><div class="tt">60–120s · phone-only</div><p>One-handed, doable in bed or in line: learn a word, one breath drill, notice five sounds, one card move. Must produce a tiny action, never passive reading. This is what actually intercepts the scroll. Leads the home screen.</p></div>
+      <div class="tier"><div class="tn">Today's Curio</div><div class="tt">10–60 min · the main event</div><p>One assigned real-world challenge respecting your budget + preferences. The Wordle move — decided for you, no choosing. The default hero card.</p></div>
+      <div class="tier"><div class="tn">Go Bigger</div><div class="tt">half-day / multi-day</div><p>Weekend projects and multi-day tracks (sourdough, a 30-day language sprint). Opt-in, run as a pinned tracker that doesn't consume the daily slot.</p></div>
+    </div>
+  </section>
+
+  <!-- 02 -->
+  <section id="find">
+    <div class="sec-head"><span class="sec-num">02</span><h2>Finding today's challenge</h2></div>
+    <p><b>Default: one assigned card.</b> On open you get "Today's Curio" big and unmissable — serendipity by default, no menu to agonize over. A prominent <b>"Not feeling it? deal another"</b> button is the escape hatch to a finite <b>hand of 5–7</b> budget-matched cards (tap to open; swipe as an accelerator). Never an infinite stack — a hand is a decision, a stack is a scroll.</p>
+    <div class="eyebrow">Budget "moods" — one tap, not three dials</div>
+    <p>The three original axes (time / money / plans) collapse into saveable presets: <b>"Cozy night in," "Killing 15 min," "Out &amp; about," "No budget, all afternoon."</b> One tap sets intent the way people actually think.</p>
+    <div class="eyebrow">Context awareness — the app fills a 4th axis for free</div>
+    <p>Device time + a lightweight weather lookup silently filter the deck: raining → indoor picks; 11pm → a Right-Now micro-curio; bright Saturday AM → outdoor + adventurous. "It's pouring — here's an indoor one" is the cheapest possible way to feel alive. Degrades gracefully with no signal.</p>
+    <div class="callout"><b>Wildcard, on by default.</b> ~20% of the deck ignores your preferences to keep discovery alive, surfaced in-context ("🎲 a wildcard, because you might surprise yourself") — not a buried setting. Discovering-your-hobby is the whole point; never let the filter bubble close.</div>
+  </section>
+
+  <!-- 03 -->
+  <section id="person">
+    <div class="sec-head"><span class="sec-num">03</span><h2>Personalization &amp; difficulty</h2></div>
+    <h3>Boost &amp; mute</h3>
+    <p>A "Tune my deck" screen lists every drawer with a three-state dial: <b>boosted</b> (more often), <b>default</b>, or <b>muted</b> (off the daily deck, but never deleted — still in the Catalog). Explicit taps set it directly; every 1–5 stamp also nudges it, so the deck personalizes even if you never open the screen.</p>
+    <h3>Difficulty — the round-2 fix</h3>
+    <p>Every challenge carries a level, and the app infers your level <i>per drawer</i> from your ratings/history so you stay in the flow band between bored and defeated. It also just asks once on start ("new to this, or done it before?").</p>
+    <div class="tiers">
+      <div class="tier"><div class="tn">Dabble</div><div class="tt">never done it</div><p>First contact. Maximum encouragement, minimum prerequisites.</p></div>
+      <div class="tier"><div class="tn">Dig In</div><div class="tt">tried it before</div><p>A real technique or a harder variant of a skill you've touched.</p></div>
+      <div class="tier"><div class="tn">Deep</div><div class="tt">into this hobby</div><p>The rungs that turn a dabbler into a hobbyist — the discovery→depth payoff.</p></div>
+    </div>
+  </section>
+
+  <!-- 04 -->
+  <section id="challenge">
+    <div class="sec-head"><span class="sec-num">04</span><h2>The challenge, ladders &amp; multi-day</h2></div>
+    <p>Every challenge pairs a two-minute <b>micro-lesson</b> (the actual skill) with one concrete <b>task</b>, framed by pre-written <b>encouragement</b> and a <b>resources</b> pointer for going deeper. Before commit, a <b>"what you'll need" checklist</b> prevents the mid-task rage-quit.</p>
+    <div class="eyebrow">Full field list</div>
+    <ul class="clean">
+      <li><b>Micro-lesson</b> — the 2-minute lesson that teaches the sliver.</li>
+      <li><b>Task</b> — one concrete thing to do today (or staged, if multi-day).</li>
+      <li><b>What you'll need</b> — checklist, "use what you have first."</li>
+      <li><b>Accessible alternate</b> — same lesson, a task without the assumed ability (mobility/vision/hearing).</li>
+      <li><b>Safety note</b> — one line, only on heat/blade/wildlife/ingestible challenges (tiered — see §13).</li>
+      <li><b>Encouragement</b> — names the bad outcome first; "funny is a valid win."</li>
+      <li><b>Resources &amp; inspiration</b> — what good AND funny results look like + one "go deeper" step.</li>
+    </ul>
+    <h3>Ladders — the retention &amp; "found my hobby" engine</h3>
+    <p>Popular skills grow a <b>3–8 rung ladder</b> (dabble → dig-in → deep). This triples the catalog's effective size (staving off exhaustion) and is what turns a dabbler into a hobbyist. <b>Cooking is the flagship laddered drawer</b> for launch — the proof that Curio can make someone <i>get into</i> something, not just amuse them.</p>
+    <h3>Multi-day tracker</h3>
+    <p>Multi-day challenges run as a <b>pinned "in-progress" card</b> and <b>do not consume your daily new-card slot</b>. Today's tiny step (feed the starter) keeps your streak; you can still deal a fresh short challenge. Mastery and discovery don't compete for one slot.</p>
+  </section>
+
+  <!-- 05 -->
+  <section id="stamp">
+    <div class="sec-head"><span class="sec-num">05</span><h2>After: the stamp, not the score</h2></div>
+    <p>No pass/fail. One question — <b>"how did that feel?"</b> — a 1–5 rubber stamp that is the <i>emotional climax of the loop</i> (a real animation + haptic thunk, the app's signature moment). It doubles as the preference signal for boost/mute and difficulty.</p>
+    <ul class="clean">
+      <li><b>Optional reflection line</b> — "the pigeon would not cooperate." Over months, a diary of a more interesting year.</li>
+      <li><b>Optional photo</b> — attached to the log; evidence for future-you, never proof for the system.</li>
+      <li><b>Low-score tag</b> — a "2" can mean <i>boring</i> / <i>too hard</i> / <i>not my thing</i>; one tap routes them differently (mute vs. offer easier vs. bad luck).</li>
+    </ul>
+    <div class="callout"><b>Integrity by design, not verification.</b> It's all self-report and that's fine — the app never ships leaderboards or prizes that would give anyone a reason to lie. Keep the stakes internal and the cheating problem dissolves.</div>
+  </section>
+
+  <!-- 06 -->
+  <section id="cabinet">
+    <div class="sec-head"><span class="sec-num">06</span><h2>Progression: the Curio Cabinet</h2></div>
+    <p>The hero progression system, replacing anxiety-streaks. You're literally filling a <b>cabinet of curiosities</b> — one illustrated specimen token per skill tried, organized by drawer. The hero metric is <b>"47 skills tried"</b>: a shelf that only ever grows and never breaks.</p>
+    <ul class="clean">
+      <li><b>Growth-only.</b> Show what you <i>have</i>, never empty ghost slots taunting you — that would smuggle completionism-anxiety back in.</li>
+      <li><b>Soft streak, secondary.</b> A quiet daily rhythm with 1–2 free auto-freezes a month; never a red angry number. The cabinet carries the "keep going" pull through accumulation, not threat.</li>
+      <li><b>Comeback flow.</b> Return after a lapse → "welcome back, your cabinet's right where you left it, here's an easy one." Zero guilt, an easy win, straight back in.</li>
+      <li><b>The cabinet is the profile</b> and the year-in-review flex — shareable as "my year of curios."</li>
+    </ul>
+    <div class="callout money">Token art is a <b>parametric/generative system</b> (shape + color per drawer, small per-skill variation), not 381 hand-drawn originals — keeps the signature screen rich without an impossible illustration bill.</div>
+  </section>
+
+  <!-- 07 -->
+  <section id="share">
+    <div class="sec-head"><span class="sec-num">07</span><h2>Sharing &amp; virality</h2></div>
+    <p>One completed challenge per day can become a share card — a deliberate cap so it never becomes a performative feed. The pitch is always "here's a weird thing I tried," never "look how good I am." Funny results get identical treatment to great ones. <b>Sharing is free forever</b> — it's the acquisition engine, never gated.</p>
+    <ul class="clean">
+      <li><b>Watermark</b> — small, corner-anchored, never covering the content.</li>
+      <li><b>Per-drawer templates</b> — a cooking card ≠ a meditation card; each share feels intentional.</li>
+      <li><b>Photo-first</b> — if you took a shot, it's the card's hero.</li>
+      <li><b>Deep link / QR</b> — "try this exact challenge" drops a friend onto a web preview of that challenge, pre-loaded, install as the CTA. This is the real K-factor, not the watermark.</li>
+      <li><b>Challenge a friend</b> — first-class action; seeds the "Dabble together" shared-daily-curio feature later.</li>
+      <li><b>Formats</b> — Story ratio, square, and plain-text caption.</li>
+    </ul>
+  </section>
+
+  <!-- 08 -->
+  <section id="catalog">
+    <div class="sec-head"><span class="sec-num">08</span><h2>Catalog &amp; data model</h2></div>
+    <p>A <b>Skill</b> is a category of ability; a <b>Challenge</b> is one concrete, budget- and level-tagged task. 24 drawers, 381 seed skills — with localization seams and preference/level records baked in from day one.</p>
+    <pre>Skill {
+  id: "PHO"                     <span class="cmt">// drawer code</span>
+  name: "Photography &amp; Visual Arts"
+  oneLiner: string
+}
+
+Challenge {
+  id: "PHO-014"
+  skillId: "PHO"
+  title: string
+  level: "dabble" | "digin" | "deep"     <span class="cmt">// difficulty band (§03)</span>
+  ladderStep?: number                     <span class="cmt">// rung within a skill's ladder</span>
+  microLesson: string
+  task: string
+  stages?: { day: string, task: string }[]   <span class="cmt">// multi-day only</span>
+  needs?: string[]                        <span class="cmt">// "what you'll need" checklist</span>
+  accessibleAlternate?: string
+  safetyTier?: "note" | "acknowledge"     <span class="cmt">// §13; absent = no risk</span>
+  encouragement: string
+  resources: { inspiration: string, goDeeper: string }
+  budget: {
+    time: "2m" | "15m" | "1h" | "half-day" | "multi-day"
+    cost: "free" | "cheap" | "splurge"    <span class="cmt">// relative bands, NOT $ — localization</span>
+    setting: "home" | "outdoors" | "errand"
+  }
+  context?: { daylight?: bool, dry?: bool, quiet?: bool }   <span class="cmt">// §02 smart deck</span>
+  region?: string[]                       <span class="cmt">// culture/geo-specific challenges</span>
+  units?: "metric" | "imperial" | "n/a"   <span class="cmt">// resolved to user setting</span>
+  shareTemplate: string
+}
+
+UserPreference { userId, skillId, affinity: -2..2 }   <span class="cmt">// muted..boosted</span>
+UserLevel      { userId, skillId, level }              <span class="cmt">// inferred per drawer</span>
+LogEntry       { userId, challengeId, rating: 1..5, tag?, note?, photoRef?, date }</pre>
+    <p><b>The 24 drawers:</b> Photography &amp; Visual Arts · Culinary &amp; Baking · Home Fermentation &amp; Brewing · Birdwatching &amp; Wildlife · Language &amp; Communication · Craft &amp; Making · Paper/Fiber &amp; Textile Arts · Movement &amp; Body · Music &amp; Sound · Writing &amp; Storytelling · Nature &amp; Science · Growing Things · Strategy &amp; Games · Money &amp; Life Skills · Digital &amp; Tech Creativity · Mindfulness &amp; Reflection · Social &amp; Community · Outdoors &amp; Adventure · History &amp; Culture · Style &amp; Self-Care · Model Making &amp; Miniatures · Magic &amp; Sleight of Hand · Performance &amp; Voice · Collecting &amp; Curating. <span class="soft">(Plus two gaps flagged to add: a low-energy "5-minute mind" set for the Right-Now tier, and a "people in your life" relationship/pet set.)</span></p>
+    <div class="callout warn"><b>Localization is architected in, not launched.</b> Ship English/US, but units are a user setting, cost is relative bands (never $ figures), and <span class="mono">region</span> tags let culture-specific challenges be filtered or swapped. Retrofitting this across 2,000 strings later is the expensive path.</div>
+  </section>
+
+  <!-- 09 -->
+  <section id="voice">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Voice &amp; sensitivity</h2></div>
+    <p>The voice is the one moat competitors can't clone in a weekend — it must be codified before the catalog scales.</p>
+    <div class="tier-scroll"><table>
+      <tr><th>Rule</th><th>Instead of…</th><th>Write…</th></tr>
+      <tr><td><b>Name the bad outcome first</b></td><td>"Take a stunning bird photo."</td><td>"Blurry, too far, flew off — that's the exercise. You're not auditioning for Nat Geo."</td></tr>
+      <tr><td><b>Funny is a win</b></td><td>"Follow the recipe exactly."</td><td>"Sunken, burnt, delicious anyway. Rate it a 5 if you laughed."</td></tr>
+      <tr><td><b>Banned words</b></td><td>master · perfect · stunning · flawless</td><td>try · notice · have a go · see what happens</td></tr>
+    </table></div>
+    <div class="callout warn"><b>Sensitivity guide (mandatory alongside voice).</b> No medical, financial, or mental-health <i>advice</i>. "Check with a doctor" on anything physiological (cold plunge, fasting-adjacent). Never frame body/appearance challenges around fixing a flaw. The playful voice stays playful everywhere it's safe and turns careful exactly where it must. Any challenge touching safety/health/food/factual claims gets <b>human expert review</b> — never raw AI output.</div>
+  </section>
+
+  <!-- 10 -->
+  <section id="money">
+    <div class="sec-head"><span class="sec-num">10</span><h2>Monetization</h2></div>
+    <p>Freemium that converts on <i>desire</i>, not frustration. The free app is a <b>genuinely complete forever experience</b>; paid unlocks agency and volume.</p>
+    <div class="tier-scroll"><table>
+      <tr><th>Free forever</th><th>Curio+ <span class="mono">(~$25/yr, annual-forward)</span></th></tr>
+      <tr><td>Today's Curio · Right-Now tier · the daily share · the Cabinet · soft streak · guaranteed first win</td><td>Full catalog browse · boost/mute · unlimited rerolls · multi-day tracks · seasonal packs · <b>cloud backup ("never lose your cabinet")</b> · photo storage</td></tr>
+    </table></div>
+    <ul class="clean">
+      <li><b>Intent-triggered trial.</b> A 7-day free week fires the moment a free user reaches for a paid feature (tries to browse the full catalog, boost a drawer) — the highest-intent moment you'll get. Never paywall on day 1.</li>
+      <li><b>Cloud backup is the flagship hook.</b> The more people love their cabinet, the more devastating loss is, and the more they'll pay to protect it — the MVP's biggest weakness reframed as its clearest conversion.</li>
+      <li><b>Ethical affiliate.</b> Supply links appear <i>only</i> inside "what you'll need," always disclosed (FTC), always with "use what you have first" — never in the deck or the challenge, because the moment money changes what you're <i>shown</i>, trust dies.</li>
+    </ul>
+    <div class="callout money"><b>North Star guards the model:</b> completions/week, not time-in-app or DAU. Chase attention and you rebuild the slot machine you set out to replace.</div>
+  </section>
+
+  <!-- 11 -->
+  <section id="onboard">
+    <div class="sec-head"><span class="sec-num">11</span><h2>Onboarding</h2></div>
+    <ul class="clean">
+      <li><b>One-screen taste quiz</b> — "Which pull at you?" / "Which never?" (tap images, "surprise me" is valid) — seeds boost/mute so card one is warm. Shows "1 of 3" so it reads as short.</li>
+      <li><b>Guaranteed first win in-session</b> — the last onboarding step <i>is</i> a 60-second Right-Now curio you complete before you ever close the app. Stamp it, and only then introduce streaks/sharing.</li>
+      <li><b>Plain-English liability + privacy</b> — a short "use common sense, your cabinet lives on your phone" screen, not a wall of legal text.</li>
+    </ul>
+    <div class="callout"><b>Why:</b> time-to-first-value is the #1 predictor of D1 retention. A completed challenge in session one turns "an app I downloaded" into "a thing I did" — the exact identity shift Curio sells — before the user can bounce.</div>
+  </section>
+
+  <!-- 12 -->
+  <section id="reengage">
+    <div class="sec-head"><span class="sec-num">12</span><h2>Re-engagement</h2></div>
+    <p>Diversified so it doesn't hinge on one permission dialog (iOS notification opt-in is only ~40–60%).</p>
+    <ul class="clean">
+      <li><b>Home-screen widget</b> <span class="pill">primary</span> — today's curio, passive, no permission needed, sitting on the home screen <i>next to the apps you're replacing</i>. The killer re-engagement surface.</li>
+      <li><b>One gentle daily nudge</b> — user-picked time (or learned), never fires if today's is already done, respects timezone, contextual copy ("rainy afternoon — here's an indoor curio").</li>
+      <li><b>Optional email &amp; a "morning ritual" pairing</b> (with your coffee) as backup paths.</li>
+    </ul>
+  </section>
+
+  <!-- 13 -->
+  <section id="trust">
+    <div class="sec-head"><span class="sec-num">13</span><h2>Trust, safety, privacy &amp; accessibility</h2></div>
+    <h3>Audience &amp; age</h3>
+    <p><b>13+ with a neutral age gate, no open user-photo gallery at launch.</b> This sidesteps the worst of COPPA/GDPR-K and child-safety burden. Challenges are family-safe regardless. Any under-13 target would be a deliberate, lawyered, separate decision — never a drift.</p>
+    <h3>Safety tiering</h3>
+    <div class="tier-scroll"><table>
+      <tr><th>Tier</th><th>Applies to</th><th>Treatment</th></tr>
+      <tr><td><b>None</b></td><td>~95% of challenges</td><td>Nothing — keep it calm.</td></tr>
+      <tr><td><b>Note</b></td><td>heat, blades, mild risk</td><td>One-line inline safety note.</td></tr>
+      <tr><td><b>Acknowledge</b></td><td>fire, cold exposure, ingestibles</td><td>Mandatory tap-through + expert-reviewed. Reframe wild foraging from "eat" to "learn to identify."</td></tr>
+    </table></div>
+    <h3>Privacy</h3>
+    <p><b>On-device-first.</b> The log and photos live on your phone; cloud backup is explicit opt-in and ideally end-to-end encrypted ("we can't see your photos, we just store them") — a selling point against data-hungry incumbents. Location is coarse and on-demand only. Even the local MVP ships <b>one-tap export/import</b> so a lost phone isn't a lost cabinet.</p>
+    <h3>Accessibility</h3>
+    <ul class="clean">
+      <li><b>Content:</b> accessible-alternate task for every physical/sensory assumption.</li>
+      <li><b>Interaction:</b> tap equivalent for every swipe, full screen-reader labels, respected font-scaling, reduced-motion for stamp/cabinet animations, a list-view of the cabinet for non-visual users.</li>
+      <li><b>Contrast:</b> every text/bg pair clears WCAG AA at target size; meaning never in color alone.</li>
+    </ul>
+    <div class="callout warn"><b>Lawyer pass required before launch:</b> liability waiver, terms, privacy policy matching actual (minimal) data practices, FTC affiliate disclosure.</div>
+  </section>
+
+  <!-- 14 -->
+  <section id="states">
+    <div class="sec-head"><span class="sec-num">14</span><h2>States &amp; edge cases</h2></div>
+    <ul class="clean">
+      <li><b>Deck exhausted for today</b> → "That's today — nicely done. Tomorrow's already picked." A warm stop that reinforces the once-a-day ritual, not an error.</li>
+      <li><b>Muted everything</b> → "You've muted a lot — want a wildcard anyway?"</li>
+      <li><b>Empty cabinet</b> → an inviting "your first specimen goes here," one tap to start.</li>
+      <li><b>Offline</b> → today's + tomorrow's challenge and the whole cabinet are cached; weather/gallery degrade gracefully; share-gen is local.</li>
+      <li><b>Lapse recovery</b> → warm, zero-guilt re-entry with an easy win.</li>
+      <li><b>Day boundary</b> → resets at local midnight with a generous grace window (a 2am completion counts for the day that just ended). Soft/frozen streaks make timezone travel a non-issue.</li>
+      <li>All states are <b>warm, illustrated, in-voice</b> — paper-toned skeleton loaders, never a generic spinner.</li>
+    </ul>
+  </section>
+
+  <!-- 15 -->
+  <section id="tech">
+    <div class="sec-head"><span class="sec-num">15</span><h2>Tech, platform &amp; MVP</h2></div>
+    <p><b>Launch as a polished PWA</b> on the existing React / Vite / Tailwind stack — reuse the <span class="mono">html-to-image</span> share-card pattern already proven in the sibling project. The share deep-link's web preview doubles as the landing surface. Go native (React Native / Expo) once the habit is proven and you specifically need widgets, better notifications, and app-store presence.</p>
+    <div class="eyebrow">Ruthless MVP scope</div>
+    <ul class="clean">
+      <li><b>In:</b> <span class="pill mvp">MVP</span> taste quiz → Today's Curio + Right-Now tier → do → stamp → cabinet → daily share card. Local-only. ~50 fully-authored challenges across all drawers, one fully-laddered flagship drawer (cooking). One-tap export.</li>
+      <li><b>Out (until habit proven):</b> accounts, backend, cloud sync, the gallery, social, community submissions, the physical card deck.</li>
+    </ul>
+    <div class="callout"><b>Why:</b> the single riskiest assumption is "will people do a real-world challenge daily instead of scrolling?" — fully testable with a local app and zero backend. Everything server-side is premature until that's a yes.</div>
+  </section>
+
+  <!-- 16 -->
+  <section id="road">
+    <div class="sec-head"><span class="sec-num">16</span><h2>Roadmap</h2></div>
+    <div class="road">
+      <div class="rp"><div class="k">Phase 0 · Prove the habit</div><h4>Local PWA MVP</h4><p>The core loop, 50 great challenges, the cabinet, the share card. Goal: do people come back for a week? Measure completions/week.</p></div>
+      <div class="rp"><div class="k">Phase 1 · Depth &amp; money</div><h4>Ladders, Curio+, backup, widget</h4><p>Fully ladder 3–4 drawers, ship freemium + cloud backup, home-screen widget, seasonal packs, difficulty inference.</p></div>
+      <div class="rp"><div class="k">Phase 2 · Together</div><h4>Light social</h4><p>"Dabble together" shared daily curio, challenge-a-friend, curated inspiration (stats/staff-picks — still no open UGC photos).</p></div>
+      <div class="rp"><div class="k">Phase 3 · Scale content</div><h4>Curated community submissions + native + localization</h4><p>Trusted-contributor pipeline, native apps, first non-English/US locale. Only once voice, safety, and moderation tooling are solid.</p></div>
+    </div>
+  </section>
+
+  <!-- 17 -->
+  <section id="open">
+    <div class="sec-head"><span class="sec-num">17</span><h2>Open questions still to decide</h2></div>
+    <ul class="clean">
+      <li><b>Name.</b> Curio vs. Dabble — pending trademark + app-store + domain search.</li>
+      <li><b>Token art direction.</b> The generative specimen system needs an illustrator/art lead to define the parametric style.</li>
+      <li><b>First-locale bet.</b> Which market after English/US, and when.</li>
+      <li><b>Exact Curio+ price</b> and whether a lifetime option exists.</li>
+      <li><b>Content velocity.</b> Who writes the catalog past the first 50 — in-house, contractor pool, or contributor tier — and at what cadence.</li>
+    </ul>
+  </section>
+
+  <hr class="rule">
+  <footer>CURIO · MASTER SPEC v0.4 · CONCEPT + AUDIT R1 + AUDIT R2 + UI, RECONCILED · PAIRS WITH THE DESIGN SYSTEM DOC</footer>
+
+</div>
