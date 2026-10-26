@@ -4,6 +4,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-10-26",
+    title: "New game: Atlas, When?",
+    items: [
+      "Pan and zoom around a real world map printed between 1784 and 2015, read its borders and place names, then guess the year it was made. Printed dates are masked.",
+      "One daily map for everyone, changing at midnight UK time, plus an archive of 197 maps from the Library of Congress and the David Rumsey Map Collection to practise on.",
+      "Zoom in and the original scan sharpens tile by tile. After your guess, the clues explain which names and borders give the date away, with a link to the original.",
+    ],
+  },
+  {
     date: "2026-10-09",
     title: "Flag Studio: mix two flags",
     items: [

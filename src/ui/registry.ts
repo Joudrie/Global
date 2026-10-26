@@ -115,6 +115,7 @@ export const REGISTRY: Entry[] = [
   { id: "higherlower", title: "Higher / Lower", subtitle: "More red or blue?", icon: "📊", tab: "play", group: "Beta Sandbox", size: "tile", accent: "drill", sandbox: true },
   { id: "oddborder", title: "Odd Border Out", subtitle: "Spot the non-neighbour", icon: "🧭", tab: "play", group: "Beta Sandbox", size: "tile", accent: "learn", sandbox: true },
   { id: "describeit", title: "Describe-It", subtitle: "Guess from the clues", icon: "📝", tab: "play", group: "Beta Sandbox", size: "tile", accent: "codex", sandbox: true },
+  { id: "atlaswhen", title: "Atlas, When?", subtitle: "Guess the year a world map was made", icon: "🗺️", tab: "play", group: "Beta Sandbox", size: "tile", accent: "codex", sandbox: true },
   { id: "uscityflags", title: "US City Flags", subtitle: "Name the American city", icon: "🏙️", tab: "play", group: "Beta Sandbox", size: "tile", accent: "drill", sandbox: true },
 
   // ── CODEX → the bottom tab now opens the Codex itself (no launcher page).

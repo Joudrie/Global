@@ -591,6 +591,7 @@ const GAME_DESC = {
   oddborder: "Spot the country that isn't a neighbour.",
   describeit: 'Guess the flag from a written description.',
   uscityflags: 'Name the American city from its flag.',
+  atlaswhen: 'Explore a real world map printed between 1784 and 2015, read its borders and place names, and guess the year it was made.',
   progressmap: 'Watch the world map light up as you master each country.',
   substats: 'See your mastery of regional flags continent by continent.',
 }
