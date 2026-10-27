@@ -1,4 +1,4 @@
-// Atlas, When?: the rescued map table decodes cleanly and the scoring and
+// Atlas: the rescued map table decodes cleanly and the scoring and
 // daily-map rules match the original game.
 import test from 'node:test'
 import assert from 'node:assert/strict'

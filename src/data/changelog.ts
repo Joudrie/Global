@@ -5,9 +5,10 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-10-26",
-    title: "New game: Atlas, When?",
+    title: "New game: Atlas",
     items: [
-      "Pan and zoom around a real world map printed between 1784 and 2015, read its borders and place names, then guess the year it was made. Printed dates are masked.",
+      "Explore a real world map printed between 1784 and 2015, read its borders and place names, then guess the year it was made. Printed dates are masked.",
+      "The map fills the screen with the guess right under it: slide to a year or fine-tune with −10, −1, +1 and +10, then see your guess and the answer side by side on a timeline.",
       "One daily map for everyone, changing at midnight UK time, plus an archive of 197 maps from the Library of Congress and the David Rumsey Map Collection to practise on.",
       "Zoom in and the original scan sharpens tile by tile. After your guess, the clues explain which names and borders give the date away, with a link to the original.",
     ],

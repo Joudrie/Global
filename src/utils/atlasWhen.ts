@@ -1,6 +1,6 @@
 import { ROWS, STRINGS } from "../data/atlasWhen"
 
-/* Atlas, When? — decode the map table and the game rules that decide the
+/* Atlas — decode the map table and the game rules that decide the
    score and the daily map. Kept free of React so scripts/atlaswhen.test.mjs
    can check it under plain Node. */
 

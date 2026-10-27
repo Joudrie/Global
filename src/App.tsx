@@ -72,7 +72,7 @@ const CapitalMatchScreen = lazy(() => import("./components/CapitalMatchScreen"))
 const OddBorderOutScreen = lazy(() => import("./components/OddBorderOutScreen"))
 const ContinentSortScreen = lazy(() => import("./components/ContinentSortScreen"))
 const StatClashScreen = lazy(() => import("./components/StatClashScreen"))
-const AtlasWhenScreen = lazy(() => import("./components/AtlasWhenScreen"))
+const AtlasScreen = lazy(() => import("./components/AtlasScreen"))
 const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
@@ -85,7 +85,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlaswhen" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio"
+type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -165,6 +165,7 @@ function readDeepLink(): string | null {
     const id = new URLSearchParams(window.location.search).get("play")?.toLowerCase()
     if (!id) return null
     if (id === "daily" || id === "quickplay") return id
+    if (id === "atlaswhen") return "atlas" // the game's first name; links to it were shared
     return REGISTRY.some(r => r.id === id) ? id : null
   } catch { return null }
 }
@@ -464,7 +465,7 @@ export default function App() {
       {screen === "oddborder"    && <OddBorderOutScreen onBack={() => setScreen("home")} />}
       {screen === "continentsort"&& <ContinentSortScreen onBack={() => setScreen("home")} />}
       {screen === "statclash"    && <StatClashScreen    onBack={() => setScreen("home")} />}
-      {screen === "atlaswhen"    && <AtlasWhenScreen    onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
+      {screen === "atlas"        && <AtlasScreen        onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "uscityflags"  && <USCityFlagScreen   onBack={() => setScreen("home")} />}
       {screen === "worldcup"     && <WorldCupScreen     onBack={() => { setCodexInitial(null); setScreen("home") }} initialCode={codexInitial} onOpenCodex={(code) => { setCodexInitial(code); setScreen("codex") }} />}
       {screen === "supporter"    && (
