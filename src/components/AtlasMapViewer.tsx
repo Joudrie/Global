@@ -1,11 +1,11 @@
 import { useEffect, useRef, useState } from "react"
 import type { ReactNode } from "react"
-import { Plus, Minus, LocateFixed, Maximize2 } from "lucide-react"
+import { Plus, Minus, Maximize, Hand } from "lucide-react"
 import type { AtlasMap } from "../utils/atlasWhen"
 import { scanUrl, tileUrl } from "../utils/atlasWhen"
-import { T, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, tint } from "../ui/tokens"
 
-/* The pan-and-zoom map table for Atlas, When?. A canvas draws a whole-map
+/* The pan-and-zoom map table for Atlas. A canvas draws a whole-map
    image from the archive's IIIF server, then, as the player zooms in, swaps
    in sharper 512px tiles cut from the original scan for just the visible
    area. Printed years are painted over (the map's `redactions`) on every
@@ -19,14 +19,13 @@ type TileState = { state: "queued" | "loading" | "loaded" | "error"; image?: HTM
 interface Tile { key: string; base: [number, number, number, number]; url: string }
 
 export default function AtlasMapViewer({ map, onReady }: { map: AtlasMap; onReady?: (ready: boolean) => void }) {
-  const wrapRef = useRef<HTMLDivElement>(null)
   const vpRef = useRef<HTMLDivElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const [status, setStatus] = useState<"loading" | "ready" | "error">("loading")
   const [zoomPct, setZoomPct] = useState(100)
   const [detail, setDetail] = useState<"none" | "loading" | "loaded" | "error">("none")
   const [atMax, setAtMax] = useState(false)
-  const [tall, setTall] = useState(false)
+  const [touched, setTouched] = useState(false)
   const [attempt, setAttempt] = useState(0)
   // Imperative handles the buttons call into the drawing loop below.
   const api = useRef({ zoom: (_f: number) => {}, fit: () => {}, retryDetail: () => {} })
@@ -180,7 +179,7 @@ export default function AtlasMapViewer({ map, onReady }: { map: AtlasMap; onRead
     }
     // Only the map itself starts a drag; capturing presses on the zoom buttons
     // would swallow their clicks.
-    const onDown = (e: PointerEvent) => { if (!ready || e.target !== canvas) return; vp.setPointerCapture(e.pointerId); pointers.set(e.pointerId, local(e)); resetGesture() }
+    const onDown = (e: PointerEvent) => { if (!ready || e.target !== canvas) return; setTouched(true); vp.setPointerCapture(e.pointerId); pointers.set(e.pointerId, local(e)); resetGesture() }
     const onMove = (e: PointerEvent) => {
       if (!pointers.has(e.pointerId)) return
       pointers.set(e.pointerId, local(e))
@@ -195,7 +194,7 @@ export default function AtlasMapViewer({ map, onReady }: { map: AtlasMap; onRead
       }
     }
     const onUp = (e: PointerEvent) => { pointers.delete(e.pointerId); resetGesture() }
-    const onWheel = (e: WheelEvent) => { e.preventDefault(); const p = local(e); zoom(Math.exp(-e.deltaY * 0.0017), p.x, p.y) }
+    const onWheel = (e: WheelEvent) => { e.preventDefault(); setTouched(true); const p = local(e); zoom(Math.exp(-e.deltaY * 0.0017), p.x, p.y) }
     const onDbl = (e: MouseEvent) => { const p = local(e); zoom(2, p.x, p.y) }
     const onKey = (e: KeyboardEvent) => {
       const k = e.key
@@ -240,52 +239,44 @@ export default function AtlasMapViewer({ map, onReady }: { map: AtlasMap; onRead
     }
   }, [map, attempt])
 
-  const expand = async () => {
-    const wrap = wrapRef.current
-    try {
-      if (document.fullscreenElement) { await document.exitFullscreen(); return }
-      if (wrap?.requestFullscreen) { await wrap.requestFullscreen(); return }
-    } catch { /* fall through to the taller layout */ }
-    setTall(t => !t)
-  }
-
   const tool = (label: string, onClick: () => void, icon: ReactNode, disabled = false) => (
     <button type="button" aria-label={label} title={label} onClick={onClick} disabled={disabled || status !== "ready"}
-      style={{ width: 38, height: 38, display: "grid", placeItems: "center", borderRadius: 10, background: T.surface, color: T.text,
-        border: `1px solid ${T.line}`, boxShadow: `0 2px 6px -3px ${tint(T.text, 0.45)}`, opacity: disabled || status !== "ready" ? 0.45 : 1, cursor: "pointer" }}>
+      style={{ width: 44, height: 44, display: "grid", placeItems: "center", borderRadius: 12, background: tint(T.surface, 0.94), color: T.text,
+        border: `1px solid ${T.line}`, boxShadow: `0 3px 10px -4px ${tint(T.text, 0.45)}`, opacity: disabled || status !== "ready" ? 0.45 : 1, cursor: "pointer" }}>
       {icon}
     </button>
   )
 
+  const chip = (children: ReactNode) => (
+    <div role="status" aria-live="polite" style={{ position: "absolute", left: 10, bottom: 10, display: "inline-flex", alignItems: "center", gap: 8,
+      fontSize: 12, fontWeight: 600, color: T.text, background: tint(T.surface, 0.92), border: `1px solid ${T.line}`, borderRadius: 999, padding: "6px 12px",
+      boxShadow: `0 3px 10px -4px ${tint(T.text, 0.45)}`, pointerEvents: "auto" }}>{children}</div>
+  )
+
   return (
-    <div ref={wrapRef} style={{ position: "relative", background: "#d9dfd4", borderRadius: 14, overflow: "hidden", border: `1px solid ${T.line}`, display: "flex", flexDirection: "column" }}>
-      <div ref={vpRef} style={{ position: "relative", height: tall ? "82vh" : "min(58vh, 620px)", minHeight: 300, touchAction: "none", cursor: "grab",
-        background: "radial-gradient(#aebbad 1px, transparent 1px) 0 0 / 20px 20px" }}>
-        <canvas ref={canvasRef} tabIndex={0} aria-label="Historical world map. Drag to pan, scroll or pinch to zoom, or use plus, minus and the arrow keys."
-          style={{ display: "block", width: "100%", height: "100%", outlineOffset: -3 }} />
-        {status !== "ready" && (
-          <div role="status" style={{ position: "absolute", inset: 0, display: "grid", placeContent: "center", textAlign: "center", gap: 10, background: tint("#e7e9df", 0.85), padding: 24, color: T.text }}>
-            {status === "loading" ? "Unfolding your map…" : <>
-              <span>This scan couldn’t be loaded.</span>
-              <button type="button" onClick={() => setAttempt(a => a + 1)} style={{ padding: "8px 16px", borderRadius: 10, border: `1px solid ${T.lineHi}`, background: T.surface, color: T.text, cursor: "pointer" }}>Try again</button>
-            </>}
-          </div>
-        )}
-        <div style={{ position: "absolute", top: 10, left: 10, display: "flex", flexDirection: "column", gap: 6 }}>
-          {tool("Zoom in", () => api.current.zoom(1.5), <Plus size={18} />, atMax)}
-          {tool("Zoom out", () => api.current.zoom(1 / 1.5), <Minus size={18} />)}
-          {tool("Fit map", () => api.current.fit(), <LocateFixed size={17} />)}
-          {tool("Expand map", expand, <Maximize2 size={16} />)}
+    <div ref={vpRef} style={{ position: "relative", height: "100%", minHeight: 260, overflow: "hidden", touchAction: "none", cursor: "grab",
+      background: "radial-gradient(#aebbad 1px, transparent 1px) 0 0 / 20px 20px #d9dfd4" }}>
+      <canvas ref={canvasRef} tabIndex={0} aria-label="Historical world map. Drag to pan, pinch or scroll to zoom, or use plus, minus and the arrow keys."
+        style={{ display: "block", width: "100%", height: "100%", outlineOffset: -3 }} />
+      {status !== "ready" && (
+        <div role="status" style={{ position: "absolute", inset: 0, display: "grid", placeContent: "center", textAlign: "center", gap: 10, background: tint("#e7e9df", 0.85), padding: 24, color: T.text }}>
+          {status === "loading" ? "Unfolding your map…" : <>
+            <span>This scan couldn’t be loaded.</span>
+            <button type="button" onClick={() => setAttempt(a => a + 1)} style={{ padding: "10px 18px", borderRadius: 12, border: `1px solid ${T.lineHi}`, background: T.surface, color: T.text, cursor: "pointer", fontWeight: 600 }}>Try again</button>
+          </>}
         </div>
-        <span className="geo-mono" style={{ position: "absolute", top: 12, right: 12, fontSize: 11, fontWeight: 700, color: T.text, background: tint(T.surface, 0.85), borderRadius: 999, padding: "3px 9px", border: `1px solid ${T.line}` }}>{zoomPct}%</span>
+      )}
+      <div style={{ position: "absolute", right: 10, bottom: 10, display: "flex", flexDirection: "column", gap: 8 }}>
+        {tool("Zoom in", () => api.current.zoom(1.6), <Plus size={20} />, atMax)}
+        {tool("Zoom out", () => api.current.zoom(1 / 1.6), <Minus size={20} />, zoomPct <= 100)}
+        {zoomPct > 100 && tool("Show the whole map", () => api.current.fit(), <Maximize size={18} />)}
       </div>
-      <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, justifyContent: "space-between", padding: "8px 12px", background: "#e7e9df", borderTop: `1px solid ${T.line}`, fontSize: 11, color: T.muted, fontFamily: FONT.mono }}>
-        <span>DRAG TO EXPLORE · PINCH OR SCROLL TO ZOOM</span>
-        <span role="status" aria-live="polite" style={{ display: "inline-flex", alignItems: "center", gap: 8 }}>
-          {detail === "loading" ? "Loading sharper scan detail…" : detail === "loaded" ? "Original scan detail loaded" : detail === "error" ? "Some detail didn’t load" : "Zoom in for the original scan detail"}
-          {detail === "error" && <button type="button" onClick={() => api.current.retryDetail()} style={{ fontSize: 11, padding: "2px 8px", borderRadius: 8, border: `1px solid ${T.lineHi}`, background: T.surface, color: T.text, cursor: "pointer" }}>Retry</button>}
-        </span>
-      </div>
+      {status === "ready" && (
+        !touched ? chip(<><Hand size={14} /> Drag to explore · pinch or scroll to zoom</>)
+        : detail === "loading" ? chip("Sharpening the scan…")
+        : detail === "error" ? chip(<>Some detail didn’t load <button type="button" onClick={() => api.current.retryDetail()} style={{ fontSize: 12, fontWeight: 700, color: ACCENT.codex, background: "none", border: "none", padding: 0, cursor: "pointer" }}>Retry</button></>)
+        : null
+      )}
     </div>
   )
 }

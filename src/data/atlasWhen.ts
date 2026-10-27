@@ -1,5 +1,5 @@
-// Atlas, When? — 197 real world maps (1784–2015) to date by eye.
-// Rescued from the original game at atlas-when.karminker.chatgpt.site on
+// Atlas — 197 real world maps (1784–2015) to date by eye.
+// Rescued from the original game, "Atlas, When?", at atlas-when.karminker.chatgpt.site on
 // 2026-10-26 and checked character-for-character against it. Scans stream
 // from the Library of Congress and David Rumsey Map Collection IIIF servers;
 // nothing here is hosted by Globalio. Decoded by src/utils/atlasWhen.ts.
