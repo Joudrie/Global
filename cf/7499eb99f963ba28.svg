@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   version="1.1"
+   id="svg1"
+   width="3766.3032"
+   height="1546.0779"
+   viewBox="0 0 3766.3033 1546.0779"
+   sodipodi:docname="bitmap.png"
+   xml:space="preserve"
+   inkscape:export-filename="bitmap.png"
+   inkscape:export-xdpi="91.373215"
+   inkscape:export-ydpi="91.373215"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg"><defs
+     id="defs1" /><sodipodi:namedview
+     id="namedview1"
+     pagecolor="#ffffff"
+     bordercolor="#999999"
+     borderopacity="1"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"><inkscape:page
+       x="0"
+       y="0"
+       width="3766.3032"
+       height="1546.0779"
+       id="page314"
+       margin="0"
+       bleed="0" /></sodipodi:namedview><g
+     inkscape:groupmode="layer"
+     inkscape:label="Image"
+     id="g1"><g
+       id="g311"
+       transform="matrix(1.4712122,0,0,1.21304,0,7.1357233e-5)"
+       style="stroke-width:0.748557"><path
+         style="fill:#fefefe;stroke-width:0.748557"
+         d="M 0,640 V 0 h 1280 1280 v 640 640 H 1280 0 Z"
+         id="path314" /><path
+         style="fill:#000000;stroke-width:0.748557"
+         d="M 0,640 V 0 H 1280 2560 V 213.5 427 H 1600 640 v 213 213 h 960 960 V 1066.5 1280 H 1280 0 Z"
+         id="path313" /><path
+         style="fill:#00783b;stroke-width:0.748557"
+         d="M 0,640.00017 V 0 H 1280 2560 V 213.5 427 H 1600 640 L 639.97075,640.25 639.9415,853.5 319.97075,1066.7502 0,1280.0003 Z"
+         id="path312" /><path
+         style="fill:#cd1025;fill-opacity:1;stroke-width:0.748557"
+         d="M 0,640 V -3.3494769e-4 L 319.97075,213.24983 639.9415,426.5 V 640 853.5 L 319.97075,1066.7502 0,1280.0003 Z"
+         id="path311" /></g></g></svg>

@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.0"
+   width="900"
+   height="600"
+   id="svg126"
+   sodipodi:docname="Walser(new).svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata132">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs130">
+    <clipPath
+       id="clip">
+      <path
+         inkscape:connector-curvature="0"
+         d="M 0,-200 V 860 H 420 V -740 Z"
+         id="path63" />
+    </clipPath>
+    <clipPath
+       id="clipPath146">
+      <path
+         inkscape:connector-curvature="0"
+         d="M 0,-200 V 860 H 420 V -740 Z"
+         id="path144" />
+    </clipPath>
+    <clipPath
+       id="clipPath150">
+      <path
+         inkscape:connector-curvature="0"
+         d="M 0,-200 V 860 H 420 V -740 Z"
+         id="path148" />
+    </clipPath>
+  </defs>
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     id="namedview128"
+     showgrid="false"
+     inkscape:zoom="0.63111111"
+     inkscape:cx="468.41765"
+     inkscape:cy="310.88229"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg126" />
+  <rect
+     width="450"
+     height="600"
+     fill="#fff"
+     id="rect122" />
+  <rect
+     x="450"
+     width="450"
+     height="600"
+     fill="#f00"
+     id="rect124" />
+  <g
+     id="g1254"
+     transform="translate(-1.25e-4)">
+    <g
+       transform="matrix(1.1699804,0,0,1.1699804,-76.49118,-91.99414)"
+       id="g1178">
+      <g
+         style="fill:#ffffff"
+         id="g83"
+         transform="matrix(0.53062716,0,0,0.53062716,450,85.929983)">
+        <g
+           transform="translate(0,150)"
+           clip-path="url(#clip)"
+           id="half_stars">
+          <polygon
+             id="use72"
+             transform="scale(95)"
+             points="0.95105652,-0.30901699 -0.58778525,0.80901699 0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 " />
+          <polygon
+             id="use74"
+             transform="matrix(95,0,0,95,0,223.32295)"
+             points="-0.95105652,-0.30901699 0.95105652,-0.30901699 -0.58778525,0.80901699 0,-1 0.58778525,0.80901699 " />
+          <polygon
+             id="use76"
+             transform="matrix(95,0,0,95,0,449.86743)"
+             points="-0.58778525,0.80901699 0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 0.95105652,-0.30901699 " />
+          <polygon
+             id="use78"
+             transform="matrix(95,0,0,95,0,657.08273)"
+             points="-0.58778525,0.80901699 0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 0.95105652,-0.30901699 " />
+        </g>
+      </g>
+      <use
+         height="100%"
+         width="100%"
+         y="0"
+         x="0"
+         style="display:inline;fill:#ff0000"
+         id="use85"
+         transform="matrix(-0.53062716,0,0,0.53062716,450,85.929983)"
+         xlink:href="#half_stars" />
+    </g>
+    <g
+       transform="matrix(0.62082338,0,0,0.62082338,420.88578,51.99221)"
+       id="g98"
+       style="fill:#ffffff">
+      <g
+         id="right_stars"
+         transform="translate(250,210)">
+        <polygon
+           points="-0.58778525,0.80901699 0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 0.95105652,-0.30901699 "
+           transform="scale(95)"
+           id="use89" />
+        <polygon
+           points="0.95105652,-0.30901699 -0.58778525,0.80901699 0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 "
+           transform="matrix(95,0,0,95,0,197.55071)"
+           id="use91" />
+        <polygon
+           points="0.95105652,-0.30901699 -0.58778525,0.80901699 0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 "
+           transform="matrix(95,0,0,95,0,414.4306)"
+           id="use93" />
+      </g>
+    </g>
+    <use
+       inkscape:label="use100"
+       xlink:href="#right_stars"
+       transform="matrix(-0.62082338,0,0,0.62082338,479.11447,51.99221)"
+       id="use100"
+       style="fill:#ff0000"
+       x="0"
+       y="0"
+       width="100%"
+       height="100%" />
+  </g>
+</svg>

@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="svg2" width="900" height="600" version="1.1" viewBox="0 0 900 600" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata id="metadata1">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <rect id="rect4" width="900" height="600" fill="#fe0000" style="fill:#008000;stroke-width:10"/>
+ <rect id="rect6" width="900" height="400" fill="#004080" style="fill:#000000;stroke-width:10"/>
+ <rect id="rect8" width="900" height="200" fill="#008100" style="fill:#ffff00;stroke-width:10"/>
+ <g id="g1">
+  <path id="w-4" d="m450 200-25.127 76.3926h-81.3105l65.7813 47.2128-25.125 76.3945 65.7812-47.2128 65.7812 47.2128-25.125-76.3944 65.7812-47.2129h-81.3105z" style="fill:#ffffff"/>
+  <path id="w" d="m450 229.279-18.2988 56.3164h-59.2129l47.9043 34.8047-18.2988 56.3164 47.9062-34.8067 47.9063 34.8066-18.2988-56.3163 47.9042-34.8047h-59.2128z" style="fill:#000000"/>
+ </g>
+</svg>

@@ -1,0 +1,315 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.0"
+   width="600"
+   height="400"
+   id="svg2">
+  <metadata
+     id="metadata20">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs18">
+    <polygon
+       id="polygon2569"
+       points="-0.1624598481164531,0 0,-0.5 0.1624598481164531,0"
+       transform="scale(0.0616)"
+       fill="#FFF" />
+    <g
+       id="g2571">
+      <use
+         xlink:href="#pt"
+         transform="rotate(-144)"
+         id="use2573" />
+      <use
+         xlink:href="#pt"
+         transform="rotate(-72)"
+         id="use2575" />
+      <use
+         xlink:href="#pt"
+         id="use2577" />
+      <use
+         xlink:href="#pt"
+         transform="rotate(72)"
+         id="use2579" />
+      <use
+         xlink:href="#pt"
+         transform="rotate(144)"
+         id="use2581" />
+    </g>
+    <g
+       id="g2583">
+      <use
+         xlink:href="#star"
+         x="-0.252"
+         id="use2585" />
+      <use
+         xlink:href="#star"
+         x="-0.126"
+         id="use2587" />
+      <use
+         xlink:href="#star"
+         id="use2589" />
+      <use
+         xlink:href="#star"
+         x="0.126"
+         id="use2591" />
+      <use
+         xlink:href="#star"
+         x="0.252"
+         id="use2593" />
+    </g>
+    <g
+       id="g2595">
+      <use
+         xlink:href="#s5"
+         x="-0.063"
+         id="use2597" />
+      <use
+         xlink:href="#star"
+         x="0.315"
+         id="use2599" />
+    </g>
+    <g
+       id="g2601">
+      <use
+         xlink:href="#s6"
+         id="use2603" />
+      <use
+         xlink:href="#s5"
+         y="0.054"
+         id="use2605" />
+      <use
+         xlink:href="#s6"
+         y="0.108"
+         id="use2607" />
+      <use
+         xlink:href="#s5"
+         y="0.162"
+         id="use2609" />
+    </g>
+    <g
+       id="g2611">
+      <use
+         xlink:href="#x4"
+         y="-0.216"
+         id="use2613" />
+      <use
+         xlink:href="#x4"
+         id="use2615" />
+      <use
+         xlink:href="#s6"
+         y="0.216"
+         id="use2617" />
+    </g>
+    <rect
+       id="rect2619"
+       width="1235"
+       height="50"
+       fill="#B22234" />
+    <linearGradient
+       id="linearGradient2955">
+      <stop
+         style="stop-color:#ffffff;stop-opacity:0"
+         offset="0"
+         id="stop2965" />
+      <stop
+         style="stop-color:#000000;stop-opacity:0.64583331"
+         offset="1"
+         id="stop2959" />
+    </linearGradient>
+    <radialGradient
+       cx="225.52438"
+       cy="218.90099"
+       r="300"
+       fx="225.52438"
+       fy="218.90099"
+       id="radialGradient2961"
+       xlink:href="#linearGradient2955"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-4.167939e-4,2.182867,-1.884232,-3.599562e-4,615.5972,-289.1214)" />
+    <polygon
+       points="0,-1 0.58778525,0.80901699 -0.95105652,-0.30901699 0.95105652,-0.30901699 -0.58778525,0.80901699 0,-1 "
+       transform="scale(53,53)"
+       id="polygon2518" />
+    <clipPath
+       id="clip">
+      <path
+         d="M 0,-200 L 0,600 L 300,600 L 300,-200 L 0,-200 z "
+         id="path10" />
+    </clipPath>
+    <radialGradient
+       cx="225.52438"
+       cy="218.90099"
+       r="300"
+       fx="225.52438"
+       fy="218.90099"
+       id="radialGradient1911"
+       xlink:href="#linearGradient2955"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(-4.167939e-4,2.182867,-1.884232,-3.599562e-4,1395.597,-309.1214)" />
+    <radialGradient
+       cx="-483.50824"
+       cy="153.9283"
+       r="300.00003"
+       fx="-483.50824"
+       fy="153.9283"
+       id="radialGradient1357"
+       xlink:href="#linearGradient2955"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,2.342476,-2.291353,0,562.9128,1323.77)" />
+    <radialGradient
+       cx="-483.50824"
+       cy="153.9283"
+       r="300.00003"
+       fx="-483.50824"
+       fy="153.9283"
+       id="radialGradient13767"
+       xlink:href="#linearGradient2955"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,2.342476,-2.291353,0,562.9128,1323.77)" />
+    <radialGradient
+       cx="-483.50824"
+       cy="153.9283"
+       r="300.00003"
+       fx="-483.50824"
+       fy="153.9283"
+       id="radialGradient14758"
+       xlink:href="#linearGradient2955"
+       gradientUnits="userSpaceOnUse"
+       gradientTransform="matrix(0,2.342476,-2.291353,0,562.9128,1323.77)" />
+    <polygon
+       id="pt"
+       points="-0.1624598481164531,0 0,-0.5 0.1624598481164531,0"
+       transform="scale(0.0616)"
+       fill="#FFF" />
+    <g
+       id="star">
+      <use
+         xlink:href="#pt"
+         transform="rotate(-144)"
+         id="use8" />
+      <use
+         xlink:href="#pt"
+         transform="rotate(-72)"
+         id="use10" />
+      <use
+         xlink:href="#pt"
+         id="use12" />
+      <use
+         xlink:href="#pt"
+         transform="rotate(72)"
+         id="use14" />
+      <use
+         xlink:href="#pt"
+         transform="rotate(144)"
+         id="use16" />
+    </g>
+    <g
+       id="s5">
+      <use
+         xlink:href="#star"
+         x="-0.252"
+         id="use19" />
+      <use
+         xlink:href="#star"
+         x="-0.126"
+         id="use21" />
+      <use
+         xlink:href="#star"
+         id="use23" />
+      <use
+         xlink:href="#star"
+         x="0.126"
+         id="use25" />
+      <use
+         xlink:href="#star"
+         x="0.252"
+         id="use27" />
+    </g>
+    <g
+       id="s6">
+      <use
+         xlink:href="#s5"
+         x="-0.063"
+         id="use30" />
+      <use
+         xlink:href="#star"
+         x="0.315"
+         id="use32" />
+    </g>
+    <g
+       id="x4">
+      <use
+         xlink:href="#s6"
+         id="use35" />
+      <use
+         xlink:href="#s5"
+         y="0.054"
+         id="use37" />
+      <use
+         xlink:href="#s6"
+         y="0.108"
+         id="use39" />
+      <use
+         xlink:href="#s5"
+         y="0.162"
+         id="use41" />
+    </g>
+    <g
+       id="u">
+      <use
+         xlink:href="#x4"
+         y="-0.216"
+         id="use44" />
+      <use
+         xlink:href="#x4"
+         id="use46" />
+      <use
+         xlink:href="#s6"
+         y="0.216"
+         id="use48" />
+    </g>
+    <rect
+       id="stripe"
+       width="1235"
+       height="50"
+       fill="#B22234" />
+  </defs>
+  <path
+     id="path2387"
+     d="M 600,0 L 600,400 L 0,400 L 600,0 z"
+     style="fill:#ffffff;fill-opacity:1" />
+  <path
+     style="fill:#003597;fill-opacity:1"
+     d="M 0,0 L 600,0 L 0,400 L 0,0 z"
+     id="rect4" />
+  <g
+     id="quarter" />
+  <path
+     style="fill:#d10422;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1"
+     d="M 0,400 -2.9586636e-4,334.39796 535.14911,-4.9969092e-4 600,0 600.0003,65.602038 64.851604,400.00005 Z"
+     id="rect2403" />
+  <path
+     id="path2400"
+     style="fill:#142aba;fill-opacity:1;stroke:none;stroke-width:0.2;stroke-miterlimit:4;stroke-dasharray:none"
+     d="M 479.99984,380 C 484.76555,374.47331 488.60293,365.87569 489.00715,358.81825 C 494.20626,357.50235 497.89089,354.81052 500.67304,350.43381 C 494.56213,346.08685 488.56065,339.61055 488.19315,331.84625 L 506.24965,331.84625 L 506.24965,319.34625 L 500.23738,319.34625 C 500.23738,311.67757 501.97446,302.92934 506.8273,296.39634 C 510.60298,291.31344 517.08041,288.65943 521.88156,291.59634 C 527.19523,294.84676 526.44961,301.90246 523.43653,306.3818 C 550.65248,302.97123 553.43435,277.57649 541.8809,264.875 C 534.5959,257.14404 522.756,256.34085 513.2859,262.1575 C 500.68743,269.89564 493.86684,292.62776 493.37746,319.34625 L 485.54756,319.34625 C 485.54756,295.05774 490.52561,276.33674 498.75429,255.37429 C 505.66156,237.77808 502.99869,213.29117 493.08499,196.87875 C 489.53259,190.99765 485.09756,185.68681 479.99984,180 C 474.90213,185.68681 470.4671,190.99765 466.9147,196.87875 C 457.001,213.29117 454.33813,237.77808 461.2454,255.37429 C 469.47408,276.33674 474.45213,295.05774 474.45213,319.34625 L 466.62223,319.34625 C 466.13285,292.62776 459.31226,269.89564 446.71379,262.1575 C 437.24369,256.34085 425.40379,257.14404 418.11879,264.875 C 406.56534,277.57649 409.34721,302.97123 436.56316,306.3818 C 433.55008,301.90246 432.80446,294.84676 438.11813,291.59634 C 442.91928,288.65943 449.39671,291.31344 453.17239,296.39634 C 458.02523,302.92934 459.76231,311.67757 459.76231,319.34625 L 453.75004,319.34625 L 453.75004,331.84625 L 471.80654,331.84625 C 471.43904,339.61055 465.43756,346.08685 459.32665,350.43381 C 462.1088,354.81052 465.79343,357.50235 470.99254,358.81825 C 471.39676,365.87569 475.23414,374.47331 479.99984,380 z" />
+  <path
+     id="path2469"
+     style="fill:#ffffff;stroke:none;stroke-width:5;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 148.11363,121.52382 L 165.48908,174.99914 L 120.0003,141.94956 L 74.511518,174.99914 L 91.88697,121.52382 L 46.398171,88.47438 L 102.62522,88.47482 L 120.0003,34.99956 L 137.37537,88.47482 L 193.60243,88.47438 L 148.11363,121.52382 z" />
+</svg>

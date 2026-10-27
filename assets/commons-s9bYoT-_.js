@@ -1,0 +1,1 @@
+var e=e=>{let t=e.match(/Special:FilePath\/([^?#]+)/);return t?`https://commons.wikimedia.org/wiki/File:${t[1]}`:null};export{e as t};

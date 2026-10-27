@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   version="1.1"
+   width="900"
+   height="600"
+   id="Flag of Iraq">
+  <rect
+     width="900"
+     height="200"
+     id="rect11178"
+     style="fill:#ce1126" />
+  <rect
+     width="900"
+     height="200"
+     y="200"
+     id="rect11180"
+     style="fill:#fff" />
+  <rect
+     width="900"
+     height="200"
+     y="400"
+     id="rect11182"
+     style="fill:#000" />
+  <path
+     d="m 227,246 -13.454,41.26576 -43.546,0 35.21139,25.49957 L 191.75739,354 227,328.50043 262.21139,354 248.75739,312.76533 284,287.26576 l -43.546,0 L 227,246 z"
+     id="path2993"
+     style="fill:#009e60;fill-opacity:1" />
+  <use
+     transform="translate(446,0)"
+     id="use3007"
+     xlink:href="#path2993" />
+  <use
+     transform="translate(223,0)"
+     id="use3005"
+     xlink:href="#path2993" />
+</svg>
