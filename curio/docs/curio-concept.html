@@ -1,0 +1,691 @@
+<title>Curio — Concept Spec</title>
+<style>
+
+  :root{
+    --paper: #E9E3D0;
+    --paper-card: #F8F4E7;
+    --ink: #1C2521;
+    --ink-soft: #4B564E;
+    --teal: #1F5C52;
+    --teal-strong: #163F38;
+    --ochre: #B9791C;
+    --ochre-soft: #E8D3A4;
+    --stamp: #A9402A;
+    --line: rgba(28,37,33,0.14);
+    --line-strong: rgba(28,37,33,0.28);
+    --shadow: 0 1px 0 rgba(28,37,33,0.06), 0 8px 20px -14px rgba(28,37,33,0.35);
+  }
+  :root[data-theme="dark"]{
+    --paper: #161F1B;
+    --paper-card: #1E2A24;
+    --ink: #E9E4D2;
+    --ink-soft: #A9B3A6;
+    --teal: #6FBFAE;
+    --teal-strong: #9AD8C9;
+    --ochre: #E0B255;
+    --ochre-soft: #3A331F;
+    --stamp: #E08669;
+    --line: rgba(233,228,210,0.14);
+    --line-strong: rgba(233,228,210,0.26);
+    --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 10px 24px -16px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper: #161F1B;
+      --paper-card: #1E2A24;
+      --ink: #E9E4D2;
+      --ink-soft: #A9B3A6;
+      --teal: #6FBFAE;
+      --teal-strong: #9AD8C9;
+      --ochre: #E0B255;
+      --ochre-soft: #3A331F;
+      --stamp: #E08669;
+      --line: rgba(233,228,210,0.14);
+      --line-strong: rgba(233,228,210,0.26);
+      --shadow: 0 1px 0 rgba(0,0,0,0.3), 0 10px 24px -16px rgba(0,0,0,0.6);
+    }
+  }
+
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:var(--paper);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px;
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:880px;margin:0 auto;padding:56px 24px 120px;}
+
+  h1,h2,h3{
+    font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    font-weight:600;
+    color:var(--ink);
+    text-wrap:balance;
+    margin:0;
+  }
+  .mono{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;
+  }
+  .eyebrow{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;
+    font-size:11.5px;
+    letter-spacing:.11em;
+    text-transform:uppercase;
+    color:var(--teal);
+    font-weight:700;
+  }
+  p{margin:0 0 14px;max-width:64ch;color:var(--ink);}
+  .lede{color:var(--ink-soft);}
+
+  /* ---- masthead ---- */
+  .masthead{
+    border:1px solid var(--line-strong);
+    border-radius:2px;
+    background:var(--paper-card);
+    box-shadow:var(--shadow);
+    padding:28px 30px 26px;
+    position:relative;
+    overflow:hidden;
+  }
+  .masthead::before{
+    content:"";
+    position:absolute; left:0; top:0; bottom:0; width:8px;
+    background:var(--teal);
+  }
+  .masthead .drawer-tag{
+    display:inline-flex; align-items:center; gap:8px;
+    font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;
+    font-size:11px; letter-spacing:.1em; text-transform:uppercase;
+    color:var(--ink-soft);
+    border:1px solid var(--line-strong);
+    border-radius:999px;
+    padding:4px 10px;
+    margin-bottom:18px;
+  }
+  .masthead .drawer-tag .dot{width:6px;height:6px;border-radius:50%;background:var(--stamp);}
+  .masthead h1{font-size:44px; letter-spacing:-.01em;}
+  .masthead .tagline{font-size:18px; color:var(--ink-soft); margin-top:8px; max-width:52ch;}
+  .meta-row{
+    display:flex; flex-wrap:wrap; gap:18px;
+    margin-top:22px; padding-top:18px;
+    border-top:1px dashed var(--line-strong);
+    font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;
+    font-size:12px; color:var(--ink-soft);
+  }
+  .meta-row b{color:var(--ink); font-weight:600;}
+
+  /* ---- section shell ---- */
+  section{margin-top:56px;}
+  .sec-head{display:flex; align-items:baseline; gap:12px; margin-bottom:18px;}
+  .sec-num{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;
+    font-size:13px; color:var(--ochre); font-weight:700;
+    border:1px solid var(--line-strong); border-radius:4px;
+    padding:2px 7px;
+  }
+  .sec-head h2{font-size:26px;}
+
+  /* ---- loop steps ---- */
+  .loop{
+    display:grid; grid-template-columns:repeat(5,1fr); gap:10px;
+    margin:22px 0 8px;
+  }
+  .loop .step{
+    border:1px solid var(--line-strong); border-radius:3px;
+    background:var(--paper-card); padding:14px 12px 12px;
+  }
+  .loop .step .code{font-family:ui-monospace,monospace; font-size:11px; color:var(--teal); font-weight:700;}
+  .loop .step .label{font-size:13.5px; margin-top:6px; font-weight:600;}
+  .loop .step .sub{font-size:12px; color:var(--ink-soft); margin-top:3px;}
+  @media (max-width:720px){ .loop{grid-template-columns:repeat(2,1fr);} }
+
+  /* ---- generic card ---- */
+  .card{
+    border:1px solid var(--line-strong);
+    background:var(--paper-card);
+    border-radius:3px;
+    box-shadow:var(--shadow);
+  }
+
+  /* ---- phone mock ---- */
+  .phone-row{display:flex; gap:22px; flex-wrap:wrap; align-items:flex-start; margin-top:18px;}
+  .phone{
+    width:266px; border:1px solid var(--line-strong); border-radius:20px;
+    background:var(--paper-card); padding:14px 12px 18px; box-shadow:var(--shadow);
+  }
+  .phone .screen-label{font-family:ui-monospace,monospace; font-size:10px; color:var(--ink-soft); text-align:center; margin-bottom:10px; letter-spacing:.08em; text-transform:uppercase;}
+  .filter-chips{display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px;}
+  .chip{
+    font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.02em;
+    border:1px solid var(--line-strong); border-radius:999px; padding:4px 9px;
+    color:var(--ink-soft); background:transparent;
+  }
+  .chip.active{background:var(--teal); border-color:var(--teal); color:var(--paper-card); font-weight:700;}
+  .swipe-card{
+    border:1px solid var(--line-strong); border-radius:12px; background:var(--paper);
+    padding:16px 14px; position:relative; min-height:180px;
+  }
+  .swipe-card .cat{font-family:ui-monospace,monospace; font-size:10px; text-transform:uppercase; letter-spacing:.09em; color:var(--ochre); font-weight:700;}
+  .swipe-card h3{font-size:19px; margin-top:6px; line-height:1.25;}
+  .swipe-card .desc{font-size:12.5px; color:var(--ink-soft); margin-top:6px;}
+  .swipe-card .tags{display:flex; gap:5px; flex-wrap:wrap; margin-top:12px;}
+  .tag{font-family:ui-monospace,monospace; font-size:9.5px; border:1px solid var(--line-strong); border-radius:4px; padding:2px 6px; color:var(--ink-soft);}
+  .swipe-hint{display:flex; justify-content:space-between; margin-top:10px; font-family:ui-monospace,monospace; font-size:10px; color:var(--ink-soft);}
+  .swipe-hint .left{color:var(--stamp);}
+  .swipe-hint .right{color:var(--teal);}
+
+  /* ---- challenge card anatomy ---- */
+  .anatomy{
+    display:grid; grid-template-columns:1fr; gap:20px; margin-top:20px;
+  }
+  .challenge{
+    border:1px solid var(--line-strong); border-radius:6px; background:var(--paper-card);
+    box-shadow:var(--shadow); overflow:hidden;
+  }
+  .challenge .head{
+    padding:16px 20px 14px; border-bottom:1px dashed var(--line-strong);
+    display:flex; justify-content:space-between; align-items:flex-start; gap:12px;
+  }
+  .challenge .head .cat{font-family:ui-monospace,monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.09em; color:var(--ochre); font-weight:700;}
+  .challenge .head h3{font-size:22px; margin-top:5px;}
+  .challenge .id{font-family:ui-monospace,monospace; font-size:11px; color:var(--ink-soft); white-space:nowrap;}
+  .challenge .body{padding:16px 20px;}
+  .field{margin-bottom:12px;}
+  .field:last-child{margin-bottom:0;}
+  .field .k{font-family:ui-monospace,monospace; font-size:10.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--teal); font-weight:700; margin-bottom:3px;}
+  .field .v{font-size:14.5px; color:var(--ink);}
+  .field .v.soft{color:var(--ink-soft); font-style:italic;}
+  .challenge .foot{
+    padding:12px 20px 16px; border-top:1px dashed var(--line-strong);
+    display:flex; gap:6px; flex-wrap:wrap;
+  }
+  .stage-list{list-style:none; margin:6px 0 0; padding:0;}
+  .stage-list li{font-size:13.5px; padding:4px 0 4px 40px; position:relative; color:var(--ink);}
+  .stage-list li span.d{position:absolute; left:0; top:3px; font-family:ui-monospace,monospace; font-size:10px; color:var(--teal); font-weight:700; border:1px solid var(--line-strong); border-radius:3px; padding:2px 5px;}
+
+  /* ---- rating stamp ---- */
+  .stamp-row{display:flex; align-items:center; gap:16px; margin-top:18px; flex-wrap:wrap;}
+  .stamp{
+    width:104px; height:104px; border-radius:50%;
+    border:3px solid var(--stamp); color:var(--stamp);
+    display:flex; flex-direction:column; align-items:center; justify-content:center;
+    transform:rotate(-8deg);
+    font-family:ui-monospace,monospace;
+  }
+  .stamp .n{font-size:34px; font-weight:700; line-height:1;}
+  .stamp .t{font-size:9px; letter-spacing:.1em; text-transform:uppercase; margin-top:2px;}
+
+  /* ---- share card mock ---- */
+  .share-card{
+    width:220px; border-radius:14px; overflow:hidden; border:1px solid var(--line-strong);
+    box-shadow:var(--shadow); background:var(--teal-strong);
+  }
+  .share-card .top{padding:18px 16px 40px; color:#F3EFDD;}
+  .share-card .top .eb{font-family:ui-monospace,monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; opacity:.7;}
+  .share-card .top h4{font-family:ui-serif,Georgia,serif; font-size:19px; margin:8px 0 0; color:#fff;}
+  .share-card .bottom{background:var(--paper-card); padding:10px 16px; display:flex; justify-content:space-between; align-items:center;}
+  .share-card .wm{font-family:ui-monospace,monospace; font-size:9.5px; color:var(--ink-soft); letter-spacing:.04em;}
+  .share-card .wm b{color:var(--ochre);}
+
+  /* ---- gap / fix cards ---- */
+  .gaps{display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:14px; margin-top:18px;}
+  .gap{border:1px solid var(--line-strong); border-radius:4px; background:var(--paper-card); padding:14px 16px; box-shadow:var(--shadow);}
+  .gap .problem{font-family:ui-monospace,monospace; font-size:10px; letter-spacing:.08em; text-transform:uppercase; color:var(--stamp); font-weight:700;}
+  .gap h4{font-family:ui-serif,Georgia,serif; font-size:16px; margin:5px 0 7px; font-weight:600;}
+  .gap .fix{font-size:13px; color:var(--ink-soft); margin:0;}
+  .gap .fix b{color:var(--teal); font-weight:600;}
+
+  /* ---- boost / mute dials ---- */
+  .dial-list{display:flex; flex-direction:column; gap:8px; margin-top:16px; max-width:420px;}
+  .dial{display:flex; align-items:center; justify-content:space-between; border:1px solid var(--line-strong); border-radius:4px; padding:9px 13px; background:var(--paper-card);}
+  .dial .name{font-size:13.8px;}
+  .dial .state{font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.04em; padding:3px 10px; border-radius:999px; font-weight:700; white-space:nowrap;}
+  .dial .state.boost{background:var(--teal); color:var(--paper-card);}
+  .dial .state.mute{background:transparent; border:1px solid var(--line-strong); color:var(--ink-soft); text-decoration:line-through;}
+  .dial .state.neutral{background:transparent; border:1px dashed var(--line-strong); color:var(--ink-soft);}
+
+  /* ---- taxonomy grid ---- */
+  .drawers{display:grid; grid-template-columns:repeat(auto-fit,minmax(255px,1fr)); gap:16px; margin-top:20px;}
+  .drawer{border:1px solid var(--line-strong); border-radius:4px; background:var(--paper-card); box-shadow:var(--shadow);}
+  .drawer .label{
+    display:flex; align-items:center; justify-content:space-between;
+    padding:9px 14px; border-bottom:1px solid var(--line-strong);
+    background:var(--ochre-soft);
+  }
+  .drawer .label .name{font-weight:700; font-size:13.5px;}
+  .drawer .label .code{font-family:ui-monospace,monospace; font-size:10.5px; color:var(--ink-soft);}
+  .drawer ul{margin:0; padding:12px 16px 14px 16px; list-style:none;}
+  .drawer li{
+    font-size:12.6px; color:var(--ink-soft); padding:3px 0;
+    border-bottom:1px solid var(--line);
+  }
+  .drawer li:last-child{border-bottom:none;}
+  .drawer li b{color:var(--ink); font-weight:500;}
+  .drawer li .md{color:var(--stamp); font-size:10px; font-style:italic; margin-left:4px;}
+  .drawer-note{font-family:ui-monospace,monospace; font-size:11.5px; color:var(--ink-soft); margin-top:14px;}
+
+  /* ---- schema block ---- */
+  pre{
+    font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;
+    font-size:12.3px; line-height:1.65; color:var(--ink);
+    background:var(--paper-card); border:1px solid var(--line-strong); border-radius:5px;
+    padding:16px 18px; overflow-x:auto; margin:16px 0;
+  }
+  .comment{color:var(--ink-soft);}
+
+  /* ---- voice table ---- */
+  .voice{display:grid; grid-template-columns:1fr 1fr; gap:14px; margin-top:16px;}
+  @media (max-width:640px){ .voice{grid-template-columns:1fr;} }
+  .voice .col{border:1px solid var(--line-strong); border-radius:4px; padding:14px 16px;}
+  .voice .col.dont{background:var(--paper-card);}
+  .voice .col.do{background:var(--paper-card); border-color:var(--teal);}
+  .voice .col .tag{font-family:ui-monospace,monospace; font-size:10.5px; letter-spacing:.08em; text-transform:uppercase; font-weight:700;}
+  .voice .col.do .tag{color:var(--teal);}
+  .voice .col.dont .tag{color:var(--stamp);}
+  .voice .col p{font-size:13.5px; margin:8px 0 0;}
+
+  /* ---- next steps ---- */
+  .phases{border-left:2px solid var(--line-strong); margin-top:18px; padding-left:22px;}
+  .phase{position:relative; padding-bottom:22px;}
+  .phase:last-child{padding-bottom:0;}
+  .phase::before{
+    content:""; position:absolute; left:-27px; top:3px;
+    width:10px; height:10px; border-radius:50%; background:var(--teal); border:2px solid var(--paper);
+  }
+  .phase .k{font-family:ui-monospace,monospace; font-size:11px; color:var(--teal); font-weight:700; text-transform:uppercase; letter-spacing:.06em;}
+  .phase h4{font-family:ui-serif,Georgia,serif; font-size:17px; margin:4px 0 4px;}
+  .phase p{font-size:13.8px; color:var(--ink-soft); margin:0;}
+
+  hr.rule{border:none; border-top:1px dashed var(--line-strong); margin:40px 0 0;}
+  footer{margin-top:40px; font-family:ui-monospace,monospace; font-size:11.5px; color:var(--ink-soft); text-align:center;}
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <span class="drawer-tag"><span class="dot"></span> CONCEPT SPEC · WORKING TITLE · v0.2</span>
+    <h1>Curio</h1>
+    <div class="tagline">A daily cabinet of curiosities — swipe to a random skill, do a small real-world challenge, rate how it felt, share it if you want. One card, once a day, instead of one more scroll.</div>
+    <div class="meta-row">
+      <span><b>Doc type</b> — concept &amp; product spec</span>
+      <span><b>Status</b> — pre-build, decisions pending</span>
+      <span><b>Catalog size</b> — 381 seed skills across 24 drawers</span>
+      <span><b>Changed since v0.1</b> — gap review, personalization, resources, 157 more skills</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>The idea, in one loop</h2></div>
+    <p class="lede">Instead of infinite content, Curio gives you <b>one</b> thing to actually go do. You tell it how much time, money, and energy you've got right now; it hands you a single physical-world challenge pulled from a specimen drawer of hundreds; you do it, badly or brilliantly; you rate how it felt; and once a day, you can turn the result into a shareable card. The whole point is that trying is the win — skill is a side effect.</p>
+    <div class="loop">
+      <div class="step"><div class="code">S1</div><div class="label">Set today's budget</div><div class="sub">time · money · energy</div></div>
+      <div class="step"><div class="code">S2</div><div class="label">Swipe the deck</div><div class="sub">skip, save, or start</div></div>
+      <div class="step"><div class="code">S3</div><div class="label">Do the challenge</div><div class="sub">micro-lesson + one task</div></div>
+      <div class="step"><div class="code">S4</div><div class="label">Stamp it 1–5</div><div class="sub">how did that feel?</div></div>
+      <div class="step"><div class="code">S5</div><div class="label">Share (optional)</div><div class="sub">once a day, watermarked</div></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>What v0.1 was missing</h2></div>
+    <p>Nine gaps, found by pressure-testing the loop against real use — a rainy day, a person who hates cooking, a skill that can't be finished in one sitting. Each one gets a concrete fix, not just a flag.</p>
+    <div class="gaps">
+      <div class="gap"><div class="problem">Gap — one-size deck</div><h4>No way to lean toward or away from a category</h4><p class="fix">Fixed by <b>§04 Boost &amp; mute</b> — an explicit per-category dial, plus quiet learning from your ratings, so a cooking-lover sees more Culinary and someone who hates it can starve that drawer without deleting it.</p></div>
+      <div class="gap"><div class="problem">Gap — false one-shot</div><h4>Sourdough doesn't fit in a day</h4><p class="fix">Added a <b>multi-day challenge type</b> — a short list of dated stages instead of one task. See the sourdough card in <b>§05</b>.</p></div>
+      <div class="gap"><div class="problem">Gap — dead end</div><h4>Nothing after "you finished the task"</h4><p class="fix">Every challenge now carries a <b>Resources &amp; inspiration</b> field — a real example of what a good (and a funny) result looks like, plus one concrete next step for anyone who wants to go deeper than one card.</p></div>
+      <div class="gap"><div class="problem">Gap — deck-or-nothing</div><h4>No way to browse without swiping</h4><p class="fix">A separate <b>Catalog tab</b>: the full flat list, searchable and filterable by drawer and budget — the sortable "list of 100" you originally asked for, living alongside the swipe deck rather than instead of it.</p></div>
+      <div class="gap"><div class="problem">Gap — brittle plans</div><h4>What if it rains on the bird photo, or you're out of eggs?</h4><p class="fix">A one-tap <b>Reroll</b> swaps in a same-budget challenge without breaking your streak — capped at 2 rerolls a day so it doesn't become a way to dodge every hard card.</p></div>
+      <div class="gap"><div class="problem">Gap — silent app</div><h4>Nothing brings you back tomorrow</h4><p class="fix">A single gentle, timeable <b>daily nudge</b> ("today's curio is ready") — one notification, no streak-shaming, snoozable per day. This is the whole replace-the-scroll mechanic; without it the loop just stops.</p></div>
+      <div class="gap"><div class="problem">Gap — one body assumed</div><h4>Cartwheels and photography assume full mobility and vision</h4><p class="fix">Skills with a physical or sensory assumption carry an <b>accessible-alternate</b> task alongside the default one — same micro-lesson, a task that doesn't require the assumed ability.</p></div>
+      <div class="gap"><div class="problem">Gap — no guardrail</div><h4>Fire, knives, and "forage something edible" need a warning, not a wall of legal text</h4><p class="fix">A one-line <b>safety note</b> field, shown inline on the card itself for anything involving heat, blades, or wildlife — short enough to actually read.</p></div>
+      <div class="gap"><div class="problem">Gap — lonely log</div><h4>Your results only ever get seen by you or, once a day, your own feed</h4><p class="fix">An opt-in <b>Inspiration Gallery</b> — anonymized results from other people who did the exact same challenge, browsable before or after you try it, separate from the once-a-day personal share.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Finding today's challenge</h2></div>
+    <p>Three filters, always visible, never buried in a menu: <b>time</b> (10 min / an hour / all afternoon), <b>budget</b> ($0 / under $20 / splurge), and <b>plans</b> (staying in / running errands / already out). Set them once and the deck reshuffles to match — "no plans, no budget, twenty minutes" pulls up bird photography and card tricks, not woodworking and sourdough. Your <b>Boost &amp; mute</b> settings (§04) reorder the deck underneath these filters automatically — they don't need their own chip here, that's what keeps this screen from turning into a settings panel.</p>
+    <div class="phone-row">
+      <div class="phone">
+        <div class="screen-label">Today's Deck</div>
+        <div class="filter-chips">
+          <span class="chip active">⏱ 20 min</span>
+          <span class="chip active">$0</span>
+          <span class="chip">Staying in</span>
+        </div>
+        <div class="swipe-card">
+          <div class="cat">Photography &amp; Visual Arts</div>
+          <h3>Shoot a bird using the rule of thirds</h3>
+          <div class="desc">Grid your frame in thirds, put the bird off-center, and take five shots before you check one.</div>
+          <div class="tags"><span class="tag">FREE</span><span class="tag">15 MIN</span><span class="tag">OUTDOORS</span></div>
+        </div>
+        <div class="swipe-hint"><span class="left">← skip</span><span>↑ start</span><span class="right">save →</span></div>
+      </div>
+      <div class="phone">
+        <div class="screen-label">Today's Deck</div>
+        <div class="filter-chips">
+          <span class="chip">⏱ 1 hr</span>
+          <span class="chip active">$</span>
+          <span class="chip active">Staying in</span>
+        </div>
+        <div class="swipe-card">
+          <div class="cat">Culinary &amp; Baking</div>
+          <h3>Bake a cake from scratch</h3>
+          <div class="desc">No mix, no box. Cracked eggs and all — a lopsided cake still counts as a cake.</div>
+          <div class="tags"><span class="tag">$8–12</span><span class="tag">60 MIN</span><span class="tag">KITCHEN</span></div>
+        </div>
+        <div class="swipe-hint"><span class="left">← skip</span><span>↑ start</span><span class="right">save →</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Personalizing the deck: boost &amp; mute</h2></div>
+    <p>This was the biggest hole in v0.1: no way to say "give me more of this" or "I never want to see that." <b>Tune your deck</b> is a settings screen listing every drawer with a three-state dial — <b>boosted</b> (shows up more often), <b>default</b>, or <b>muted</b> (removed from the daily deck entirely, but still sitting in the Catalog if you ever want it back — nothing is deleted, just deprioritized). Explicit taps set it directly; every 1–5 stamp you give also nudges the dial a little on its own, so the deck gets more personal even if you never open this screen.</p>
+    <div class="dial-list">
+      <div class="dial"><span class="name">Culinary &amp; Baking</span><span class="state boost">+2 · MORE OF THESE</span></div>
+      <div class="dial"><span class="name">Photography &amp; Visual Arts</span><span class="state neutral">DEFAULT</span></div>
+      <div class="dial"><span class="name">Language &amp; Communication</span><span class="state boost">+1</span></div>
+      <div class="dial"><span class="name">Movement &amp; Body</span><span class="state mute">MUTED</span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Anatomy of a challenge card</h2></div>
+    <p>Every entry pairs a two-minute <b>micro-lesson</b> (the actual skill — rule of thirds, a grammar rule, a knife grip) with one concrete <b>task</b> you can finish today, and now a <b>resources &amp; inspiration</b> field so there's a next step once the card is done. Encouragement copy is written in up front, not bolted on after — see <a href="#voice" style="color:var(--teal)">§09</a> for the rules behind it.</p>
+    <div class="anatomy">
+
+      <div class="challenge">
+        <div class="head">
+          <div><div class="cat">Photography &amp; Visual Arts</div><h3>Shoot a bird using the rule of thirds</h3></div>
+          <div class="id">PHO-014</div>
+        </div>
+        <div class="body">
+          <div class="field"><div class="k">Micro-lesson</div><div class="v">Split the frame into a 3×3 grid. Put your subject on one of the four crossing points instead of dead center — the eye reads it as more alive, less like a mugshot.</div></div>
+          <div class="field"><div class="k">Task</div><div class="v">Find any bird — pigeon counts — and take 5 shots with it off-center. Keep your favorite.</div></div>
+          <div class="field"><div class="k">Accessible alternate</div><div class="v soft">Can't get outdoors or track a moving subject? Reframe any still object in the room the same way — a mug, a plant, a shoe by the door.</div></div>
+          <div class="field"><div class="k">Encouragement</div><div class="v soft">Blurry, too far away, flew off mid-shot — that's the whole exercise. You're training your eye, not auditioning for National Geographic.</div></div>
+          <div class="field"><div class="k">Resources &amp; inspiration</div><div class="v">Good and funny both count: a perfectly-framed pigeon on a wire, or a squirrel that photobombed the whole shot. Go deeper by trying the same grid on a person or a plate of food tomorrow.</div></div>
+        </div>
+        <div class="foot"><span class="tag">FREE</span><span class="tag">15 MIN</span><span class="tag">OUTDOORS</span><span class="tag">RESULTS VARY, ON PURPOSE</span></div>
+      </div>
+
+      <div class="challenge">
+        <div class="head">
+          <div><div class="cat">Language &amp; Communication</div><h3>Three Portuguese phrases for the street</h3></div>
+          <div class="id">LAN-002</div>
+        </div>
+        <div class="body">
+          <div class="field"><div class="k">Micro-lesson</div><div class="v">Portuguese softens its "s" at the end of words into a "sh" sound — "dois" sounds like "doysh." Say it out loud before you read on.</div></div>
+          <div class="field"><div class="k">Task</div><div class="v">Learn "obrigado/a" (thanks), "quanto custa?" (how much?), and "com licença" (excuse me). Use all three on someone today, even if it's the barista.</div></div>
+          <div class="field"><div class="k">Encouragement</div><div class="v soft">Mangling the accent is part of learning it. Nobody has ever been mad at someone for trying.</div></div>
+          <div class="field"><div class="k">Resources &amp; inspiration</div><div class="v">Say all three phrases into a voice memo before and after using them for real — most people can already hear themselves improve. Go deeper: this same skill has a 30-day sprint version if three phrases wasn't enough.</div></div>
+        </div>
+        <div class="foot"><span class="tag">FREE</span><span class="tag">10 MIN</span><span class="tag">ANYWHERE</span></div>
+      </div>
+
+      <div class="challenge">
+        <div class="head">
+          <div><div class="cat">Home Fermentation &amp; Brewing</div><h3>Sourdough starter — flour to first loaf</h3></div>
+          <div class="id">FER-001</div>
+        </div>
+        <div class="body">
+          <div class="field"><div class="k">Micro-lesson</div><div class="v">Flour and water left out attract wild yeast and bacteria already floating in your kitchen air — you're not adding life to it, you're inviting it in. Feeding it daily just keeps that colony fed faster than it starves.</div></div>
+          <div class="field"><div class="k">Task — multi-day</div>
+            <ul class="stage-list">
+              <li><span class="d">DAY 1</span>Mix equal parts flour and water in a jar. Loosely cover. Leave it out.</li>
+              <li><span class="d">DAY 2</span>Discard half, feed with fresh flour and water. Nothing's happening yet — that's normal.</li>
+              <li><span class="d">DAY 3–4</span>Watch for bubbles and a sour smell. Keep feeding once a day.</li>
+              <li><span class="d">DAY 5</span>It should double in size a few hours after feeding. Use the discard for pancakes as a first win before committing to a full loaf.</li>
+            </ul>
+          </div>
+          <div class="field"><div class="k">Encouragement</div><div class="v soft">A flat, grey, weird-smelling starter on day 2 is not a failure report — it's day 2. Most starters look unpromising right up until they don't.</div></div>
+          <div class="field"><div class="k">Resources &amp; inspiration</div><div class="v">Real starters range from soupy and beige to thick and streaky — there's no "correct" look, only "is it bubbling." Go deeper: search "sourdough starter troubleshooting" the first time it does something confusing, which it will.</div></div>
+        </div>
+        <div class="foot"><span class="tag">$3–5</span><span class="tag">5 DAYS, 5 MIN/DAY</span><span class="tag">KITCHEN</span><span class="tag">MULTI-DAY</span></div>
+      </div>
+
+      <div class="challenge">
+        <div class="head">
+          <div><div class="cat">Culinary &amp; Baking</div><h3>Bake a cake from scratch</h3></div>
+          <div class="id">CUL-009</div>
+        </div>
+        <div class="body">
+          <div class="field"><div class="k">Micro-lesson</div><div class="v">Creaming butter and sugar together traps air — that's what makes a cake rise without help. Beat it until it's pale and fluffy, not just mixed.</div></div>
+          <div class="field"><div class="k">Task</div><div class="v">Pick any from-scratch recipe (we'll suggest three by pantry match). Bake it. Frosting is optional; a plate and a fork are not.</div></div>
+          <div class="field"><div class="k">Encouragement</div><div class="v soft">Sunken middle, burnt edge, tastes incredible anyway — funny results are a completely valid outcome. Rate it a 5 if you laughed.</div></div>
+          <div class="field"><div class="k">Resources &amp; inspiration</div><div class="v">The Inspiration Gallery for this card is mostly lopsided, sunken, or collapsed cakes with five-star ratings — that's the point. Go deeper by trying a second layer, or frosting one badly on purpose.</div></div>
+        </div>
+        <div class="foot"><span class="tag">$8–12</span><span class="tag">60 MIN</span><span class="tag">KITCHEN</span><span class="tag">RESULTS VARY, ON PURPOSE</span></div>
+      </div>
+
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>After the challenge: the stamp, not the score</h2></div>
+    <p>No pass/fail, no correctness grading — just one honest question: <i>how did that feel?</i> A 1–5 stamp goes into a personal log (private by default) that becomes a growing record of things you've actually tried, with photo attached if you took one. Streaks count <i>attempts</i>, not perfect scores, so a "2" still keeps your streak alive — quitting halfway is the only thing that breaks it.</p>
+    <div class="stamp-row">
+      <div class="stamp"><div class="n">4</div><div class="t">Enjoyed it</div></div>
+      <div style="max-width:38ch;">
+        <div class="field"><div class="k">Logged</div><div class="v">Shoot a bird using the rule of thirds — <span class="mono" style="font-size:12px;color:var(--ink-soft);">Jul 4</span></div></div>
+        <div class="field"><div class="k">Streak</div><div class="v">🔥 12 days · 47 skills tried lifetime</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>Sharing: once a day, low stakes, watermarked</h2></div>
+    <p>You can turn <i>one</i> completed challenge per day into a share card — a deliberate cap, so it never turns into a feed you're performing for. The card carries a small, permanent Curio watermark, built to travel well when it's re-posted to Stories, group chats, or anywhere else. The pitch to the viewer is always "here's a weird thing I tried today," never "look how good I am at this" — funny results get the exact same card treatment as great ones.</p>
+    <div class="phone-row" style="align-items:stretch;">
+      <div class="share-card">
+        <div class="top">
+          <div class="eb">Today's Curio · Jul 4</div>
+          <h4>Shot a bird using the rule of thirds</h4>
+        </div>
+        <div class="bottom">
+          <span>★★★★☆</span>
+          <span class="wm">curio<b>.app</b></span>
+        </div>
+      </div>
+      <div style="max-width:36ch; align-self:center;">
+        <div class="field"><div class="k">Cap</div><div class="v">1 share card / day, generated only after a stamp is logged</div></div>
+        <div class="field"><div class="k">Watermark</div><div class="v">Small, corner-anchored, never covers the result</div></div>
+        <div class="field"><div class="k">Formats</div><div class="v">Story-ratio PNG, square PNG, and a plain-text caption for anywhere images don't fit</div></div>
+      </div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">08</span><h2>The catalog</h2></div>
+    <p>Under the hood, a <b>Skill</b> is a category of ability ("bird photography basics"); a <b>Challenge</b> is one concrete, budget-tagged task that teaches a sliver of it. Most skills start with one challenge; popular ones grow a short ladder (challenge 2 of "bird photography" might be shooting into backlight). Two additions since v0.1: a <b>resources</b> field on every challenge, and a <b>preference</b> record per user per drawer, so boosting or muting a category (§04) has somewhere to live.</p>
+    <pre><span class="comment">// one entry in the catalog</span>
+Skill {
+  id: "PHO"                    <span class="comment">// drawer code</span>
+  name: "Photography &amp; Visual Arts"
+  oneLiner: "See the ordinary world through a frame"
+}
+
+Challenge {
+  id: "PHO-014"
+  skillId: "PHO"
+  title: "Shoot a bird using the rule of thirds"
+  microLesson: string          <span class="comment">// the 2-minute lesson</span>
+  task: string                 <span class="comment">// the concrete thing to do today</span>
+  stages?: { day: string, task: string }[]   <span class="comment">// present only on multi-day challenges</span>
+  accessibleAlternate?: string <span class="comment">// same lesson, a task without the assumed ability</span>
+  safetyNote?: string          <span class="comment">// one line, only on heat/blade/wildlife challenges</span>
+  encouragement: string        <span class="comment">// pre-written, low-pressure framing</span>
+  resources: {
+    inspiration: string        <span class="comment">// what a good AND a funny result look like</span>
+    goDeeper: string           <span class="comment">// one concrete next step, not a link dump</span>
+  }
+  budget: {
+    time: "15m" | "1h" | "half-day" | "multi-day"
+    cost: "free" | "$" | "$$"
+    setting: "home" | "outdoors" | "errand"
+  }
+  funnyResultsExpected: true   <span class="comment">// flags copy that leans into imperfect outcomes</span>
+  shareTemplate: string        <span class="comment">// pre-filled caption for the share card</span>
+}
+
+UserPreference {
+  userId: string
+  skillId: string              <span class="comment">// drawer code, e.g. "CUL"</span>
+  affinity: -2 | -1 | 0 | 1 | 2 <span class="comment">// -2 = muted, +2 = boosted, set explicitly or nudged by ratings</span>
+}</pre>
+    <p>The 381 seed skills below are still placeholder breadth — real, specific names rather than full challenge text for all of them — but the drawer count nearly doubled from v0.1's 16 to close the "hundreds and hundreds" gap, with new drawers for things that didn't have a home yet: birdwatching, home fermentation, fiber arts, miniatures, magic, performance, and collecting. A few entries are flagged <span class="md">multi-day</span> to show the new challenge type isn't unique to sourdough.</p>
+
+    <div class="drawers">
+      <div class="drawer"><div class="label"><span class="name">Photography &amp; Visual Arts</span><span class="code">PHO · 18</span></div>
+        <ul>
+          <li><b>Rule-of-thirds bird photography</b></li><li>Golden-hour portraits</li><li>Macro shots of insects</li><li>Long-exposure light trails</li><li>Smartphone food styling</li><li>Silhouette sunset shots</li><li>Street photography candids</li><li>Charcoal sketching basics</li><li>Watercolor washes</li><li>One-line contour drawing</li><li>Collage from magazine scraps</li><li>Stop-motion flipbook</li><li>Cyanotype sun prints</li><li>Pinhole camera basics</li><li>Claymation stop-motion scene</li><li>Whiteboard animation loop</li><li>Shadow puppet show</li><li>Cinemagraph — mostly-still photo, one moving part</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Culinary &amp; Baking</span><span class="code">CUL · 19</span></div>
+        <ul>
+          <li><b>Cake from scratch, frosting optional</b></li><li>Knife skills: dice an onion</li><li>Five-minute pan sauce</li><li>Homemade pasta by hand</li><li>Perfect scrambled eggs, three ways</li><li>Cold brew concentrate</li><li>No-yeast flatbread</li><li>Whip egg whites to soft peaks</li><li>Caramel without a thermometer</li><li>Plate a dish like a restaurant</li><li>Ice cream in a bag</li><li>Homemade yogurt from a spoonful of culture</li><li>Butter from cream, by hand</li><li>Spice blend from scratch</li><li>Stock from kitchen scraps</li><li>Temper chocolate without a thermometer</li><li>Pour a latte-art heart</li><li>Homemade mayonnaise, by hand</li><li>Sharpen a kitchen knife properly</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Home Fermentation &amp; Brewing</span><span class="code">FER · 14</span></div>
+        <ul>
+          <li><b>Sourdough starter, flour to first loaf</b><span class="md">multi-day</span></li><li>Kombucha, first ferment<span class="md">multi-day</span></li><li>Quick sauerkraut in a jar</li><li>Ginger bug soda starter<span class="md">multi-day</span></li><li>Fermented hot sauce</li><li>Small-batch kimchi</li><li>Home-brewed root beer, non-alcoholic</li><li>Vinegar mother from leftover wine</li><li>Miso-style bean paste starter<span class="md">multi-day</span></li><li>Tempeh at home<span class="md">multi-day</span></li><li>Sourdough discard pancakes</li><li>Fermented honey garlic<span class="md">multi-day</span></li><li>Quick-refrigerator pickled onions</li><li>Learn to smell when a ferment's gone right</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Birdwatching &amp; Wildlife Watching</span><span class="code">BRD · 16</span></div>
+        <ul>
+          <li><b>Identify five birds by silhouette alone</b></li><li>Keep a one-day birding log, time and species</li><li>Learn one bird call by ear</li><li>Set up a backyard feeder and wait</li><li>Watch one bird for ten full minutes</li><li>Tell a hawk from a vulture in flight</li><li>Find and identify an animal track</li><li>Identify a local mammal by size and movement</li><li>Count distinct bird calls in five minutes</li><li>Tell a crow from a raven</li><li>Backyard moth-watching with a porch light</li><li>Sketch a bird — for attention, not accuracy</li><li>Learn one owl call</li><li>Watch bees work a single flower</li><li>Identify a butterfly by wing pattern</li><li>Start a "life list" with one entry</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Language &amp; Communication</span><span class="code">LAN · 18</span></div>
+        <ul>
+          <li><b>Three Portuguese street phrases</b></li><li>Order coffee in Japanese</li><li>Sign-language alphabet</li><li>Spanish tongue-twisters</li><li>Write your name in Hangul</li><li>Five words in an unrelated language</li><li>A full day of active listening</li><li>Practice a British RP accent</li><li>Read a menu in French</li><li>Morse code your name</li><li>Improv "yes, and" with a stranger</li><li>Compliment someone in Swahili</li><li>Debate both sides of a silly topic</li><li>Haiku about your commute</li><li>30-day sprint on one language<span class="md">multi-day</span></li><li>Learn the NATO phonetic alphabet</li><li>Practice a job-interview answer out loud</li><li>Learn to introduce yourself in ASL</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Craft &amp; Making</span><span class="code">CRA · 18</span></div>
+        <ul>
+          <li><b>Sand and oil a wood coaster</b></li><li>Whittle a simple spoon</li><li>Hand-sew a button</li><li>Macramé a plant hanger</li><li>Fold an origami crane</li><li>Wire-wrap a stone pendant</li><li>Candle pouring basics</li><li>Bind a mini notebook</li><li>Screen-print a tote bag</li><li>Repair a torn seam</li><li>Build a birdhouse from scraps</li><li>Stamp a leather keychain</li><li>Knit a single row, garter stitch</li><li>Clay pinch-pot</li><li>Repair a squeaky hinge</li><li>Cast a small object in plaster</li><li>Solder a simple circuit</li><li>Build a slingshot</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Paper, Fiber &amp; Textile Arts</span><span class="code">PFT · 18</span></div>
+        <ul>
+          <li><b>Cross-stitch one small motif</b></li><li>Embroider a simple flower</li><li>Piece one quilt square</li><li>Crochet an amigurumi ball</li><li>Weave a mini potholder on a loom</li><li>Weave a mini basket from paper strips</li><li>Needle-felt a tiny wool shape</li><li>Make a friendship bracelet</li><li>String a beaded bracelet</li><li>Tie-dye a plain t-shirt</li><li>Batik wax-resist on fabric scrap</li><li>Dye fabric with onion skins or beets</li><li>Marble paper with shaving cream</li><li>Linocut print a single card</li><li>Fold and bind a zine</li><li>Hand-letter a quote</li><li>Make a pom-pom</li><li>Sew a drawstring pouch</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Movement &amp; Body</span><span class="code">MOV · 18</span></div>
+        <ul>
+          <li><b>10-minute full-body stretch</b></li><li>Learn a cartwheel, safely</li><li>Balance on a slackline</li><li>Juggle three objects</li><li>Beginner yoga flow</li><li>Shadowbox five rounds</li><li>10,000 steps somewhere new</li><li>Jump-rope tricks</li><li>Handstand against a wall</li><li>Partner acro pose</li><li>Box-step waltz basics</li><li>Plank challenge</li><li>Stretch toward the splits</li><li>Tai chi's opening move</li><li>Beginner tap-dance shuffle</li><li>Salsa basic step</li><li>Deadlift form with a light weight</li><li>30-second cold-water plunge</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Music &amp; Sound</span><span class="code">MUS · 17</span></div>
+        <ul>
+          <li><b>Three chords on guitar</b></li><li>Beatbox a basic loop</li><li>Whistle a tune, on key</li><li>Body-percussion rhythm</li><li>Hum harmony to a song</li><li>Write one verse of a song</li><li>Play spoons like a folk musician</li><li>Tune a ukulele by ear</li><li>Record a one-minute podcast intro</li><li>Compose a 4-bar melody</li><li>Read the bass clef</li><li>Practice scat singing</li><li>Make a rain-stick from a tube</li><li>Read simple drum notation</li><li>Overtone singing basics</li><li>Loop a beat by clapping</li><li>Learn a lullaby by ear</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Writing &amp; Storytelling</span><span class="code">WRI · 17</span></div>
+        <ul>
+          <li><b>Six-word memoir</b></li><li>Letter to your future self</li><li>Flash fiction in 100 words</li><li>Interview a family member</li><li>10 minutes of freewriting</li><li>Write a limerick</li><li>Fake review for something absurd</li><li>Start a one-line-a-day journal</li><li>Write your own eulogy, for laughs</li><li>Pitch a movie in one sentence</li><li>Ghostwrite a birthday card poem</li><li>Haiku about breakfast</li><li>Outline a story you'll never finish</li><li>Cover letter for a job that doesn't exist</li><li>Fake Yelp review of your own kitchen</li><li>Break-up letter to a bad habit</li><li>Bedtime story on the spot</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Nature &amp; Science</span><span class="code">NAT · 16</span></div>
+        <ul>
+          <li><b>Identify five backyard plants</b></li><li>Find one constellation tonight</li><li>Leaf-print art piece</li><li>Compost your first batch</li><li>Identify a bird by its call</li><li>Simple volcano reaction</li><li>Press wildflowers into a book</li><li>Track the moon for a week</li><li>Build a rain gauge</li><li>Skip stones, count the bounces</li><li>Terrarium in a jar</li><li>Learn one cloud type by sight</li><li>Test your yard's soil pH</li><li>Float an egg in salt water</li><li>Make a rainbow with a hose or prism</li><li>Collect and identify three types of rocks</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Growing Things</span><span class="code">GRW · 14</span></div>
+        <ul>
+          <li><b>Grow a bean in a wet paper towel</b></li><li>Start seeds in an egg carton</li><li>Propagate a succulent from a leaf</li><li>Repot a root-bound houseplant</li><li>Build a small compost bin</li><li>Start a worm bin</li><li>Prune a houseplant properly</li><li>Make your own potting mix</li><li>Plant one pollinator-friendly flower</li><li>Root a cutting in a glass of water</li><li>Windowsill herb garden, first harvest<span class="md">multi-day</span></li><li>Direct-sow one vegetable from seed<span class="md">multi-day</span></li><li>Build a simple raised garden bed</li><li>Learn to read a seed packet</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Strategy &amp; Games</span><span class="code">GAM · 16</span></div>
+        <ul>
+          <li><b>Chess: four opening moves</b></li><li>Solve one Rubik's cube face</li><li>Solitaire with real cards</li><li>Learn a card trick</li><li>A strategy board game, solo</li><li>Beat your own puzzle high score</li><li>Go's basic capture rule</li><li>Host a trivia round for one</li><li>Build a house of cards</li><li>Backgammon's opening rolls</li><li>Speed-solve a jigsaw corner</li><li>Poker against yourself</li><li>Memorize a deck-order trick</li><li>Mahjong's basic tile sets</li><li>Speedrun a simple video game level</li><li>Host a household escape-room puzzle</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Money &amp; Life Skills</span><span class="code">MNY · 17</span></div>
+        <ul>
+          <li><b>5-minute budget spreadsheet</b></li><li>Negotiate one price today</li><li>Sew on a name patch</li><li>Change a tire, or practice</li><li>Fix a running toilet</li><li>Read a wine label</li><li>Iron a shirt properly</li><li>Tie six useful knots</li><li>Set up automatic savings</li><li>Parallel park better</li><li>Read a mortgage statement line by line</li><li>Pack a bag with the roll method</li><li>Draft a will's first outline</li><li>Read a car's dashboard warning lights</li><li>Set up a bill-pay reminder system</li><li>Learn the basics of a credit score</li><li>Practice a hard conversation you've avoided</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Digital &amp; Tech Creativity</span><span class="code">TEC · 17</span></div>
+        <ul>
+          <li><b>Edit a 15-second video clip</b></li><li>Learn three keyboard shortcuts</li><li>Build a one-page website</li><li>GIF from your camera roll</li><li>Try a generative art prompt</li><li>Automate one repetitive task</li><li>Touch-type the home row</li><li>Record and edit a voice memo</li><li>Make a meme from scratch</li><li>Try a no-code app builder</li><li>Learn one spreadsheet formula</li><li>3D-model a simple shape</li><li>Colorize an old photo</li><li>Refine an AI image-generation prompt</li><li>Build a simple budget-tracker template</li><li>Set up a password manager</li><li>Record a screen-share tutorial</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Mindfulness &amp; Reflection</span><span class="code">MND · 16</span></div>
+        <ul>
+          <li><b>Five-minute silent sit</b></li><li>Gratitude list of ten things</li><li>Digital declutter, one folder</li><li>Body scan before bed</li><li>Write a fear, then reframe it</li><li>Practice box breathing</li><li>Walk with no phone</li><li>Single-task lunch, no scrolling</li><li>Letter you'll never send</li><li>Sit with boredom, ten minutes</li><li>Loving-kindness meditation</li><li>Mindfully declutter one drawer</li><li>Practice saying no, once</li><li>24-hour social media pause</li><li>Reframe three things that went wrong</li><li>4-7-8 breathing before bed</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Social &amp; Community</span><span class="code">SOC · 16</span></div>
+        <ul>
+          <li><b>Compliment three strangers</b></li><li>Call a friend from a year ago</li><li>Write a thank-you note</li><li>Volunteer for one hour</li><li>Learn a neighbor's name</li><li>Host a mini potluck</li><li>Teach someone a skill you know</li><li>Start a conversation in line</li><li>Send a care package</li><li>Organize a small skill-swap</li><li>Give feedback that's actually kind</li><li>Ask someone their story</li><li>Plan a small surprise for someone</li><li>Write a genuine recommendation for someone</li><li>Invite a coworker you've never talked to, to lunch</li><li>Leave a detailed five-star review for a small business</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Outdoors &amp; Adventure</span><span class="code">OUT · 16</span></div>
+        <ul>
+          <li><b>Bird photography, rule of thirds</b></li><li>Build a campfire, safely</li><li>Read a trail map</li><li>Forage something edible, with a guide</li><li>Sleep under the stars, backyard edition</li><li>Take a basic compass bearing</li><li>Identify poison ivy</li><li>Pitch a tent</li><li>"Notice five colors" walk</li><li>Night photography of the sky</li><li>Whistle loud enough to hail a cab</li><li>Map a new route home on foot</li><li>Try geocaching for one hidden container</li><li>Fish from shore with borrowed gear</li><li>Watch a full sunrise, start to finish</li><li>Skip a stone across water</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">History &amp; Culture</span><span class="code">HIS · 16</span></div>
+        <ul>
+          <li><b>Learn one flag's story</b></li><li>Cook a dish from another culture</li><li>A folk dance's basic step</li><li>Read one page of a myth</li><li>Learn a proverb in another language</li><li>Visit a museum you've never entered</li><li>Your street name's history</li><li>A board game from another culture</li><li>A historical event from today's date</li><li>Music from a decade you skipped</li><li>A toast in another language</li><li>Trace your family's migration on a map</li><li>One word of a dying language</li><li>Your family recipe's origin story</li><li>Read a "this day in history" page aloud</li><li>The story behind a local landmark</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Style &amp; Self-Care</span><span class="code">STY · 16</span></div>
+        <ul>
+          <li><b>Try a new hairstyle for a day</b></li><li>Give yourself a manicure</li><li>Organize your closet by color</li><li>Tie a bow tie</li><li>Five-minute skincare routine</li><li>Steam and iron your best outfit</li><li>A new way to fold a pocket square</li><li>Capsule-wardrobe experiment</li><li>Try a bold lip color</li><li>At-home facial</li><li>Polish your shoes properly</li><li>Learn a hairstyle braid</li><li>Practice good posture for a day</li><li>Five-minute cold-shower finish</li><li>Match a scent to your mood for a day</li><li>Try a different part in your hair</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Model Making &amp; Miniatures</span><span class="code">MDL · 14</span></div>
+        <ul>
+          <li><b>Build a Lego freebuild, no instructions</b></li><li>Build a diorama in a shoebox</li><li>Popsicle-stick bridge</li><li>Paper model of a building</li><li>Assemble a model car or plane kit</li><li>Dollhouse-scale furniture piece</li><li>Simplified ship-in-a-bottle</li><li>Sculpt a miniature figure in polymer clay</li><li>Marble run from household objects</li><li>Pinhole diorama theater</li><li>Carve or print a small object</li><li>Build a to-scale birdhouse model</li><li>Miniature-scale terrarium garden</li><li>Cardboard automaton with a crank</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Magic &amp; Sleight of Hand</span><span class="code">MAG · 12</span></div>
+        <ul>
+          <li><b>Learn one coin vanish</b></li><li>The cup-and-ball trick</li><li>Practice a card force</li><li>A card flourish, fan or spring</li><li>Twist one balloon animal</li><li>A "guess the number" mentalism trick</li><li>Palm a small object convincingly</li><li>A rope-cut illusion</li><li>Practice a levitation-of-object gag</li><li>Learn a false shuffle</li><li>Perform a trick for one person, read the reaction</li><li>"Torn and restored paper" trick</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Performance &amp; Voice</span><span class="code">PRF · 12</span></div>
+        <ul>
+          <li><b>Write and perform one minute of stand-up</b></li><li>Three celebrity impressions</li><li>Give a two-minute toast to no one</li><li>Practice a job-interview answer on video</li><li>Sing karaoke and actually watch the playback</li><li>Record a voicemail greeting you're proud of</li><li>Debate yourself on a silly topic, both sides</li><li>Read a children's book in character voices</li><li>Public speaking to a mirror, five minutes</li><li>Dramatic reading of a grocery receipt</li><li>Host a one-person trivia night</li><li>Record a "commercial" for something you own</li>
+        </ul>
+      </div>
+      <div class="drawer"><div class="label"><span class="name">Collecting &amp; Curating</span><span class="code">COL · 10</span></div>
+        <ul>
+          <li><b>Start a collection with one object</b></li><li>Build a themed 10-song playlist in one sitting</li><li>Curate a mood board for somewhere you'd like to go</li><li>Organize your bookshelf by color for a day</li><li>Build a "museum shelf" of five meaningful objects</li><li>Catalog your houseplants with names and care notes</li><li>Start a pressed-flower collection page</li><li>Build a folder of five favorite childhood photos</li><li>Curate five recipes you want to master this year</li><li>Start a jar of "good day" notes to open in a year</li>
+        </ul>
+      </div>
+    </div>
+    <div class="drawer-note">24 drawers · 381 seed skills · mute a whole drawer and it still lives here, just off the daily deck · every drawer still needs full challenge copy before ship</div>
+  </section>
+
+  <section id="voice">
+    <div class="sec-head"><span class="sec-num">09</span><h2>Voice: encouraging, never precious</h2></div>
+    <p>The single job of every line of copy is to make someone who has never done the thing feel safe trying it badly. That means naming the bad outcome before they can worry about it, and treating "funny" as a legitimate win condition, not a consolation prize.</p>
+    <div class="voice">
+      <div class="col dont"><span class="tag">Avoid</span><p>"Master the rule of thirds and take a stunning bird photograph."</p></div>
+      <div class="col do"><span class="tag">Instead</span><p>"Blurry, too far, flew off mid-shot — that's the whole exercise. You're training your eye, not auditioning for National Geographic."</p></div>
+      <div class="col dont"><span class="tag">Avoid</span><p>"Follow the recipe exactly for best results."</p></div>
+      <div class="col do"><span class="tag">Instead</span><p>"Sunken middle, burnt edge, tastes incredible anyway — funny results are a completely valid outcome. Rate it a 5 if you laughed."</p></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="sec-head"><span class="sec-num">10</span><h2>Open questions, before this becomes code</h2></div>
+    <p>Things worth deciding on purpose rather than by default, once this concept feels right:</p>
+    <div class="phases">
+      <div class="phase"><div class="k">Scope</div><h4>Where does it live?</h4><p>New app entirely, or a section bolted onto an existing project? Decides the tech stack and design system from day one.</p></div>
+      <div class="phase"><div class="k">Depth</div><h4>How many challenges are hand-written before launch?</h4><p>381 skill names is breadth; a real launch probably wants 40–60 of them fully authored (micro-lesson, task, resources, encouragement) across every drawer, rather than any one drawer finished and the rest empty.</p></div>
+      <div class="phase"><div class="k">Ladders</div><h4>What happens after you've done every challenge in a boosted drawer?</h4><p>Now partly answered by multi-day stages and "go deeper" resources, but a real second- and third-challenge ladder per popular skill (harder variant, remix, combine two skills) is still undesigned.</p></div>
+      <div class="phase"><div class="k">Accounts</div><h4>Does the log need a login, or does it live on-device?</h4><p>Determines whether streaks/history survive a lost phone, and whether social features (friends' curios, the Inspiration Gallery in §02) are even possible.</p></div>
+    </div>
+  </section>
+
+  <hr class="rule">
+  <footer>CURIO — CONCEPT SPEC v0.2 — DRAFTED FOR DISCUSSION, NOT YET BUILT</footer>
+
+</div>

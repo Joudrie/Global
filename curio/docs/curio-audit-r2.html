@@ -1,0 +1,498 @@
+<title>Curio — Round 2 Audit</title>
+<style>
+  :root{
+    --paper:#E9E3D0; --paper-card:#F8F4E7; --ink:#1C2521; --ink-soft:#4B564E;
+    --teal:#1F5C52; --teal-strong:#163F38; --ochre:#B9791C; --ochre-soft:#E8D3A4;
+    --stamp:#A9402A; --gold:#C79A2E;
+    --line:rgba(28,37,33,0.14); --line-strong:rgba(28,37,33,0.28);
+    --shadow:0 1px 0 rgba(28,37,33,0.06),0 8px 20px -14px rgba(28,37,33,0.35);
+    --band-low:var(--stamp); --band-mid:var(--ochre); --band-high:var(--teal);
+  }
+  :root[data-theme="dark"]{
+    --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+    --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+    --stamp:#E08669; --gold:#E7C766;
+    --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+    --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+      --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+      --stamp:#E08669; --gold:#E7C766;
+      --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+      --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:52px 22px 120px;}
+  h1,h2,h3,h4{font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:600;color:var(--ink);text-wrap:balance;margin:0;}
+  .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;}
+  p{margin:0 0 14px;max-width:66ch;}
+  .soft{color:var(--ink-soft);}
+
+  .hero{border:1px solid var(--line-strong);border-radius:3px;background:var(--paper-card);box-shadow:var(--shadow);padding:30px 32px;position:relative;overflow:hidden;}
+  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--teal);}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:999px;padding:4px 11px;margin-bottom:16px;}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--teal);}
+  .hero h1{font-size:44px;letter-spacing:-.015em;line-height:1.04;}
+  .hero .sub{font-size:17.5px;color:var(--ink-soft);margin-top:10px;max-width:62ch;}
+  .composite{display:flex;align-items:center;gap:22px;margin-top:24px;padding-top:22px;border-top:1px dashed var(--line-strong);flex-wrap:wrap;}
+  .big-grade{display:flex;flex-direction:column;align-items:center;justify-content:center;width:112px;height:112px;border-radius:50%;border:3px solid var(--ochre);color:var(--ochre);flex:none;transform:rotate(-6deg);}
+  .big-grade .n{font-family:ui-serif,Georgia,serif;font-size:40px;font-weight:700;line-height:1;}
+  .big-grade .d{font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;margin-top:3px;}
+  .verdict-line{max-width:48ch;}
+  .verdict-line b{color:var(--ink);}
+
+  .catstrip{display:grid;grid-template-columns:repeat(auto-fit,minmax(128px,1fr));gap:10px;margin-top:22px;}
+  .cat{border:1px solid var(--line-strong);border-radius:4px;background:var(--paper-card);padding:11px 12px;}
+  .cat .cn{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.05em;text-transform:uppercase;color:var(--ink-soft);}
+  .cat .cs{font-family:ui-serif,Georgia,serif;font-size:26px;font-weight:700;margin-top:3px;}
+  .cat .cl{font-size:11.5px;color:var(--ink-soft);margin-top:1px;}
+  .cat.hi .cs{color:var(--teal);}.cat.mid .cs{color:var(--ochre);}.cat.lo .cs{color:var(--stamp);}
+
+  section{margin-top:50px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .sec-num{font-family:ui-monospace,monospace;font-size:13px;color:var(--ochre);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;padding:2px 7px;}
+  .sec-head h2{font-size:24px;}
+  .sec-avg{margin-left:auto;font-family:ui-monospace,monospace;font-size:12px;color:var(--ink-soft);}
+  .sec-intro{color:var(--ink-soft);font-size:14px;margin:4px 0 18px;}
+
+  .metric{border:1px solid var(--line-strong);border-radius:5px;background:var(--paper-card);box-shadow:var(--shadow);padding:15px 17px 14px;margin-bottom:12px;}
+  .m-top{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .m-name{font-family:ui-serif,Georgia,serif;font-size:16.5px;font-weight:600;}
+  .m-name .new{font-family:ui-monospace,monospace;font-size:8.5px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;color:var(--teal);border:1px solid var(--teal);border-radius:3px;padding:1px 4px;margin-left:7px;vertical-align:middle;}
+  .grade{font-family:ui-monospace,monospace;font-weight:700;font-size:19px;white-space:nowrap;border-radius:5px;padding:3px 9px;line-height:1;flex:none;}
+  .grade i{font-style:normal;font-size:10.5px;opacity:.7;}
+  .g-low{color:var(--stamp);border:1.5px solid var(--stamp);}
+  .g-mid{color:var(--ochre);border:1.5px solid var(--ochre);}
+  .g-high{color:var(--teal);border:1.5px solid var(--teal);}
+  .meter{position:relative;height:8px;border-radius:2px;background:var(--line);margin:10px 0 11px;overflow:hidden;}
+  .meter-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;}
+  .meter-fill.b-low{background:var(--band-low);}
+  .meter-fill.b-mid{background:var(--band-mid);}
+  .meter-fill.b-high{background:var(--band-high);}
+  .meter::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--paper-card) calc(10% - 1px),var(--paper-card) 10%);pointer-events:none;}
+  .verdict{font-size:14px;margin:0 0 10px;color:var(--ink);}
+  .verdict b{color:var(--ink);}
+  .fix,.why{font-size:13.2px;line-height:1.52;border-radius:4px;padding:8px 11px;margin-top:7px;}
+  .fix{background:rgba(31,92,82,0.07);border-left:2px solid var(--teal);}
+  .why{background:rgba(185,121,28,0.07);border-left:2px solid var(--ochre);}
+  :root[data-theme="dark"] .fix{background:rgba(111,191,174,0.08);}
+  :root[data-theme="dark"] .why{background:rgba(224,178,85,0.08);}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fix{background:rgba(111,191,174,0.08);}:root:not([data-theme="light"]) .why{background:rgba(224,178,85,0.08);}}
+  .tagk{font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-right:7px;}
+  .fix .tagk{color:var(--teal);}
+  .why .tagk{color:var(--ochre);}
+
+  .prio{border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;background:var(--paper-card);box-shadow:var(--shadow);}
+  .prio-row{display:grid;grid-template-columns:44px 1fr;border-bottom:1px solid var(--line);}
+  .prio-row:last-child{border-bottom:none;}
+  .prio-row .rank{font-family:ui-serif,Georgia,serif;font-size:24px;font-weight:700;color:var(--stamp);display:flex;align-items:center;justify-content:center;background:rgba(169,64,42,0.06);}
+  .prio-row .pt{padding:12px 15px;font-size:13.8px;}
+  .prio-row .pt b{color:var(--ink);}
+
+  .log{border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;background:var(--paper-card);box-shadow:var(--shadow);}
+  .log-row{display:grid;grid-template-columns:92px 1fr;border-bottom:1px solid var(--line);}
+  .log-row:last-child{border-bottom:none;}
+  .log-row .op{font-family:ui-monospace,monospace;font-size:10px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:11px 11px;color:#fff;display:flex;align-items:flex-start;}
+  .op.add{background:var(--teal);}.op.change{background:var(--ochre);color:var(--ink);}.op.remove{background:var(--stamp);}
+  :root[data-theme="dark"] .op.add{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .op.add{color:#0e1512;}}
+  .log-row .txt{padding:10px 14px;font-size:13.2px;}
+  .log-row .txt b{color:var(--ink);}
+
+  .callout{border:1px solid var(--line-strong);border-left:3px solid var(--teal);background:var(--paper-card);border-radius:4px;padding:15px 18px;margin:18px 0;}
+  .callout h4{font-size:16px;margin-bottom:6px;}
+  .callout p{font-size:14px;margin:0;color:var(--ink-soft);}
+  .callout p b{color:var(--ink);}
+
+  hr.rule{border:none;border-top:1px dashed var(--line-strong);margin:44px 0 0;}
+  footer{margin-top:34px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-soft);text-align:center;}
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="kicker"><span class="dot"></span> AUDIT · ROUND 2 · v0.3 (ROUND-1 FIXES ASSUMED ADOPTED)</span>
+    <h1>Curio — Round 2 Audit</h1>
+    <div class="sub">Round 1 found the four holes in the floor. This round assumes they're patched and walks the whole house again — every new mechanic, plus the operational rooms nobody's opened yet: localization, difficulty, empty states, day-boundaries, data migration, age-gating, and "how do you even measure success?" 44 features, all scored.</div>
+    <div class="composite">
+      <div class="big-grade"><span class="n">5.8</span><span class="d">Composite</span></div>
+      <div class="verdict-line">
+        <p style="margin:0"><b>The score barely moved — and that's the finding.</b> The new core mechanics score a strong <b>7.5</b>; the concept is now genuinely solid. But round 2 exposes a soft underbelly the fun parts were hiding: <b>content operations, localization, difficulty, and edge/empty states average in the low 5s.</b> The work didn't get easier, it got <i>deeper</i>. This is normal and healthy — you've traded "is the idea good?" for "can you actually operate it?"</p>
+      </div>
+    </div>
+    <div class="catstrip">
+      <div class="cat hi"><div class="cn">A · New core</div><div class="cs">7.5</div><div class="cl">holds up well</div></div>
+      <div class="cat mid"><div class="cn">B · Money &amp; growth</div><div class="cs">5.1</div><div class="cl">under-specified</div></div>
+      <div class="cat lo"><div class="cn">C · Content ops</div><div class="cs">4.4</div><div class="cl">the real risk</div></div>
+      <div class="cat mid"><div class="cn">D · Untouched surfaces</div><div class="cs">5.5</div><div class="cl">edge cases</div></div>
+      <div class="cat mid"><div class="cn">E · Trust &amp; people</div><div class="cs">5.3</div><div class="cl">needs a lawyer</div></div>
+      <div class="cat mid"><div class="cn">F · Feel &amp; craft</div><div class="cs">6.8</div><div class="cl">mostly there</div></div>
+    </div>
+  </div>
+
+  <!-- ================= A ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">A</span><h2>Do the new core moves actually hold up?</h2><span class="sec-avg">avg 7.5</span></div>
+    <p class="sec-intro">Round 1 proposed a lot. Before praising it, let's try to break each new mechanic.</p>
+
+    <div class="metric"><div class="m-top"><span class="m-name">"Right Now" micro-tier<span class="new">v0.3</span></span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">The most important addition, and mostly right — but it has a built-in trap: a tier of 90-second phone-only things is <b>one design mistake away from being a scroll of its own</b>. "Learn one word, one fact, one trick" served endlessly is just Reddit with extra steps.</p>
+      <div class="fix"><span class="tagk">The fix</span> Cap it: <b>one Right-Now curio per open, and it must produce a tiny artifact</b> (you said the word out loud, you did the breath, you found the constellation) — not passive consumption. It's a doing-tier, not a reading-tier.</div>
+      <div class="why"><span class="tagk">Why</span> The whole thesis is "did something &gt; consumed something." If the low-energy tier is passive, it quietly reintroduces the exact behavior you're replacing. Force a micro-action and it stays honest.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">"Today's Curio" single assigned card<span class="new">v0.3</span></span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Removing the choice is the correct default — Wordle's whole trick. Solid.</p>
+      <div class="fix"><span class="tagk">Last mile</span> The failure mode: the one assigned card is a dud <i>for you</i> and you bounce before finding the deck. Make "not feeling it?" a <b>huge, obvious secondary button</b> under the hero card, not a hidden gesture — the escape hatch has to be as discoverable as the front door.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Finite tap-first deck<span class="new">v0.3</span></span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">A hand of 5–7 beats an infinite stack. Good. But "finite" creates a question the doc doesn't answer: <b>what's at the bottom of the hand?</b></p>
+      <div class="fix"><span class="tagk">The fix</span> End the hand on a soft wall, not an error: "That's today's hand — come back tomorrow, or widen your budget for more." Turning the empty state into a gentle stop reinforces the once-a-day ritual instead of feeling broken. (See D4.)</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Onboarding taste quiz + first win<span class="new">v0.3</span></span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Right structure. One risk: a quiz is <i>work</i>, and work-before-value is where onboarding leaks.</p>
+      <div class="fix"><span class="tagk">The fix</span> Keep it to <b>one screen, tappable images, skippable</b> ("surprise me" is a valid answer). And let the very first win happen <i>during</i> onboarding, not after it — the last quiz card <i>is</i> a 60-second curio you do on the spot.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">The "Curio Cabinet" progression<span class="new">v0.3</span></span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Best structural idea from round 1 — growth-only, on-brand, screenshot-worthy. Two real risks though: <b>(1) art cost</b> — a unique token for 381 skills is a big illustration bill; <b>(2) completionism</b> can become its own low-grade anxiety ("gotta fill every drawer").</p>
+      <div class="fix"><span class="tagk">The fix</span> Art: use a <b>tiered visual system</b> — a generative/parametric token style (shape + color per drawer, small variations per skill) so you're not commissioning 381 originals. Completionism: frame the cabinet as <b>"look what you've collected," never "look what's missing"</b> — no empty ghost slots taunting them, drawers just grow.</div>
+      <div class="why"><span class="tagk">Why</span> Empty slots trigger loss-aversion completionism (the anxiety you removed from streaks sneaking back in). A cabinet that only ever shows what you <i>have</i> keeps the dopamine and drops the guilt.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Soft streaks / rest days<span class="new">v0.3</span></span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Resolves the anti-shame contradiction. But there's a real tension: <b>too soft and it stops pulling at all.</b> A streak you can never break is a streak nobody protects.</p>
+      <div class="fix"><span class="tagk">The fix</span> Let the <b>cabinet</b> carry the "keep going" pull (accumulation), and keep the streak as a <b>quiet secondary rhythm</b> with 1–2 auto-freezes a month — present but never the hero, never a red angry number.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Budget "moods" presets<span class="new">v0.3</span></span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">"Cozy night in" as one tap instead of three dials is exactly how people think. Clean win, nothing to fix beyond letting users save their own.</p>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Wildcard exploration %<span class="new">v0.3</span></span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Correct guard against filter-bubble staleness. Risk: it's a setting, and settings are invisible to 95% of users.</p>
+      <div class="fix"><span class="tagk">The fix</span> Don't make it a slider nobody finds — <b>bake a fixed ~20% wildcard into the deck by default</b> and surface it in-context ("🎲 a wildcard, because you might surprise yourself") so discovery is the product's behavior, not a config the user has to opt into.</div>
+    </div>
+  </section>
+
+  <!-- ================= B ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">B</span><h2>Money &amp; growth</h2><span class="sec-avg">avg 5.1</span></div>
+    <p class="sec-intro">Round 1 said "add monetization." Round 2 asks the harder question: is the specific model actually viable?</p>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Freemium gate placement</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">"Free daily loop, pay for depth" is the right shape, but the exact line is dangerous. Gate too much and the free app feels like a demo; gate too little and nobody converts. The free experience must be <i>genuinely complete</i>, not crippled.</p>
+      <div class="fix"><span class="tagk">The fix</span> Free = <b>a fully satisfying forever app</b>: today's curio, Right-Now tier, cabinet, streak, daily share. Paid = <b>agency and volume</b>: browse the full catalog on demand, boost/mute, unlimited rerolls, multi-day tracks, seasonal packs, photo cloud-backup. Nobody should ever feel <i>blocked</i>, only ever feel "I could get more."</div>
+      <div class="why"><span class="tagk">Why</span> The best freemium converts on <i>desire</i>, not <i>frustration</i>. A free user who loves the daily ritual for a month is who buys depth; a free user hitting a wall on day 2 just churns and leaves a 1-star review.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Curio+ pricing / conversion trigger</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Totally undefined — no price, no trial, no "when do we ask." This is where freemium apps live or die.</p>
+      <div class="fix"><span class="tagk">The fix</span> Anchor around <b>$3–5/mo or ~$25/yr</b> (annual-forward — habit apps monetize on annual), a <b>7-day trial triggered by intent, not time</b> — the moment a free user tries to browse the full catalog or boost a category is the natural "unlock with a free week" prompt. Never paywall on day 1.</div>
+      <div class="why"><span class="tagk">Why</span> Intent-triggered trials convert far better than nag-on-open, because you're offering the unlock at the exact second the user has revealed they want it. The reach-for-the-feature moment is the highest-intent moment you'll ever get.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Affiliate integration</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Genuinely useful (the cake needs flour) but a brand knife-edge: overdo it and the calm anti-consumption app becomes a shopping catalog — a total tonal betrayal.</p>
+      <div class="fix"><span class="tagk">The fix</span> Rule: <b>affiliate only ever appears inside the "what you'll need" checklist, never in the challenge or the deck</b>, always with a "use what you have first" nudge, always disclosed. It's a <i>convenience</i> for people who want it, never a push.</div>
+      <div class="why"><span class="tagk">Why</span> The moment monetization changes what challenge you're <i>shown</i>, trust dies. Quarantining commerce to an opt-in utility screen keeps the core experience pure and the revenue clean.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Share deep-link / challenge-a-friend</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Your strongest growth loop. Good. Just needs the plumbing specified: attribution (who invited whom, for the "dabble together" feature) and a graceful web fallback for friends without the app.</p>
+      <div class="fix"><span class="tagk">Last mile</span> The deep link should open a <b>web preview of the exact challenge</b> (playable/readable in-browser) with install as the CTA — so the value lands <i>before</i> the friction of an app-store trip, not after.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Physical card deck (side bet)</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Charming and on-brand, but it's an inventory/fulfillment business bolted onto a software one — real ops, real cash risk. Right idea, wrong time.</p>
+      <div class="fix"><span class="tagk">The fix</span> Park it. Validate as a <b>print-on-demand / Kickstarter</b> after the app has fans, so demand is proven and you carry no inventory. It's a year-2 brand extension, not a launch line.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">App Store Optimization / discoverability</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Unaddressed, and it compounds the naming problem — "Curio" is a fought-over search term, so organic store discovery will be brutal.</p>
+      <div class="fix"><span class="tagk">The fix</span> Optimize the store <i>subtitle</i> for the job-to-be-done, not the brand: "Daily challenges to learn a new skill" is what people search. Own a clear category ("daily skill challenges / hobby discovery"). Lean on the share-card watermark + deep links as the real acquisition channel, since paid + organic search will be expensive.</div>
+      <div class="why"><span class="tagk">Why</span> Nobody searches "Curio"; they search their <i>problem</i> ("learn a hobby," "stop scrolling"). Keyword-fit in the subtitle + a viral share loop beats fighting incumbents for a brand term you don't rank for yet.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">North-star metric / analytics</span><span class="grade g-low">3<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:30%"></div></div>
+      <p class="verdict">Nowhere in the doc, and it's a serious gap. How do you know Curio is <i>working</i>? "DAU" is the wrong star — a doomscroll-replacement that maximizes time-in-app has failed on its own terms.</p>
+      <div class="fix"><span class="tagk">The fix</span> North star = <b>"challenges completed &amp; stamped per user per week"</b> — it measures the actual behavior you promised (doing things), not attention captured. Track D1/D7/D30 retention and the discovery→depth conversion (people who rate 4–5 in a drawer then go deeper) as the leading indicators.</div>
+      <div class="why"><span class="tagk">Why</span> You optimize what you measure. If you chase time-in-app you'll accidentally rebuild the slot machine you set out to replace. A completion-based star keeps the whole company pointed at the mission.</div>
+    </div>
+  </section>
+
+  <!-- ================= C ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">C</span><h2>Content operations — the real risk</h2><span class="sec-avg">avg 4.4</span></div>
+    <p class="sec-intro">Round 1 flagged authoring volume. Round 2 goes deeper: even <i>with</i> a pipeline, the content has structural problems nobody's solved.</p>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Difficulty / skill-level matching</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">A big blind spot. A total beginner and someone who bakes weekly get the <i>same</i> "cake from scratch" card. Too easy = boring; too hard = defeated. Both churn. The app has no notion of where you are on a skill.</p>
+      <div class="fix"><span class="tagk">The fix</span> Add a lightweight <b>level per challenge (dabble / dig-in / deep)</b> and infer the user's level per-drawer from their ratings and history — someone who 5-stars three cooking curios gets offered "dig-in" cooking next. Also just <i>ask</i> once ("new to this or done it before?") when they start.</div>
+      <div class="why"><span class="tagk">Why</span> Flow state lives in the narrow band between boredom and anxiety (Csíkszentmihályi). A single difficulty for everyone misses that band for almost everyone. Cheap per-drawer level inference keeps challenges in the sweet spot.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Anti-repeat / catalog freshness</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Undefined and mathematically urgent: a daily user burns through 381 challenges in ~13 months, faster if they've muted drawers. Then what — repeats? A dead app? This is a countdown timer on retention.</p>
+      <div class="fix"><span class="tagk">The fix</span> Three-part: <b>(1)</b> never re-serve until the pool is exhausted, then resurface oldest-first as "want another go, now that you're better?"; <b>(2)</b> ship the ladder/level system (C1) so each skill is 3+ challenges deep, tripling the catalog's effective size; <b>(3)</b> a steady content cadence (seasonal packs) so supply outruns the fastest users.</div>
+      <div class="why"><span class="tagk">Why</span> Discovery apps have a hard content-exhaustion cliff. Depth (ladders) and cadence (packs) are the only two ways to stay ahead of a daily user — breadth alone always runs out.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Localization &amp; cultural fit</span><span class="grade g-low">3<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:30%"></div></div>
+      <p class="verdict">Every challenge is quietly US/Western-centric: imperial units, US ingredients, "parallel park," Western holidays, English idioms, "$" costs. The moment a user in India, Brazil, or Germany opens it, half the catalog feels foreign. This caps the addressable market hard.</p>
+      <div class="fix"><span class="tagk">The fix</span> Launch English/US, but <b>architect for it now</b>: units as a user setting, cost in relative bands (free / cheap / splurge) not dollar figures, a "region" tag so culturally-specific challenges (foraging species, local wildlife, holidays) can be filtered or swapped. Localization is 10× cheaper designed-in than retrofitted.</div>
+      <div class="why"><span class="tagk">Why</span> A hobby-discovery app is inherently global demand, but hyper-local content. Bake in the seams (units, cost bands, region tags) before 2,000 strings are written, or you'll rewrite all 2,000 later.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Content upkeep &amp; rot</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Content isn't write-once. "Go deeper" links die, recommended apps/tools change, "try this trend" ages, prices drift. A stale catalog reads as an abandoned app.</p>
+      <div class="fix"><span class="tagk">The fix</span> Prefer <b>evergreen phrasing over links</b> ("search 'sourdough troubleshooting'" beats a URL that 404s). Timestamp challenges, and run a lightweight periodic review on the oldest / most-completed ones. Treat the catalog as a garden, budget for weeding.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Fact-checking / correctness liability</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">If the AI-assisted pipeline ships a wrong micro-lesson (bad Portuguese, unsafe food-handling, wrong knot), it erodes trust and, for safety topics, creates liability. Scale multiplies the blast radius of a single bad string.</p>
+      <div class="fix"><span class="tagk">The fix</span> <b>Human expert review on any challenge touching safety, health, food, or factual claims</b> — the funny/creative ones can move faster, but "is this correct and safe" is a mandatory gate for the risky drawers, forever. Add a per-card "report an error" tap so users are your QA net.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Community submissions pipeline (phase 2)</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Round 1's scaling answer, but it's a magnet for off-voice, low-quality, or unsafe content, and moderation is a real cost. The house style is fragile under a crowd.</p>
+      <div class="fix"><span class="tagk">The fix</span> Don't open a free-for-all. <b>Curated submission</b>: users <i>suggest</i>, staff (or a trusted-contributor tier) rewrites to voice and safety-checks before publish. Slower, but it protects the one asset — voice — that you can't recover once diluted.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Ladders / skill trees depth</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Still mostly undesigned, and it's now load-bearing for <i>two</i> things — retention (C2) and the discovery→depth payoff (the "found your hobby" dream). Can't stay a footnote.</p>
+      <div class="fix"><span class="tagk">The fix</span> Design at least one <b>fully-laddered flagship drawer</b> (cooking is the obvious pick) — dabble → dig-in → deep, 5–8 rungs — as the proof-of-concept for turning a dabbler into a hobbyist. It's the feature that makes Curio <i>matter</i>, not just amuse.</div>
+    </div>
+  </section>
+
+  <!-- ================= D ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">D</span><h2>Surfaces nobody has audited yet</h2><span class="sec-avg">avg 5.5</span></div>
+    <p class="sec-intro">The unglamorous screens and states that don't appear in any mockup but 100% ship.</p>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Empty states</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Three unhandled dead-ends that <i>will</i> happen: deck exhausted for today, user muted everything, brand-new empty cabinet. Each is currently a blank or an error, and each is a churn moment.</p>
+      <div class="fix"><span class="tagk">The fix</span> Design all three as <b>warm, in-voice moments</b>: exhausted deck → "that's today, nicely done — tomorrow's already picked"; muted-everything → "you've muted a lot; want a wildcard anyway?"; empty cabinet → an inviting "your first curio goes here" with one tap to start. Empty states are onboarding in disguise.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Offline / no-network behavior</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Many challenges happen away from wifi (outdoors, kitchen, traveling). If the app needs a connection to show today's card or generate a share, it fails in the exact moments it's used.</p>
+      <div class="fix"><span class="tagk">The fix</span> <b>Cache today's + tomorrow's challenge and the whole cabinet on-device</b> so the core loop is fully offline. Weather/gallery degrade gracefully ("couldn't check the weather — here's a safe indoor pick"). Share-card generation is local anyway (html-to-image). Queue any sync for later.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Notification scheduling logic</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">"One gentle nudge" is the right tone, but the <i>logic</i> is unspecified: what time, whose timezone, what if they already did today's, how does snooze work?</p>
+      <div class="fix"><span class="tagk">The fix</span> Let the user <b>pick their time</b> (or learn it from when they usually engage), <b>never fire if today's is already done</b>, respect local timezone, and make the copy contextual ("rainy afternoon — here's an indoor curio"). One notification, actually smart.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Day-boundary / timezone handling</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Sneaky-important for anything "daily." When does "today" reset? Midnight local? What about night-owls at 1am, or someone flying across timezones — did they lose a streak day mid-flight?</p>
+      <div class="fix"><span class="tagk">The fix</span> Reset on <b>local device midnight</b> with a generous grace window (a 2am completion counts for the day that just ended, à la Wordle's forgiving cutoff). Handle timezone travel by never <i>penalizing</i> a shift — the soft/frozen streak model (A6) makes this a non-issue by design.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Photo capture &amp; storage flow</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Central to the log, the share, and the gallery, but the flow isn't specced: in-app camera or picker? where do photos live? how big does the cabinet get on-device over a year?</p>
+      <div class="fix"><span class="tagk">The fix</span> Use the <b>system picker/camera</b> (don't rebuild a camera), store <b>on-device by default</b> with cloud backup as a Curio+ perk, compress for storage, and always keep photos optional — plenty of curios (a phrase, a stretch) have nothing to photograph.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Share-card generation (technical)</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Low risk — it's a solved problem and you already own the pattern (<span class="mono">html-to-image</span> + a ShareCard component in your other project). Reuse it.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Pre-render templates per drawer so the card always looks intentional (a cooking card ≠ a meditation card), and generate at story + square ratios up front. Test on real devices — <span class="mono">html-to-image</span> font/emoji quirks vary by platform.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Data export / device migration</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Round 1's "local-only, no accounts" MVP has a painful cost that surfaces here: <b>lose your phone, lose your whole cabinet and a year of memories.</b> For an app whose emotional payoff is "a record of things you tried," that's devastating — and it directly contradicts the "diary of a more interesting year" pitch.</p>
+      <div class="fix"><span class="tagk">The fix</span> Even in the local-only MVP, ship <b>one-tap export/import (a file or a QR handoff)</b> so migration is possible without a backend. Then make <b>cloud backup the flagship Curio+ feature</b> — "never lose your cabinet" is a genuinely compelling reason to pay, turning a weakness into the conversion hook.</div>
+      <div class="why"><span class="tagk">Why</span> The more emotionally valuable the cabinet becomes, the more catastrophic silent data loss is — and the more people will pay to protect it. This reframes the MVP's biggest weakness as its clearest monetization.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Comeback / lapse-recovery flow</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Everyone lapses. What happens when someone returns after 3 weeks? Most apps either guilt-trip ("you lost your streak!") or say nothing — both lose the returner.</p>
+      <div class="fix"><span class="tagk">The fix</span> A warm, zero-guilt re-entry: "welcome back — your cabinet's right where you left it. Here's an easy one to get going." No shame, an easy win, straight back into the loop. The cabinet (which never reset) does the emotional heavy lifting.</div>
+      <div class="why"><span class="tagk">Why</span> Reactivation is cheaper than acquisition, and guilt is the #1 reason lapsed users don't return. A growth-only model means there's literally nothing to feel bad about — use that.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Settings architecture</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Fine, just unspecified — and it's now holding a lot (boost/mute, wildcard, units, notification time, budget moods, backup, privacy). Risk of becoming a junk drawer.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Group into <b>"Tune my deck" (preferences), "My cabinet" (data/backup), "Reminders," and "About/privacy."</b> Keep deck-tuning one tap from the deck itself, since it's the setting people actually revisit.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Profile / identity</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">In a no-accounts MVP, "profile" = your cabinet + stats, which is fine and even elegant. Becomes a real question only if/when social ships (handles, avatars, moderation of display names).</p>
+      <div class="fix"><span class="tagk">Last mile</span> Make the <b>cabinet itself the profile</b> — the shareable "here's my year of curios" page. Defer accounts/handles until a social feature actually needs them.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Search &amp; catalog browse</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">The Catalog tab (round 1) needs real browse UX — search, filter by drawer/budget/level, "saved for later." Under-specified but not hard.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Since full catalog browse is a Curio+ feature, make it <b>great</b>: search, multi-filter, your saved list, and "done" checkmarks so the catalog doubles as a progress map. Give paying users a reason to feel the depth.</div>
+    </div>
+  </section>
+
+  <!-- ================= E ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">E</span><h2>Trust, safety &amp; people</h2><span class="sec-avg">avg 5.3</span></div>
+    <p class="sec-intro">The stuff that becomes a lawsuit or a press cycle if you get it wrong.</p>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Age gate / audience / COPPA</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Never decided, and it cascades into everything. This app is <i>catnip for kids and teens</i> (fun challenges, sharing) — which triggers COPPA/GDPR-K, app-store age ratings, and much stricter rules on data, photos, and any social feature.</p>
+      <div class="fix"><span class="tagk">The fix</span> Decide the audience <b>now</b>. Cleanest launch: <b>13+ with a neutral age gate</b>, no open social/UGC (which sidesteps the worst of the child-safety burden), and challenges written to be family-safe regardless. If you ever target under-13, that's a deliberate, lawyered, separate product decision — not a drift.</div>
+      <div class="why"><span class="tagk">Why</span> Age determines your legal obligations, your data architecture, and whether the gallery is even legal. Deciding late means expensive retrofits or a forced feature removal. Decide first, build to it.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Safety tiering &amp; acknowledgment</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Round 1's tiered model (note / acknowledge / expert-reviewed) is sound. Round 2 note: the highest-risk challenges may just not be worth the liability at all.</p>
+      <div class="fix"><span class="tagk">The fix</span> For the genuinely dangerous few (wild foraging to <i>eat</i>, open fire), <b>reframe from "do" to "learn to identify / plan"</b> — "learn to ID three edible plants" carries the curiosity without the "an app told me to eat this" liability. Keep the thrill, drop the ER visit.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Accessibility — interaction layer</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Round 1 fixed content-level a11y (alternate tasks). The interaction layer still needs work — and the <i>cabinet</i> adds a new a11y surface (a visual collection needs a text/list equivalent for screen readers).</p>
+      <div class="fix"><span class="tagk">The fix</span> Tap equivalents for every swipe, full screen-reader labeling, respected font-scaling, reduced-motion for cabinet/stamp animations, and a <b>list view of the cabinet</b> for non-visual users. It's also an ASO/differentiation win — almost nobody does this well.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Privacy architecture</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Round 1's on-device-first stance is right and now sits in tension with data-export/backup (D10) — you have to design the sync so backup doesn't quietly become surveillance.</p>
+      <div class="fix"><span class="tagk">The fix</span> Make cloud backup <b>explicitly opt-in and, ideally, end-to-end encrypted</b> ("we can't see your photos, we just store them"). That's a privacy <i>selling point</i> against the data-hungry incumbents — lean into it in marketing.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Legal / liability / terms</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Needs actual lawyering before launch, not hand-waving — waiver of liability, terms, privacy policy, affiliate disclosure (FTC), UGC rights if the gallery ever ships.</p>
+      <div class="fix"><span class="tagk">The fix</span> Budget for a lawyer pass on: a plain-English liability waiver in onboarding, the risky-drawer acknowledgments, FTC-compliant affiliate disclosure, and a privacy policy that matches the actual (minimal) data practices. Boring, non-negotiable.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Content sensitivity (health / body / money / mind)</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Some drawers touch delicate ground: "cold plunge" (cardiac risk), body/style challenges (body image), money challenges (financial advice liability), mindfulness (mental health). The kind, funny voice must not accidentally trivialize or advise.</p>
+      <div class="fix"><span class="tagk">The fix</span> Write a <b>sensitivity guideline</b> alongside the voice guide: no medical/financial/mental-health <i>advice</i>, gentle opt-outs, "check with a doctor" on anything physiological, and never frame body/appearance challenges around fixing a flaw. Curiosity, never prescription.</div>
+      <div class="why"><span class="tagk">Why</span> The disarming, casual voice is a strength that becomes a liability the instant it's applied to health or money. An explicit sensitivity boundary lets the voice stay playful everywhere it's safe and turn careful exactly where it must.</div>
+    </div>
+  </section>
+
+  <!-- ================= F ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">F</span><h2>Feel &amp; craft</h2><span class="sec-avg">avg 6.8</span></div>
+    <p class="sec-intro">The last 10% that separates "an app" from "a thing people love."</p>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Haptics / sound / motion feel</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Unspecified, and for a <i>daily ritual</i> the tactile feel is a big part of why people come back. The stamp thunk, the card deal, the token sliding into the cabinet — these moments should feel <i>good</i> in the hand.</p>
+      <div class="fix"><span class="tagk">The fix</span> Design a small, tasteful <b>feedback language</b>: a satisfying haptic + sound on stamping a rating, a soft shuffle on dealing the deck, a gentle chime as a token lands in the cabinet. Calm and premium, never slot-machine. Respect the system's reduce-motion/mute.</div>
+      <div class="why"><span class="tagk">Why</span> Ritual products live on their micro-satisfactions (BeReal's shutter, Duolingo's chimes). The stamp is your signature moment — make it feel as good as popping bubble wrap and people will do it for the feel alone.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">The stamp / rating micro-interaction</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Conceptually strong (the rotated rubber-stamp is a lovely signature). Just needs the feel work above and the disambiguation tag from round 1 to be a genuine highlight.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Make stamping the <b>climax of the loop</b> — the biggest, most tactile animation in the app — so completing a challenge feels like a small event, not a form submission.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Visual identity / brand system</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">The card-catalog / specimen-drawer identity (teal, ochre, rust, warm paper, serif + mono) is distinctive, coherent, and unusually mature for a concept. It carries the "cabinet of curiosities" metaphor into every pixel.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Only open question: does it read as <b>calm-and-premium</b> or <b>slightly old/archival</b> to a young mobile audience? Worth a quick test — a couple of brighter, more playful accent moments could keep the sophistication while feeling less museum, more delight.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Copy voice at scale</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Still the crown jewel. The only risk (repeat from round 1 because it's that important): the voice must survive being written by many hands / AI drafts.</p>
+      <div class="fix"><span class="tagk">Last mile</span> The codified style guide + sensitivity guide (E6) are the two documents that protect this asset. Write them before the catalog scales, or the thing that makes Curio special quietly regresses to the mean.</div>
+    </div>
+
+    <div class="metric"><div class="m-top"><span class="m-name">Cross-platform strategy (iOS / Android / web)</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Undecided, and it's a foundational call. The share deep-links imply a web presence; the widget is a native feature; your existing stack is web (React/Vite). Native vs. cross-platform vs. PWA has big cost/quality tradeoffs.</p>
+      <div class="fix"><span class="tagk">The fix</span> Given your web stack and MVP goal, start as a <b>polished PWA / responsive web app</b> to validate the habit fast and cheap, with the <b>share-link web preview</b> (B5) doing double duty as your landing surface. Go native (React Native / Expo) once you've proven retention and specifically need widgets, better notifications, and app-store presence.</div>
+      <div class="why"><span class="tagk">Why</span> The riskiest assumption (will people form the habit?) is testable on the web today with the tools you already have. Native's real advantages — widgets, notifications, store discovery — matter for <i>scaling</i> a proven habit, not for <i>proving</i> one.</div>
+    </div>
+  </section>
+
+  <!-- ================= PRIORITIES ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">▲</span><h2>The 5 that matter most this round</h2></div>
+    <p class="sec-intro">44 findings is a lot. If you fix only five things before writing more content, fix these.</p>
+    <div class="prio">
+      <div class="prio-row"><div class="rank">1</div><div class="pt"><b>Difficulty &amp; ladders (C1 + C7).</b> Without levels, every user gets the wrong challenge and the catalog runs dry in a year. This is the retention engine <i>and</i> the "found my hobby" payoff. Design one fully-laddered flagship drawer as proof.</div></div>
+      <div class="prio-row"><div class="rank">2</div><div class="pt"><b>Data export / "never lose your cabinet" (D10).</b> The more people love their cabinet, the more devastating silent loss is — and the more they'll pay to protect it. Turn the MVP's biggest weakness into the Curio+ hook.</div></div>
+      <div class="prio-row"><div class="rank">3</div><div class="pt"><b>Pick your North Star (B7).</b> "Challenges completed per week," never time-in-app. Decide this before analytics, or you'll accidentally optimize toward the slot machine you're replacing.</div></div>
+      <div class="prio-row"><div class="rank">4</div><div class="pt"><b>Decide the audience &amp; age (E1).</b> 13+, no open UGC at launch. It cascades into privacy, the gallery, ratings, and legal — deciding late forces expensive retrofits.</div></div>
+      <div class="prio-row"><div class="rank">5</div><div class="pt"><b>Architect for localization now (C3).</b> Units, cost-bands, region tags — cheap to design in, brutally expensive to retrofit across 2,000 strings later. Do it before the catalog grows.</div></div>
+    </div>
+  </section>
+
+  <!-- ================= CHANGELOG ================= -->
+  <section>
+    <div class="sec-head"><span class="sec-num">✎</span><h2>Proposed edits — v0.3 → v0.4</h2></div>
+    <p class="sec-intro">New this round, on top of round 1's changelog.</p>
+    <div class="log">
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A difficulty/level system (dabble / dig-in / deep)</b> + one fully-laddered flagship drawer, inferred per-user from ratings.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>Anti-repeat logic + a content cadence (seasonal packs)</b> so a daily user can't exhaust the catalog.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>Localization seams from day one</b> — unit setting, relative cost bands (not $), region tags on culture-specific challenges.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>One-tap export/import + Curio+ cloud backup</b> ("never lose your cabinet") — closes the local-only data-loss risk.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A North-Star metric</b> (challenges completed/stamped per week) and a leading-indicator dashboard.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>Designed empty / offline / lapse-recovery states</b>, all written in-voice and zero-guilt.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A haptic/sound feedback language</b> with the stamp as the signature moment.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A sensitivity guideline</b> (health/body/money/mind) beside the voice guide.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Wildcard exploration → on by default (~20%), surfaced in-context</b>, not buried as a slider.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Curio Cabinet → generative/parametric token art + "show what you have, never what's missing"</b> to dodge art cost and completionism anxiety.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Curio+ trial → intent-triggered</b> (fires when a free user reaches for a paid feature), ~$25/yr annual-forward.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Platform → launch as a polished PWA</b> on the existing web stack; go native once the habit is proven.</div></div>
+      <div class="log-row"><div class="op remove">Remove</div><div class="txt"><b>Highest-risk "eat what you foraged / open fire" challenges</b> in their do-it form — reframe to "learn to identify / plan."</div></div>
+      <div class="log-row"><div class="op remove">Remove</div><div class="txt"><b>The physical card deck from any near-term plan.</b> Park it as a post-traction Kickstarter, zero inventory risk.</div></div>
+    </div>
+  </section>
+
+  <div class="callout">
+    <h4>The round-2 takeaway</h4>
+    <p><b>The idea has graduated.</b> Round 1's questions were existential ("does this make sense, will it pay for itself"). Round 2's are operational ("can you keep a daily user fed, can they not lose their memories, who's it even for") — which is exactly the progression you want. The composite didn't rise because you fixed one layer and uncovered the next, deeper one. That's not failure; that's what building looks like. <b>Nail difficulty/ladders and data-safety and you have a real product, not a clever demo.</b></p>
+  </div>
+
+  <hr class="rule">
+  <footer>CURIO · ROUND 2 AUDIT · 44 FEATURES · COMPOSITE 5.8 · NEW CORE 7.5, OPERATIONS 4.4 — THE WORK MOVED DEEPER, NOT AWAY</footer>
+
+</div>

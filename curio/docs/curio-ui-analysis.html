@@ -1,0 +1,561 @@
+<title>Curio — UI Design Analysis</title>
+<style>
+  :root{
+    --paper:#E9E3D0; --paper-card:#F8F4E7; --ink:#1C2521; --ink-soft:#4B564E;
+    --teal:#1F5C52; --teal-strong:#163F38; --ochre:#B9791C; --ochre-soft:#E8D3A4;
+    --stamp:#A9402A; --gold:#C79A2E; --plum:#6B4E8A;
+    --line:rgba(28,37,33,0.14); --line-strong:rgba(28,37,33,0.28);
+    --shadow:0 1px 0 rgba(28,37,33,0.06),0 8px 20px -14px rgba(28,37,33,0.35);
+    --phone-shadow:0 24px 60px -30px rgba(28,37,33,0.5),0 6px 16px -10px rgba(28,37,33,0.35);
+    --band-low:var(--stamp); --band-mid:var(--ochre); --band-high:var(--teal);
+  }
+  :root[data-theme="dark"]{
+    --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+    --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+    --stamp:#E08669; --gold:#E7C766; --plum:#B79BD8;
+    --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+    --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+    --phone-shadow:0 24px 60px -28px rgba(0,0,0,0.8),0 6px 16px -8px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+      --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+      --stamp:#E08669; --gold:#E7C766; --plum:#B79BD8;
+      --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+      --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+      --phone-shadow:0 24px 60px -28px rgba(0,0,0,0.8),0 6px 16px -8px rgba(0,0,0,0.6);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:1000px;margin:0 auto;padding:52px 22px 120px;}
+  h1,h2,h3,h4{font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:600;color:var(--ink);text-wrap:balance;margin:0;}
+  .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;}
+  p{margin:0 0 14px;max-width:68ch;}
+  .soft{color:var(--ink-soft);}
+
+  /* hero */
+  .hero{border:1px solid var(--line-strong);border-radius:3px;background:var(--paper-card);box-shadow:var(--shadow);padding:30px 32px;position:relative;overflow:hidden;}
+  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--plum);}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:999px;padding:4px 11px;margin-bottom:16px;}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--plum);}
+  .hero h1{font-size:44px;letter-spacing:-.015em;line-height:1.04;}
+  .hero .sub{font-size:17.5px;color:var(--ink-soft);margin-top:10px;max-width:64ch;}
+
+  section{margin-top:52px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .sec-num{font-family:ui-monospace,monospace;font-size:13px;color:var(--ochre);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;padding:2px 7px;}
+  .sec-head h2{font-size:25px;}
+  .sec-intro{color:var(--ink-soft);font-size:14.5px;margin:4px 0 20px;max-width:70ch;}
+
+  /* the big design-tension callout */
+  .tension{display:grid;grid-template-columns:1fr 1fr;gap:0;border:1px solid var(--line-strong);border-radius:6px;overflow:hidden;box-shadow:var(--shadow);margin-bottom:8px;}
+  @media (max-width:640px){.tension{grid-template-columns:1fr;}}
+  .tension .side{padding:18px 20px;}
+  .tension .side.a{background:var(--paper-card);}
+  .tension .side.b{background:rgba(107,78,138,0.06);border-left:1px solid var(--line);}
+  :root[data-theme="dark"] .tension .side.b{background:rgba(183,155,216,0.09);}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .tension .side.b{background:rgba(183,155,216,0.09);}}
+  .tension h4{font-size:16px;margin-bottom:8px;}
+  .tension .lab{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-bottom:9px;}
+  .tension .a .lab{color:var(--teal);}.tension .b .lab{color:var(--plum);}
+  .tension p{font-size:13.4px;margin:0;color:var(--ink-soft);}
+
+  /* screen gallery */
+  .screens{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:30px 24px;margin-top:8px;align-items:start;}
+  .screen{display:flex;flex-direction:column;gap:14px;}
+  .screen-title{display:flex;align-items:baseline;gap:9px;}
+  .screen-title .pin{font-family:ui-serif,Georgia,serif;font-size:19px;font-weight:700;color:var(--plum);}
+  .screen-title h3{font-size:18px;}
+  .screen-title .tag{font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--ink-soft);margin-left:auto;align-self:center;}
+
+  /* phone */
+  .phone{width:290px;max-width:100%;margin:0 auto;border-radius:34px;background:var(--ink);padding:9px;box-shadow:var(--phone-shadow);}
+  .scr{background:var(--paper);border-radius:26px;overflow:hidden;position:relative;height:588px;display:flex;flex-direction:column;}
+  .statusbar{height:30px;display:flex;align-items:center;justify-content:space-between;padding:0 18px;font-size:11px;font-weight:700;color:var(--ink);flex:none;}
+  .notch{position:absolute;top:8px;left:50%;transform:translateX(-50%);width:70px;height:18px;background:var(--ink);border-radius:0 0 12px 12px;z-index:5;}
+  .app{flex:1;overflow:hidden;display:flex;flex-direction:column;padding:6px 16px 0;}
+  .tabbar{height:52px;flex:none;border-top:1px solid var(--line);display:flex;align-items:stretch;background:var(--paper-card);}
+  .tabbar .t{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;color:var(--ink-soft);}
+  .tabbar .t.on{color:var(--teal);}
+  .tabbar .t svg{width:19px;height:19px;}
+  .tabbar .t span{font-size:8.5px;letter-spacing:.02em;}
+
+  .eyebrow-c{font-family:ui-monospace,monospace;font-size:9px;text-transform:uppercase;letter-spacing:.1em;font-weight:700;color:var(--ochre);}
+  .h-serif{font-family:ui-serif,Georgia,serif;}
+
+  /* today screen bits */
+  .greet{display:flex;justify-content:space-between;align-items:flex-start;margin:4px 0 12px;}
+  .greet .g1{font-family:ui-serif,Georgia,serif;font-size:19px;font-weight:600;line-height:1.15;}
+  .greet .g2{font-family:ui-monospace,monospace;font-size:9.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.06em;margin-top:2px;}
+  .moodchip{font-family:ui-monospace,monospace;font-size:9.5px;border:1px solid var(--line-strong);border-radius:999px;padding:5px 10px;color:var(--ink-soft);display:inline-flex;gap:5px;align-items:center;white-space:nowrap;}
+  .herocard{border:1px solid var(--line-strong);border-radius:16px;background:var(--paper-card);padding:16px 15px 15px;box-shadow:var(--shadow);position:relative;overflow:hidden;flex:1;display:flex;flex-direction:column;}
+  .herocard .wash{position:absolute;inset:0;background:radial-gradient(120% 80% at 100% 0%,rgba(31,92,82,0.10),transparent 60%);pointer-events:none;}
+  .herocard h2{font-size:23px;line-height:1.18;margin-top:7px;letter-spacing:-.01em;}
+  .herocard .teaser{font-size:12px;color:var(--ink-soft);margin-top:9px;line-height:1.45;}
+  .herocard .tags{display:flex;gap:5px;flex-wrap:wrap;margin-top:12px;}
+  .tg{font-family:ui-monospace,monospace;font-size:8.5px;border:1px solid var(--line-strong);border-radius:4px;padding:2px 6px;color:var(--ink-soft);}
+  .spacer{flex:1;}
+  .cta{display:block;text-align:center;background:var(--teal);color:var(--paper-card);font-weight:700;font-size:14.5px;border-radius:12px;padding:13px;margin-top:12px;letter-spacing:.01em;}
+  :root[data-theme="dark"] .cta{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .cta{color:#0e1512;}}
+  .cta.ghost{background:transparent;color:var(--ink-soft);border:1px solid var(--line-strong);font-weight:600;font-size:12.5px;padding:10px;margin-top:8px;}
+
+  /* detail screen */
+  .backrow{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--ink-soft);margin:2px 0 8px;}
+  .field{margin-bottom:11px;}
+  .field .k{font-family:ui-monospace,monospace;font-size:8.5px;text-transform:uppercase;letter-spacing:.08em;color:var(--teal);font-weight:700;margin-bottom:2px;}
+  .field .v{font-size:12px;color:var(--ink);line-height:1.42;}
+  .field .v.soft{color:var(--ink-soft);font-style:italic;}
+  .checkrow{display:flex;align-items:center;gap:7px;font-size:11.5px;color:var(--ink-soft);padding:2px 0;}
+  .checkrow .box{width:13px;height:13px;border:1.4px solid var(--line-strong);border-radius:3px;flex:none;}
+  .checkrow .box.on{background:var(--teal);border-color:var(--teal);}
+  .safety{font-size:10.5px;color:var(--stamp);background:rgba(169,64,42,0.08);border-radius:6px;padding:7px 9px;line-height:1.35;display:flex;gap:6px;}
+  .detail-scroll{overflow:hidden;flex:1;}
+  .stickycta{flex:none;padding-top:8px;}
+
+  /* rating screen */
+  .rate-wrap{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;gap:4px;}
+  .rate-wrap .done{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.1em;text-transform:uppercase;color:var(--teal);font-weight:700;}
+  .rate-wrap h2{font-size:20px;line-height:1.15;margin:2px 8px 6px;}
+  .rate-q{font-size:12.5px;color:var(--ink-soft);margin-bottom:10px;}
+  .stamps{display:flex;gap:8px;}
+  .st{width:40px;height:40px;border-radius:50%;border:2px dashed var(--line-strong);display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-weight:700;font-size:15px;color:var(--ink-soft);}
+  .st.sel{border-style:solid;border-color:var(--stamp);color:var(--stamp);transform:rotate(-8deg) scale(1.12);border-width:2.5px;}
+  .rate-sub{font-size:10.5px;color:var(--ink-soft);margin-top:9px;}
+  .reflect{width:100%;border:1px solid var(--line-strong);border-radius:9px;background:var(--paper-card);padding:9px 11px;font-size:11px;color:var(--ink-soft);margin-top:14px;text-align:left;}
+  .addphoto{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--teal);margin-top:10px;font-weight:600;}
+
+  /* cabinet screen */
+  .cab-hero{text-align:center;margin:6px 0 12px;}
+  .cab-hero .n{font-family:ui-serif,Georgia,serif;font-size:38px;font-weight:700;line-height:1;color:var(--teal);}
+  .cab-hero .l{font-family:ui-monospace,monospace;font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-soft);margin-top:3px;}
+  .drawers-mini{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:hidden;flex:1;align-content:start;}
+  .dm{border:1px solid var(--line-strong);border-radius:9px;background:var(--paper-card);padding:9px 10px;}
+  .dm .dn{font-size:10.5px;font-weight:700;color:var(--ink);}
+  .dm .toks{display:flex;gap:3px;margin-top:6px;flex-wrap:wrap;}
+  .tok{width:11px;height:11px;border-radius:3px;}
+  .tok.f1{background:var(--teal);}.tok.f2{background:var(--ochre);}.tok.f3{background:var(--stamp);}.tok.f4{background:var(--plum);}
+  .tok.e{background:transparent;border:1px solid var(--line);}
+  .dm .dc{font-family:ui-monospace,monospace;font-size:8px;color:var(--ink-soft);margin-top:6px;}
+
+  /* share screen */
+  .share-stage{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;}
+  .sharecard{width:172px;border-radius:16px;overflow:hidden;box-shadow:var(--shadow);border:1px solid var(--line-strong);}
+  .sharecard .top{background:var(--teal-strong);padding:16px 14px 30px;}
+  .sharecard .top .eb{font-family:ui-monospace,monospace;font-size:8px;letter-spacing:.1em;text-transform:uppercase;color:rgba(255,255,255,.65);}
+  .sharecard .top h4{font-family:ui-serif,Georgia,serif;font-size:16px;color:#fff;margin-top:7px;line-height:1.15;}
+  .sharecard .bot{background:var(--paper-card);padding:8px 13px;display:flex;justify-content:space-between;align-items:center;}
+  .sharecard .bot .stars{font-size:12px;color:var(--ochre);}
+  .sharecard .bot .wm{font-family:ui-monospace,monospace;font-size:8px;color:var(--ink-soft);}
+  .sharecard .bot .wm b{color:var(--ochre);}
+  .fmt{display:flex;gap:7px;}
+  .fmt .f{font-family:ui-monospace,monospace;font-size:9px;border:1px solid var(--line-strong);border-radius:999px;padding:4px 10px;color:var(--ink-soft);}
+  .fmt .f.on{background:var(--ink);color:var(--paper);border-color:var(--ink);}
+
+  /* onboarding screen */
+  .ob-prog{height:4px;border-radius:2px;background:var(--line);margin:8px 0 12px;overflow:hidden;}
+  .ob-prog i{display:block;height:100%;width:40%;background:var(--teal);border-radius:2px;}
+  .ob-q{font-family:ui-serif,Georgia,serif;font-size:20px;font-weight:600;line-height:1.18;margin-bottom:3px;}
+  .ob-sub{font-size:11.5px;color:var(--ink-soft);margin-bottom:12px;}
+  .ob-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;overflow:hidden;flex:1;align-content:start;}
+  .ob-cell{border:1px solid var(--line-strong);border-radius:11px;padding:12px 10px;background:var(--paper-card);display:flex;flex-direction:column;gap:5px;position:relative;}
+  .ob-cell.on{border-color:var(--teal);background:rgba(31,92,82,0.07);}
+  .ob-cell.on::after{content:"✓";position:absolute;top:7px;right:9px;color:var(--teal);font-size:11px;font-weight:800;}
+  .ob-cell .ic{font-size:18px;}
+  .ob-cell .nm{font-size:11px;font-weight:600;color:var(--ink);}
+
+  /* annotation notes beside/under each screen */
+  .notes{display:flex;flex-direction:column;gap:7px;}
+  .note{font-size:12.3px;line-height:1.42;padding-left:22px;position:relative;color:var(--ink-soft);}
+  .note::before{position:absolute;left:0;top:1px;font-family:ui-monospace,monospace;font-size:11px;font-weight:700;width:16px;}
+  .note.win::before{content:"✓";color:var(--teal);}
+  .note.fix::before{content:"△";color:var(--ochre);}
+  .note.bug::before{content:"✕";color:var(--stamp);}
+  .note b{color:var(--ink);}
+
+  /* scorecard */
+  .metric{border:1px solid var(--line-strong);border-radius:5px;background:var(--paper-card);box-shadow:var(--shadow);padding:15px 17px 14px;margin-bottom:12px;}
+  .m-top{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .m-name{font-family:ui-serif,Georgia,serif;font-size:16.5px;font-weight:600;}
+  .grade{font-family:ui-monospace,monospace;font-weight:700;font-size:19px;white-space:nowrap;border-radius:5px;padding:3px 9px;line-height:1;flex:none;}
+  .grade i{font-style:normal;font-size:10.5px;opacity:.7;}
+  .g-low{color:var(--stamp);border:1.5px solid var(--stamp);}
+  .g-mid{color:var(--ochre);border:1.5px solid var(--ochre);}
+  .g-high{color:var(--teal);border:1.5px solid var(--teal);}
+  .meter{position:relative;height:8px;border-radius:2px;background:var(--line);margin:10px 0 11px;overflow:hidden;}
+  .meter-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;}
+  .meter-fill.b-low{background:var(--band-low);}.meter-fill.b-mid{background:var(--band-mid);}.meter-fill.b-high{background:var(--band-high);}
+  .meter::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--paper-card) calc(10% - 1px),var(--paper-card) 10%);pointer-events:none;}
+  .verdict{font-size:14px;margin:0 0 9px;color:var(--ink);}
+  .fix{font-size:13.2px;line-height:1.52;border-radius:4px;padding:8px 11px;margin-top:7px;background:rgba(31,92,82,0.07);border-left:2px solid var(--teal);}
+  :root[data-theme="dark"] .fix{background:rgba(111,191,174,0.08);}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fix{background:rgba(111,191,174,0.08);}}
+  .tagk{font-family:ui-monospace,monospace;font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-right:7px;color:var(--teal);}
+
+  /* type scale spec */
+  .typerow{display:flex;align-items:baseline;gap:14px;border-bottom:1px dashed var(--line);padding:9px 0;}
+  .typerow .spec{font-family:ui-monospace,monospace;font-size:10.5px;color:var(--ink-soft);white-space:nowrap;min-width:150px;}
+  .typerow .samp{font-family:ui-serif,Georgia,serif;color:var(--ink);line-height:1.1;}
+
+  /* thumb zone diagram */
+  .thumb{position:relative;width:170px;height:340px;border-radius:26px;border:1px solid var(--line-strong);background:var(--paper-card);margin:0 auto;overflow:hidden;flex:none;}
+  .thumb .zone{position:absolute;left:0;right:0;display:flex;align-items:center;justify-content:center;font-family:ui-monospace,monospace;font-size:9px;text-transform:uppercase;letter-spacing:.06em;font-weight:700;}
+  .thumb .z-easy{bottom:0;height:45%;background:rgba(31,92,82,0.14);color:var(--teal);align-items:flex-end;padding-bottom:14px;}
+  .thumb .z-ok{bottom:45%;height:28%;background:rgba(185,121,28,0.13);color:var(--ochre);}
+  .thumb .z-hard{top:0;height:27%;background:rgba(169,64,42,0.13);color:var(--stamp);align-items:flex-start;padding-top:12px;}
+
+  .prio{border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;background:var(--paper-card);box-shadow:var(--shadow);}
+  .prio-row{display:grid;grid-template-columns:44px 1fr;border-bottom:1px solid var(--line);}
+  .prio-row:last-child{border-bottom:none;}
+  .prio-row .rank{font-family:ui-serif,Georgia,serif;font-size:24px;font-weight:700;color:var(--plum);display:flex;align-items:center;justify-content:center;background:rgba(107,78,138,0.06);}
+  .prio-row .pt{padding:12px 15px;font-size:13.8px;}
+  .prio-row .pt b{color:var(--ink);}
+
+  .callout{border:1px solid var(--line-strong);border-left:3px solid var(--plum);background:var(--paper-card);border-radius:4px;padding:15px 18px;margin:18px 0;}
+  .callout h4{font-size:16px;margin-bottom:6px;}
+  .callout p{font-size:14px;margin:0;color:var(--ink-soft);}
+  .callout p b{color:var(--ink);}
+
+  .cols2{columns:2;column-gap:26px;}
+  @media (max-width:640px){.cols2{columns:1;}}
+  hr.rule{border:none;border-top:1px dashed var(--line-strong);margin:44px 0 0;}
+  footer{margin-top:34px;font-family:ui-monospace,monospace;font-size:11px;color:var(--ink-soft);text-align:center;}
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="kicker"><span class="dot"></span> UI DESIGN ANALYSIS · SCREEN-BY-SCREEN · v0.3 MOCKS</span>
+    <h1>Curio — UI Design Analysis</h1>
+    <div class="sub">Not product strategy this time — pixels. Annotated mockups of the six screens that carry the app, a read on the core design tension, and the cross-cutting calls: type scale, thumb ergonomics, contrast, motion, and iconography. Every mock is drawn in Curio's own design language so the critique is against something real.</div>
+  </div>
+
+  <!-- ============ THE CORE TENSION ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>The one tension that governs every screen</h2></div>
+    <p class="sec-intro">Before any single screen, the identity has a fork in it. The "specimen-drawer / card-catalog" aesthetic — warm paper, serif + monospace, faded archival palette — is <i>gorgeous</i> and unusually mature. But it was designed as a document look, and this is a young person's daily mobile ritual competing with TikTok's saturation and Duolingo's bounce.</p>
+    <div class="tension">
+      <div class="side a">
+        <div class="lab">The strength</div>
+        <h4>Archival calm is the anti-doomscroll</h4>
+        <p>The muted, paper-stock, un-neon look <i>is</i> the pitch made visible — it feels like the opposite of a slot machine. Nobody else in the category looks like this, so it's instantly recognizable and it signals "premium, considered, calm." This is a genuine brand asset; don't trade it away.</p>
+      </div>
+      <div class="side b">
+        <div class="lab">The risk</div>
+        <h4>Museum can read as "old" on a phone</h4>
+        <p>Serif-heavy, low-saturation, sepia UI can skew mature/literary to a 16–28 audience raised on vivid, springy mobile apps. The danger isn't ugliness — it's feeling <i>quiet to the point of lifeless</i>, and losing the playful joy the copy promises ("rate it a 5 if you laughed").</p>
+      </div>
+    </div>
+    <p class="sec-intro" style="margin-top:16px;">The resolution running through every mock below: <b>keep the calm paper foundation, but spend the app's energy budget on motion and one or two brighter accent moments</b> (the stamp, a token landing in the cabinet, a confetti-free but satisfying completion) — so it feels <i>alive and tactile</i> without becoming loud. Calm ≠ inert. That's the needle to thread.</p>
+  </section>
+
+  <!-- ============ SCREEN GALLERY 1 ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>The screens, drawn and critiqued</h2></div>
+    <p class="sec-intro">Six mockups in Curio's own system. ✓ = working, △ = fix, ✕ = a real problem. Everything is annotated against real mobile-UI standards (44px touch targets, thumb zones, contrast, hierarchy).</p>
+
+    <div class="screens">
+
+      <!-- SCREEN 1: TODAY -->
+      <div class="screen">
+        <div class="screen-title"><span class="pin">1</span><h3>Today's Curio</h3><span class="tag">Home / hero</span></div>
+        <div class="phone"><div class="scr"><div class="notch"></div>
+          <div class="statusbar"><span>9:41</span><span>▂▄▆ ⌁ 87%</span></div>
+          <div class="app">
+            <div class="greet">
+              <div><div class="g1">Good evening.</div><div class="g2">Sat · Jul 4 · day 12</div></div>
+              <span class="moodchip">🌙 Cozy in ▾</span>
+            </div>
+            <div class="herocard"><div class="wash"></div>
+              <div class="eyebrow-c">Photography · Dabble</div>
+              <h2 class="h-serif">Shoot a bird using the rule of thirds</h2>
+              <div class="teaser">Grid your frame in thirds, put the bird off-center, take five shots before you check one.</div>
+              <div class="tags"><span class="tg">FREE</span><span class="tg">15 MIN</span><span class="tg">OUTDOORS</span></div>
+              <div class="spacer"></div>
+              <div class="cta">Start today's curio</div>
+              <div class="cta ghost">Not feeling it? Deal another →</div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="t on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Today</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M10 7.5h4M10 16.5h4"/></svg><span>Cabinet</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Catalog</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><span>You</span></div>
+          </div>
+        </div></div>
+        <div class="notes">
+          <div class="note win">One assigned card, huge and unmissable — the Wordle move. Zero choice paralysis on open.</div>
+          <div class="note win">The "deal another" escape hatch is a visible <b>button</b>, not a hidden swipe — discoverable by everyone.</div>
+          <div class="note win">Mood chip collapses the 3-dial budget into one tap; the "day 12" is quiet, not a red streak alarm.</div>
+          <div class="note fix">Two stacked CTAs compete. Make <b>Start</b> the only filled button; demote "deal another" to a text link so there's one clear primary action.</div>
+          <div class="note fix">Category + level ("Photography · Dabble") is doing a lot in 9px. Give <b>level</b> its own small chip so difficulty reads at a glance.</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 2: DETAIL -->
+      <div class="screen">
+        <div class="screen-title"><span class="pin">2</span><h3>Challenge detail</h3><span class="tag">Read → commit</span></div>
+        <div class="phone"><div class="scr"><div class="notch"></div>
+          <div class="statusbar"><span>9:41</span><span>▂▄▆ ⌁ 87%</span></div>
+          <div class="app">
+            <div class="backrow">‹ Today&nbsp;&nbsp;·&nbsp;&nbsp;<span class="mono" style="font-size:9px;">PHO-014</span></div>
+            <div class="eyebrow-c">Photography · Dabble</div>
+            <h2 class="h-serif" style="font-size:20px;line-height:1.15;margin:3px 0 10px;">Shoot a bird using the rule of thirds</h2>
+            <div class="detail-scroll">
+              <div class="field"><div class="k">Micro-lesson</div><div class="v">Split the frame into a 3×3 grid. Put your subject on a crossing point, not dead center — the eye reads it as more alive.</div></div>
+              <div class="field"><div class="k">Task</div><div class="v">Find any bird (pigeon counts). Take 5 shots with it off-center. Keep your favorite.</div></div>
+              <div class="field"><div class="k">What you'll need</div>
+                <div class="checkrow"><span class="box on"></span> A phone camera</div>
+                <div class="checkrow"><span class="box"></span> A window or 10 min outside</div>
+              </div>
+              <div class="field"><div class="k">If it flops</div><div class="v soft">Blurry, too far, flew off — that's the exercise. You're training your eye, not auditioning for Nat Geo.</div></div>
+            </div>
+            <div class="stickycta"><div class="cta">I'm in — start</div></div>
+          </div>
+          <div class="tabbar" style="opacity:.5;">
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Today</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/></svg><span>Cabinet</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Catalog</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><span>You</span></div>
+          </div>
+        </div></div>
+        <div class="notes">
+          <div class="note win">Clear labeled hierarchy — lesson, task, needs, reassurance — each scannable in a second.</div>
+          <div class="note win">Sticky "I'm in" CTA stays in the thumb zone even as content scrolls. Correct.</div>
+          <div class="note win">"What you'll need" checklist kills the mid-task rage-quit (no more "out of eggs at step 3").</div>
+          <div class="note fix">The tab bar shouldn't linger dimmed on a focused task screen — <b>hide it entirely</b> to keep attention on the one action.</div>
+          <div class="note fix">Monospace body labels are charming but 8.5px is <b>under the 11px legibility floor</b>. Bump label sizes; keep mono for eyebrows only.</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 3: RATING -->
+      <div class="screen">
+        <div class="screen-title"><span class="pin">3</span><h3>The stamp</h3><span class="tag">Completion climax</span></div>
+        <div class="phone"><div class="scr"><div class="notch"></div>
+          <div class="statusbar"><span>9:41</span><span>▂▄▆ ⌁ 86%</span></div>
+          <div class="app">
+            <div class="rate-wrap">
+              <div class="done">◦ Done ◦</div>
+              <h2 class="h-serif">How did that feel?</h2>
+              <div class="rate-q">Shoot a bird, rule of thirds</div>
+              <div class="stamps">
+                <div class="st">1</div><div class="st">2</div><div class="st">3</div><div class="st sel">4</div><div class="st">5</div>
+              </div>
+              <div class="rate-sub">4 · Enjoyed it</div>
+              <div class="reflect">＋ Add a line… "the pigeon would not cooperate"</div>
+              <div class="addphoto">📷 Attach your shot (optional)</div>
+            </div>
+            <div class="stickycta" style="padding:0 0 10px;"><div class="cta">Stamp &amp; log it</div></div>
+          </div>
+        </div></div>
+        <div class="notes">
+          <div class="note win">The whole screen is the rating — no distractions. This is correctly framed as the <b>emotional climax</b> of the loop.</div>
+          <div class="note win">"How did that <i>feel</i>," not "how did you do." Removes performance pressure exactly as the brand promises.</div>
+          <div class="note win">Reflection line + optional photo are both here but clearly optional — friction stays near zero.</div>
+          <div class="note fix">The rotated rubber-stamp effect only shows on selection — good — but it needs <b>a real animation + haptic thunk</b> to become the signature moment. Static, it's just a radio button.</div>
+          <div class="note fix">40px stamp circles are slightly under the 44px min target and sit close together — bump size/gap to prevent mis-taps.</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 4: CABINET -->
+      <div class="screen">
+        <div class="screen-title"><span class="pin">4</span><h3>The Curio Cabinet</h3><span class="tag">Progression / profile</span></div>
+        <div class="phone"><div class="scr"><div class="notch"></div>
+          <div class="statusbar"><span>9:41</span><span>▂▄▆ ⌁ 86%</span></div>
+          <div class="app">
+            <div class="cab-hero"><div class="n">47</div><div class="l">skills tried · 8 drawers opened</div></div>
+            <div class="drawers-mini">
+              <div class="dm"><div class="dn">Culinary</div><div class="toks"><span class="tok f2"></span><span class="tok f2"></span><span class="tok f2"></span><span class="tok f2"></span><span class="tok e"></span><span class="tok e"></span></div><div class="dc">4 collected</div></div>
+              <div class="dm"><div class="dn">Photography</div><div class="toks"><span class="tok f1"></span><span class="tok f1"></span><span class="tok f1"></span><span class="tok e"></span><span class="tok e"></span><span class="tok e"></span></div><div class="dc">3 collected</div></div>
+              <div class="dm"><div class="dn">Language</div><div class="toks"><span class="tok f4"></span><span class="tok f4"></span><span class="tok e"></span><span class="tok e"></span></div><div class="dc">2 collected</div></div>
+              <div class="dm"><div class="dn">Fermentation</div><div class="toks"><span class="tok f3"></span><span class="tok e"></span><span class="tok e"></span></div><div class="dc">1 collected</div></div>
+              <div class="dm"><div class="dn">Birdwatching</div><div class="toks"><span class="tok f1"></span><span class="tok f1"></span><span class="tok e"></span></div><div class="dc">2 collected</div></div>
+              <div class="dm"><div class="dn">Craft</div><div class="toks"><span class="tok f2"></span><span class="tok e"></span><span class="tok e"></span></div><div class="dc">1 collected</div></div>
+            </div>
+          </div>
+          <div class="tabbar">
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Today</span></div>
+            <div class="t on"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/><path d="M10 7.5h4M10 16.5h4"/></svg><span>Cabinet</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Catalog</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><span>You</span></div>
+          </div>
+        </div></div>
+        <div class="notes">
+          <div class="note win">"47 skills tried" as the hero number — growth-only, never a breakable streak. On-brand and screenshot-worthy.</div>
+          <div class="note win">Per-drawer token rows make progress <i>tangible</i> — the collection metaphor made literal.</div>
+          <div class="note bug">The empty slots (outlined tokens) reintroduce the <b>completionism anxiety</b> the streak change removed. Show what you <i>have</i>; drop the ghost slots.</div>
+          <div class="note fix">Flat colored squares are placeholder-generic. This screen lives or dies on <b>token art</b> — parametric little illustrated specimens per skill, or it feels like a settings list.</div>
+          <div class="note fix">Needs a share affordance right here — the cabinet IS the year-in-review flex.</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 5: SHARE -->
+      <div class="screen">
+        <div class="screen-title"><span class="pin">5</span><h3>Share card</h3><span class="tag">The growth engine</span></div>
+        <div class="phone"><div class="scr"><div class="notch"></div>
+          <div class="statusbar"><span>9:41</span><span>▂▄▆ ⌁ 86%</span></div>
+          <div class="app">
+            <div class="eyebrow-c" style="text-align:center;margin-top:4px;">Once a day · your curio</div>
+            <div class="share-stage">
+              <div class="sharecard">
+                <div class="top"><div class="eb">Today's Curio · Jul 4</div><h4>Shot a bird using the rule of thirds</h4></div>
+                <div class="bot"><span class="stars">★★★★☆</span><span class="wm">curio<b>.app</b></span></div>
+              </div>
+              <div class="fmt"><span class="f on">Story</span><span class="f">Square</span><span class="f">Text</span></div>
+            </div>
+            <div class="stickycta" style="padding:0 0 12px;"><div class="cta">Share my curio</div></div>
+          </div>
+          <div class="tabbar" style="opacity:.5;">
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M12 8v4l3 2"/></svg><span>Today</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="3" y="4" width="18" height="7" rx="1"/><rect x="3" y="13" width="18" height="7" rx="1"/></svg><span>Cabinet</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h16"/></svg><span>Catalog</span></div>
+            <div class="t"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg><span>You</span></div>
+          </div>
+        </div></div>
+        <div class="notes">
+          <div class="note win">Format toggle (Story / Square / Text) up front — respects that different platforms need different ratios.</div>
+          <div class="note win">Watermark is small and corner-anchored — present for growth, never covering the content.</div>
+          <div class="note fix">The card is handsome but <b>generic across drawers</b> — a cooking card and a meditation card look identical. Per-drawer templates would make each share feel intentional.</div>
+          <div class="note bug">No visible <b>"try this challenge" deep-link / QR</b> on the card — that's the whole viral mechanic from the audit, and it's missing from the artboard.</div>
+          <div class="note fix">If the user took a photo, it should <b>be</b> the card's hero, not this text-only template. Show the photo variant as the default.</div>
+        </div>
+      </div>
+
+      <!-- SCREEN 6: ONBOARDING -->
+      <div class="screen">
+        <div class="screen-title"><span class="pin">6</span><h3>Taste quiz</h3><span class="tag">First run</span></div>
+        <div class="phone"><div class="scr"><div class="notch"></div>
+          <div class="statusbar"><span>9:41</span><span>▂▄▆ ⌁ 100%</span></div>
+          <div class="app">
+            <div class="ob-prog"><i></i></div>
+            <div class="ob-q">Which of these pull at you?</div>
+            <div class="ob-sub">Tap a few. You can change all of this later.</div>
+            <div class="ob-grid">
+              <div class="ob-cell on"><span class="ic">📷</span><span class="nm">Photography</span></div>
+              <div class="ob-cell"><span class="ic">🍰</span><span class="nm">Baking</span></div>
+              <div class="ob-cell on"><span class="ic">🪵</span><span class="nm">Woodworking</span></div>
+              <div class="ob-cell"><span class="ic">🗣</span><span class="nm">Languages</span></div>
+              <div class="ob-cell"><span class="ic">🐦</span><span class="nm">Birdwatching</span></div>
+              <div class="ob-cell on"><span class="ic">🎴</span><span class="nm">Magic</span></div>
+            </div>
+            <div class="stickycta" style="padding:8px 0 12px;"><div class="cta">Continue · or surprise me</div></div>
+          </div>
+        </div></div>
+        <div class="notes">
+          <div class="note win">One screen, tap-to-select, clearly reversible ("change later") — low-commitment, seeds boost/mute before card one.</div>
+          <div class="note win">"or surprise me" honors the serendipity crowd who don't want to choose. Good inclusive default.</div>
+          <div class="note fix">Emoji placeholders violate the brand's own "etched line icons, never emoji" rule — swap for the Lucide-style line set the design system already ships.</div>
+          <div class="note fix">A single progress bar with no step count feels endless. Show <b>"1 of 3"</b> so users know it's genuinely short.</div>
+          <div class="note bug">Missing the <b>guaranteed first win</b> — the audit's key onboarding fix. The last step should be a 60-sec curio done <i>in</i> onboarding, not after it.</div>
+        </div>
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ============ THUMB ZONE ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Ergonomics: is everything in reach?</h2></div>
+    <p class="sec-intro">A daily one-handed app lives or dies on the thumb zone. Phones are big; the top third is a stretch. Here's the map against the current layouts.</p>
+    <div style="display:flex;gap:26px;flex-wrap:wrap;align-items:center;">
+      <div class="thumb">
+        <div class="zone z-hard">Hard reach</div>
+        <div class="zone z-ok">OK</div>
+        <div class="zone z-easy">Natural thumb</div>
+      </div>
+      <div style="flex:1;min-width:260px;">
+        <div class="note win" style="font-size:13.5px;margin-bottom:9px;">Primary CTAs (<b>Start</b>, <b>Stamp &amp; log</b>, <b>Share</b>) all sit at the bottom — squarely in the natural thumb zone. Correct across every screen.</div>
+        <div class="note win" style="font-size:13.5px;margin-bottom:9px;">Bottom tab bar is reachable and standard. No complaints.</div>
+        <div class="note fix" style="font-size:13.5px;margin-bottom:9px;">The <b>mood chip</b> and <b>back button</b> live in the hard-reach top corners. Fine for occasional taps, but if budget-switching is frequent, consider a bottom sheet instead of a top-corner control.</div>
+        <div class="note fix" style="font-size:13.5px;margin-bottom:9px;">The <b>1–5 stamps</b> sit dead-center — reachable, but tight spacing near the middle risks mis-taps. Widen the gap and size up to 48px.</div>
+        <div class="note fix" style="font-size:13.5px;">On the detail screen, key info (lesson/task) is up top where it's <i>read, not tapped</i> — that's fine. Just never put a <i>control</i> up there.</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ TYPE SCALE ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Type system: strong idea, needs a floor</h2></div>
+    <p class="sec-intro">The serif-display / monospace-data pairing is distinctive and right for the brand. The problem isn't the faces — it's that the monospace labels get pushed to 8–10px, under the mobile legibility floor. Here's a proposed scale with a hard minimum.</p>
+    <div style="border:1px solid var(--line-strong);border-radius:6px;background:var(--paper-card);box-shadow:var(--shadow);padding:6px 20px 14px;">
+      <div class="typerow"><span class="spec">Display / 28px serif 600</span><span class="samp" style="font-size:28px;">How did that feel?</span></div>
+      <div class="typerow"><span class="spec">Title / 22px serif 600</span><span class="samp" style="font-size:22px;">Shoot a bird, rule of thirds</span></div>
+      <div class="typerow"><span class="spec">Body / 15px sans 400</span><span class="samp" style="font-size:15px;font-family:inherit;">Put the subject off-center — the eye reads it as alive.</span></div>
+      <div class="typerow"><span class="spec">Label / 12px mono 700 · FLOOR</span><span class="samp mono" style="font-size:12px;letter-spacing:.08em;">MICRO-LESSON</span></div>
+      <div class="typerow" style="border-bottom:none;"><span class="spec" style="color:var(--stamp);">Avoid / sub-11px mono</span><span class="samp mono" style="font-size:8.5px;letter-spacing:.08em;color:var(--stamp);">TOO SMALL — DON'T SHIP THIS</span></div>
+    </div>
+    <div class="fix" style="margin-top:14px;"><span class="tagk">The rule</span> Nothing below <b>11px</b>, ever, and monospace (which reads smaller than sans at the same px) gets a <b>12px floor</b>. Reserve monospace for eyebrows, tags, and stats — never body copy. Set body in the sans at 15px for comfortable reading at arm's length.</div>
+  </section>
+
+  <!-- ============ COLOR & CONTRAST ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Color, contrast &amp; motion</h2></div>
+    <div class="metric"><div class="m-top"><span class="m-name">Palette &amp; brand distinctiveness</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Teal / ochre / rust on warm paper is genuinely differentiated and coherent in both themes. It's the app's biggest UI asset. Keep it.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Add <b>one brighter "joy" accent</b> reserved for celebration moments (the plum used in this doc, or a warmer gold) so completion can pop against the calm without breaking it. Right now everything is equally muted, which flattens the emotional peaks.</div>
+    </div>
+    <div class="metric"><div class="m-top"><span class="m-name">Contrast / accessibility (WCAG)</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">The low-saturation palette is a contrast risk: <span class="mono">--ink-soft</span> on <span class="mono">--paper-card</span> is comfortable but the faded ochre tags and mono labels flirt with failing AA (4.5:1) for small text — exactly the elements already too small.</p>
+      <div class="fix"><span class="tagk">The fix</span> Run every text/background pair through a contrast checker at target size; darken tag text or the muted greys until small text clears <b>4.5:1</b> and large text clears 3:1. Muted ≠ low-contrast — you can keep the calm palette and still be legible. Never encode meaning in color alone (the mute/boost states need an icon or label too).</div>
+    </div>
+    <div class="metric"><div class="m-top"><span class="m-name">Motion &amp; tactility</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">This is where the "museum feels dead" risk actually bites. Static, the paper aesthetic can feel inert. Motion is how you prove it's <i>calm</i>, not <i>lifeless</i> — and it's almost entirely unspecified.</p>
+      <div class="fix"><span class="tagk">The fix</span> Invest in three signature motions: <b>(1) the stamp</b> — a satisfying press-down + rotate + haptic thunk, the app's defining moment; <b>(2) the deal</b> — cards sliding/settling like real cards when you deal a new hand; <b>(3) the token landing</b> — a specimen easing into its cabinet slot on completion. Calm easing, no bounce-fest, always respecting <span class="mono">prefers-reduced-motion</span>. These three carry the whole "alive but calm" thesis.</div>
+    </div>
+    <div class="metric"><div class="m-top"><span class="m-name">Iconography consistency</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">The design system correctly specifies etched Lucide line icons, never emoji — but the concept mocks (and the taste-quiz here) lean on emoji as placeholders, which breaks the premium feel instantly.</p>
+      <div class="fix"><span class="tagk">The fix</span> Commit fully to the <b>line-icon set</b> across tabs, categories, and states — consistent stroke weight, no emoji anywhere in-product. Emoji are fine in <i>user-generated</i> reflections, never in the app's own chrome.</div>
+    </div>
+  </section>
+
+  <!-- ============ INFO DENSITY / STATES ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Density, hierarchy &amp; the states nobody mocks</h2></div>
+    <div class="metric"><div class="m-top"><span class="m-name">Visual hierarchy &amp; focus</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Mostly strong — one dominant element per screen, clear labeled sections. The main slip is the Today screen's two competing CTAs (noted on the mock).</p>
+      <div class="fix"><span class="tagk">The rule</span> One primary action per screen, one hero element, everything else visibly secondary. Audit every screen for "what's the ONE thing," and make sure only one element has the filled-button weight.</div>
+    </div>
+    <div class="metric"><div class="m-top"><span class="m-name">Loading / empty / error states</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Invisible in every mock, and they're 100% of some sessions: exhausted deck, empty cabinet, offline, image still generating. Undesigned, these default to blank screens or spinners — the least on-brand moments possible.</p>
+      <div class="fix"><span class="tagk">The fix</span> Design each as a <b>warm, illustrated, in-voice moment</b>: empty cabinet → "your first specimen goes here"; exhausted deck → "that's today — nicely done"; offline → "no signal, but here's a cached one." Skeleton loaders in paper tones, never a generic spinner. These states are where a premium app separates from a template.</div>
+    </div>
+    <div class="metric"><div class="m-top"><span class="m-name">Dark mode</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">The token system already handles both themes cleanly (this very document proves it). Deep forest-paper dark mode is atmospheric and on-brand — a real plus for an evening-use app.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Re-check the accent-on-dark contrast for the celebration/joy accent and the share-card, and make sure token art reads on both grounds. Don't just invert — tune.</div>
+    </div>
+  </section>
+
+  <!-- ============ PRIORITIES ============ -->
+  <section>
+    <div class="sec-head"><span class="sec-num">▲</span><h2>Top 5 UI fixes</h2></div>
+    <p class="sec-intro">If the visual design gets five changes before build, these.</p>
+    <div class="prio">
+      <div class="prio-row"><div class="rank">1</div><div class="pt"><b>Budget for motion &amp; haptics now.</b> The stamp, the deal, the token-landing. This is the single thing standing between "calm and premium" and "pretty but dead." It's not polish — it's the thesis.</div></div>
+      <div class="prio-row"><div class="rank">2</div><div class="pt"><b>Commission the token art system.</b> The Cabinet is your signature screen and your best share; flat colored squares turn it into a settings list. Parametric illustrated specimens per skill.</div></div>
+      <div class="prio-row"><div class="rank">3</div><div class="pt"><b>Set a type floor (11px / 12px mono) and fix contrast.</b> The charming monospace is currently illegibly small and flirts with WCAG failure. Cheap, high-impact, and an accessibility must.</div></div>
+      <div class="prio-row"><div class="rank">4</div><div class="pt"><b>One primary action per screen.</b> Kill the competing-CTA problem on Today; demote secondary actions to text links so the eye always knows the one thing to do.</div></div>
+      <div class="prio-row"><div class="rank">5</div><div class="pt"><b>Design the empty/offline/loading states in-voice.</b> They're a third of real sessions and currently blank. This is where premium is won or lost.</div></div>
+    </div>
+  </section>
+
+  <div class="callout">
+    <h4>The UI verdict</h4>
+    <p><b>The bones are genuinely strong — this is a rare concept with a real, differentiated visual identity already.</b> The layouts are sound, the hierarchy is mostly right, and the calm paper aesthetic is a true asset in a category of screaming apps. The gap is entirely in the <b>living layer</b>: motion, tactility, token art, and the small-but-critical craft of type floors, contrast, and unglamorous states. Get those right and the "museum feels old" risk flips into "wow, an app that feels calm <i>and</i> alive" — which nobody else in the space has pulled off. The identity is 80% there; the remaining 20% is all <i>motion and craft</i>, not redesign.</p>
+  </div>
+
+  <hr class="rule">
+  <footer>CURIO · UI DESIGN ANALYSIS · 6 SCREENS · 10 DIMENSIONS · BONES STRONG, LIVING LAYER TO BUILD</footer>
+
+</div>
