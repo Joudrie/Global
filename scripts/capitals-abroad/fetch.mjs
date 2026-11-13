@@ -71,6 +71,9 @@ const EXCLUDE = new Set([
   // Spanish Wikipedia's names, but they are the English name less its "'s":
   // a round that only catches out the apostrophe.
   'AG:es:Saint John', 'GD:es:Saint George',
+  // Portuguese Wikipedia's article, but "São João" is just "Saint John" and
+  // reads as a different city.
+  'AG:pt:São João',
 ])
 
 // Labels that differ from that language's Wikipedia article title but were
@@ -220,7 +223,16 @@ function containsAnswer(name, right) {
 // The Wikipedia title without its disambiguation: "Victoria (Seychelles)" → "Victoria".
 const bareTitle = t => t.replace(/\s*\(.*\)\s*$/, '').replace(/,.*$/, '').trim()
 
-const excluded = { same: 0, alias: 0, contains: [], nearRoman: [], noRoman: {}, script: [], manual: 0, title: [] }
+const excluded = { same: 0, alias: 0, contains: [], nearRoman: [], noRoman: {}, script: [], manual: 0, title: [], clash: [] }
+// Every English country and capital name, to catch a foreign name that is
+// another place's English name (Turkish "Cuba" is Juba, not Cuba).
+const englishNames = new Map()
+for (const c of [...CAPITALS, ...FLAGS.map(f => ({ code: f.code, country: f.name }))]) for (const n of [c.capital, c.country]) {
+  if (!n) continue
+  const f = foldName(n)
+  if (!englishNames.has(f)) englishNames.set(f, new Set())
+  englishNames.get(f).add(c.code)
+}
 const byKey = new Map()
 const labelsFor = q => raw.labels.filter(l => l.qid === q)
 for (const c of capitals) {
@@ -247,6 +259,7 @@ for (const c of capitals) {
     const f = foldName(roman ?? name)
     if (f === foldName(c.capital)) { excluded.same++; continue }
     if (right.has(f)) { excluded.alias++; continue }
+    if (englishNames.has(f) && !englishNames.get(f).has(c.code)) { excluded.clash.push(`${c.code} ${lang} ${name}`); continue }
     if (containsAnswer(roman ?? name, right)) { excluded.contains.push(`${c.code} ${lang} ${name}${roman ? ` (${roman})` : ''}`); continue }
     // A Latin spelling one letter off the English (Монако, Monako) makes a
     // non-Latin name a copying exercise, not a hard round.
@@ -316,6 +329,7 @@ if (process.argv.includes('--dump')) {
   console.log(`One letter off in Latin letters:\n  ${excluded.nearRoman.join('\n  ')}`)
   console.log(`Not matching the Wikipedia title:\n  ${excluded.title.join('\n  ')}`)
 }
+if (excluded.clash.length) console.log(`Another place's English name:\n  ${excluded.clash.join('\n  ')}`)
 console.log(`Dropped for no Wikidata romanisation: ${JSON.stringify(excluded.noRoman)}`)
 if (excluded.script.length) console.log(`Dropped for unexpected characters:\n  ${excluded.script.join('\n  ')}`)
 const perLang = {}

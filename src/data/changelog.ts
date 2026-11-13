@@ -10,7 +10,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "See a capital the way another language writes it, Varsovia in Spanish or Москва in Russian, and name it in English.",
       "Easy keeps close to English (Roma, Lisboa), Medium strays further (Londres, Moskau) and Hard brings Varsovia, Wien and the Cyrillic and Greek alphabets, with a Latin spelling under each.",
       "Type the answer for double points or pick from four. Accents, hyphens, \"City\" and spellings like Kiev don't count against you, and a hint shows where the capital is for half points.",
-      "772 names in 20 languages from Wikidata, each checked against that language's Wikipedia. After every round you see what the name means, and the end of a game lists all ten.",
+      "745 names in 20 languages from Wikidata, each checked against that language's Wikipedia. After every round you see what the name means, and the end of a game lists all ten.",
     ],
   },
   {

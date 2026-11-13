@@ -123,12 +123,17 @@ function Start({ prefs, onMode, onStart, onBack }:
   { prefs: Prefs; onMode: (m: AnswerMode) => void; onStart: (t: Tier) => void; onBack: () => void }) {
   const [pressed, setPressed] = useState<Tier | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // iOS opens the keyboard only for a focus inside the tap itself, and round 1
+  // appears PRESS_MS later. So the tap focuses this stand-in box, and the
+  // keyboard stays up while round 1's answer box takes the focus from it.
+  const keyProxy = useRef<HTMLInputElement>(null)
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
   const best = loadBest()
 
   const press = (t: Tier) => {
     if (pressed) return
     setPressed(t)
+    if (prefs.mode === "type") keyProxy.current?.focus({ preventScroll: true })
     timer.current = setTimeout(() => onStart(t), PRESS_MS)
   }
 
@@ -196,6 +201,8 @@ function Start({ prefs, onMode, onStart, onBack }:
             })}
           </div>
         </section>
+        <input ref={keyProxy} aria-hidden tabIndex={-1} autoComplete="off" autoCorrect="off" autoCapitalize="words" spellCheck={false}
+          style={{ position: "fixed", top: 0, left: 0, width: 1, height: 1, padding: 0, border: 0, opacity: 0, fontSize: 16, pointerEvents: "none" }} />
       </main>
     </>
   )

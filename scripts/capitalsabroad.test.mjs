@@ -104,6 +104,19 @@ test('no free rounds: no name is, contains or spells out an accepted answer', ()
   }
 })
 
+test('no name is another country\'s or capital\'s English name', () => {
+  const english = new Map()
+  for (const c of [...CAPITALS, ...FLAGS.map(f => ({ code: f.code, country: f.name }))]) for (const n of [c.capital, c.country]) {
+    if (n) english.set(foldName(n), [...(english.get(foldName(n)) ?? []), c.code])
+  }
+  for (const n of ABROAD_NAMES) {
+    const owners = english.get(foldName(n.roman ?? n.name))
+    assert.ok(!owners || owners.includes(n.code), `${n.code} ${n.name} is ${owners}`)
+  }
+  assert.ok(!ABROAD_NAMES.some(n => n.code === 'SS' && n.name === 'Cuba'))
+  assert.ok(!ABROAD_NAMES.some(n => n.code === 'AG' && n.name === 'São João'))
+})
+
 test('names are unique and their languages are known', () => {
   const keys = ABROAD_NAMES.map(n => `${n.code}|${n.name}|${n.roman ?? ''}`)
   assert.equal(new Set(keys).size, keys.length)
@@ -203,7 +216,7 @@ test('language lists read naturally', () => {
 
 // ── Latin spellings ───────────────────────────────────────────────────────
 
-test('Russian (BGN/PCGN), Ukrainian (2010 national) and Greek (ELOT 743) spellings', () => {
+test('Russian (BGN/PCGN), Ukrainian (2010 national) and Greek (ELOT 743 with b/d/g) spellings', () => {
   assert.equal(romaniseRussian('Москва'), 'Moskva')
   assert.equal(romaniseRussian('Ереван'), 'Yerevan')
   assert.equal(romaniseRussian('Кишинёв'), 'Kishinyov')
@@ -219,7 +232,17 @@ test('Russian (BGN/PCGN), Ukrainian (2010 national) and Greek (ELOT 743) spellin
   assert.equal(romaniseGreek('Λευκωσία'), 'Lefkosia')
   assert.equal(romaniseGreek('Ευρώπη'), 'Evropi')
   assert.equal(romaniseGreek('Ταΐφ'), 'Taif')
-  assert.equal(romaniseGreek('Ουάσινγκτον'), 'Ouasingkton')
+  assert.equal(romaniseGreek('Ουάσινγκτον'), 'Ouasington')
+  // μπ, ντ, γκ: b, d, g at the start of a word or after a consonant, mb, nd, ng after a vowel.
+  assert.equal(romaniseGreek('Μπακού'), 'Bakou')
+  assert.equal(romaniseGreek('Ντάκα'), 'Daka')
+  assert.equal(romaniseGreek('Γκιτέγκα'), 'Gitenga')
+  assert.equal(romaniseGreek('Μπανγκόκ'), 'Bangok')
+  assert.equal(romaniseGreek('Άμπου Ντάμπι'), 'Ambou Dambi')
+  // Final ντ: "nt" in Saint, "d" elsewhere.
+  assert.equal(romaniseGreek('Σεντ Τζονς'), 'Sent Tzons')
+  assert.equal(romaniseGreek('Σαιντ Τζόρτζις'), 'Saint Tzortzis')
+  assert.equal(romaniseGreek('Ριάντ'), 'Riad')
   for (const n of ABROAD_NAMES.filter(x => x.roman)) {
     const fn = { ru: romaniseRussian, uk: romaniseUkrainian, el: romaniseGreek }[n.langs[0]]
     assert.equal(fn(n.name), n.roman, `${n.name} [${n.langs}]`)

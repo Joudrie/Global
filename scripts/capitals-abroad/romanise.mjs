@@ -3,7 +3,9 @@
 // Only three standard, deterministic systems, one per language:
 //   Russian    BGN/PCGN (1947), without the ’ and ” marks for ь and ъ
 //   Ukrainian  the official national system (Cabinet of Ministers, 2010)
-//   Greek      ELOT 743 (2001), the system on Greek road signs and passports
+//   Greek      ELOT 743 (2001), the system on Greek road signs and passports,
+//              but with BGN/PCGN's b, d and g for μπ, ντ and γκ at the start of a
+//              word or after a consonant (Μπακού is Bakou, not Mpakou)
 // Chinese, Japanese, Korean, Arabic, Hebrew, Hindi, Thai, Georgian and
 // Armenian names are only used when Wikidata itself gives a romanisation of
 // that exact name (see fetch.mjs); they are never guessed here.
@@ -59,7 +61,10 @@ const EL = {
   α: 'a', β: 'v', γ: 'g', δ: 'd', ε: 'e', ζ: 'z', η: 'i', θ: 'th', ι: 'i', κ: 'k', λ: 'l', μ: 'm',
   ν: 'n', ξ: 'x', ο: 'o', π: 'p', ρ: 'r', σ: 's', ς: 's', τ: 't', υ: 'y', φ: 'f', χ: 'ch', ψ: 'ps', ω: 'o',
 }
-const EL_PAIRS = { αι: 'ai', ει: 'ei', οι: 'oi', υι: 'yi', ου: 'ou', γγ: 'ng', γκ: 'gk', γξ: 'nx', γχ: 'nch', μπ: 'mp', ντ: 'nt' }
+const EL_PAIRS = { αι: 'ai', ει: 'ei', οι: 'oi', υι: 'yi', ου: 'ou', γγ: 'ng', γκ: 'ng', γξ: 'nx', γχ: 'nch', μπ: 'mb', ντ: 'nd' }
+// μπ, ντ, γκ say b, d, g at the start of a word or after a consonant.
+const EL_HARD = { μπ: 'b', ντ: 'd', γκ: 'g' }
+const EL_VOWELS = new Set('αεηιουω')
 // αυ, ευ, ηυ: "v" before a vowel or voiced consonant, "f" before a voiceless one or at the end.
 const EL_U = { α: 'a', ε: 'e', η: 'i' }
 const EL_VOICELESS = new Set('θκξπστφχψ')
@@ -82,6 +87,16 @@ export function romaniseGreek(text) {
       const after = chars[i + 2]?.lo
       const f = !after || !(after in EL) || EL_VOICELESS.has(after)
       out += cap(EL_U[c.lo] + (f ? 'f' : 'v'), isUpper(c.ch)); i++; continue
+    }
+    if (pair && EL_HARD[pair]) {
+      const prev = chars[i - 1]?.lo
+      const hard = !prev || !(prev in EL) || !EL_VOWELS.has(prev)
+      // Final -εντ/-ιντ is English "Saint" (Σεντ Τζονς, Σαιντ Τζόρτζις), so "nt";
+      // other final ντ is "d" (Ριάντ, Riad).
+      const after = chars[i + 2]?.lo
+      const end = !after || !(after in EL)
+      const final = pair === 'ντ' && end && (prev === 'ε' || prev === 'ι') ? 'nt' : pair === 'ντ' && end ? 'd' : ''
+      out += cap(final || (hard ? EL_HARD[pair] : EL_PAIRS[pair]), isUpper(c.ch)); i++; continue
     }
     if (pair && EL_PAIRS[pair]) { out += cap(EL_PAIRS[pair], isUpper(c.ch)); i++; continue }
     out += cap(EL[c.lo], isUpper(c.ch))
