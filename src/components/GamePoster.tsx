@@ -154,6 +154,44 @@ function FlagRow({ items, accent, hero }: { items: { code?: string; src?: string
   )
 }
 
+// Capitals Abroad: three passport stamps for one capital, in clay, sky and
+// ink. textLength pins each name's width, so it fits before the font loads.
+function AbroadStamps() {
+  const sans = "'Inter', system-ui, sans-serif"
+  const ink = { fill: "none", strokeWidth: 1.4 } as const
+  const label = (y: number, text: string, color: string, size = 3.4) => (
+    <text x={0} y={y} textAnchor="middle" fontFamily={sans} fontWeight={700} fontSize={size} letterSpacing={1.2} fill={color}>{text}</text>
+  )
+  const name = (y: number, text: string, color: string, size: number, width: number, lang: string) => (
+    <text x={0} y={y} lang={lang} textAnchor="middle" fontFamily={sans} fontWeight={800} fontSize={size} textLength={width} lengthAdjust="spacingAndGlyphs" fill={color}>{text}</text>
+  )
+  const stamp: CSSProperties = { mixBlendMode: "multiply", opacity: 0.9 }
+  return (
+    <svg viewBox="0 0 140 72" preserveAspectRatio="xMidYMid meet" style={{ width: "100%", height: "100%", display: "block" }}>
+      <g transform="translate(40 24) rotate(-8)" style={stamp}>
+        <rect x={-29} y={-13} width={58} height={26} rx={3} stroke={T.warm} {...ink} />
+        <rect x={-26.5} y={-10.5} width={53} height={21} rx={1.8} stroke={T.warm} fill="none" strokeWidth={0.6} />
+        {label(-5.4, "ENTRADA", T.warm)}
+        {name(3.6, "VARSOVIA", T.warm, 9.6, 44, "es")}
+        {label(8.6, "ESPAÑOL", T.warm)}
+      </g>
+      <g transform="translate(103 26) rotate(11)" style={stamp}>
+        <circle r={21} stroke={T.cyan} {...ink} />
+        <circle r={17.6} stroke={T.cyan} fill="none" strokeWidth={0.6} />
+        <line x1={-16.4} x2={16.4} y1={-6.2} y2={-6.2} stroke={T.cyan} strokeWidth={0.6} />
+        <line x1={-16.4} x2={16.4} y1={6} y2={6} stroke={T.cyan} strokeWidth={0.6} />
+        {label(-9.4, "РУССКИЙ", T.cyan, 3.2)}
+        {name(3.1, "ВАРШАВА", T.cyan, 8, 29, "ru")}
+      </g>
+      <g transform="translate(71 52) rotate(-3)" style={stamp}>
+        <rect x={-32} y={-12.5} width={64} height={25} rx={12.5} stroke={T.text} fill="none" strokeWidth={1.6} />
+        {label(-5.2, "ENGLISH", T.text)}
+        {name(5.4, "WARSAW", T.text, 11.5, 42, "en")}
+      </g>
+    </svg>
+  )
+}
+
 // id → scene. `bleed` scenes get the framed inset stage in the hero variant so
 // the flag's edges always show; composed scenes already frame themselves.
 function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode; bleed: boolean } {
@@ -476,6 +514,14 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
             <rect x="16" y="80" width="100" height="2.5" rx="1.2" fill="#FFFFFF" opacity="0.85" />
             <rect x="32" y="87" width="68" height="1.6" rx="0.8" fill="#FFFFFF" opacity="0.35" />
           </svg>
+        </div>
+      ) }
+    case "capitalsabroad":
+      // One capital stamped three ways, like passport stamps: Spanish
+      // VARSOVIA, Russian ВАРШАВА, and the English WARSAW the player names.
+      return { bleed: false, node: (
+        <div style={{ ...box, background: wash }}>
+          <AbroadStamps />
         </div>
       ) }
     case "statclash":

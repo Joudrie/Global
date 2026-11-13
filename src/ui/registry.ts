@@ -93,6 +93,7 @@ export const REGISTRY: Entry[] = [
   // Sharp Recall — fast reps, reflex quizzes
   { id: "reversequiz", action: "reverse", title: "Flag ID Challenge", subtitle: "See the name, pick the flag", icon: "🎯", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "capitalquiz", title: "Capital Cities", subtitle: "Name that capital", icon: "🏛️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  { id: "capitalsabroad", title: "Capitals Abroad", subtitle: "Varsovia → Warsaw", icon: "🧳", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "statclash", title: "Stat Clash", subtitle: "Bigger population or area?", icon: "⚖️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill", featured: true },
   { id: "prideroulette", title: "Pride Roulette", subtitle: "Name the pride flag · survival", icon: "🏳️‍🌈", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
 
