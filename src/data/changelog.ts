@@ -8,7 +8,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     title: "Two new games: Countries Abroad and Native Names",
     items: [
       "Countries Abroad: name the country from its name in another language. Allemagne, Niemcy, Saksa and Almanya are all Germany, Ruotsi is Sweden and Viro is Estonia. 1,900 names for 184 countries in 57 languages.",
-      "Native Names: name the country from what it calls itself. Suomi is Finland, Magyarország is Hungary, Sakartvelo is Georgia and Druk Yul is Bhutan. 88 names for 70 countries in 66 languages, each in its own script with a Latin spelling under it.",
+      "Native Names: name the country from what it calls itself. Suomi is Finland, Magyarország is Hungary, Sakartvelo is Georgia and Druk Yul is Bhutan. 85 names for 68 countries in 64 languages, each in its own script with a Latin spelling under it.",
       "Both play like Cities Abroad: ten right before three strikes on easy, medium or hard. Typing scores double, and a hint (the region and the first letter) halves the points.",
       "Names spelled like the English one are left out, a small slip in spelling still counts, and look-alike countries never count for each other: Niger is not Nigeria and Austria is not Australia.",
     ],

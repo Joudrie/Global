@@ -110,11 +110,10 @@ export const NATIVE_ROMAN = {
 }
 
 export const KEEP_CLOSE = new Set([
-  'LV:Latvija',     // one letter from Latvia
-  'BE:België',      // Belgi- with a short ending, like Italia
-  'BE:Belgique',    // two letters from Belgium
-  'MN:Монгол Улс',  // Mongol Uls: "Mongol" is nearly Mongolia
-  'IL:ישראל',       // Yisra'el: one letter from Israel
+  'BE:Belgique',    // two letters from Belgium, but said "bel-zheek"
+  'MN:Монгол Улс',  // Mongol Uls: "Mongol" is nearly Mongolia, "Uls" (state) is new
+  // Latvija, België and Yisra'el are left out: one letter or so from the
+  // English, the "spelled the same" names the owner asked to drop.
 ])
 
 export const LANG_NAMES = {

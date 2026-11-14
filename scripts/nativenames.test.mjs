@@ -30,18 +30,19 @@ const shownOf = n => n.roman ?? n.name
 const MUST_KEEP = [
   ['Germany', 'Deutschland'], ['Finland', 'Suomi'], ['Hungary', 'Magyarország'], ['Croatia', 'Hrvatska'], ['Albania', 'Shqipëria'],
   ['Poland', 'Polska'], ['Czech Republic', 'Česko'], ['Austria', 'Österreich'], ['Sweden', 'Sverige'], ['Norway', 'Norge'],
-  ['Estonia', 'Eesti'], ['Latvia', 'Latvija'], ['Lithuania', 'Lietuva'], ['Montenegro', 'Crna Gora'], ['Slovakia', 'Slovensko'],
+  ['Estonia', 'Eesti'], ['Lithuania', 'Lietuva'], ['Montenegro', 'Crna Gora'], ['Slovakia', 'Slovensko'],
   ['Ireland', 'Éire'], ['Greece', 'Ελλάδα', 'Ellada'], ['Russia', 'Россия', 'Rossiya'], ['Georgia', 'საქართველო', 'Sakartvelo'],
   ['Armenia', 'Հայաստան', 'Hayastan'], ['Japan', '日本', 'Nihon'], ['China', '中国', 'Zhongguo'], ['South Korea', '한국', 'Hanguk'],
   ['North Korea', '조선', 'Joseon'], ['India', 'भारत', 'Bharat'], ['Egypt', 'مصر', 'Misr'], ['Morocco', 'المغرب', 'al-Maghrib'],
-  ['Israel', 'ישראל', "Yisra'el"], ['Thailand', 'ประเทศไทย', 'Prathet Thai'], ['Cambodia', 'កម្ពុជា', 'Kampuchea'],
+  ['Thailand', 'ประเทศไทย', 'Prathet Thai'], ['Cambodia', 'កម្ពុជា', 'Kampuchea'],
   ['Bhutan', 'འབྲུག་ཡུལ་', 'Druk Yul'], ['New Zealand', 'Aotearoa'], ['Philippines', 'Pilipinas'], ['Haiti', 'Ayiti'],
   ['Ethiopia', 'ኢትዮጵያ', "Ityop'iya"], ['Somalia', 'Soomaaliya'], ['Mongolia', 'Монгол Улс', 'Mongol Uls'],
   ['Switzerland', 'Schweiz'], ['Switzerland', 'Suisse'], ['Switzerland', 'Svizzera'], ['Switzerland', 'Svizra'],
-  ['Belgium', 'België'], ['Belgium', 'Belgique'], ['Belgium', 'Belgien'], ['Luxembourg', 'Lëtzebuerg'], ['Netherlands', 'Nederland'],
+  ['Belgium', 'Belgique'], ['Belgium', 'Belgien'], ['Luxembourg', 'Lëtzebuerg'], ['Netherlands', 'Nederland'],
 ]
 // Spelled like the English: [country, name as shown (its Latin spelling for other scripts)].
 const MUST_DROP = [
+  ['Latvia', 'Latvija'], ['Belgium', 'België'], ['Israel', "Yisra'el"],
   ['Italy', 'Italia'], ['France', 'France'], ['Portugal', 'Portugal'], ['Brazil', 'Brasil'], ['Mexico', 'México'], ['Turkey', 'Türkiye'],
   ['Iran', 'Iran'], ['Nepal', 'Nepal'], ['Canada', 'Canada'], ['Vietnam', 'Việt Nam'], ['Laos', 'Lao'], ['Ukraine', 'Ukraina'],
   ['Azerbaijan', 'Azərbaycan'], ['Bulgaria', 'Balgariya'], ['Slovenia', 'Slovenija'], ['Moldova', 'Moldova'], ['Iraq', 'al-Iraq'],
@@ -76,7 +77,7 @@ test('only the few names kept on purpose fail the look-alike test, and they are 
     assert.equal(n.tier, 'easy', n.name)
     assert.equal(n.value, 10, n.name)
   }
-  assert.deepEqual(kept.map(n => n.roman ?? n.name).sort(), ['België', 'Belgique', 'Latvija', 'Mongol Uls', "Yisra'el"].sort())
+  assert.deepEqual(kept.map(n => n.roman ?? n.name).sort(), ['Belgique', 'Mongol Uls'].sort())
   for (const n of NAMES) {
     assert.equal(isCountry(COUNTRIES[n.country], n.name), false, n.name)
     assert.equal(judgeCountry(COUNTRIES[n.country], shownOf(n), shownOf(n)).correct, false, n.name)
@@ -93,7 +94,7 @@ test('one name per official language, and only national ones', () => {
   }
   const langsOf = code => NAMES.filter(n => n.country === code).flatMap(n => n.langs).sort()
   assert.deepEqual(langsOf('CH'), ['de', 'fr', 'it', 'rm'])
-  assert.deepEqual(langsOf('BE'), ['de', 'fr', 'nl'])
+  assert.deepEqual(langsOf('BE'), ['de', 'fr'])     // Dutch "België" is one letter or so from Belgium
   assert.deepEqual(langsOf('ES'), ['es'])           // Catalan, Galician and Basque are regional
   assert.deepEqual(langsOf('SE'), ['sv'])           // Finnish is a minority language there
   assert.deepEqual(langsOf('NO'), ['nb', 'nn'])
