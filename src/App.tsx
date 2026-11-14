@@ -18,6 +18,8 @@ const QuizScreen = lazy(() => import("./components/QuizScreen"))
 const ReverseQuizScreen = lazy(() => import("./components/ReverseQuizScreen"))
 const CapitalQuizScreen = lazy(() => import("./components/CapitalQuizScreen"))
 const CitiesAbroadScreen = lazy(() => import("./components/CitiesAbroadScreen"))
+const CountriesAbroadScreen = lazy(() => import("./components/CountriesAbroadScreen"))
+const NativeNamesScreen = lazy(() => import("./components/NativeNamesScreen"))
 const ChallengeScreen = lazy(() => import("./components/ChallengeScreen"))
 const ResultScreen = lazy(() => import("./components/ResultScreen"))
 const AchievementsScreen = lazy(() => import("./components/AchievementsScreen"))
@@ -86,7 +88,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "citiesabroad"
+type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "citiesabroad" | "countriesabroad" | "nativenames"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -409,6 +411,8 @@ export default function App() {
       {screen === "language" && <LanguageQuizScreen onBack={() => setScreen("home")} />}
       {screen === "capitalquiz" && <CapitalQuizScreen onBack={() => setScreen("home")} />}
       {screen === "citiesabroad" && <CitiesAbroadScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
+      {screen === "countriesabroad" && <CountriesAbroadScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
+      {screen === "nativenames" && <NativeNamesScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "challenge" && <ChallengeScreen onBack={() => setScreen("home")} />}
       {/* The full-screen Codex is only opened from the World Cup explorer, so back returns there. */}
       {screen === "codex" && <CodexScreen onBack={() => setScreen("worldcup")} initialCode={codexInitial} />}

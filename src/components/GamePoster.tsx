@@ -154,9 +154,31 @@ function FlagRow({ items, accent, hero }: { items: { code?: string; src?: string
   )
 }
 
-// Cities Abroad: three passport stamps for one city, in clay, sky and ink.
-// textLength pins each name's width, so it fits before the font loads.
-function AbroadStamps() {
+// The Abroad games: three passport stamps, in clay, sky and ink. Each name's
+// textLength pins its width, so it fits before the font loads.
+interface StampText { label: string; name: string; lang: string; size: number; width: number; sub?: string; labelSize?: number; subSize?: number }
+const ABROAD_STAMPS: Record<string, { rect: StampText; circle: StampText; pill: StampText }> = {
+  // One city three ways: Slovenian BENETKE, Russian ВЕНЕЦИЯ, and the English VENICE the player names.
+  citiesabroad: {
+    rect: { label: "VSTOP", name: "BENETKE", lang: "sl", size: 9.6, width: 40, sub: "SLOVENŠČINA", subSize: 3 },
+    circle: { label: "РУССКИЙ", name: "ВЕНЕЦИЯ", lang: "ru", size: 8, width: 29, labelSize: 3.2 },
+    pill: { label: "ENGLISH", name: "VENICE", lang: "en", size: 11.5, width: 40 },
+  },
+  // One country three ways: French ALLEMAGNE, Polish NIEMCY, and the English GERMANY.
+  countriesabroad: {
+    rect: { label: "ENTRÉE", name: "ALLEMAGNE", lang: "fr", size: 8.6, width: 46, sub: "FRANÇAIS", subSize: 3 },
+    circle: { label: "POLSKI", name: "NIEMCY", lang: "pl", size: 8, width: 28, labelSize: 3.2 },
+    pill: { label: "ENGLISH", name: "GERMANY", lang: "en", size: 10.5, width: 46 },
+  },
+  // Three countries, each stamping its own name: SUOMI, 日本 (Nihon), MAGYARORSZÁG.
+  nativenames: {
+    rect: { label: "FINLAND", name: "SUOMI", lang: "fi", size: 10.5, width: 34, sub: "SUOMEKSI", subSize: 3 },
+    circle: { label: "JAPAN", name: "日本", lang: "ja", size: 11, width: 22, labelSize: 3.2, sub: "NIHON", subSize: 3.2 },
+    pill: { label: "HUNGARY", name: "MAGYARORSZÁG", lang: "hu", size: 8.4, width: 54 },
+  },
+}
+function AbroadStamps({ id }: { id: string }) {
+  const { rect, circle, pill } = ABROAD_STAMPS[id] ?? ABROAD_STAMPS.citiesabroad
   const sans = "'Inter', system-ui, sans-serif"
   const ink = { fill: "none", strokeWidth: 1.4 } as const
   const label = (y: number, text: string, color: string, size = 3.4) => (
@@ -171,22 +193,23 @@ function AbroadStamps() {
       <g transform="translate(40 24) rotate(-8)" style={stamp}>
         <rect x={-29} y={-13} width={58} height={26} rx={3} stroke={T.warm} {...ink} />
         <rect x={-26.5} y={-10.5} width={53} height={21} rx={1.8} stroke={T.warm} fill="none" strokeWidth={0.6} />
-        {label(-5.4, "VSTOP", T.warm)}
-        {name(3.6, "BENETKE", T.warm, 9.6, 40, "sl")}
-        {label(8.6, "SLOVENŠČINA", T.warm, 3)}
+        {label(-5.4, rect.label, T.warm)}
+        {name(3.6, rect.name, T.warm, rect.size, rect.width, rect.lang)}
+        {rect.sub && label(8.6, rect.sub, T.warm, rect.subSize)}
       </g>
       <g transform="translate(103 26) rotate(11)" style={stamp}>
         <circle r={21} stroke={T.cyan} {...ink} />
         <circle r={17.6} stroke={T.cyan} fill="none" strokeWidth={0.6} />
         <line x1={-16.4} x2={16.4} y1={-6.2} y2={-6.2} stroke={T.cyan} strokeWidth={0.6} />
         <line x1={-16.4} x2={16.4} y1={6} y2={6} stroke={T.cyan} strokeWidth={0.6} />
-        {label(-9.4, "РУССКИЙ", T.cyan, 3.2)}
-        {name(3.1, "ВЕНЕЦИЯ", T.cyan, 8, 29, "ru")}
+        {label(-9.4, circle.label, T.cyan, circle.labelSize)}
+        {name(circle.sub ? 3.8 : 3.1, circle.name, T.cyan, circle.size, circle.width, circle.lang)}
+        {circle.sub && label(11.4, circle.sub, T.cyan, circle.subSize)}
       </g>
       <g transform="translate(71 52) rotate(-3)" style={stamp}>
         <rect x={-32} y={-12.5} width={64} height={25} rx={12.5} stroke={T.text} fill="none" strokeWidth={1.6} />
-        {label(-5.2, "ENGLISH", T.text)}
-        {name(5.4, "VENICE", T.text, 11.5, 40, "en")}
+        {label(-5.2, pill.label, T.text)}
+        {name(5.4, pill.name, T.text, pill.size, pill.width, pill.lang)}
       </g>
     </svg>
   )
@@ -517,11 +540,13 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
         </div>
       ) }
     case "citiesabroad":
-      // One city stamped three ways, like passport stamps: Slovenian
-      // BENETKE, Russian ВЕНЕЦИЯ, and the English VENICE the player names.
+    case "countriesabroad":
+    case "nativenames":
+      // Passport stamps (ABROAD_STAMPS): one city or country stamped three
+      // ways, or three countries each stamping its own name.
       return { bleed: false, node: (
         <div style={{ ...box, background: wash }}>
-          <AbroadStamps />
+          <AbroadStamps id={id} />
         </div>
       ) }
     case "statclash":

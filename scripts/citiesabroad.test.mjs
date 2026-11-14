@@ -346,7 +346,8 @@ test('the answer box never mentions a name, so iOS offers no contact AutoFill', 
   assert.equal(GUESS_FIELD.spellCheck, false)
   // Every <input> on the screen (the answer box and the keyboard stand-in),
   // read from the source: no attribute mentions a name, and none has one.
-  const screen = fs.readFileSync(path.join(ROOT, 'src/components/CitiesAbroadScreen.tsx'), 'utf8')
+  // The screen is shared by the three Abroad games (AbroadScreen.tsx).
+  const screen = fs.readFileSync(path.join(ROOT, 'src/components/AbroadScreen.tsx'), 'utf8')
   const inputs = [...screen.matchAll(/<input\b[\s\S]*?\/>/g)].map(m => m[0])
   assert.equal(inputs.length, 2)
   for (const tag of inputs) {

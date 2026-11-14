@@ -17,6 +17,7 @@
 //               changes across syllables (liaison, nasal and l assimilation)
 //   Japanese    modified Hepburn, for names written wholly in katakana; ー
 //               lengthens the vowel before it (ウィーン is Wīn)
+//   Mongolian   MNS 5217:2012, Mongolia's national standard (Native Names only)
 // Chinese, Arabic, Hebrew, Hindi and Thai have no such rule-based spelling for
 // these names, so the game leaves them out.
 
@@ -321,8 +322,16 @@ export function romaniseJapanese(text) {
   return out.replace(/(^|\s)(\p{Ll})/gu, (_, sp, c) => sp + c.toUpperCase())
 }
 
+// ── Mongolian Cyrillic (MNS 5217:2012) ────────────────────────────────────
+const MN = {
+  а: 'a', б: 'b', в: 'v', г: 'g', д: 'd', е: 'ye', ё: 'yo', ж: 'j', з: 'z', и: 'i', й: 'i', к: 'k', л: 'l',
+  м: 'm', н: 'n', о: 'o', ө: 'ö', п: 'p', р: 'r', с: 's', т: 't', у: 'u', ү: 'ü', ф: 'f', х: 'kh', ц: 'ts',
+  ч: 'ch', ш: 'sh', щ: 'shch', ъ: 'i', ы: 'y', ь: 'i', э: 'e', ю: 'yu', я: 'ya',
+}
+export const romaniseMongolian = letterForLetter(MN)
+
 export const ROMANISERS = {
   ru: romaniseRussian, uk: romaniseUkrainian, be: romaniseBelarusian, bg: romaniseBulgarian,
   sr: romaniseSerbian, mk: romaniseMacedonian, el: romaniseGreek, ka: romaniseGeorgian,
-  hy: romaniseArmenian, ko: romaniseKorean, ja: romaniseJapanese,
+  hy: romaniseArmenian, ko: romaniseKorean, ja: romaniseJapanese, mn: romaniseMongolian,
 }

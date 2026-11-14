@@ -94,6 +94,8 @@ export const REGISTRY: Entry[] = [
   { id: "reversequiz", action: "reverse", title: "Flag ID Challenge", subtitle: "See the name, pick the flag", icon: "🎯", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "capitalquiz", title: "Capital Cities", subtitle: "Name that capital", icon: "🏛️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "citiesabroad", title: "Cities Abroad", subtitle: "Benetke → Venice", icon: "🧳", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  { id: "countriesabroad", title: "Countries Abroad", subtitle: "Allemagne → Germany", icon: "✈️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  { id: "nativenames", title: "Native Names", subtitle: "Suomi → Finland", icon: "🏠", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "statclash", title: "Stat Clash", subtitle: "Bigger population or area?", icon: "⚖️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill", featured: true },
   { id: "prideroulette", title: "Pride Roulette", subtitle: "Name the pride flag · survival", icon: "🏳️‍🌈", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
 
