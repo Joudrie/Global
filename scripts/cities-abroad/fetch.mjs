@@ -30,7 +30,11 @@
 import fs from 'node:fs'
 import path from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { ROMANISERS, isKatakana } from './romanise.mjs'
+import { ROMANISERS } from './romanise.mjs'
+import {
+  LANG_NAME, FAM, ORDER, NON_LATIN_FAM, sparql, qid, pause, chunks, wikiOf, bareTitle, LATIN_RE, SCRIPT_OK, variants,
+  closeness as closenessTo, soundCloseness as soundClosenessTo,
+} from './shared.mjs'
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../..')
 const src = f => import(path.join(ROOT, 'src', f))
@@ -41,33 +45,8 @@ const { foldName, soundFold, coreOf, nameWords, contentWords, acceptedAnswers, l
 
 const OUT = path.join(ROOT, 'src/data/citiesAbroad.ts')
 const CACHE = path.join(ROOT, 'node_modules/.cache/cities-abroad.json')
-const UA = 'GlobalioBuild/1.0 (https://globalio.app)'
 const OFFLINE = process.argv.includes('--offline')
 const DUMP = process.argv.includes('--dump')
-
-// Latin-script languages, most familiar to an English speaker first. `fam`
-// (0–1) feeds the tier and the value.
-const LATIN = [
-  ['es', 'Spanish', 1], ['fr', 'French', 1], ['de', 'German', 1], ['it', 'Italian', 1], ['pt', 'Portuguese', 0.9],
-  ['nl', 'Dutch', 0.8], ['ca', 'Catalan', 0.7], ['gl', 'Galician', 0.65], ['sv', 'Swedish', 0.7], ['da', 'Danish', 0.7],
-  ['nb', 'Norwegian', 0.7], ['nn', 'Norwegian Nynorsk', 0.6], ['lb', 'Luxembourgish', 0.6], ['af', 'Afrikaans', 0.6],
-  ['ro', 'Romanian', 0.6], ['pl', 'Polish', 0.55], ['tr', 'Turkish', 0.55], ['cs', 'Czech', 0.5], ['sk', 'Slovak', 0.5],
-  ['hr', 'Croatian', 0.5], ['bs', 'Bosnian', 0.45], ['sl', 'Slovenian', 0.45], ['hu', 'Hungarian', 0.45], ['fi', 'Finnish', 0.45],
-  ['id', 'Indonesian', 0.5], ['ms', 'Malay', 0.45], ['tl', 'Tagalog', 0.4], ['mt', 'Maltese', 0.45], ['sq', 'Albanian', 0.4],
-  ['et', 'Estonian', 0.4], ['lv', 'Latvian', 0.4], ['lt', 'Lithuanian', 0.4], ['is', 'Icelandic', 0.4], ['fo', 'Faroese', 0.35],
-  ['ga', 'Irish', 0.4], ['cy', 'Welsh', 0.4], ['gd', 'Scottish Gaelic', 0.35], ['br', 'Breton', 0.35], ['eu', 'Basque', 0.35],
-  ['az', 'Azerbaijani', 0.35], ['uz', 'Uzbek', 0.35], ['vi', 'Vietnamese', 0.35], ['sw', 'Swahili', 0.4],
-  ['xh', 'Xhosa', 0.3], ['zu', 'Zulu', 0.3], ['mi', 'Māori', 0.3],
-]
-// Other scripts, each with a rule-based Latin spelling (romanise.mjs).
-const NON_LATIN = [
-  ['ru', 'Russian'], ['uk', 'Ukrainian'], ['be', 'Belarusian'], ['bg', 'Bulgarian'], ['sr', 'Serbian'], ['mk', 'Macedonian'],
-  ['el', 'Greek'], ['ka', 'Georgian'], ['hy', 'Armenian'], ['ko', 'Korean'], ['ja', 'Japanese'],
-]
-const LANG_NAME = Object.fromEntries([...LATIN, ...NON_LATIN].map(([c, n]) => [c, n]))
-const FAM = Object.fromEntries(LATIN.map(([c, , f]) => [c, f]))
-const ORDER = [...LATIN, ...NON_LATIN].map(([c]) => c)
-const NON_LATIN_FAM = 0.2
 
 // A town or city needs this many sitelinks to count as famous. Capitals always
 // count, and so do the well-known smaller cities in ALLOW_CITY. Wikidata is
@@ -161,31 +140,9 @@ const VALUE_OVERRIDES = {
   'copenhagen:Kaupmannahöfn': 30, 'cape-town:iKapa': 30, 'saint-petersburg:Pietari': 30, 'vienna:Bécs': 30,
 }
 
-// ── Wikidata ──────────────────────────────────────────────────────────────
-async function sparql(query) {
-  for (let attempt = 1; ; attempt++) {
-    const res = await fetch('https://query.wikidata.org/sparql', {
-      method: 'POST',
-      headers: { 'User-Agent': UA, Accept: 'application/sparql-results+json', 'Content-Type': 'application/x-www-form-urlencoded' },
-      body: new URLSearchParams({ query }),
-      signal: AbortSignal.timeout(110_000),
-    }).catch(err => ({ ok: false, status: 0, text: async () => String(err), headers: new Headers() }))
-    // A query that runs out of time mid-answer comes back cut off: retry it like an error.
-    let status = res.status
-    if (res.ok) {
-      try { return JSON.parse(await res.text()).results.bindings } catch { status = 0 }
-    }
-    if (attempt >= 5 || ![0, 429, 500, 502, 503, 504].includes(status)) throw new Error(`Wikidata ${status}: ${res.ok ? 'answer cut off' : (await res.text()).slice(0, 300)}`)
-    const wait = Number(res.headers.get('retry-after')) || attempt * 15
-    console.warn(`Wikidata ${status || 'answer cut off'}, retrying in ${wait}s`)
-    await new Promise(r => setTimeout(r, wait * 1000))
-  }
-}
-const qid = uri => uri.replace('http://www.wikidata.org/entity/', '')
-const pause = () => new Promise(r => setTimeout(r, 1500)) // be polite between queries
-const chunks = (list, n) => Array.from({ length: Math.ceil(list.length / n) }, (_, i) => list.slice(i * n, i * n + n))
+// The language lists, the Wikidata helper, spellings and closeness measures
+// live in shared.mjs, with the Countries Abroad script.
 const values = qs => `VALUES ?city { ${qs.map(q => `wd:${q}`).join(' ')} }`
-const wikiOf = lang => `https://${lang === 'nb' ? 'no' : lang}.wikipedia.org/`
 
 async function download() {
   // Capitals: each country's current capital (P36).
@@ -329,13 +286,6 @@ for (const c of candidates) {
 }
 
 // ── Names ─────────────────────────────────────────────────────────────────
-const LATIN_RE = /^[\p{Script=Latin}\s\-–'’ʻʼ.,()·]+$/u // · for Catalan l·l
-const CYRILLIC = /^[\p{Script=Cyrillic}\s\-–'’ʼ.]+$/u
-const SCRIPT_OK = {
-  ru: CYRILLIC, uk: CYRILLIC, be: CYRILLIC, bg: CYRILLIC, sr: CYRILLIC, mk: CYRILLIC,
-  el: /^[\p{Script=Greek}\s\-–'’.]+$/u, ka: /^[\p{Script=Georgian}\s\-–]+$/u, hy: /^[\p{Script=Armenian}\s\-–]+$/u,
-  ko: /^[\p{Script=Hangul}\s\-–·]+$/u, ja: { test: isKatakana },
-}
 // True when some run of whole words in the name is already a right answer:
 // "Kuwait-Stadt" and "Ciudad de México" can be answered by copying a word.
 function containsAnswer(name, right) {
@@ -355,26 +305,6 @@ function coversAnswer(c, shown) {
   }
   return false
 }
-// Other spellings of a shown name to hold up against the English: without a
-// Xhosa or Zulu noun prefix (iKapa → Kapa, eRoma → Roma), without a
-// Lithuanian or Latvian ending (Berlynas → Berlyn), and Korean and Japanese
-// without the vowels they put between consonants, with r for l
-// (Bereullin → bellin, Berurin → bellin).
-function variants(lang, shown) {
-  const out = [shown]
-  const prefix = shown.match(/^[iueao]-?(?=\p{Lu})/iu)
-  if ((lang === 'xh' || lang === 'zu') && prefix) out.push(shown.slice(prefix[0].length))
-  if (lang === 'lt') out.push(shown.replace(/(ius|ias|as|is|ys|us|a|ė|e|ai|os)$/u, ''))
-  if (lang === 'lv') out.push(shown.replace(/(is|us|s|a|e)$/u, ''))
-  const plain = shown.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase()
-  if (lang === 'ko') {
-    // 시 after a name is "city" (상하이시, Sanghaisi).
-    const city = plain.replace(/[\s-]*si$/, '')
-    out.push(city, city.replace(/eu(?=[^aeiouy]|$)/g, '').replace(/r/g, 'l'))
-  }
-  if (lang === 'ja') out.push(plain.replace(/([^aeiouyn'])u(?=[^aeiouy]|$)/g, '$1').replace(/([td])o(?=[^aeiouy]|$)/g, '$1').replace(/r/g, 'l'))
-  return out.filter(v => v.length >= 2)
-}
 // Countries whose own languages aren't written in Latin letters. Their cities'
 // Latin-script names are mostly transliterations (Donezk, Sotschi, Jerewan):
 // unless the city is among the best known, such a name has to stray further
@@ -393,9 +323,6 @@ function isTransliteration(c, lang, shown) {
     return editDistance(a, b) / Math.max(a.length, b.length) <= TRANSLIT_RATIO
   })
 }
-// The Wikipedia title without its disambiguation: "Victoria (Seychelles)" → "Victoria".
-const bareTitle = t => t.replace(/\s*\(.*\)\s*$/, '').replace(/,.*$/, '').trim()
-
 // Every English country, capital and city name, to catch a foreign name that
 // is another place's English name.
 const englishNames = new Map()
@@ -463,38 +390,10 @@ const CITY = Object.fromEntries(cities.map(c => [c.id, c]))
 const used = cities.filter(c => names.some(n => n.city === c.id))
 
 // ── Tiers, values and ranks ───────────────────────────────────────────────
-// Closeness to the English, 0–1, on the sound-alike spelling without articles:
-// edit distance, plus credit for a shared start (the first letters are what a
-// reader recognises).
-function closeness(city, foreign) {
-  let best = 0
-  for (const e of [city.city, ...(CITY_ALIASES[city.id] ?? [])]) {
-    const a = soundFold(coreOf(e)), b = soundFold(coreOf(foreign))
-    const lev = 1 - editDistance(a, b) / Math.max(a.length, b.length)
-    let p = 0
-    while (p < Math.min(a.length, b.length) && a[p] === b[p]) p++
-    const prefix = Math.min(1, p / Math.min(4, a.length, b.length))
-    best = Math.max(best, 0.7 * lev + 0.3 * prefix)
-  }
-  return best
-}
-// The consonants of a name in sound classes, vowels and h dropped: what is left
-// when a name is only respelled ("Keyptaun" and "Cape Town" are both KPTN,
-// "Wien" and "Vienna" both FN), not renamed ("Höfðaborg" is FTPLK).
-function skeleton(s) {
-  return soundFold(s)
-    .replace(/dzh|dsh|dj|tsh|ch|sh|zh|j/g, 'J').replace(/th/g, 'T').replace(/kh|gh/g, 'K').replace(/ng/g, 'N')
-    .replace(/ts|tz|z|s|c/g, 'S').replace(/[bp]/g, 'P').replace(/[fvw]/g, 'F').replace(/[kgq]/g, 'K')
-    .replace(/[dt]/g, 'T').replace(/[lr]/g, 'L').replace(/[mn]/g, 'N').replace(/[a-z0-9]/g, '').replace(/(.)\1+/g, '$1')
-}
-function soundCloseness(city, foreign) {
-  let best = 0
-  for (const e of [city.city, ...(CITY_ALIASES[city.id] ?? [])]) {
-    const a = skeleton(coreOf(e)), b = skeleton(coreOf(foreign))
-    best = Math.max(best, 1 - editDistance(a, b) / Math.max(1, a.length, b.length))
-  }
-  return best
-}
+// Closeness to the English (shared.mjs), against the city's English name and alternatives.
+const englishOf = city => [city.city, ...(CITY_ALIASES[city.id] ?? [])]
+const closeness = (city, foreign) => closenessTo(englishOf(city), foreign)
+const soundCloseness = (city, foreign) => soundClosenessTo(englishOf(city), foreign)
 // How well known a city is: its rank by sitelinks among the cities used, 0 (least) – 1 (most).
 const byLinks = [...used].sort((a, b) => a.links - b.links)
 const FAME = Object.fromEntries(byLinks.map((c, i) => [c.id, i / Math.max(1, byLinks.length - 1)]))

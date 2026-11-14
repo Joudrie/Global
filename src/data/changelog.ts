@@ -5,6 +5,16 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-14",
+    title: "Two new games: Countries Abroad and Native Names",
+    items: [
+      "Countries Abroad: name the country from its name in another language. Allemagne, Niemcy, Saksa and Almanya are all Germany, Ruotsi is Sweden and Viro is Estonia. 1,900 names for 184 countries in 57 languages.",
+      "Native Names: name the country from what it calls itself. Suomi is Finland, Magyarország is Hungary, Sakartvelo is Georgia and Druk Yul is Bhutan. 85 names for 68 countries in 64 languages, each in its own script with a Latin spelling under it.",
+      "Both play like Cities Abroad: ten right before three strikes on easy, medium or hard. Typing scores double, and a hint (the region and the first letter) halves the points.",
+      "Names spelled like the English one are left out, a small slip in spelling still counts, and look-alike countries never count for each other: Niger is not Nigeria and Austria is not Australia.",
+    ],
+  },
+  {
+    date: "2026-11-14",
     title: "New game: Cities Abroad",
     items: [
       "Name the city from its name in another language: Wien is Vienna, Benetke is Venice, Kaupmannahöfn is Copenhagen and Pietari is Saint Petersburg. Get ten right before three strikes.",

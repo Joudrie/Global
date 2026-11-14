@@ -576,6 +576,8 @@ const GAME_DESC = {
   reversequiz: 'You are given a country name. Pick its flag from the options.',
   capitalquiz: 'Name the capital city of each country.',
   citiesabroad: 'Name the city from its name in another language, from Wien and Benetke to Kaupmannahöfn and Москва. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,732 names for 310 cities in 57 languages, from Wikidata.',
+  countriesabroad: 'Name the country from its name in another language, from Allemagne and Niemcy to Saksa, Németország and Китай. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,900 names for 184 countries in 57 languages, from Wikidata.',
+  nativenames: 'Name the country from what it calls itself, from Deutschland and Suomi to Magyarország, Sakartvelo and 日本 (Nihon). Ten right before three strikes wins, and the further a name strays from English, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 85 names for 68 countries in 64 languages, with a Latin spelling under every other script.',
   statclash: 'Two countries, one question: which has the bigger population or area?',
   prideroulette: 'Name pride flags one after another. One mistake and the run is over.',
   language: 'Read a sentence and pick which of 88 languages it is written in, from easy to extreme.',
