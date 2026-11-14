@@ -38,7 +38,7 @@ const MAP: Record<string, LucideIcon> = {
   capitalmatch: Building2, oddborder: Signpost, continentsort: FolderTree, statclash: Scale,
   worldcup: Trophy, connections: Grid2x2, mail: Mail,
   flagstudio: PenTool, prideroulette: Rainbow, uscityflags: Building, intro: RotateCcw, atlas: Hourglass,
-  capitalsabroad: Luggage,
+  citiesabroad: Luggage,
   // semantic names for result headers, buttons and labels (instead of emoji)
   trophy: Trophy, award: Award, target: Target, compass: Compass, flame: Flame, crown: Crown,
   check: Check, moon: Moon,

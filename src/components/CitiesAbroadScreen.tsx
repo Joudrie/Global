@@ -2,35 +2,37 @@ import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, FormEvent } from "react"
 import { flushSync } from "react-dom"
 import { Check, Lightbulb, X } from "lucide-react"
-import { ABROAD_CAPITALS, ABROAD_LANGUAGES, ABROAD_NAMES } from "../data/capitalsAbroad"
-import { TIERS, hintFor, isCorrectAnswer, isNearMiss, listLanguages, maxScore, pickRounds, roundPoints } from "../utils/capitalsAbroad"
-import type { AbroadName, AnswerMode, Round, Tier } from "../utils/capitalsAbroad"
+import { ABROAD_CITIES, ABROAD_LANGUAGES, ABROAD_NAMES } from "../data/citiesAbroad"
+import { GUESS_FIELD, STRIKES, TARGET, TIERS, TIER_SAMPLES, gameState, hintFor, isCity, judgeAnswer, listLanguages, pickRounds, roundPoints } from "../utils/citiesAbroad"
+import type { AbroadName, AnswerMode, GameState, Round, Tier, Verdict } from "../utils/citiesAbroad"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, PrimaryButton, ResultCard, ResultDots, ResultHeader, SecondaryButton } from "./gameUi"
+import { PrimaryButton, ResultCard, ResultDots, ResultHeader, SecondaryButton } from "./gameUi"
 import { GamePoster } from "./GamePoster"
 
-/* Capitals Abroad — a capital's name as another language writes it
-   ("Varsovia", Spanish); type the English name ("Warsaw"), or pick it from
-   four. The names come from Wikidata (src/data/capitalsAbroad.ts).
+/* Cities Abroad — a city's name as another language writes it ("Benetke",
+   Slovenian); type the English name ("Venice"), or pick it from four. Ten
+   right before three strikes wins. The names come from Wikidata
+   (src/data/citiesAbroad.ts); the further a name strays from English, the
+   more it's worth.
 
    The start screen is one tap: the answer switch keeps its last setting, and
-   tapping a difficulty starts the game. Category tabs (countries in other
-   languages, native names) can sit above the answer switch once they exist. */
+   tapping a difficulty starts the game. */
 
 interface Props { onBack: () => void; onFinish?: () => void }
 
 const ACC = ACCENT.drill
-const PREFS_KEY = "globalio_capitalsabroad_prefs" // { mode, tier } last chosen
-const BEST_KEY = "globalio_capitalsabroad_best"   // { "easy-type": 180, … }
+const PREFS_KEY = "globalio_citiesabroad_prefs" // { mode, tier } last chosen
+const BEST_KEY = "globalio_citiesabroad_best"   // { "easy-type": 340, … }
 const PRESS_MS = 240 // how long a tapped difficulty shows its fill before round 1
 
-const TIER_META: Record<Tier, { label: string; color: string; sample: string; sampleLang: string }> = {
-  easy:   { label: "Easy",   color: T.green,  sample: "Roma",    sampleLang: "it" },
-  medium: { label: "Medium", color: T.gold,   sample: "Londres", sampleLang: "es" },
-  hard:   { label: "Hard",   color: T.danger, sample: "Москва",  sampleLang: "ru" },
+const TIER_META: Record<Tier, { label: string; color: string }> = {
+  easy:   { label: "Easy",   color: T.green },
+  medium: { label: "Medium", color: T.gold },
+  hard:   { label: "Hard",   color: T.danger },
 }
 const MODE_LABEL: Record<AnswerMode, string> = { type: "Type it", choice: "4 choices" }
+const CITY_LIST = Object.values(ABROAD_CITIES)
 
 // Storage can be missing or throw (private windows); the game works without it.
 const read = <V,>(key: string, fallback: V): V => { try { return JSON.parse(localStorage.getItem(key) ?? "null") ?? fallback } catch { return fallback } }
@@ -46,20 +48,21 @@ const loadBest = (): Record<string, number> => {
   return Object.fromEntries(Object.entries(b).filter(([, v]) => typeof v === "number")) as Record<string, number>
 }
 
-const langsOf = (n: AbroadName) => listLanguages(n.langs, ABROAD_LANGUAGES)
-// "Varsovia — Spanish for Warsaw, Poland"; "Москва (Moskva) — Russian and Ukrainian for Moscow, Russia"
-const learnLine = (r: Round) => `${r.entry.name}${r.entry.roman ? ` (${r.entry.roman})` : ""} — ${langsOf(r.entry)} for ${r.capital.capital}, ${r.capital.country}`
-const scoreOf = (mode: AnswerMode, answers: Answer[]) => answers.reduce((s, a) => s + roundPoints(mode, a.correct, a.hinted), 0)
+const langsOf = (n: AbroadName, max = 3) => listLanguages(n.langs, ABROAD_LANGUAGES, max)
+const shownOf = (n: AbroadName) => n.roman ?? n.name
+// "Benetke — Slovenian for Venice, Italy"; "Москва (Moskva) — Russian for Moscow, Russia"
+const learnLine = (r: Round) => `${r.entry.name}${r.entry.roman ? ` (${r.entry.roman})` : ""} — ${langsOf(r.entry)} for ${r.city.city}, ${r.city.country}`
 
 // Visually hidden, still read aloud.
 const srOnly: CSSProperties = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }
 
-interface Answer { correct: boolean; hinted: boolean; given: string }
+interface Answer extends Verdict { hinted: boolean; given: string; points: number }
 interface Game { id: number; tier: Tier; mode: AnswerMode; rounds: Round[] }
-interface Outcome { answers: Answer[]; best: number; beat: boolean }
+interface Outcome { answers: Answer[]; state: GameState; best: number; beat: boolean }
+const scoreOf = (answers: Answer[]) => answers.reduce((s, a) => s + a.points, 0)
 
 // Motion: every animation answers a tap (difficulty fill, feedback, the next
-// card); all are short and ease out, and none run under reduced motion.
+// card, a strike); all are short and ease out, and none run under reduced motion.
 const STYLES = `
   .ca-tap { transition: background-color 200ms ease-out, border-color 200ms ease-out, color 200ms ease-out; }
   .ca-tap:focus-visible, .ca-input:focus-visible { outline: 2px solid ${T.cyan}; outline-offset: 2px; }
@@ -69,25 +72,25 @@ const STYLES = `
     .ca-hint:not(:disabled):hover { border-color: ${tint(ACC, 0.7)}; }
   }
   .ca-input { outline: none; transition: border-color 150ms ease-out; }
-  .ca-bar { transition: width 200ms ease-out; }
+  .ca-bar, .ca-strike { transition: width 200ms ease-out, background-color 200ms ease-out, border-color 200ms ease-out; }
   @keyframes caIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
   @keyframes caFade { from { opacity: 0; } to { opacity: 1; } }
   .ca-in { animation: caIn 200ms ease-out both; }
   .ca-fade { animation: caFade 160ms ease-out both; }
   @media (prefers-reduced-motion: reduce) {
-    .ca-tap, .ca-input, .ca-bar { transition: none; }
+    .ca-tap, .ca-input, .ca-bar, .ca-strike { transition: none; }
     .ca-in, .ca-fade { animation: none; }
   }
 `
 
-export default function CapitalsAbroadScreen({ onBack, onFinish }: Props) {
+export default function CitiesAbroadScreen({ onBack, onFinish }: Props) {
   const [prefs, setPrefs] = useState(loadPrefs)
   const [game, setGame] = useState<Game | null>(null)
   const [outcome, setOutcome] = useState<Outcome | null>(null)
 
   const begin = (tier: Tier, mode: AnswerMode) => {
     setOutcome(null)
-    setGame(g => ({ id: (g?.id ?? 0) + 1, tier, mode, rounds: pickRounds(ABROAD_NAMES, ABROAD_CAPITALS, tier, Math.random) }))
+    setGame(g => ({ id: (g?.id ?? 0) + 1, tier, mode, rounds: pickRounds(ABROAD_NAMES, ABROAD_CITIES, tier, Math.random) }))
     window.scrollTo({ top: 0 })
   }
   const choose = (next: Partial<Prefs>) => {
@@ -99,9 +102,9 @@ export default function CapitalsAbroadScreen({ onBack, onFinish }: Props) {
     const all = loadBest()
     const key = bestKey(g.tier, g.mode)
     const prev = all[key]
-    const score = scoreOf(g.mode, answers)
+    const score = scoreOf(answers)
     if (prev === undefined || score > prev) write(BEST_KEY, { ...all, [key]: score })
-    setOutcome({ answers, best: Math.max(prev ?? 0, score), beat: prev !== undefined && score > prev })
+    setOutcome({ answers, state: gameState(answers), best: Math.max(prev ?? 0, score), beat: prev !== undefined && score > prev })
     onFinish?.()
     window.scrollTo({ top: 0 })
   }
@@ -126,6 +129,7 @@ function Start({ prefs, onMode, onStart, onBack }:
   // iOS opens the keyboard only for a focus inside the tap itself, and round 1
   // appears PRESS_MS later. So the tap focuses this stand-in box, and the
   // keyboard stays up while round 1's answer box takes the focus from it.
+  // Like the answer box, it says nothing about names, so iOS offers no contacts.
   const keyProxy = useRef<HTMLInputElement>(null)
   useEffect(() => () => { if (timer.current) clearTimeout(timer.current) }, [])
   const best = loadBest()
@@ -139,16 +143,16 @@ function Start({ prefs, onMode, onStart, onBack }:
 
   return (
     <>
-      <ScreenHeader title="Capitals Abroad" onBack={onBack} />
+      <ScreenHeader title="Cities Abroad" onBack={onBack} />
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "4px 16px 32px", gap: 20 }}>
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div aria-hidden style={{ position: "relative", height: 112, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}` }}>
-            <GamePoster id="capitalsabroad" accent={ACC} />
+            <GamePoster id="citiesabroad" accent={ACC} />
           </div>
           <div>
-            <h2 className="geo-display" style={{ margin: 0, fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: T.text }}>Name the capital, written in another language</h2>
+            <h2 className="geo-display" style={{ margin: 0, fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: T.text }}>Name the city from its name in another language.</h2>
             <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.5, color: T.muted }}>
-              Ten capitals the way Spanish, German, Russian or Greek speakers write them. Answer with the English name.
+              Get ten right before three strikes. The further a name strays from English, the more it's worth.
             </p>
           </div>
         </section>
@@ -169,7 +173,7 @@ function Start({ prefs, onMode, onStart, onBack }:
               )
             })}
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: T.muted }}>Typing scores double.</p>
+          <p style={{ margin: 0, fontSize: 13, color: T.muted }}>Typing scores double. Small slips in spelling still count.</p>
         </section>
 
         <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -192,7 +196,7 @@ function Start({ prefs, onMode, onStart, onBack }:
                       <span aria-hidden style={{ width: 8, height: 8, borderRadius: 999, background: on ? T.onAccent : m.color }} />
                       <span className="geo-display" style={{ fontSize: 19, fontWeight: 700, lineHeight: 1.1 }}>{m.label}</span>
                     </span>
-                    <span lang={m.sampleLang} style={{ fontSize: 13, color: on ? T.onAccent : T.muted, fontFamily: FONT.display }}>{m.sample}</span>
+                    <span lang={TIER_SAMPLES[t].lang} style={{ fontSize: 13, color: on ? T.onAccent : T.muted, fontFamily: FONT.display }}>{TIER_SAMPLES[t].name}</span>
                     <span className="geo-mono" style={{ fontSize: 12, color: on ? T.onAccent : T.dim }}>{b !== undefined ? `Best ${b}` : "Best —"}</span>
                   </button>
                   <span aria-hidden className="geo-micro" style={{ fontSize: 10, textAlign: "center", color: last ? T.muted : "transparent" }}>Last played</span>
@@ -201,14 +205,32 @@ function Start({ prefs, onMode, onStart, onBack }:
             })}
           </div>
         </section>
-        <input ref={keyProxy} aria-hidden tabIndex={-1} autoComplete="off" autoCorrect="off" autoCapitalize="words" spellCheck={false}
+        <input ref={keyProxy} aria-hidden tabIndex={-1} autoComplete={GUESS_FIELD.autoComplete} autoCorrect={GUESS_FIELD.autoCorrect}
+          autoCapitalize={GUESS_FIELD.autoCapitalize} spellCheck={GUESS_FIELD.spellCheck}
           style={{ position: "fixed", top: 0, left: 0, width: 1, height: 1, padding: 0, border: 0, opacity: 0, fontSize: 16, pointerEvents: "none" }} />
       </main>
     </>
   )
 }
 
-/* ── A game: ten rounds, then the result. ───────────────────────────────── */
+/* ── Three strikes in the header: hollow until used. ────────────────────── */
+function Strikes({ used }: { used: number }) {
+  return (
+    <span role="img" aria-label={`${used} of ${STRIKES} strikes`} style={{ display: "inline-flex", gap: 4, flexShrink: 0 }}>
+      {Array.from({ length: STRIKES }, (_, i) => {
+        const on = i < used
+        return (
+          <span key={i} className="ca-strike" style={{ width: 24, height: 24, borderRadius: 8, display: "grid", placeItems: "center",
+            background: on ? T.danger : "transparent", border: `1.5px solid ${on ? T.danger : T.line}`, color: on ? T.onAccent : "transparent" }}>
+            <X size={14} strokeWidth={2.6} aria-hidden />
+          </span>
+        )
+      })}
+    </span>
+  )
+}
+
+/* ── A game: rounds until ten right or three strikes, then the result. ──── */
 function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone: (a: Answer[]) => void }) {
   const { tier, mode, rounds } = game
   const [idx, setIdx] = useState(0)
@@ -223,12 +245,13 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
   const r = rounds[idx]
   const answer = answers[idx] as Answer | undefined
   const answered = !!answer
-  const score = scoreOf(mode, answers)
-  let streak = 0
-  for (let i = answers.length - 1; i >= 0 && answers[i].correct; i--) streak++
-  const last = idx + 1 >= rounds.length
+  const score = scoreOf(answers)
+  const right = answers.filter(a => a.correct).length
+  const strikes = answers.length - right
+  const state = gameState(answers)
+  const over = state !== "playing" || idx + 1 >= rounds.length
   const m = TIER_META[tier]
-  const near = !!answer && !answer.correct && mode === "type" && isNearMiss(r.capital, answer.given)
+  const worth = roundPoints(r.entry.value, mode, true, hinted)
 
   // Typing: the box takes focus each round (the start screen has none, so the
   // keyboard never opens there). After an answer, Next takes focus so Enter
@@ -236,14 +259,14 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
   useEffect(() => { if (mode === "type" && !answered) inputRef.current?.focus({ preventScroll: true }) }, [idx, mode, answered])
   useEffect(() => { if (answered) nextWrap.current?.querySelector("button")?.focus({ preventScroll: true }) }, [answered])
 
-  const submit = (given: string) => {
+  const submit = (given: string, verdict: Verdict) => {
     if (answered || locked.current || !given.trim()) return
     locked.current = true
-    setAnswers(a => [...a, { correct: isCorrectAnswer(r.capital, given), hinted, given: given.trim() }])
+    setAnswers(a => [...a, { ...verdict, hinted, given: given.trim(), points: roundPoints(r.entry.value, mode, verdict.correct, hinted) }])
   }
   const next = () => {
     if (!answered) return
-    if (last) { onDone(answers); return }
+    if (over) { onDone(answers); return }
     locked.current = false
     // Render the next round now and focus the box inside this tap, so phones
     // open the keyboard for it.
@@ -251,7 +274,11 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
     if (mode === "type") inputRef.current?.focus({ preventScroll: true })
     window.scrollTo({ top: 0 })
   }
-  const pick = (c: string) => { if (answered || locked.current) return; setPicked(c); submit(c) }
+  const pick = (c: string) => {
+    if (answered || locked.current) return
+    setPicked(c)
+    submit(c, { correct: isCity(r.city, c), misspelt: false, near: false })
+  }
 
   // 1–4 pick a choice from the keyboard.
   useEffect(() => {
@@ -264,33 +291,36 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
     return () => window.removeEventListener("keydown", onKey)
   })
 
-  const onSubmit = (e: FormEvent) => { e.preventDefault(); submit(typed) }
+  const onSubmit = (e: FormEvent) => { e.preventDefault(); submit(typed, judgeAnswer(r.city, typed, shownOf(r.entry), CITY_LIST)) }
   const verdict = !answer ? "" : answer.correct
-    ? `Right · +${roundPoints(mode, true, answer.hinted)}`
-    : near ? `Almost · it's spelled ${r.capital.capital}` : `It's ${r.capital.capital}`
+    ? (answer.misspelt ? `Right — it's spelled ${r.city.city} · +${answer.points}` : `Right · +${answer.points}`)
+    : answer.near ? `Almost — it's spelled ${r.city.city}` : `It's ${r.city.city}`
+  const strikeLine = answer && !answer.correct ? (strikes >= STRIKES ? "Third strike: game over." : `Strike ${strikes} of ${STRIKES}.`) : ""
 
   return (
     <>
-      <ScreenHeader title="Capitals Abroad" subtitle={`${m.label} · Round ${idx + 1} of ${rounds.length} · ${score} pts`} onBack={onBack}
-        right={<HeaderStat label="Streak" accent={streak > 0 ? ACC : T.muted}>{streak}</HeaderStat>} />
-      <div role="progressbar" aria-label="Rounds played" aria-valuemin={0} aria-valuemax={rounds.length} aria-valuenow={answers.length}
+      <ScreenHeader title="Cities Abroad" subtitle={`${m.label} · ${right}/${TARGET} right · ${score} pts`} onBack={onBack}
+        right={<Strikes used={strikes} />} />
+      <div role="progressbar" aria-label="Right answers" aria-valuemin={0} aria-valuemax={TARGET} aria-valuenow={right}
+        aria-valuetext={`${right} of ${TARGET} right`}
         style={{ margin: "0 16px", height: 4, borderRadius: 999, background: T.line, overflow: "hidden" }}>
-        <div className="ca-bar" style={{ height: "100%", width: `${(answers.length / rounds.length) * 100}%`, background: m.color }} />
+        <div className="ca-bar" style={{ height: "100%", width: `${(right / TARGET) * 100}%`, background: m.color }} />
       </div>
       {/* One live region for the round and its result, so both are read aloud. */}
       <div aria-live="polite" style={srOnly}>
-        {answer ? `${verdict}. ${learnLine(r)}.` : `Round ${idx + 1}: ${r.entry.name}, in ${langsOf(r.entry)}.`}
+        {answer ? `${verdict}. ${strikeLine} ${learnLine(r)}.` : `${r.entry.name}, in ${langsOf(r.entry)}. Worth ${worth} points.`}
       </div>
 
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "12px 16px 32px", gap: 12 }}>
-        <NameCard key={idx} round={r} hinted={hinted} />
+        <NameCard key={idx} round={r} hinted={hinted} worth={answered ? null : worth} />
 
         {mode === "type" ? (
           <form onSubmit={onSubmit} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-            <label htmlFor="ca-answer" style={srOnly}>The capital's English name</label>
-            <input id="ca-answer" ref={inputRef} className="ca-input" value={answered ? answer.given : typed} readOnly={answered}
-              onChange={e => setTyped(e.target.value)} placeholder="The English name" autoComplete="off" autoCorrect="off"
-              autoCapitalize="words" spellCheck={false} enterKeyHint="go" aria-invalid={answered && !answer.correct ? true : undefined}
+            <label htmlFor={GUESS_FIELD.id} style={srOnly}>{GUESS_FIELD.label}</label>
+            <input id={GUESS_FIELD.id} ref={inputRef} className="ca-input" value={answered ? answer.given : typed} readOnly={answered}
+              onChange={e => setTyped(e.target.value)} placeholder={GUESS_FIELD.placeholder} autoComplete={GUESS_FIELD.autoComplete}
+              autoCorrect={GUESS_FIELD.autoCorrect} autoCapitalize={GUESS_FIELD.autoCapitalize} spellCheck={GUESS_FIELD.spellCheck}
+              enterKeyHint={GUESS_FIELD.enterKeyHint} aria-invalid={answered && !answer.correct ? true : undefined}
               style={{ width: "100%", height: 52, padding: "0 16px", borderRadius: 12, fontSize: 17, fontWeight: 600, color: T.text, background: T.surface,
                 border: `1.5px solid ${answered ? (answer.correct ? T.green : T.danger) : T.line}` }} />
             {!answered && (
@@ -302,20 +332,20 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
           </form>
         ) : (
           <>
-            <div role="group" aria-label="Choose the English name" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div role="group" aria-label="Choose the city in English" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {r.choices.map((c, i) => {
-                const isRight = isCorrectAnswer(r.capital, c)
-                const state = !answered ? "idle" : isRight ? "right" : picked === c ? "wrong" : "off"
-                const color = state === "right" ? T.green : state === "wrong" ? T.danger : null
+                const isRight = isCity(r.city, c)
+                const look = !answered ? "idle" : isRight ? "right" : picked === c ? "wrong" : "off"
+                const color = look === "right" ? T.green : look === "wrong" ? T.danger : null
                 return (
                   <button key={c} type="button" disabled={answered} onClick={() => pick(c)}
-                    aria-label={`${c}${state === "right" ? ", the answer" : state === "wrong" ? ", your answer" : ""}`}
+                    aria-label={`${c}${look === "right" ? ", the answer" : look === "wrong" ? ", your answer" : ""}`}
                     aria-keyshortcuts={String(i + 1)}
                     className="ca-tap ca-choice"
                     style={{ minHeight: 56, padding: "8px 12px", borderRadius: 12, fontSize: 15, fontWeight: 600, lineHeight: 1.25,
                       cursor: answered ? "default" : "pointer", textAlign: "center", overflowWrap: "anywhere",
                       background: color ? tint(color, 0.12) : T.surface, border: `1.5px solid ${color ?? T.line}`,
-                      color: color ?? (state === "off" ? T.muted : T.text) }}>
+                      color: color ?? (look === "off" ? T.muted : T.text) }}>
                     {c}
                   </button>
                 )
@@ -335,11 +365,12 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
               </span>
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: answer.correct ? T.green : T.danger }}>{verdict}</div>
+                {strikeLine && <div style={{ marginTop: 2, fontSize: 13, fontWeight: 600, color: T.muted }}>{strikeLine}</div>}
                 <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.45, color: T.text }}>{learnLine(r)}.</p>
               </div>
             </div>
             <div ref={nextWrap}>
-              <PrimaryButton accent={ACC} onClick={next}>{last ? "See results" : "Next"}</PrimaryButton>
+              <PrimaryButton accent={ACC} onClick={next}>{over ? "See results" : "Next"}</PrimaryButton>
             </div>
           </div>
         )}
@@ -348,16 +379,24 @@ function Play({ game, onBack, onDone }: { game: Game; onBack: () => void; onDone
   )
 }
 
-function NameCard({ round, hinted }: { round: Round; hinted: boolean }) {
+function NameCard({ round, hinted, worth }: { round: Round; hinted: boolean; worth: number | null }) {
   const { entry } = round
   const lang = entry.langs[0]
-  const len = entry.name.length
-  const size = len > 22 ? 26 : len > 14 ? 32 : 40
+  // Sized by the longest word, so a long one (Kaupmannahöfn) fits a phone
+  // without breaking, and by the whole name, so a long one stays on two lines.
+  const longest = Math.max(...entry.name.split(/[\s-]+/).map(w => w.length))
+  const size = Math.min(entry.name.length > 22 ? 26 : entry.name.length > 14 ? 32 : 40,
+    longest > 17 ? 22 : longest > 14 ? 26 : longest > 11 ? 30 : longest > 9 ? 34 : 40)
   return (
-    <section className="ca-in" aria-label="The capital to name"
-      style={{ padding: "20px 16px", borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`, textAlign: "center",
+    <section className="ca-in" aria-label="The city to name"
+      style={{ padding: "16px 16px 20px", borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`, textAlign: "center",
         display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
-      <div className="geo-micro" style={{ fontSize: 11, color: T.muted }}>in {langsOf(entry)}</div>
+      <div style={{ alignSelf: "stretch", display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
+        <span className="geo-micro" style={{ fontSize: 11, color: T.muted, textAlign: "left", minWidth: 0 }}>in {langsOf(entry)}</span>
+        <span className="geo-mono" aria-hidden style={{ flexShrink: 0, fontSize: 12, color: T.muted, fontVariantNumeric: "tabular-nums" }}>
+          {worth !== null ? `${worth} pts` : ""}
+        </span>
+      </div>
       <p lang={lang} className="geo-display" style={{ margin: 0, fontSize: size, fontWeight: 700, lineHeight: 1.15, color: T.text, overflowWrap: "anywhere", hyphens: "auto" }}>
         {entry.name}
       </p>
@@ -366,7 +405,7 @@ function NameCard({ round, hinted }: { round: Round; hinted: boolean }) {
           <span style={srOnly}>In Latin letters: </span><span lang={`${lang}-Latn`}>{entry.roman}</span>
         </p>
       )}
-      {hinted && <p className="ca-fade" style={{ margin: 0, fontSize: 14, color: ACC, fontWeight: 600 }}>{hintFor(round.capital)}</p>}
+      {hinted && <p className="ca-fade" style={{ margin: 0, fontSize: 14, color: ACC, fontWeight: 600 }}>{hintFor(round.city)}</p>}
     </section>
   )
 }
@@ -384,36 +423,41 @@ function HintButton({ used, onClick, wide = false }: { used: boolean; onClick: (
   )
 }
 
-/* ── Result: score, right answers, and the ten names. ───────────────────── */
+/* ── Result: won or out, the score, and every name played. ──────────────── */
 function Result({ game, outcome, onBack, onAgain, onChange }:
   { game: Game; outcome: Outcome; onBack: () => void; onAgain: () => void; onChange: () => void }) {
   const { tier, mode, rounds } = game
-  const { answers, best, beat } = outcome
-  const score = scoreOf(mode, answers)
+  const { answers, state, best, beat } = outcome
+  const score = scoreOf(answers)
   const right = answers.filter(a => a.correct).length
-  const pct = score / maxScore(mode)
+  const strikes = answers.length - right
+  const won = state === "won"
+  const played = rounds.slice(0, answers.length)
 
   return (
     <>
-      <ScreenHeader title="Capitals Abroad" subtitle={`Results · ${TIER_META[tier].label} · ${MODE_LABEL[mode]}`} onBack={onBack} />
+      <ScreenHeader title="Cities Abroad" subtitle={`Results · ${TIER_META[tier].label} · ${MODE_LABEL[mode]}`} onBack={onBack} />
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "4px 16px 32px", gap: 12 }}>
         <ResultCard>
-          <ResultHeader icon={pct >= 0.8 ? "trophy" : pct >= 0.5 ? "check" : "codex"} accent={pct >= 0.8 ? T.gold : ACC}
-            eyebrow={beat ? "New best" : undefined} title={`${score} of ${maxScore(mode)} points`}
-            score={`${right} of ${rounds.length} right · best ${best}`} />
+          <ResultHeader icon={won ? "trophy" : "x"} accent={won ? T.gold : T.danger}
+            eyebrow={beat ? "New best" : won ? "Ten right" : strikes >= STRIKES ? "Three strikes" : "Out of cities"}
+            title={won ? `You made it: ${score} points` : `Out with ${right} right`}
+            score={won
+              ? `${strikes === 0 ? "No strikes" : `${strikes} ${strikes === 1 ? "strike" : "strikes"}`} · best ${best}`
+              : `${score} points · best ${best}`} />
           <ResultDots results={answers.map(a => a.correct)} />
         </ResultCard>
 
         <section aria-labelledby="ca-learned" style={{ borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`, padding: "16px 16px 8px" }}>
           <h3 id="ca-learned" className="geo-micro" style={{ margin: "0 0 4px", fontSize: 11, color: T.muted }}>You learned</h3>
           <ol style={{ listStyle: "none", margin: 0, padding: 0 }}>
-            {rounds.map((r, i) => {
-              const ok = answers[i]?.correct
+            {played.map((r, i) => {
+              const a = answers[i]
               return (
                 <li key={i} style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 0", borderTop: i ? `1px solid ${T.line}` : "none" }}>
-                  <span style={{ flexShrink: 0, display: "flex", color: ok ? T.green : T.danger }}>
-                    {ok ? <Check size={16} strokeWidth={2.4} aria-hidden /> : <X size={16} strokeWidth={2.4} aria-hidden />}
-                    <span style={srOnly}>{ok ? "Right:" : "Missed:"}</span>
+                  <span style={{ flexShrink: 0, display: "flex", color: a.correct ? T.green : T.danger }}>
+                    {a.correct ? <Check size={16} strokeWidth={2.4} aria-hidden /> : <X size={16} strokeWidth={2.4} aria-hidden />}
+                    <span style={srOnly}>{a.correct ? "Right:" : "Missed:"}</span>
                   </span>
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span lang={r.entry.langs[0]} className="geo-display" style={{ display: "block", fontSize: 16, fontWeight: 700, color: T.text, overflowWrap: "anywhere" }}>{r.entry.name}</span>
@@ -422,8 +466,8 @@ function Result({ game, outcome, onBack, onAgain, onChange }:
                     </span>
                   </span>
                   <span style={{ flexShrink: 0, maxWidth: "45%", textAlign: "right", fontSize: 15, fontWeight: 700, color: T.text }}>
-                    <span style={srOnly}>is </span>{r.capital.capital}
-                    <span style={{ display: "block", fontSize: 12, fontWeight: 400, color: T.muted }}>{r.capital.country}</span>
+                    <span style={srOnly}>is </span>{r.city.city}
+                    <span style={{ display: "block", fontSize: 12, fontWeight: 400, color: T.muted }}>{r.city.country}</span>
                   </span>
                 </li>
               )
