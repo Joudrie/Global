@@ -575,7 +575,7 @@ const GAME_DESC = {
   continentsort: 'Sort as many countries into their continents as you can in one minute.',
   reversequiz: 'You are given a country name. Pick its flag from the options.',
   capitalquiz: 'Name the capital city of each country.',
-  capitalsabroad: 'See a capital as another language writes it, from Varsovia and Moskau to Αθήνα, and name it in English. Type it for double points or pick from four, on easy, medium or hard. Names from Wikidata in 20 languages.',
+  citiesabroad: 'Name the city from its name in another language, from Wien and Benetke to Kaupmannahöfn and Москва. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,732 names for 310 cities in 57 languages, from Wikidata.',
   statclash: 'Two countries, one question: which has the bigger population or area?',
   prideroulette: 'Name pride flags one after another. One mistake and the run is over.',
   language: 'Read a sentence and pick which of 88 languages it is written in, from easy to extreme.',

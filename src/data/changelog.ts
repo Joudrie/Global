@@ -4,13 +4,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    date: "2026-11-13",
-    title: "New game: Capitals Abroad",
+    date: "2026-11-14",
+    title: "New game: Cities Abroad",
     items: [
-      "See a capital the way another language writes it, Varsovia in Spanish or Москва in Russian, and name it in English.",
-      "Easy keeps close to English (Roma, Lisboa), Medium strays further (Londres, Moskau) and Hard brings Varsovia, Wien and the Cyrillic and Greek alphabets, with a Latin spelling under each.",
-      "Type the answer for double points or pick from four. Accents, hyphens, \"City\" and spellings like Kiev don't count against you, and a hint shows where the capital is for half points.",
-      "745 names in 20 languages from Wikidata, each checked against that language's Wikipedia. After every round you see what the name means, and the end of a game lists all ten.",
+      "Name the city from its name in another language: Wien is Vienna, Benetke is Venice, Kaupmannahöfn is Copenhagen and Pietari is Saint Petersburg. Get ten right before three strikes.",
+      "Capitals and famous cities alike, from New York and Istanbul to Cape Town, Kraków and Thessaloniki. Names spelled like the English one are left out, so every round makes you think.",
+      "Easy keeps to sound-alikes such as Moskau and Londres, Medium strays further (Varsovia, Monaco di Baviera) and Hard brings Bécs, iKapa and the Cyrillic, Greek, Georgian, Armenian, Korean and Japanese scripts, with a Latin spelling under each.",
+      "The stranger the name, the more it scores. Typing doubles the points, a hint halves them, and a small slip in spelling still counts.",
+      "1,732 names for 310 cities in 57 languages, from Wikidata, each checked against that language's Wikipedia. The end of a game lists every name you saw.",
     ],
   },
   {
