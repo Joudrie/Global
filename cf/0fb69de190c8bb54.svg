@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="900" height="600">
+	<rect width="900" height="600" fill="#000080"/>
+	<rect width="900" height="300" fill="#ce1126"/>
+	<path d="M 450,164 l -24,24 v 68 h -8 v -32 l -24,-24 l -24,24 v 68 h -8 v -34 l -24,-24 l -24,24 v 68 h -36 v 32 h -36 v 32 h 416 v -32 h -36 v -32 h -36 v -68 l -24,-24 l -24,24 v 32 h -8 v -68 l -24,-24 l -24,24 v 32 h -8 v -68 z" fill="#fcd116"/>
+</svg>

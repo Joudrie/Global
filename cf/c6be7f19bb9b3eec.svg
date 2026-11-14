@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="900"
+   height="600"
+   viewBox="0 0 9 6"
+   version="1.1"
+   id="svg8"
+   sodipodi:docname="Flag of Iranian Kurds.svg"
+   inkscape:version="0.92.0 r15299">
+  <metadata
+     id="metadata14">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs12" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     id="namedview10"
+     showgrid="false"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-bbox="true"
+     inkscape:zoom="0.45097699"
+     inkscape:cx="314.45658"
+     inkscape:cy="423.83069"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg8" />
+  <rect
+     style="clip-rule:evenodd;fill-rule:evenodd;stroke-width:0.00096;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision;fill:#e81123;fill-opacity:1"
+     id="rect7"
+     height="1.99968"
+     width="7.00032"
+     y="4.0003228"
+     x="2.0001562"
+     class="fil0" />
+  <rect
+     style="clip-rule:evenodd;fill-rule:evenodd;stroke-width:0.00096;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision;fill:#ffffff"
+     id="rect9"
+     height="1.99968"
+     width="7.00032"
+     y="1.999683"
+     x="2.0001562"
+     class="fil1" />
+  <rect
+     style="clip-rule:evenodd;fill-rule:evenodd;stroke-width:0.00096;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision;fill:#009e49;fill-opacity:1"
+     id="rect11"
+     height="1.99968"
+     width="7.00032"
+     y="3.0000001e-006"
+     x="2.0001562"
+     class="fil2" />
+  <rect
+     style="clip-rule:evenodd;fill-rule:evenodd;stroke-width:0.00078384;image-rendering:optimizeQuality;shape-rendering:geometricPrecision;text-rendering:geometricPrecision;fill:#fcd116;fill-opacity:1"
+     id="rect13"
+     height="1.99968"
+     width="6.0000029"
+     transform="rotate(-90)"
+     class="fil3"
+     x="-6.0000057"
+     y="0.0004761219" />
+</svg>

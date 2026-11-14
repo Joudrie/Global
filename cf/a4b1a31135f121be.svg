@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   version="1.0"
+   width="750"
+   height="500"
+   id="svg2">
+  <defs
+     id="defs4">
+    <marker
+       markerUnits="strokeWidth"
+       refX="0"
+       refY="5"
+       markerWidth="4"
+       markerHeight="3"
+       orient="auto"
+       viewBox="0 0 10 10"
+       id="ArrowEnd">
+      <path
+         d="M 0,0 L 10,5 L 0,10 L 0,0 z"
+         id="path7" />
+    </marker>
+    <marker
+       markerUnits="strokeWidth"
+       refX="10"
+       refY="5"
+       markerWidth="4"
+       markerHeight="3"
+       orient="auto"
+       viewBox="0 0 10 10"
+       id="ArrowStart">
+      <path
+         d="M 10,0 L 0,5 L 10,10 L 10,0 z"
+         id="path10" />
+    </marker>
+  </defs>
+  <path
+     d="M 0,0 L 750.00001,0 L 750.00001,500 L 0,500 L 0,0 L 0,0 z"
+     id="path14"
+     style="fill:#d06509;fill-opacity:1;stroke:none" />
+  <path
+     d="M 0,83.3335 L 750.00001,83.3335 L 750.00001,416.6665 L 0,416.6665 L 0,83.3335 L 0,83.3335 z"
+     id="path16"
+     style="fill:#fcdd09;stroke:none" />
+  <path
+     d="M 300.00036,174.99974 L 300.00036,196.42813 L 364.28703,196.42813 L 364.28703,239.28527 L 300.00036,239.28527 L 300.00036,324.99956 L 321.42807,324.99956 L 321.42807,260.71296 L 364.28703,260.71296 L 364.28703,324.99956 L 449.99966,324.99956 L 449.99966,303.56834 L 385.71298,303.56834 L 385.71298,260.71296 L 449.99966,260.71296 L 449.99966,174.99974 L 428.57018,174.99974 L 428.57018,239.28527 L 385.71298,239.28527 L 385.71298,174.99974 L 300.00036,174.99974 L 300.00036,174.99974 L 300.00036,174.99974 z"
+     id="path18"
+     style="fill:#000000;stroke:#000000;stroke-width:0.03064643" />
+</svg>

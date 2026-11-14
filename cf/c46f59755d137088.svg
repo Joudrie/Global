@@ -1,0 +1,176 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   id="svg2"
+   width="1350"
+   height="900"
+   x="0"
+   y="0"
+   version="1.0"
+   sodipodi:docname="Pehuenche_flag.svg"
+   inkscape:version="1.2.2 (732a01da63, 2022-12-09)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview9492"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:showpageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="0.305"
+     inkscape:cx="778.68852"
+     inkscape:cy="603.27869"
+     inkscape:window-width="1366"
+     inkscape:window-height="705"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2" />
+  <defs
+     id="defs9467">
+    <path
+       id="path1390"
+       d="m0 0 10 5-10 5V0z" />
+    <path
+       id="path1394"
+       d="M10 0 0 5l10 5V0z" />
+  </defs>
+  <defs
+     id="defs12">
+    <marker
+       id="marker1388"
+       markerHeight="3"
+       markerUnits="strokeWidth"
+       markerWidth="4"
+       orient="auto"
+       refX="0"
+       refY="5"
+       viewBox="0 0 10 10">
+      <use
+         xlink:href="#path1390"
+         id="use9469" />
+    </marker>
+    <marker
+       id="marker1392"
+       markerHeight="3"
+       markerUnits="strokeWidth"
+       markerWidth="4"
+       orient="auto"
+       refX="10"
+       refY="5"
+       viewBox="0 0 10 10">
+      <use
+         xlink:href="#path1394"
+         id="use9472" />
+    </marker>
+    <marker
+       id="ArrowStart"
+       markerHeight="3"
+       markerUnits="strokeWidth"
+       markerWidth="4"
+       orient="auto"
+       refX="10"
+       refY="5"
+       viewBox="0 0 10 10">
+      <use
+         xlink:href="#path1394"
+         id="path553" />
+    </marker>
+    <marker
+       id="ArrowEnd"
+       markerHeight="3"
+       markerUnits="strokeWidth"
+       markerWidth="4"
+       orient="auto"
+       refX="0"
+       refY="5"
+       viewBox="0 0 10 10">
+      <use
+         xlink:href="#path1390"
+         id="path551" />
+    </marker>
+    <marker
+       id="marker1616"
+       markerHeight="3"
+       markerUnits="strokeWidth"
+       markerWidth="4"
+       orient="auto"
+       refX="0"
+       refY="5"
+       viewBox="0 0 10 10">
+      <use
+         xlink:href="#path1390"
+         id="path1618" />
+    </marker>
+    <marker
+       id="marker1612"
+       markerHeight="3"
+       markerUnits="strokeWidth"
+       markerWidth="4"
+       orient="auto"
+       refX="10"
+       refY="5"
+       viewBox="0 0 10 10">
+      <use
+         xlink:href="#path1394"
+         id="path1614" />
+    </marker>
+    <style
+       id="style7684"
+       type="text/css">
+      .fil5{fill:#e77817}.fil3{fill:#fff}.fil6{fill:#d32927}.fil4{fill:#fcdb00}.str0{stroke:#000;stroke-width:3}.fil1{fill:none}.fil2{fill:#0039f0}.fil0{fill:#ff0}
+    </style>
+  </defs>
+  <g
+     id="g10075"
+     style="stroke:none">
+    <path
+       id="rect3115"
+       fill="#03edfb"
+       stroke-dasharray="none"
+       d="M 0,0 H 1350 V 900 H 0 Z"
+       display="inline"
+       opacity="1"
+       overflow="visible"
+       style="color:#000000;visibility:visible;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;fill:#75aadb" />
+    <path
+       id="rect4724"
+       fill="#008b07"
+       stroke-dasharray="none"
+       d="M 0,450 H 1350 V 900 H 0 Z"
+       display="inline"
+       opacity="1"
+       overflow="visible"
+       style="color:#000000;visibility:visible;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;fill:#008000" />
+    <path
+       id="path4722"
+       fill="#0119a7"
+       d="M 0,671.03125 V 900 h 1350 l -221.8437,-44.1875 z"
+       display="inline"
+       opacity="1"
+       overflow="visible"
+       style="color:#000000;visibility:visible;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;fill:#25298f" />
+    <path
+       id="rect2030"
+       fill="#ffffff"
+       d="m 643.66242,177.8548 c 31.30568,-22.76944 31.30603,-22.76553 62.03749,0 C 791.0343,245.8911 985,450 985,450 H 365 c 0,0 193.48745,-204.1089 278.66242,-272.1452 z"
+       display="inline"
+       opacity="1"
+       overflow="visible"
+       style="color:#000000;visibility:visible;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none" />
+    <path
+       id="rect4719"
+       fill="#e51110"
+       d="M 1350,737.40625 462.34375,900 H 1350 Z"
+       display="inline"
+       opacity="1"
+       overflow="visible"
+       style="color:#000000;visibility:visible;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.5;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none;fill:#cc0000" />
+  </g>
+</svg>

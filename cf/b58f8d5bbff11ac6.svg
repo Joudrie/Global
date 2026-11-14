@@ -1,0 +1,6 @@
+<?xml version="1.0" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="700" height="420">
+<path fill="white" d="M0,0h700v420H0z" />
+<path fill="#3a1d90" d="M225,124h250v172H225z" />
+<circle cx="350" cy="210" r="86" fill="yellow" />
+</svg>
