@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Sodipodi ("http://www.sodipodi.com/") -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:xlink="http://www.w3.org/1999/xlink"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   height="358.2189pt"
+   id="svg548"
+   inkscape:version="0.92.0 r15299"
+   sodipodi:docname="Flag_of_Jutland.svg"
+   sodipodi:version="0.32"
+   width="501.42633pt"
+   version="1.1">
+  <metadata
+     id="metadata2">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:title>Denmark - Jutland</dc:title>
+        <dc:description />
+        <dc:subject>
+          <rdf:Bag>
+            <rdf:li>flags</rdf:li>
+            <rdf:li>europe</rdf:li>
+            <rdf:li>signs_and_symbols</rdf:li>
+            <rdf:li>denmark</rdf:li>
+            <rdf:li>sign</rdf:li>
+          </rdf:Bag>
+        </dc:subject>
+        <dc:publisher>
+          <cc:Agent
+             rdf:about="http://www.openclipart.org">
+            <dc:title>Kenneth Christiansen</dc:title>
+          </cc:Agent>
+        </dc:publisher>
+        <dc:creator>
+          <cc:Agent>
+            <dc:title>Kenneth Christiansen</dc:title>
+          </cc:Agent>
+        </dc:creator>
+        <dc:rights>
+          <cc:Agent>
+            <dc:title>Kenneth Christiansen</dc:title>
+          </cc:Agent>
+        </dc:rights>
+        <dc:date />
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <cc:license
+           rdf:resource="http://web.resource.org/cc/PublicDomain" />
+        <dc:language>en</dc:language>
+      </cc:Work>
+      <cc:License
+         rdf:about="http://web.resource.org/cc/PublicDomain">
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Reproduction" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/Distribution" />
+        <cc:permits
+           rdf:resource="http://web.resource.org/cc/DerivativeWorks" />
+      </cc:License>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs550">
+    <linearGradient
+       id="linearGradient559">
+      <stop
+         id="stop560"
+         offset="0"
+         style="stop-color:#000;stop-opacity:1;" />
+      <stop
+         id="stop561"
+         offset="1"
+         style="stop-color:#fff;stop-opacity:1;" />
+    </linearGradient>
+    <linearGradient
+       id="linearGradient562"
+       xlink:href="#linearGradient559" />
+  </defs>
+  <sodipodi:namedview
+     id="base"
+     inkscape:cx="357.52631"
+     inkscape:cy="508.64682"
+     inkscape:window-height="1137"
+     inkscape:window-width="1920"
+     inkscape:window-x="-8"
+     inkscape:window-y="-8"
+     inkscape:zoom="0.6470027"
+     showgrid="false"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg548" />
+  <g
+     id="g879"
+     transform="translate(-16.82837,560.22541)">
+    <path
+       sodipodi:nodetypes="cccccccccccccc"
+       inkscape:connector-curvature="0"
+       id="path836"
+       d="M 16.828385,-560.22541 V -82.600234 H 619.00071 l 66.3961,-48.513506 -66.3961,-47.01153 66.3961,-48.51351 -66.3961,-47.01153 66.3961,-48.5135 -66.3961,-47.01154 66.3961,-48.5135 -66.3961,-47.01154 66.3961,-48.51348 -66.3962,-47.01154 H 16.828385"
+       style="fill:#00007f;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path872"
+       d="m 16.82837,-464.70039 h 602.17234 l 66.3961,47.01154 -66.3961,48.5135 66.3961,47.01154 -66.3961,48.5135 66.3961,47.01154 -66.3961,48.51351 H 16.82837 v -286.57513"
+       style="fill:#68903c;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1" />
+    <path
+       inkscape:connector-curvature="0"
+       id="path874"
+       d="m 16.82839,-369.17535 189.77069,7e-5 v -95.52508 h 95.56354 v 95.52502 l 316.83809,-10e-6 66.3961,47.01154 -66.3961,48.5135 -316.83813,6e-5 v 95.52502 h -95.56356 v -95.52502 l -189.77063,-6e-5 v -95.52504"
+       style="fill:#994033;fill-opacity:1;stroke:none;stroke-width:1px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
+       sodipodi:nodetypes="cccccccccccccc" />
+  </g>
+  <rect
+     style="opacity:1;fill:none;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:3.16106772;stroke-linecap:butt;stroke-linejoin:bevel;stroke-miterlimit:10;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+     id="rect4489"
+     width="668.56842"
+     height="477.62518"
+     x="1.5e-005"
+     y="1.2789769e-013" />
+</svg>

@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+<svg id="drapeau_Merina" width="900" height="600" version="1.1" xmlns="http://www.w3.org/2000/svg" xmlns:cc="http://creativecommons.org/ns#" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#">
+ <metadata id="metadata7">
+  <rdf:RDF>
+   <cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage"/>
+   </cc:Work>
+  </rdf:RDF>
+ </metadata>
+ <g id="layer1" transform="translate(0 -452.362)">
+  <g id="drapeau" transform="matrix(2.77778 0 0 2.77778 0 -1870.87)">
+   <g id="grp">
+    <rect id="rectR" y="836.362" width="324" height="216" fill="#fc3d32" fill-rule="evenodd"/>
+    <path id="pathB" d="m0 836.362 324 108-324 108z" fill="#ffffff"/>
+   </g>
+   <g id="symbole" transform="translate(31.5 -70.5)" stroke="#000000">
+    <circle id="pathCirc" cx="37.4187" cy="1014.58" r="36.9198" fill="#ec9a4c" fill-rule="evenodd" stroke-width="1.0"/>
+    <g id="principale" transform="matrix(.99889 0 0 .99889 14.8188 -10.137)">
+     <g>
+      <path id="rectA" d="m7.125 1026.36h31v24h-31z" fill="#fc3d32"/>
+      <path id="pathB" d="m0.5 1031.36 27.7498-36.9997" fill="none"/>
+      <path id="pathC" d="m44.75 1031.36-27.7498-36.9997" fill="none"/>
+     </g>
+     <path id="pathD" d="m3.125 1027.86 19.5-26 19.5 25.9998z" fill="#fc3d32" stroke-width="1px"/>
+     <path id="rectE" d="m4.125 1048.86h37v3h-37z" fill="#fc3d32"/>
+    </g>
+   </g>
+  </g>
+ </g>
+</svg>

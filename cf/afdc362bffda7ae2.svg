@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="1200"
+   height="600"
+   viewBox="0 0 1200 600"
+   fill="none"
+   version="1.1"
+   id="svg19"
+   sodipodi:docname="Flag_of_Baluchistan (Variant).svg"
+   inkscape:version="1.1.2 (0a00cf5339, 2022-02-04)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <sodipodi:namedview
+     id="namedview21"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="0.25"
+     inkscape:pageshadow="2"
+     inkscape:pageopacity="0.0"
+     inkscape:pagecheckerboard="0"
+     showgrid="false"
+     inkscape:snap-intersection-paths="true"
+     inkscape:object-paths="true"
+     inkscape:snap-bbox="true"
+     inkscape:bbox-paths="true"
+     inkscape:bbox-nodes="true"
+     inkscape:snap-bbox-edge-midpoints="true"
+     inkscape:zoom="0.24645833"
+     inkscape:cx="779.03635"
+     inkscape:cy="480.8115"
+     inkscape:window-width="1536"
+     inkscape:window-height="792"
+     inkscape:window-x="0"
+     inkscape:window-y="0"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg19"
+     inkscape:snap-bbox-midpoints="true"
+     inkscape:snap-midpoints="true"
+     inkscape:snap-smooth-nodes="true"
+     inkscape:snap-object-midpoints="true"
+     inkscape:snap-center="true"
+     inkscape:snap-text-baseline="true" />
+  <g
+     clip-path="url(#clip0_1_2)"
+     id="g12">
+    <rect
+       width="1200"
+       height="600"
+       fill="#ffffff"
+       id="rect2"
+       x="0"
+       y="0" />
+    <rect
+       y="300"
+       width="1200"
+       height="300"
+       fill="#e8112d"
+       id="rect4"
+       x="-1200"
+       transform="scale(-1,1)"
+       style="fill:#d71010;fill-opacity:1;stroke-width:1" />
+    <rect
+       width="1200"
+       height="300"
+       fill="#44c92e"
+       id="rect6"
+       x="-1200"
+       y="0"
+       transform="scale(-1,1)"
+       style="fill:#189c00;fill-opacity:1;stroke-width:1" />
+    <path
+       d="M 500,300 0,600 V 0 Z"
+       fill="#00B0EE"
+       id="path8"
+       style="fill:#38baee;fill-opacity:1;stroke-width:0.98094" />
+    <path
+       d="m 189.32445,269.98651 -22.58106,-69.48913 -22.57606,69.48913 H 71.094088 l 59.119102,42.95262 -22.57806,69.49515 59.11228,-42.95161 59.11728,42.95161 -22.58308,-69.49716 59.11228,-42.95061 z"
+       fill="#f7f7f7"
+       id="path10"
+       style="stroke-width:1.0057" />
+  </g>
+  <defs
+     id="defs17">
+    <clipPath
+       id="clip0_1_2">
+      <rect
+         width="1200"
+         height="600"
+         fill="white"
+         id="rect14" />
+    </clipPath>
+  </defs>
+</svg>

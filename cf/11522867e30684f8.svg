@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg xmlns="http://www.w3.org/2000/svg"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   width="174pt" height="174pt" viewBox="0 0 174 174">
+  <metadata><rdf:RDF><cc:Work rdf:about="">
+    <dc:format>image/svg+xml</dc:format>
+    <dc:type rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+  </cc:Work></rdf:RDF></metadata>
+  <title>Toon pangasinan flag</title>
+<rect fill="#f0b355" width="174" height="174"/>
+<g fill="#ffffff"><circle cx="87" cy="87" r="78.1525"/>
+<circle fill="#f0b355" cx="87" cy="87" r="74.3002"/>
+<path d="M81,12.7H93V161.3H81V12.7Z M12.7,81H161.3V93H12.7V81Z"/></g></svg>
