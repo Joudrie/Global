@@ -316,7 +316,7 @@ test('the answer box never mentions a name, so iOS offers no contact AutoFill', 
   }
 })
 
-test('both new games sit next to Cities Abroad on the Sharp Recall shelf, and every count says 55', () => {
+test('both new games sit next to Cities Abroad on the Sharp Recall shelf, and every count matches', () => {
   const ids = REGISTRY.map(e => e.id)
   const i = ids.indexOf('citiesabroad')
   assert.deepEqual(ids.slice(i, i + 3), ['citiesabroad', 'countriesabroad', 'nativenames'])
@@ -326,7 +326,7 @@ test('both new games sit next to Cities Abroad on the Sharp Recall shelf, and ev
     assert.equal(e.tab, 'play')
     assert.ok(!e.sandbox)
   }
-  assert.equal(GAME_COUNT, 55)
+  assert.equal(GAME_COUNT, 56) // 55 with these two, then Flag Fusion
   const prerender = fs.readFileSync(path.join(ROOT, 'scripts/prerender.mjs'), 'utf8')
   assert.match(prerender, /countriesabroad: '/)
   assert.match(prerender, /nativenames: '/)
