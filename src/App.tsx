@@ -60,6 +60,7 @@ const FlagleScreen = lazy(() => import("./components/FlagleScreen"))
 const HigherLowerScreen = lazy(() => import("./components/HigherLowerScreen"))
 const DeadOrAliveScreen = lazy(() => import("./components/DeadOrAliveScreen"))
 const FrankenflagScreen = lazy(() => import("./components/FrankenflagScreen"))
+const FlagFusionScreen = lazy(() => import("./components/FlagFusionScreen"))
 const DescribeItScreen = lazy(() => import("./components/DescribeItScreen"))
 const FlagBracketScreen = lazy(() => import("./components/FlagBracketScreen"))
 const RealOrBotScreen = lazy(() => import("./components/RealOrBotScreen"))
@@ -88,7 +89,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "citiesabroad" | "countriesabroad" | "nativenames"
+type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "citiesabroad" | "countriesabroad" | "nativenames" | "flagfusion"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -457,6 +458,7 @@ export default function App() {
       {screen === "higherlower"  && <HigherLowerScreen  onBack={() => setScreen("home")} />}
       {screen === "deadoralive"  && <DeadOrAliveScreen  onBack={() => setScreen("home")} />}
       {screen === "frankenflag"  && <FrankenflagScreen  onBack={() => setScreen("home")} />}
+      {screen === "flagfusion" && <FlagFusionScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "describeit"   && <DescribeItScreen   onBack={() => setScreen("home")} />}
       {screen === "flagbracket"  && <FlagBracketScreen  onBack={() => setScreen("home")} />}
       {screen === "realorbot"    && <RealOrBotScreen    onBack={() => setScreen("home")} />}

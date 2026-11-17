@@ -362,6 +362,15 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
         </div>
       ) }
 
+    case "flagfusion":
+      // A real fused flag: Brazil's layout, Afghanistan's emblem, Bhutan's
+      // colours (public/fusion/example.svg, from scripts/flag-fusion/poster.mjs).
+      return { bleed: true, node: (
+        <div style={{ ...box }}>
+          {urlImg("/fusion/example.svg")}
+        </div>
+      ) }
+
     case "flagstudio": {
       // A flag being made: blue and gold stripes, a red star mid-edit with
       // its selection box and handles, and the pointer that placed it.

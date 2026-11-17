@@ -562,6 +562,7 @@ const GAME_DESC = {
   sketchflag: 'Draw a flag from memory, then compare your sketch with the real flag.',
   flagoutline: 'Only the outlines of a flag are shown. Each wrong guess bleeds in more colour.',
   frankenflag: 'Two flags are stitched together. Name both halves.',
+  flagfusion: 'One made-up flag takes its layout from one country, its emblem from a second and its colours from a third, like Brazil\'s diamond with Afghanistan\'s emblem in Bhutan\'s yellow, orange and white. Name all three, with five wrong guesses shared between the boxes. Five flags a game, on easy, medium or hard. When countries share a layout or a set of colours, every one of them counts.',
   oddoneout: 'Several flags share something in common. Find the one that does not belong.',
   lookalikes: 'Pick the real flag out of near-identical lookalikes.',
   flagdna: 'Guess the mystery flag. Each guess shows which attributes match, like colours, stripes, symbols and region, and how close you are.',

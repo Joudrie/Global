@@ -4,6 +4,16 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-11-17",
+    title: "New game: Flag Fusion",
+    items: [
+      "One flag, fused from three: a made-up flag takes its structure from one country, its emblem from a second and its colours from a third. Name all three.",
+      "Brazil's diamond with Afghanistan's emblem, painted in Bhutan's yellow, orange and white, is one. A box you name turns green and stays; five wrong guesses are shared between the three boxes.",
+      "Five flags a game on easy (famous flags), medium or hard (obscure ones), with a best score for each. After every flag you see the three real flags it was made from.",
+      "When countries share a layout (the Nordic crosses, Czechia and the Philippines) or a set of colours (Germany and Belgium), every one of them counts. 91 layouts, 33 emblems and the colours of 41 countries.",
+    ],
+  },
+  {
     date: "2026-11-14",
     title: "Two new games: Countries Abroad and Native Names",
     items: [

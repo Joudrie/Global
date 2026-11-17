@@ -3,6 +3,10 @@
 React 19 + Vite + Tailwind v4 flag game at https://globalio.app. `npm run build` builds the app,
 then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap into `dist/`.
 
+## Ideas
+
+- When Sean shares a game idea or mockup with enough detail to build, build it straight away and put it on the test site; don't stop to ask for a go-ahead. Ask only about something that truly blocks the build.
+
 ## Merging
 
 - Sean never merges by hand. When a PR is ready (build passes, checks green), merge it yourself
