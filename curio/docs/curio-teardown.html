@@ -1,0 +1,494 @@
+<title>Curio — The Teardown</title>
+<style>
+  :root{
+    --paper:#E9E3D0; --paper-card:#F8F4E7; --ink:#1C2521; --ink-soft:#4B564E;
+    --teal:#1F5C52; --teal-strong:#163F38; --ochre:#B9791C; --ochre-soft:#E8D3A4;
+    --stamp:#A9402A; --gold:#C79A2E;
+    --line:rgba(28,37,33,0.14); --line-strong:rgba(28,37,33,0.28);
+    --shadow:0 1px 0 rgba(28,37,33,0.06),0 8px 20px -14px rgba(28,37,33,0.35);
+    --band-low:var(--stamp); --band-mid:var(--ochre); --band-high:var(--teal);
+  }
+  :root[data-theme="dark"]{
+    --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+    --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+    --stamp:#E08669; --gold:#E7C766;
+    --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+    --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+  }
+  @media (prefers-color-scheme:dark){
+    :root:not([data-theme="light"]){
+      --paper:#161F1B; --paper-card:#1E2A24; --ink:#E9E4D2; --ink-soft:#A9B3A6;
+      --teal:#6FBFAE; --teal-strong:#9AD8C9; --ochre:#E0B255; --ochre-soft:#3A331F;
+      --stamp:#E08669; --gold:#E7C766;
+      --line:rgba(233,228,210,0.14); --line-strong:rgba(233,228,210,0.26);
+      --shadow:0 1px 0 rgba(0,0,0,0.3),0 10px 24px -16px rgba(0,0,0,0.6);
+    }
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{background:var(--paper);color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;
+    font-size:16px;line-height:1.6;-webkit-font-smoothing:antialiased;}
+  .wrap{max-width:900px;margin:0 auto;padding:52px 22px 120px;}
+  h1,h2,h3,h4{font-family:ui-serif,Georgia,"Iowan Old Style","Palatino Linotype",serif;font-weight:600;color:var(--ink);text-wrap:balance;margin:0;}
+  .mono{font-family:ui-monospace,SFMono-Regular,"SF Mono","Courier New",monospace;}
+  p{margin:0 0 14px;max-width:66ch;}
+  .soft{color:var(--ink-soft);}
+
+  /* hero */
+  .hero{border:1px solid var(--line-strong);border-radius:3px;background:var(--paper-card);box-shadow:var(--shadow);padding:30px 32px;position:relative;overflow:hidden;}
+  .hero::before{content:"";position:absolute;left:0;top:0;bottom:0;width:8px;background:var(--stamp);}
+  .kicker{display:inline-flex;align-items:center;gap:8px;font-family:ui-monospace,monospace;font-size:11px;letter-spacing:.11em;text-transform:uppercase;color:var(--ink-soft);border:1px solid var(--line-strong);border-radius:999px;padding:4px 11px;margin-bottom:16px;}
+  .kicker .dot{width:6px;height:6px;border-radius:50%;background:var(--stamp);}
+  .hero h1{font-size:46px;letter-spacing:-.015em;line-height:1.02;}
+  .hero .sub{font-size:18px;color:var(--ink-soft);margin-top:10px;max-width:60ch;}
+  .composite{display:flex;align-items:center;gap:22px;margin-top:24px;padding-top:22px;border-top:1px dashed var(--line-strong);flex-wrap:wrap;}
+  .big-grade{display:flex;flex-direction:column;align-items:center;justify-content:center;width:118px;height:118px;border-radius:50%;border:3px solid var(--ochre);color:var(--ochre);flex:none;transform:rotate(-6deg);}
+  .big-grade .n{font-family:ui-serif,Georgia,serif;font-size:44px;font-weight:700;line-height:1;}
+  .big-grade .d{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.12em;text-transform:uppercase;margin-top:3px;}
+  .verdict-line{max-width:46ch;}
+  .verdict-line b{color:var(--ink);}
+
+  /* triage board */
+  .triage{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-top:22px;}
+  .col{border:1px solid var(--line-strong);border-radius:4px;background:var(--paper-card);overflow:hidden;}
+  .col .hd{font-family:ui-monospace,monospace;font-size:10.5px;letter-spacing:.07em;text-transform:uppercase;font-weight:700;padding:8px 11px;color:#fff;}
+  .col.nails .hd{background:var(--teal-strong);}
+  .col.solid .hd{background:var(--teal);}
+  .col.mixed .hd{background:var(--ochre);color:var(--ink);}
+  .col.weak .hd{background:var(--stamp);}
+  .col.missing .hd{background:#5b5350;}
+  :root[data-theme="dark"] .col.nails .hd,:root[data-theme="dark"] .col.solid .hd{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .col.nails .hd,:root:not([data-theme="light"]) .col.solid .hd{color:#0e1512;}}
+  .col ul{margin:0;padding:9px 12px;list-style:none;}
+  .col li{font-size:12.3px;color:var(--ink-soft);padding:2.5px 0;}
+
+  /* section */
+  section{margin-top:52px;}
+  .sec-head{display:flex;align-items:baseline;gap:12px;margin-bottom:6px;}
+  .sec-num{font-family:ui-monospace,monospace;font-size:13px;color:var(--ochre);font-weight:700;border:1px solid var(--line-strong);border-radius:4px;padding:2px 7px;}
+  .sec-head h2{font-size:25px;}
+  .sec-intro{color:var(--ink-soft);font-size:14.5px;margin:4px 0 18px;}
+
+  /* metric */
+  .metric{border:1px solid var(--line-strong);border-radius:5px;background:var(--paper-card);box-shadow:var(--shadow);padding:16px 18px 15px;margin-bottom:14px;}
+  .m-top{display:flex;align-items:center;justify-content:space-between;gap:14px;}
+  .m-name{font-family:ui-serif,Georgia,serif;font-size:17.5px;font-weight:600;}
+  .grade{font-family:ui-monospace,monospace;font-weight:700;font-size:20px;white-space:nowrap;border-radius:5px;padding:3px 10px;line-height:1;flex:none;}
+  .grade i{font-style:normal;font-size:11px;opacity:.7;}
+  .g-low{color:var(--stamp);border:1.5px solid var(--stamp);}
+  .g-mid{color:var(--ochre);border:1.5px solid var(--ochre);}
+  .g-high{color:var(--teal);border:1.5px solid var(--teal);}
+  .g-top{color:#fff;background:var(--teal-strong);}
+  :root[data-theme="dark"] .g-top{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .g-top{color:#0e1512;}}
+  .meter{position:relative;height:9px;border-radius:2px;background:var(--line);margin:11px 0 12px;overflow:hidden;}
+  .meter-fill{position:absolute;left:0;top:0;bottom:0;border-radius:2px;}
+  .meter-fill.b-low{background:var(--band-low);}
+  .meter-fill.b-mid{background:var(--band-mid);}
+  .meter-fill.b-high{background:var(--band-high);}
+  .meter::after{content:"";position:absolute;inset:0;background:repeating-linear-gradient(90deg,transparent 0,transparent calc(10% - 1px),var(--paper-card) calc(10% - 1px),var(--paper-card) 10%);pointer-events:none;}
+  .verdict{font-size:14.5px;margin:0 0 12px;color:var(--ink);}
+  .verdict b{color:var(--ink);}
+  .fix,.why{font-size:13.6px;line-height:1.55;border-radius:4px;padding:9px 12px;margin-top:8px;}
+  .fix{background:rgba(31,92,82,0.07);border-left:2px solid var(--teal);}
+  .why{background:rgba(185,121,28,0.07);border-left:2px solid var(--ochre);}
+  :root[data-theme="dark"] .fix{background:rgba(111,191,174,0.08);}
+  :root[data-theme="dark"] .why{background:rgba(224,178,85,0.08);}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .fix{background:rgba(111,191,174,0.08);}:root:not([data-theme="light"]) .why{background:rgba(224,178,85,0.08);}}
+  .tagk{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.08em;text-transform:uppercase;font-weight:700;margin-right:7px;}
+  .fix .tagk{color:var(--teal);}
+  .why .tagk{color:var(--ochre);}
+  .lastmile{font-size:13px;color:var(--ink-soft);font-style:italic;margin-top:8px;}
+
+  /* brainstorm */
+  .idea{border:1px dashed var(--line-strong);border-radius:5px;background:var(--paper-card);padding:15px 17px;margin-bottom:13px;}
+  .idea .ih{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px;}
+  .idea h4{font-size:17px;}
+  .idea .swing{font-family:ui-monospace,monospace;font-size:10px;letter-spacing:.06em;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:999px;white-space:nowrap;flex:none;}
+  .swing.big{background:var(--stamp);color:#fff;}
+  .swing.med{background:var(--ochre);color:var(--ink);}
+  .swing.easy{background:var(--teal);color:#fff;}
+  :root[data-theme="dark"] .swing.easy{color:#0e1512;}:root[data-theme="dark"] .swing.med{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .swing.easy{color:#0e1512;}:root:not([data-theme="light"]) .swing.med{color:#0e1512;}}
+  .idea p{font-size:13.8px;margin:0;color:var(--ink-soft);}
+  .idea p b{color:var(--ink);}
+
+  /* changelog */
+  .log{border:1px solid var(--line-strong);border-radius:5px;overflow:hidden;background:var(--paper-card);box-shadow:var(--shadow);}
+  .log-row{display:grid;grid-template-columns:96px 1fr;gap:0;border-bottom:1px solid var(--line);}
+  .log-row:last-child{border-bottom:none;}
+  .log-row .op{font-family:ui-monospace,monospace;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;padding:12px 12px;color:#fff;display:flex;align-items:flex-start;}
+  .op.add{background:var(--teal);}.op.change{background:var(--ochre);color:var(--ink);}.op.remove{background:var(--stamp);}
+  :root[data-theme="dark"] .op.add{color:#0e1512;}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) .op.add{color:#0e1512;}}
+  .log-row .txt{padding:11px 15px;font-size:13.6px;}
+  .log-row .txt b{color:var(--ink);}
+
+  .callout{border:1px solid var(--line-strong);border-left:3px solid var(--stamp);background:var(--paper-card);border-radius:4px;padding:15px 18px;margin:18px 0;}
+  .callout h4{font-size:16px;margin-bottom:6px;}
+  .callout p{font-size:14px;margin:0;color:var(--ink-soft);}
+
+  hr.rule{border:none;border-top:1px dashed var(--line-strong);margin:44px 0 0;}
+  footer{margin-top:34px;font-family:ui-monospace,monospace;font-size:11.5px;color:var(--ink-soft);text-align:center;}
+  a{color:var(--teal);}
+</style>
+
+<div class="wrap">
+
+  <div class="hero">
+    <span class="kicker"><span class="dot"></span> PRODUCT TEARDOWN · CURIO v0.2 · UNSPONSORED, UNSPARING</span>
+    <h1>The Curio Teardown</h1>
+    <div class="sub">One reviewer, no mercy, every metric scored 1–10. What it nails, what it fumbles, and exactly how to fix the fumbles — with the reasoning, not just the note.</div>
+    <div class="composite">
+      <div class="big-grade"><span class="n">5.9</span><span class="d">Composite</span></div>
+      <div class="verdict-line">
+        <p style="margin:0"><b>A 9/10 idea currently executed at a ~6.</b> The concept is genuinely lovely and the voice is a real asset. But four holes drag the average down hard: <b>no monetization, no onboarding, no plan for authoring content at scale, and a shaky answer to the one question that matters most</b> — can it actually intercept the moment you reach for the phone to scroll? Fix those four and this is an 8+.</p>
+      </div>
+    </div>
+  </div>
+
+  <section style="margin-top:34px;">
+    <div class="sec-head"><span class="sec-num">▤</span><h2>The triage board</h2></div>
+    <p class="sec-intro">Everything sorted into five bins before we go deep. Green = keep and be proud. Rust = it's actively hurting you. Grey = it isn't in the doc at all and needs to be.</p>
+    <div class="triage">
+      <div class="col nails"><div class="hd">Nails it (9–10)</div><ul>
+        <li>Catalog breadth</li><li>Voice &amp; copy</li></ul></div>
+      <div class="col solid"><div class="hd">Gets it right (7–8)</div><ul>
+        <li>Core value prop</li><li>The daily loop</li><li>Boost &amp; mute</li><li>Budget filters</li><li>Challenge card design</li><li>Rating system</li><li>Naming</li><li>Sharing engine</li><li>Accessibility base</li></ul></div>
+      <div class="col mixed"><div class="hd">Mixed bag (5–6)</div><ul>
+        <li>Swipe deck</li><li>Choice vs. serendipity</li><li>Differentiation / moat</li><li>Multi-day handling</li><li>Time/cost honesty</li><li>Streak mechanic</li><li>Retention past novelty</li><li>Re-engagement</li><li>Verification</li><li>Safety &amp; liability</li><li>MVP feasibility</li></ul></div>
+      <div class="col weak"><div class="hd">Slacking (3–4)</div><ul>
+        <li>Content authoring at scale</li><li>Inspiration Gallery</li><li>Privacy &amp; data</li><li>Context awareness</li></ul></div>
+      <div class="col missing"><div class="hd">Missing (1–2)</div><ul>
+        <li>Monetization</li><li>Onboarding / first run</li></ul></div>
+    </div>
+  </section>
+
+  <!-- ===================== CONCEPT & STRATEGY ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">01</span><h2>Concept &amp; strategy</h2></div>
+    <p class="sec-intro">Is the fundamental bet sound, and does it have a reason to exist and survive?</p>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Core value proposition</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">"Trade one scroll for one thing you actually did." That's a clean, emotionally true pitch and it's rare — most apps sell <i>more</i>, this one sells <i>less, better</i>. The "trying is the win, skill is a side effect" framing is the whole soul of the product and it's right.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Put that sentence on the box. The current tagline ("a daily cabinet of curiosities") is pretty but abstract; lead with the transformation — "You'll have <i>done</i> something today" beats "a cabinet of curiosities" for a stranger deciding whether to install.</div>
+      <div class="why"><span class="tagk">Why</span> App-store conversion is won on the promise of a changed <i>you</i>, not a described <i>product</i>. Duolingo doesn't sell "a language SRS engine," it sells "you, bilingual." Same move.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Doomscroll-replacement fit</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">This is the load-bearing wall and right now it's cracked. Scrolling wins because it's <b>zero-effort, zero-setup, and available in the exact low-energy moments you reach for it</b> — in bed, on the toilet, in a waiting room. Curio's challenges ("bake a cake," "photograph a bird") mostly <b>cannot be done in those moments</b>. You're not competing with Instagram; you're competing with the couch. Right now Curio asks more energy than the moment it's trying to hijack has to give.</p>
+      <div class="fix"><span class="tagk">The fix</span> Add a third challenge tier: <b>"Right Now" micro-curios</b> — 60-to-120-second things doable one-handed, in bed, phone-only: learn one word, one breath drill, one mental-math trick, "notice five sounds," one card-shuffle move, identify one constellation out the window. When the app opens it leads with a Right-Now card <i>first</i>, and the bigger budgeted challenges are the "got more? go bigger" tier.</div>
+      <div class="why"><span class="tagk">Why</span> Behavior substitution only works when the replacement fits the <i>same context</i> as the habit. You can't beat a phone-in-bed habit with a go-outside solution. A Right-Now tier meets the scroll where it actually lives, earns the streak in that moment, and <i>then</i> upsells effort — the reverse of the current order.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Differentiation / moat</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">The neighborhood is crowded — Finch, Habitica, Pinterest, BeReal, Skillshare, "1 Second Everyday," every habit tracker. The closest cousin is <b>BeReal</b> (once-a-day, low-stakes, anti-performative) crossed with a challenge engine. The differentiators are real but <i>copyable</i>: curated challenges, budget-sort, and the anti-perfectionist voice. Content can be cloned in a weekend by a competitor with a content team.</p>
+      <div class="fix"><span class="tagk">The fix</span> Build the moat out of the two things that <i>can't</i> be copied cheaply: (1) <b>a proprietary, personality-drenched content library</b> so deep and so consistently funny/kind that the voice itself is the brand (see Duolingo's owl, Cards Against Humanity); (2) <b>network effects via the gallery</b> — "1,400 people also botched this cake" is data a fresh competitor can't fake on day one.</div>
+      <div class="why"><span class="tagk">Why</span> In content products the moat is rarely the mechanic (swiping is free to clone) — it's accumulated catalog + accumulated community. Both compound over time and punish late entrants. Lean into whichever you can start compounding first; catalog is the safer bet.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Monetization model</span><span class="grade g-low">2<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:20%"></div></div>
+      <p class="verdict">Completely absent from the spec, and this one's a founder-killer. Hand-authored, fact-checked, legally-safe content is <b>expensive to produce and maintain</b>, and there's currently zero revenue against it. "Free, no sign-up" is a lovely user promise and a terrible business model with no plan behind it.</p>
+      <div class="fix"><span class="tagk">The fix</span> Freemium with the growth loop protected: <b>free</b> = today's challenge, Right-Now tier, the daily share, basic streak. <b>Curio+ (subscription)</b> = the full browsable catalog, boost/mute controls, multi-day tracks, extra rerolls, past-log photo storage, seasonal packs. Plus <b>ethical affiliate</b> — the cake needs ingredients, the whittling needs a knife; a disclosed "here's a starter kit" link is genuinely useful <i>and</i> revenue. Keep sharing 100% free forever — it's the acquisition engine, never gate it.</div>
+      <div class="why"><span class="tagk">Why</span> Gate <i>depth and control</i>, never the core daily loop or the share. The daily habit builds the attachment that makes people pay for depth; the free share recruits the next user. Affiliate aligns incentives — you were going to tell them what to buy anyway. (You already have a "Supporter" pattern in your other app — reuse the muscle.)</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Naming &amp; brand</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">"Curio" is genuinely good — curiosity + cabinet-of-curiosities, and the collection metaphor is gold (more on that under Streaks). But it's <b>crowded</b>: "Curio" and "Curious" are already used by several apps/AI products, and the .app domain and clean trademark are unlikely to be free. SEO will be a knife-fight.</p>
+      <div class="fix"><span class="tagk">The fix</span> Do a trademark + app-store search before you fall in love. Strong on-theme alternates that mean "to try a little of many things": <b>Dabble</b> (near-perfect — dabbling <i>is</i> the product), <b>Tinker</b>, <b>Forage</b>, <b>Lark</b> ("do it for a lark"), <b>Rummage</b>, <b>Sundry</b>, <b>Whim</b>, <b>Gambit</b>. "Dabble" is the one to beat.</div>
+      <div class="why"><span class="tagk">Why</span> A name you can actually own (trademark + domain + top app-store result) is worth more than a slightly-prettier name you'll fight for forever. "Dabble" also describes the <i>behavior</i>, which quietly does marketing work every time it's said.</div>
+    </div>
+  </section>
+
+  <!-- ===================== CORE LOOP & UX ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">02</span><h2>Core loop &amp; UX</h2></div>
+    <p class="sec-intro">Once you're in, does the machine feel good to operate — and does it get out of its own way?</p>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">The daily loop (S1–S5)</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Set budget → swipe → do → rate → share is tight, legible, and complete. It has a clear beginning and a satisfying end, which most habit apps lack. No notes on the skeleton.</p>
+      <div class="fix"><span class="tagk">Last mile</span> The loop has no explicit <b>"come back tomorrow"</b> beat baked into S5. End the share/stamp step with a tiny forward hook — "tomorrow's is already picked" or a peek at the drawer it'll come from — so the loop closes by <i>opening</i> the next one.</div>
+      <div class="why"><span class="tagk">Why</span> Habit loops need a cue for the <i>next</i> iteration planted inside the reward of the current one (Nir Eyal's "Hooked"). A closed loop with no forward hook is a great one-time experience and a weak habit.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Onboarding / first run</span><span class="grade g-low">2<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:20%"></div></div>
+      <p class="verdict">There isn't any. The doc drops a new user straight into a deck of 381 unfamiliar things with no priors, no first win, and no reason established. First-session completion is where 90% of these apps die, and right now it's a blank.</p>
+      <div class="fix"><span class="tagk">The fix</span> A 30-second, three-tap <b>taste quiz</b> — "Which pull at you?" (pick a few), "Which would you never?" (pick a few) — which seeds initial boost/mute so the deck is warm on card one. Then <b>force a guaranteed first win in the first session</b>: a 90-second Right-Now curio you can finish before you ever close the app. Stamp it, and <i>then</i> introduce sharing/streaks.</div>
+      <div class="why"><span class="tagk">Why</span> "Time to first value" is the single biggest predictor of D1 retention. A completed challenge in session one converts "an app I downloaded" into "a thing I did" — the exact identity shift the product is selling — before the user has any chance to bounce.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Swipe deck interaction</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Fun and on-brand, but three issues: (1) three-direction swipe (left/right/up) has a learning curve and up-swipe fights OS gestures; (2) "skip forever-ish" can silently strip the catalog for a heavy skipper; (3) a swipe deck is itself a <i>browsing</i> surface — the risk that the anti-scroll app grows its own little scroll.</p>
+      <div class="fix"><span class="tagk">The fix</span> Make <b>tap-to-open the primary action</b> and swipe an accelerator, not the only path. Skip = <i>deprioritize</i>, never delete (it can resurface in a month). And <b>cap the deck</b>: show a small, finite hand (say 5–7 cards) matched to today's budget, not an endless stack — a hand of cards is a decision, an infinite stack is a scroll.</div>
+      <div class="why"><span class="tagk">Why</span> A bounded choice set (Barry Schwartz, "paradox of choice") prevents the browse-instead-of-do failure mode and keeps the product honest to its own thesis. Finite decks feel like dealing cards; infinite decks feel like TikTok.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Choice vs. serendipity balance</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Your original dream was "what should I do <i>today</i>" — one answer, no agonizing. But v0.2's filters + swipe deck + boost/mute reintroduce a <i>lot</i> of choosing. There's a real tension between "surprise me with a random skill" (the magic) and "let me sort and filter" (the control), and the doc tries to have both without picking a default.</p>
+      <div class="fix"><span class="tagk">The fix</span> Pick a hero: <b>"Today's Curio" is one assigned card</b> (respecting budget + preferences) shown big on open — the Wordle move, one thing, decided for you. The deck becomes the secondary "not feeling it? deal me another hand" escape hatch. Serendipity is the default; control is the fallback.</div>
+      <div class="why"><span class="tagk">Why</span> Decision fatigue is the enemy of a daily ritual. Wordle, BeReal, and the NYT daily games all win by <i>removing</i> the choice. Give the anxious-at-a-menu majority one confident answer, and keep the deck for the minority who want to shop.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Budget filters (time / money / plans)</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">The standout original idea and still one of the best things here — "sort by what I can actually afford right now" is exactly how real humans decide what to do with an evening. Three axes is the right number.</p>
+      <div class="fix"><span class="tagk">The fix</span> Add a fourth <i>implicit</i> axis the app fills in for free: <b>context</b> (time of day, weather, indoors/outdoors) — see the Context Awareness metric below. And let budgets be <b>saved as one-tap moods</b>: "Cozy night in," "Killing 15 min," "Out and about" — so setting the budget is one tap, not three.</div>
+      <div class="why"><span class="tagk">Why</span> Presets collapse a 3-dial setup into a single recognizable intent, which is how people actually think ("I want a cozy night," not "time=60, cost=$, plans=in"). Lower friction on the filter = more people reach the deck.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Personalization — boost &amp; mute</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">Exactly the right response to "let cooking-lovers get more cooking, let cooking-haters kill it." Three-state dial + quiet learning from ratings is the correct two-layer design (explicit control on top of implicit inference). Solid.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Guard the failure mode: a user who mutes everything they don't instantly like ends up with a thin, samey deck and churns. Add a <b>"wildcard" dial</b> — a user-set % of the deck that <i>ignores</i> preferences to keep discovery alive — defaulted on, because discovering-your-hobby is the whole point.</div>
+      <div class="why"><span class="tagk">Why</span> Pure preference-optimization creates filter bubbles that feel stale and quietly kill the "discover a hobby you didn't know you'd love" promise. A protected exploration budget is how Spotify/Discover Weekly keeps recommendations from collapsing inward.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Context awareness (weather / time / place)</span><span class="grade g-low">3<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:30%"></div></div>
+      <p class="verdict">Almost entirely absent, and it's a missed layup. The app suggests "photograph a bird outside" while it's raining and dark, or "watch a sunrise" at 9pm. A challenge app that <i>doesn't</i> know it's raining feels dumb in a way users notice immediately.</p>
+      <div class="fix"><span class="tagk">The fix</span> Tag every challenge with context requirements (daylight, dry, outdoors, quiet) and filter the deck against <b>device time + a lightweight weather lookup</b>. "It's pouring — here's an indoor one" is a five-word line that makes the app feel <i>alive</i>.</div>
+      <div class="why"><span class="tagk">Why</span> Contextual relevance is the cheapest possible way to feel intelligent and cared-for. It costs one weather API call and a few tags, and it's the difference between "this app gets my life" and "this app is a static list." Small lift, big perceived-intelligence payoff.</div>
+    </div>
+  </section>
+
+  <!-- ===================== CONTENT ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">03</span><h2>Content — the actual product</h2></div>
+    <p class="sec-intro">This app <i>is</i> its content. If the catalog is thin or generic, nothing else matters. This is where the real company lives.</p>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Catalog breadth</span><span class="grade g-top">9<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:90%"></div></div>
+      <p class="verdict">381 skills across 24 drawers, and the range is genuinely delightful — sourdough next to sleight-of-hand next to birdwatching next to needle-felting. This is the "fuck-tons of skills" vision realized, and the taxonomy is sensible. Best-in-class here.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Two thin spots: <b>no drawer for the very-low-energy "Right Now" tier</b> (see Doomscroll Fit) and light coverage of <b>solo-emotional / relationship / parenting / pet</b> skills. Add a "5-minute mind" drawer and a "people in your life" drawer and you've covered the last obvious gaps.</div>
+      <div class="why"><span class="tagk">Why</span> Breadth is the discovery engine — the more unexpected drawers, the more "huh, I'd never have tried that" moments, which is the emotional core. The only breadth worth adding now is breadth that serves the two weakest use-contexts (no energy, and connecting with people).</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Content depth / authoring at scale</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Here's the iceberg under the waterline. 381 <i>names</i> is not 381 <i>challenges</i>. Each needs a micro-lesson, task, accessible alternate, safety note, encouragement, and resources — call it ~6 carefully-written, fact-checked, liability-aware strings each. That's <b>2,000+ pieces of hand-crafted copy</b>, plus upkeep. This isn't an app project; it's a content operation, and the doc doesn't reckon with the labor.</p>
+      <div class="fix"><span class="tagk">The fix</span> Three moves: (1) <b>Launch narrow and deep</b> — 40–60 <i>fully, lovingly</i> authored challenges spread one-or-two per drawer, not one drawer finished. (2) <b>Build an authoring pipeline</b>: a strict template + an AI-assisted first draft that a human always edits for voice, facts, and safety — never ship raw generation. (3) <b>Open community submissions with moderation</b> as the long-tail scaling path once you have a house style to hold them to.</div>
+      <div class="why"><span class="tagk">Why</span> Depth beats breadth for retention — 50 challenges people <i>love</i> outperform 381 that feel like a wiki. Narrow-and-deep also lets you find the voice before you scale it, so the AI-assisted pipeline has a target to imitate. Community content is the only way "hundreds and hundreds" stays fed without a full-time writers' room forever.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Challenge card design</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">The micro-lesson + task + encouragement + resources structure is excellent — it teaches, then acts, then reassures, then points onward. The sourdough multi-day card proves the format flexes. Strong information design.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Add a <b>"what you'll need" checklist</b> before commit (ingredients, tools) so nobody starts a cake and discovers they're out of eggs at step 3. And a <b>one-tap "I'm in" that starts a soft timer/tracker</b>, so the card isn't just read, it's <i>entered</i>.</div>
+      <div class="why"><span class="tagk">Why</span> The gap between "sounds fun" and "actually started" is where challenges die. A pre-commit checklist removes the mid-task rage-quit, and an explicit start state creates the commitment device that makes finishing (and rating) more likely.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Time &amp; cost estimate honesty</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">The estimates are optimistic to the point of dishonest, and since budget is a <i>core sort</i>, wrong numbers break the whole promise. "60 min" for a from-scratch cake is fiction (20 prep + 35 bake + cool ≈ 2 hr). "$8–12" assumes an empty pantry. When the challenge blows the budget the user explicitly set, trust evaporates.</p>
+      <div class="fix"><span class="tagk">The fix</span> Split time into <b>"hands-on" vs. "total elapsed"</b> (every recipe app learned this the hard way), and define cost as <b>"extra spend assuming a basic pantry,"</b> with the what-you'll-need checklist showing what you probably already have. Round <i>up</i>, always — under-promise, over-deliver.</div>
+      <div class="why"><span class="tagk">Why</span> A budget filter is a <i>contract</i>: "you said 20 minutes." Breaking it once teaches the user to distrust every number in the app, which poisons the single most differentiated feature you have. Honest, slightly-generous estimates are cheap insurance on your best idea.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Voice &amp; copy</span><span class="grade g-top">9<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:90%"></div></div>
+      <p class="verdict">The best-executed thing in the entire doc. "Name the bad outcome before they can worry about it" is a real writing philosophy, and "rate it a 5 if you laughed" is the kind of line that becomes a brand. This voice is a genuine competitive asset — it's the hardest thing here to copy.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Write it down as an enforceable <b>style guide</b> (do/don't pairs, banned words like "master"/"perfect"/"stunning," the funny-is-a-win rule) before anyone else — or any AI draft — touches the catalog. The voice only stays an asset if it survives scaling.</div>
+      <div class="why"><span class="tagk">Why</span> Voice is the one moat competitors can't clone in a weekend, but it's also the first thing that dies when you scale authoring to many writers. A codified style guide is what let Duolingo, Mailchimp, and Slack keep a consistent voice across hundreds of contributors.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Multi-day challenge handling</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">Good instinct to add it (sourdough genuinely can't be a one-shot), and the staged format is clean. But it collides with the daily loop and the doc doesn't resolve it: if I'm on day 3 of sourdough, is <i>that</i> my curio today? Do I also get a fresh card? Does feeding the starter keep my streak? Undefined.</p>
+      <div class="fix"><span class="tagk">The fix</span> Multi-day challenges run as a <b>pinned "in-progress" tracker</b> on the home screen and <b>do not consume your daily new-card slot</b>. Today's tiny step (feed the starter) counts toward your streak, <i>and</i> you can still deal a fresh short challenge. One commitment shouldn't block all discovery.</div>
+      <div class="why"><span class="tagk">Why</span> Long projects and daily novelty serve different needs (mastery vs. exploration) and shouldn't compete for the same slot. Letting them coexist means a user can have a slow-burn sourdough <i>and</i> still get their daily hit of "something new" — which is what keeps both alive.</div>
+    </div>
+  </section>
+
+  <!-- ===================== ENGAGEMENT & SOCIAL ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">04</span><h2>Engagement &amp; social</h2></div>
+    <p class="sec-intro">What brings people back tomorrow, and what makes them bring a friend?</p>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Rating system (1–5 stamp)</span><span class="grade g-high">8<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:80%"></div></div>
+      <p class="verdict">"How did that <i>feel</i>" instead of "how well did you do" is exactly right — it removes performance pressure and doubles as the preference signal that powers boost/mute. One elegant input, two jobs. Love it.</p>
+      <div class="fix"><span class="tagk">Last mile</span> Add an optional <b>one-tap tag on the low scores</b> — a "2" could mean "boring," "too hard," or "not my thing," and those route very differently (mute the drawer vs. offer an easier variant vs. just bad luck). One extra tap turns a blunt number into a useful signal.</div>
+      <div class="why"><span class="tagk">Why</span> A raw 1–5 is ambiguous for personalization — a low score from "too hard" should trigger an easier challenge, not mute the whole category. Disambiguating <i>why</i> makes the deck smarter without adding real friction.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Streak mechanic</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Internally contradictory. The doc promises "no streak-shaming" and then centers a 🔥12-day streak that "quitting halfway breaks." That's the exact anxiety-engine (Duolingo's infamous guilt) that this calm, anti-doomscroll app claims to be an <i>antidote</i> to. You can't sell serenity and run a streak that punishes a missed day.</p>
+      <div class="fix"><span class="tagk">The fix</span> Demote consecutive-day streaks and promote the <b>collection</b>. You're literally building a <i>cabinet of curiosities</i> — make the hero metric "47 skills tried," a shelf that only ever grows and never breaks. Keep a soft streak with <b>free "rest days" and auto-freezes</b>, framed as a gentle rhythm, never a chain you're about to snap.</div>
+      <div class="why"><span class="tagk">Why</span> Loss-aversion streaks drive engagement <i>and</i> anxiety, and the anxiety is off-brand here to the point of hypocrisy. A growth-only collection (Pokédex, a filling shelf) gives the same "keep going" pull through <i>accumulation</i> instead of <i>threat</i> — and it fits the Curio metaphor so well it feels inevitable.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Sharing / virality engine</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">Once-a-day cap + watermark + "here's a weird thing I tried, not look how good I am" is a smart, BeReal-flavored, anti-performative design, and the watermark makes every share a growth ad. Good engine.</p>
+      <div class="fix"><span class="tagk">The fix</span> The watermark alone is a weak install driver — nobody types a URL off a Story. Make the shared card carry a <b>"try this exact challenge" deep link / QR</b> so a friend lands <i>on the same challenge</i>, pre-loaded. And add <b>"challenge a friend"</b> as a first-class action — the single highest-intent viral loop you have.</div>
+      <div class="why"><span class="tagk">Why</span> Virality needs a <i>frictionless path from view to install to value</i>, not just brand exposure. A deep link that drops the friend onto the exact cake you botched turns "cute post" into "oh, I'll try that too" in one tap — that's the difference between a watermark and an actual K-factor.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Inspiration Gallery</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Lovely idea ("1,400 people also botched this cake" is reassuring and on-message) but the doc waves away a <b>brutal</b> operational reality: user-submitted photos = content moderation, NSFW, spam, harassment, and — if minors are on the app — serious legal exposure (CSAM scanning, COPPA). This is a whole trust-and-safety function hiding behind one nice sentence.</p>
+      <div class="fix"><span class="tagk">The fix</span> Do <b>not</b> ship open photo submission at launch. Start <b>curated-only</b> (staff-picked examples baked into each card) or <b>text/stats-only</b> ("73% rated this a 4 or 5; top reflection: …"). Graduate to user photos only once you have moderation tooling, reporting, an age gate, and automated CSAM/NSFW scanning in place.</div>
+      <div class="why"><span class="tagk">Why</span> UGC image platforms live or die on trust-and-safety, and the failure mode isn't "bad UX," it's "legal catastrophe / app-store ban." Curated-first gives you 80% of the reassurance value at ~0% of the risk, and buys time to build the safety stack before you need it.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Retention past the novelty cliff</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">Discovery apps have a predictable arc: magical for two weeks, then the cards feel same-y, you've muted what you hate, the deck thins, and you drift. The doc's depth mechanics (multi-day, resources) help but don't fully answer "why open it in week 8?"</p>
+      <div class="fix"><span class="tagk">The fix</span> Three engines: (1) <b>seasonal/event/weather packs</b> so the catalog feels alive and dated, not static; (2) the <b>"you might have found your thing" insight</b> — "you've rated 5/5 on six cooking curios; want a guided cooking path?" — converting discovery into <i>depth</i>, which is the emotional payoff the whole pitch promised; (3) <b>light social</b> (a friend's daily curio, a weekly group theme).</p>
+      <div class="why"><span class="tagk">Why</span> Novelty decays; <i>identity</i> and <i>relationships</i> don't. Turning "I tried cooking" into "I'm getting into cooking" (identity) or "my friends and I do this" (social) are the two durable retention drivers once the surprise wears off — and the hobby-discovery insight is the exact "discover your hobby" dream you started with, finally paid off.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Re-engagement (notifications + widget)</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">A single gentle daily nudge is the right <i>tone</i>, but making it the <b>only</b> re-engagement path is fragile — iOS notification opt-in hovers around 40–60%, so up to half your users never get the one signal you're relying on to bring them back.</p>
+      <div class="fix"><span class="tagk">The fix</span> A <b>home-screen widget showing today's curio</b> is the killer move — it's passive, needs no notification permission, and literally sits on the home screen <i>next to the apps you're trying to replace</i>. Pair with optional email and a "morning ritual" pairing (with your coffee), so re-engagement doesn't hinge on one permission dialog.</div>
+      <div class="why"><span class="tagk">Why</span> Widgets intercept the exact moment of the scroll habit — the home-screen glance — without asking permission, and they turn the app from "a thing I open" into "a thing that's <i>there</i>." Diversifying re-engagement past notifications is how you survive the users who tap "Don't Allow."</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Verification / integrity</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">There's no way for the app to know you actually made the cake — it's all self-report. For a personal-growth app that's <i>fine</i> (you only cheat yourself), but it quietly caps any feature that needs trust: leaderboards, competitive streaks, rewards.</p>
+      <div class="fix"><span class="tagk">The fix</span> Don't build verification — <b>make honesty the design stance</b>. Frame the optional photo as "evidence for future-you," not proof for the system. And <i>never</i> ship features (competitive leaderboards, prizes) that would give people a reason to lie. Keep the stakes internal and the integrity question never arises.</div>
+      <div class="why"><span class="tagk">Why</span> Verification is expensive, invasive, and antithetical to a calm, trust-based app. The right move isn't to police cheating — it's to design a game where cheating has no payoff, so the whole problem dissolves instead of needing a solution.</div>
+    </div>
+  </section>
+
+  <!-- ===================== SYSTEMS ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">05</span><h2>Systems: accessibility, safety, privacy, build</h2></div>
+    <p class="sec-intro">The unglamorous stuff that sinks apps quietly if it's ignored.</p>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Accessibility</span><span class="grade g-high">7<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-high" style="width:70%"></div></div>
+      <p class="verdict">The "accessible alternate task" idea is genuinely thoughtful and ahead of most apps — it treats accessibility as content design, not just a checkbox. Good instinct.</p>
+      <div class="fix"><span class="tagk">The fix</span> Broaden past the alternate-task: <b>swipe needs a tap-button equivalent</b> (motor accessibility), screen-reader labels on every card, respected system font-scaling, and reduced-motion support. And write alternates for <i>sensory</i> assumptions too (audio challenges for the Deaf, visual for the blind), not just mobility.</div>
+      <div class="why"><span class="tagk">Why</span> Gesture-only UIs exclude motor-impaired and screen-reader users entirely, and it's also just an app-store review risk. Accessibility done at the content layer <i>and</i> the interaction layer is both the right thing and a moat — almost no competitor bothers, so it's a differentiator too.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Safety &amp; liability</span><span class="grade g-mid">5<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:50%"></div></div>
+      <p class="verdict">The one-line inline safety note is the right <i>instinct</i> (nobody reads a wall of legal text), but the doc under-rates the exposure. "Forage something edible," "build a campfire," "30-second cold plunge," knife work — these can genuinely hurt people, and "with a guide" isn't a shield if the guide is missing.</p>
+      <div class="fix"><span class="tagk">The fix</span> Tier the risk: most challenges need nothing; a flagged set gets the inline note; a <b>high-risk set</b> (foraging, fire, cold exposure, anything ingestible) gets a mandatory tap-through acknowledgment <i>and</i> should lean toward "learn to identify" over "go eat it." Run the risky drawers past an actual lawyer before launch. Add a blanket, plain-English "use common sense, you're responsible for you" term.</div>
+      <div class="why"><span class="tagk">Why</span> "An app told me this mushroom was safe" is a lawsuit and a press disaster. Tiering keeps the calm, note-not-wall UX for the 95% of harmless challenges while putting a real speed-bump on the few that can actually cause injury — proportionate friction, legal cover, and it barely touches the everyday experience.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Privacy &amp; data</span><span class="grade g-low">4<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-low" style="width:40%"></div></div>
+      <p class="verdict">Barely addressed, and the app inherently touches sensitive stuff: <b>photos of your home, your food, possibly your kids; location for outdoor/foraging; a behavioral log of everything you do.</b> "Private by default" is stated once and never architected.</p>
+      <div class="fix"><span class="tagk">The fix</span> Decide the storage model explicitly: <b>on-device-first</b> for the log and photos, with cloud sync as an opt-in (this also answers the "survives a lost phone" question honestly). Minimize location to a coarse, on-demand grab. Publish a short, human-readable privacy promise — "your curios live on your phone unless you ask us to back them up." Make it a selling point.</div>
+      <div class="why"><span class="tagk">Why</span> A calm, wholesome, anti-attention-economy app that quietly hoovers up photos and location would be a brand contradiction and a regulatory risk (GDPR/COPPA). Privacy-as-a-feature is both the ethically consistent choice and a marketing asset against the surveillance-y incumbents you're positioning against.</div>
+    </div>
+
+    <div class="metric">
+      <div class="m-top"><span class="m-name">Technical MVP feasibility</span><span class="grade g-mid">6<i>/10</i></span></div>
+      <div class="meter"><div class="meter-fill b-mid" style="width:60%"></div></div>
+      <p class="verdict">The app <i>shell</i> is very buildable — a swipe deck, local storage, a share-card generator (you already have <span class="mono">html-to-image</span> and a ShareCard pattern in your other project). The risk isn't the code; it's <b>scope creep</b>: gallery, social, accounts, notifications, weather, and 2,000 strings of content all at once is a year, not a weekend.</p>
+      <div class="fix"><span class="tagk">The fix</span> Ruthless MVP: <b>local-only, no accounts, no gallery, no social.</b> Ship the loop (taste quiz → daily curio + Right-Now tier → do → stamp → share card → widget) with 50 hand-authored challenges. Prove people come back for a week before building anything that needs a backend. Reuse your existing React/Vite/Tailwind + share-card stack rather than starting cold.</div>
+      <div class="why"><span class="tagk">Why</span> The single riskiest assumption is "will people do a real-world challenge daily instead of scrolling?" — and you can test that with a fully local app and zero backend. Everything social/account-based is expensive, slow, and <i>premature</i> until that core question is answered yes.</div>
+    </div>
+  </section>
+
+  <!-- ===================== BRAINSTORM ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">06</span><h2>Brainstorm — bigger swings</h2></div>
+    <p class="sec-intro">Ideas beyond patching what's there. Rated by swing size, not by how safe they are.</p>
+
+    <div class="idea"><div class="ih"><h4>The "Curio Cabinet" as the whole progression system</h4><span class="swing easy">Easy · high payoff</span></div>
+      <p>Replace streaks-as-anxiety with a literal <b>visual cabinet that fills with tiny illustrated tokens</b> — one per skill tried. Each drawer that fills unlocks a "you've dabbled in all of Fermentation" moment. This <i>is</i> the brand metaphor, it's growth-only (no punishment), and a screenshot of your full cabinet is a far better share than a streak number. It ties naming, progression, sharing, and the anti-shame stance into one object.</p>
+    </div>
+
+    <div class="idea"><div class="ih"><h4>"Dabble together" — a shared daily curio for two</h4><span class="swing med">Medium · retention</span></div>
+      <p>You and a friend/partner get the <b>same</b> challenge each day and see each other's stamp + photo. It's the BeReal social loop but built around <i>doing</i>, not posting. Enormous retention lever (you show up because they're waiting), and it makes the "challenge a friend" viral loop into an ongoing relationship instead of a one-off.</p>
+    </div>
+
+    <div class="idea"><div class="ih"><h4>Weather- &amp; time-reactive "smart deck"</h4><span class="swing easy">Easy · feels magic</span></div>
+      <p>The deck quietly reshuffles to the moment: rainy evening → indoor + cozy; bright Saturday morning → outdoor + adventurous; 11pm on the couch → a Right-Now micro-curio. Cheap to build (one weather call + tags), and it's the difference between "a static list" and "an app that knows my life." Punches way above its cost.</p>
+    </div>
+
+    <div class="idea"><div class="ih"><h4>Seasonal "Curio Packs" as the content <i>and</i> revenue rhythm</h4><span class="swing med">Medium · monetization</span></div>
+      <p>Ship themed drops — "Cozy Winter," "Get Outside," "Holiday Gifts You Can Make," "New Year, New Skill." Solves three problems at once: keeps the catalog feeling <i>alive</i> and dated (retention), gives Curio+ a reason to exist (each pack is a premium unlock), and gives you a natural content-production cadence instead of an infinite backlog.</p>
+    </div>
+
+    <div class="idea"><div class="ih"><h4>"Skill trees," not just a flat catalog</h4><span class="swing big">Big · depth engine</span></div>
+      <p>When someone loves a drawer, offer a <b>guided path</b>: cooking → knife skills → one sauce → one braise → host a dinner. Turns Curio from a discovery toy into a <i>learning</i> tool with real depth — directly answering "if someone really likes culinary, give them more." This is the graduation from "dabble" to "get good," and it's what makes the app matter past month one. Big build, so it's a phase-2 bet.</p>
+    </div>
+
+    <div class="idea"><div class="ih"><h4>Physical companion: a deck of Curio cards</h4><span class="swing med">Medium · brand + revenue</span></div>
+      <p>A real printed card deck of challenges — screen-free, giftable, a marketing object that lives on a coffee table. It's on-brand (anti-doomscroll → literally not a screen), a second revenue line, and a Trojan horse that drives app installs via a QR on the box. Low-tech, high-charm.</p>
+    </div>
+
+    <div class="idea"><div class="ih"><h4>"Reflection, not just rating" — a one-line note per curio</h4><span class="swing easy">Easy · emotional depth</span></div>
+      <p>Alongside the 1–5 stamp, an optional one-line "what happened." Over months this becomes a <b>diary of a more interesting year</b> — "the year I tried 200 things" — which is a genuinely moving artifact and a killer year-in-review share (Spotify Wrapped, but for your life). Nearly free to build, disproportionately meaningful.</p>
+    </div>
+  </section>
+
+  <!-- ===================== CHANGELOG ===================== -->
+  <section>
+    <div class="sec-head"><span class="sec-num">07</span><h2>Changelog — what I'd change in the concept</h2></div>
+    <p class="sec-intro">Concrete edits to the spec itself. If you approve these, I'll fold them into a v0.3. Removals are called out honestly.</p>
+    <div class="log">
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A "Right Now" micro-curio tier</b> — 60–120s, one-handed, phone-only — and lead the home screen with it. Without this the anti-doomscroll thesis doesn't hold.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>Onboarding: a 30-second taste quiz + a guaranteed first win</b> in session one, before streaks/sharing are ever mentioned.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A monetization section</b> — freemium (free daily loop + share; Curio+ for catalog, controls, packs) + ethical disclosed affiliate on supplies.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>Context awareness</b> (time + weather tags) and <b>saved budget "moods"</b> as one-tap presets.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>A home-screen widget</b> as a first-class re-engagement surface, not just notifications.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>Deep-link / "challenge a friend"</b> on the share card, and a <b>"wildcard %"</b> exploration guard on personalization.</div></div>
+      <div class="log-row"><div class="op add">Add</div><div class="txt"><b>"What you'll need" checklist</b> + hands-on vs. total time on every card; honest, rounded-up estimates.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Streaks → a growth-only "Curio Cabinet" collection</b> as the hero metric, with soft streaks + free rest days. Resolves the app's own anti-shame contradiction.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Swipe deck → tap-first, finite hand of 5–7 cards</b>; and <b>"Today's Curio" (one assigned card) becomes the default</b>, deck demoted to the "deal me another" escape hatch.</div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Multi-day challenges → a pinned tracker that doesn't consume the daily slot.</b></div></div>
+      <div class="log-row"><div class="op change">Change</div><div class="txt"><b>Catalog strategy → 40–60 fully-authored challenges at launch</b> (breadth of drawers, depth of a few) instead of 381 half-filled, plus a real authoring pipeline + codified voice guide.</div></div>
+      <div class="log-row"><div class="op remove">Remove</div><div class="txt"><b>Open user-photo Inspiration Gallery from v1.</b> Replaced with curated-only / stats-only until trust-and-safety, age-gating, and NSFW/CSAM scanning exist. It's a legal landmine, not a launch feature.</div></div>
+      <div class="log-row"><div class="op remove">Remove</div><div class="txt"><b>Accounts / backend from the MVP.</b> Ship local-only to test the one assumption that matters (do people come back?) before building anything server-side.</div></div>
+      <div class="log-row"><div class="op remove">Remove</div><div class="txt"><b>Any competitive/leaderboard framing</b> (implied by prominent streaks). It invites cheating on unverifiable self-report and clashes with the calm tone. Keep all stakes internal.</div></div>
+    </div>
+  </section>
+
+  <div class="callout">
+    <h4>The one thing to internalize</h4>
+    <p>Curio's biggest risk isn't any single feature — it's that <b>the two hardest problems (authoring hundreds of great challenges, and actually intercepting the scroll moment) are the ones the doc spends the least time on</b>, while the fun parts (taxonomy, share cards) are already strong. Spend your next month on a Right-Now tier and 50 lovingly-written challenges, not on the gallery or the social graph. Prove the habit with a local app first; earn the right to build everything else.</p>
+  </div>
+
+  <hr class="rule">
+  <footer>CURIO TEARDOWN · 29 METRICS · COMPOSITE 5.9/10 · A 9/10 IDEA WORTH GETTING TO 8/10 EXECUTION</footer>
+
+</div>
