@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from "react"
 import type { CSSProperties, ReactNode } from "react"
-import { Pointer, MousePointer2, Search, Speech, Check, X, ArrowUp, ArrowDown, Heart, Swords, Pencil } from "lucide-react"
+import { Pointer, MousePointer2, Search, Speech, Check, X, ArrowUp, ArrowDown, Heart, Swords, Pencil, Bird } from "lucide-react"
 import { POSTER_SHAPES, POSTER_MAP_VIEWBOX, POSTER_SUB_URLS } from "../data/posterShapes"
 import { T, tint, GROUP_TONES } from "../ui/tokens"
 import { LineIcon } from "./icons"
+import { LayoutIcon } from "./LayoutIcon"
 import FlagImage from "./FlagImage"
 
 /**
@@ -370,6 +371,24 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
           {urlImg("/fusion/example.svg")}
         </div>
       ) }
+
+    case "flagidentifier": {
+      // The three answers (a diagonal split, three colours, an animal) and
+      // the flag they found: Bhutan's dragon.
+      const chip: CSSProperties = { display: "flex", alignItems: "center", justifyContent: "center", gap: hero ? 4 : 3, height: hero ? 28 : 16, borderRadius: hero ? 6 : 4, background: T.surface, border: `1px solid ${T.line}` }
+      const dot = (c: string) => <span key={c} style={{ width: hero ? 8 : 5, height: hero ? 8 : 5, borderRadius: 999, background: c, border: `1px solid ${tint(T.text, 0.2)}` }} />
+      return { bleed: false, node: (
+        <div style={{ ...box, background: wash, display: "flex", alignItems: "center", justifyContent: "center", gap: hero ? 12 : 7 }}>
+          <div style={{ display: "flex", flexDirection: "column", gap: hero ? 5 : 3, width: hero ? "24%" : "30%" }}>
+            <div style={chip}><LayoutIcon id="diagonal" width={hero ? 28 : 16} ink={accent} /></div>
+            <div style={chip}>{["#FFCD00", "#FF671F", "#FFFFFF"].map(dot)}</div>
+            <div style={chip}><Bird size={hero ? 16 : 10} color={accent} strokeWidth={1.8} /></div>
+          </div>
+          <span style={{ width: hero ? 16 : 9, height: 2, background: tint(accent, 0.7) }} />
+          <MiniFlag code="bt" style={{ width: hero ? "34%" : "40%" }} />
+        </div>
+      ) }
+    }
 
     case "flagstudio": {
       // A flag being made: blue and gold stripes, a red star mid-edit with

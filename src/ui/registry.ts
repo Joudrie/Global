@@ -23,6 +23,9 @@ export interface Entry {
   /** Hand-picked A-tier games surfaced in the "Most Loved" shelf on Play.
    *  A game can be featured *and* still appear in its category shelf. */
   featured?: boolean
+  /** A tool, not a game (Flag Identifier): it opens from Play like a game and
+   *  can be searched for, but the game count leaves it out. */
+  tool?: boolean
   progress?: (s: AppState) => { done: number; total: number }
 }
 
@@ -69,6 +72,7 @@ export const REGISTRY: Entry[] = [
   { id: "thepeel", title: "The Peel", subtitle: "Scratch to reveal", icon: "🖌️", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
   { id: "composer", title: "Tile Flipper", subtitle: "Reassemble the flag", icon: "🎴", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
   { id: "flagstudio", title: "Flag Studio", subtitle: "Make your own flag", icon: "🎨", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
+  { id: "flagidentifier", title: "Flag Identifier", subtitle: "Describe a flag, find it", icon: "🔎", tab: "play", group: "One Glance", size: "tile", accent: "play", tool: true },
   { id: "buildflag", title: "Build the Flag", subtitle: "Assemble the bands", icon: "🧩", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
   { id: "geopaint", title: "GeoPaint", subtitle: "Colour-match the flag", icon: "🎨", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "sketchflag", title: "Sketch the Flag", subtitle: "Draw it from memory", icon: "✏️", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
@@ -129,11 +133,13 @@ export const REGISTRY: Entry[] = [
 ]
 
 // Every game a player can open: everything on Play (Beta Sandbox included) and
-// Today. The You tab's Collection pages are progress views, not games. This is
-// the one list/count used everywhere (app copy and the /games/ page), so the
-// numbers always match.
-export const GAMES: Entry[] = REGISTRY.filter(e => e.tab !== "you")
+// Today. The You tab's Collection pages are progress views, not games, and
+// tools (Flag Identifier) aren't games either. This is the one list/count used
+// everywhere (app copy and the /games/ page), so the numbers always match.
+export const GAMES: Entry[] = REGISTRY.filter(e => e.tab !== "you" && !e.tool)
 export const GAME_COUNT = GAMES.length
+/** Tools that open from Play beside the games. */
+export const TOOLS: Entry[] = REGISTRY.filter(e => e.tool)
 
 export function groupsFor(tab: TabKey): { group: string; entries: Entry[] }[] {
   const out: { group: string; entries: Entry[] }[] = []
