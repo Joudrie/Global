@@ -273,7 +273,7 @@ test('Flag Fusion sits next to Frankenflag on the One Glance shelf, and every co
   assert.match(read('src/components/icons.tsx'), /flagfusion: \w+/)
   assert.match(read('src/components/GamePoster.tsx'), /case "flagfusion":/)
   assert.match(read('scripts/test-site.mjs'), /\|fusion\|/)
-  assert.equal(CHANGELOG[0].title, 'New game: Flag Fusion')
+  assert.ok(CHANGELOG.some(c => c.title === 'New game: Flag Fusion'))
 })
 
 test('the copy says five flags and five wrong guesses, matching the rules', () => {

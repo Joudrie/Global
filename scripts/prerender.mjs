@@ -14,6 +14,7 @@
 //   /identity/…        pride, ethnic, indigenous, separatist, micronation and
 //                      civic flags, one page per category
 //   /games/            every game and how it plays
+//   /flag-identifier/  the Flag Identifier tool, with flags listed by design
 //   /about/, /contact/, 404.html, sitemap.xml
 //
 // Data is imported straight from the TypeScript sources via Node's native type
@@ -42,7 +43,9 @@ const { TERRITORIES } = await data('territories.ts')
 const { UK_NATIONS } = await data('ukNations.ts')
 const { CHALLENGE_CONTINENTS } = await data('challenges.ts')
 const { CHANGELOG, LAST_UPDATED, formatDate } = await data('changelog.ts')
-const { GAMES, GAME_COUNT } = await import(path.join(ROOT, 'src/ui/registry.ts'))
+const { GAMES, GAME_COUNT, TOOLS } = await import(path.join(ROOT, 'src/ui/registry.ts'))
+// Tools with their own landing page link there from /games/.
+const TOOL_PAGE = { flagidentifier: '/flag-identifier/' }
 const { FLAG_MEANINGS } = await data('flagMeanings.ts')
 const { FLAG_DETAILS } = await data('flagDetails.ts')
 const { neighborsOf } = await data('borders.ts')
@@ -51,6 +54,8 @@ const { FLAG_ATTRIBS } = await data('flagAttribs.ts')
 const { FACTS } = await data('countryFacts.ts')
 const { EMBLEMS } = await data('emblems.ts')
 const { SYMBOLS } = await import(path.join(ROOT, 'src/utils/flagStudio.ts'))
+const { IDENTIFY_FLAGS } = await data('flagIdentify.ts')
+const ID = await import(path.join(ROOT, 'src/utils/flagIdentify.ts'))
 const EMBLEM_COUNT = EMBLEMS.length
 const SYMBOL_COUNT = SYMBOLS.length
 
@@ -115,6 +120,7 @@ const NAV = [
   ['/identity/', 'Identity flags'],
   ['/games/', 'Games'],
   ['/flag-maker/', 'Flag maker'],
+  ['/flag-identifier/', 'Flag identifier'],
   ['/about/', 'About'],
 ]
 
@@ -250,7 +256,7 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
 </header>
 ${body}
 <footer>
-  <p><a href="/">Play Globalio</a><a href="/flags/">Country flags</a><a href="/historical/">Historical flags</a><a href="/identity/">Identity flags</a><a href="/games/">Games</a><a href="/flag-maker/">Flag maker</a></p>
+  <p><a href="/">Play Globalio</a><a href="/flags/">Country flags</a><a href="/historical/">Historical flags</a><a href="/identity/">Identity flags</a><a href="/games/">Games</a><a href="/flag-maker/">Flag maker</a><a href="/flag-identifier/">Flag identifier</a></p>
   <p><a href="/whats-new/">What's new</a><a href="/about/">About</a><a href="/contact/">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></p>
   <p>© Globalio. Flags, names and dates are researched from Wikipedia, Wikimedia Commons and official sources. Spot a mistake? <a href="/contact/">Tell us</a>.</p>
   <p class="muted">Last updated ${formatDate(LAST_UPDATED)}. New games every month.</p>
@@ -384,6 +390,7 @@ through history, plus its territories and regional flags.</p>
 <p>Looking for flags that aren't national? See <a href="/historical/">historical flags</a> of vanished
 states and empires, or <a href="/identity/">identity flags</a> for pride, indigenous, separatist and
 micronation flags. When you're ready, test yourself in <a href="/games/">${GAME_COUNT} flag games</a>.</p>
+<p>Saw a flag and can't name it? The <a href="/flag-identifier/">flag identifier</a> finds it from its shape, colours and symbols.</p>
 ${byRegion.map(({ region, flags }) => `
 <h2>${esc(region)} <span class="muted" style="font-size:15px;font-weight:400">(${flags.length})</span></h2>
 <div class="grid">
@@ -556,6 +563,7 @@ const GAME_DESC = {
   thecrop: 'Start from a tight crop of a flag and zoom out until you can name it.',
   thepeel: 'Scratch away the cover to reveal a flag bit by bit, and guess it as early as you can.',
   composer: 'A flag is hidden under a grid of tiles. Each guess flips a tile, and closer guesses reveal better ones.',
+  flagidentifier: 'Saw a flag you can\'t name? Describe its shape, its colours and anything on it, like a star or a sun, and see every country flag that fits, best match first.',
   flagstudio: 'Make your own flag. Start from any real flag or a blank layout, recolour any part, add stars, suns and crescents, then download it as a PNG or share a link.',
   buildflag: 'Put a flag together from its stripes and bands in the right order.',
   geopaint: 'Colour in a blank flag and see how close you got to the real thing.',
@@ -617,6 +625,14 @@ ${games.filter(e => (e.sandbox ? 'More games' : e.group) === g).map(e => `<div c
   <p>${esc(GAME_DESC[e.id] ?? e.subtitle)}</p>
 </div>`).join('\n')}
 </div>`).join('\n')}
+<h2>Tools</h2>
+<p class="muted">Not games, but handy when you meet a flag in the wild.</p>
+<div class="games">
+${TOOLS.map(e => `<div class="game">
+  <h3><a href="${TOOL_PAGE[e.id] ?? `/?play=${esc(e.id)}`}">${esc(e.title)}</a></h3>
+  <p>${esc(GAME_DESC[e.id] ?? e.subtitle)}</p>
+</div>`).join('\n')}
+</div>
 <a class="cta" href="/">Open Globalio</a>
 `
   return page({
@@ -711,6 +727,140 @@ ${FLAG_MAKER_FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(
       {
         '@context': 'https://schema.org', '@type': 'FAQPage',
         mainEntity: FLAG_MAKER_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
+      },
+    ],
+    body,
+  })
+}
+
+// ── flag identifier: /flag-identifier/ ───────────────────────────────────────
+// The landing page for the Flag Identifier, so "what flag is this" searches
+// find it, plus static lists of flags by design (from the tool's own data,
+// src/data/flagIdentify.ts) that link to every country page. The tool itself
+// lives in the app at /?play=flagidentifier.
+const IDENTIFIER_URL = '/?play=flagidentifier'
+const IDENTIFIER_FAQ = [
+  ['How does it work?', 'Answer three questions: the flag\'s layout, its colours and anything on it, like stars, a sun or a coat of arms. Every country flag is ranked by how well it fits, and the list is there at every step.'],
+  ['What if I remember a colour wrong?', 'It still shows up. Flags are ranked, not filtered: one wrong colour or detail moves a flag into the "close" list instead of hiding it, and light blue for blue only counts half.'],
+  ['Which flags can it find?', `All ${FLAGS.length} country flags for now.`],
+  ['Is it free?', 'Yes. No account, no sign-up, and nothing you pick leaves your device.'],
+]
+
+function cards(codes) {
+  return `<div class="grid">
+${codes.map(c => BY_CODE.get(c)).filter(Boolean).sort((a, b) => a.name.localeCompare(b.name))
+    .map(f => `<a class="card" href="/flags/${slug(f.code)}/">${img(f.flagUrl, `Flag of ${f.name}`)} ${esc(f.name)}</a>`).join('\n')}
+</div>`
+}
+
+function identifierPage() {
+  const withLayout = id => IDENTIFY_FLAGS.filter(e => e.layouts.includes(id)).map(e => e.code)
+  const withDetail = id => IDENTIFY_FLAGS.filter(e => e.details.includes(id)).map(e => e.code)
+  const layoutLists = [
+    ['nordic', 'Flags with a Nordic cross', 'A cross set towards the pole, the mark of the Nordic countries.'],
+    ['cross', 'Flags with a cross', 'Any cross that spans the flag or sits in the middle of it.'],
+    ['saltire', 'Flags with a diagonal cross', 'An X from corner to corner, called a saltire.'],
+    ['hoist', 'Flags with a triangle at the hoist', 'A triangle on the side by the pole, often beside stripes.'],
+    ['chevron', 'Flags with a chevron or Y', 'A V, arrowhead or Y shape pointing into the flag.'],
+    ['diagonal', 'Flags with a diagonal band', 'A band or split running from one corner to the other.'],
+    ['unionjack', 'Flags with the Union Jack', 'The British flag, whole or in the corner.'],
+    ['canton', 'Flags with a box in the corner', 'A rectangle in the top corner by the pole, called a canton.'],
+    ['disc', 'Flags with a circle in the middle', 'A disc at or near the centre.'],
+    ['border', 'Flags with a border', 'A frame of another colour around the edge.'],
+    ['diamond', 'Flags with a diamond', 'A diamond shape on the field.'],
+    ['quartered', 'Flags in four quarters', 'Split into four blocks of colour.'],
+    ['split', 'Flags split in two', 'Two halves of colour, across, down or on the diagonal.'],
+    ['plain', 'Flags in one colour with a symbol', 'A single-colour field with something on it.'],
+    ['vstripes', 'Flags with vertical stripes', 'Bands that run from top to bottom.'],
+  ]
+  const detailLists = [
+    ['sun', 'Flags with a sun'], ['crescent', 'Flags with a crescent moon'], ['star', 'Flags with stars'],
+    ['animal', 'Flags with a bird or animal'], ['plant', 'Flags with a plant, leaf or tree'], ['weapon', 'Flags with a weapon'],
+    ['crown', 'Flags with a crown'], ['writing', 'Flags with writing'], ['map', 'Flags with a map'],
+    ['emblem', 'Flags with a coat of arms or emblem'], ['manystripes', 'Flags with five or more stripes'],
+  ]
+  // Colour sets several flags share exactly (main colours, as a person would name them).
+  const colourName = id => ID.COLOURS.find(c => c.id === id).label.split(' or ')[0].toLowerCase()
+  const ORDER = ['red', 'maroon', 'white', 'blue', 'lightblue', 'green', 'yellow', 'orange', 'black'] // as people say them
+  const sets = new Map()
+  for (const e of IDENTIFY_FLAGS) {
+    const key = [...new Set(e.colors.map(c => c.split('|')[0]))].sort((a, b) => ORDER.indexOf(a) - ORDER.indexOf(b)).join('+')
+    sets.set(key, [...(sets.get(key) ?? []), e.code])
+  }
+  const colourLists = [...sets].filter(([, codes]) => codes.length >= 5).sort((a, b) => b[1].length - a[1].length)
+    .map(([key, codes]) => {
+      // "Red, white and blue", but "blue and white": white follows red, else comes last.
+      const ids = key.split('+')
+      if (!ids.includes('red') && ids.includes('white')) ids.push(...ids.splice(ids.indexOf('white'), 1))
+      const words = ids.map(colourName)
+      return [`${words.length < 2 ? words[0] : `${words.slice(0, -1).join(', ')} and ${words[words.length - 1]}`} flags`, codes]
+    })
+    .map(([t, codes]) => [t[0].toUpperCase() + t.slice(1), codes])
+  const nepal = withLayout('shape').map(c => BY_CODE.get(c)?.name)
+
+  const body = `
+<div class="crumbs"><a href="/">Home</a> › Flag identifier</div>
+<p class="eyebrow">Free flag identifier</p>
+<h1>Flag identifier</h1>
+<p class="lead">Saw a flag and don't know whose it is? Describe it: its layout, its colours and anything
+on it, like a star or a sun. Globalio lists every country flag that fits, best match first.</p>
+<a class="cta" href="${IDENTIFIER_URL}">Identify a flag</a>
+
+<h2>How it works</h2>
+<div class="how">
+  <div><b>1 · Shape</b><span>Stripes, a cross, a triangle at the pole…</span></div>
+  <div><b>2 · Colours</b><span>Every colour you remember</span></div>
+  <div><b>3 · Details</b><span>Stars, a sun, a coat of arms, writing</span></div>
+  <div><b>4 · Matches</b><span>Every flag that fits, best first</span></div>
+</div>
+<p>It ranks rather than filters, so one colour remembered wrong doesn't hide the answer: that flag moves to
+a list of close matches instead. You can open the list after any question and change any answer.</p>
+
+<h2>Flags by layout</h2>
+<p class="muted">Every country flag with each layout. Tap a flag for its meaning and history.</p>
+${layoutLists.map(([id, title, note]) => {
+  const codes = withLayout(id)
+  return `<h3 style="margin-top:26px">${esc(title)} <span class="muted" style="font-size:14px;font-weight:400">(${codes.length})</span></h3>
+<p class="small muted">${esc(note)}</p>
+${cards(codes)}`
+}).join('\n')}
+<p>${esc(list(nepal))} ${nepal.length === 1 ? 'is the only country whose flag is' : 'have flags that are'} not a rectangle.</p>
+
+<h2>Flags by symbol</h2>
+<p class="muted">Symbols you can see on the flag itself, not only inside a coat of arms.</p>
+${detailLists.map(([id, title]) => {
+  const codes = withDetail(id)
+  return codes.length ? `<h3 style="margin-top:26px">${esc(title)} <span class="muted" style="font-size:14px;font-weight:400">(${codes.length})</span></h3>
+${cards(codes)}` : ''
+}).join('\n')}
+
+<h2>Flags by colour</h2>
+<p class="muted">Flags whose main colours are exactly these, as you'd name them (a small emblem's colours don't count).</p>
+${colourLists.map(([title, codes]) => `<h3 style="margin-top:26px">${esc(title)} <span class="muted" style="font-size:14px;font-weight:400">(${codes.length})</span></h3>
+${cards(codes)}`).join('\n')}
+
+<h2>Questions</h2>
+<div class="faq">
+${IDENTIFIER_FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(a)}</p></details>`).join('\n')}
+</div>
+<a class="cta" href="${IDENTIFIER_URL}">Identify a flag</a>
+<p class="small muted">Know them all already? Test yourself in <a href="/games/">${GAME_COUNT} flag games</a>.</p>
+`
+  return page({
+    title: "Flag Identifier: find a country's flag by its colours and shapes | Globalio",
+    description: clip(`Saw a flag you can't name? Describe its layout, colours and symbols and see which of the ${FLAGS.length} country flags fit. Plus every flag with a Nordic cross, a sun, a crescent and more.`),
+    canonical: `${ORIGIN}/flag-identifier/`,
+    jsonLd: [
+      {
+        '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Flag Identifier', url: `${ORIGIN}${IDENTIFIER_URL}`,
+        applicationCategory: 'ReferenceApplication', operatingSystem: 'Any (web browser)',
+        offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
+        description: 'Describe a flag by its layout, colours and symbols and see which country flags fit, best match first.',
+      },
+      crumbs([['Home', '/'], ['Flag identifier', '/flag-identifier/']]),
+      {
+        '@context': 'https://schema.org', '@type': 'FAQPage',
+        mainEntity: IDENTIFIER_FAQ.map(([q, a]) => ({ '@type': 'Question', name: q, acceptedAnswer: { '@type': 'Answer', text: a } })),
       },
     ],
     body,
@@ -835,6 +985,7 @@ emit('/identity/', identityHub())
 for (const c of ID_CATS) emit(`/identity/${slug(c)}/`, identityPage(c))
 emit('/games/', gamesPage())
 emit('/flag-maker/', flagMakerPage())
+emit('/flag-identifier/', identifierPage())
 emit('/about/', aboutPage())
 emit('/contact/', contactPage())
 emit('/whats-new/', whatsNewPage())

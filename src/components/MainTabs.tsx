@@ -7,7 +7,7 @@ import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { openSupporter } from "../utils/supporterNav"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, GAMES, GAME_COUNT, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
+import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
 import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon, HeartIcon } from "./icons"
@@ -583,20 +583,22 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   })()
   const top = topGames(dayIdx)
 
-  const shuffle = () => launch(playable[Math.floor(Math.random() * playable.length)])
+  // Surprise me picks a game, never a tool.
+  const shuffleable = playable.filter(r => !r.tool)
+  const shuffle = () => launch(shuffleable[Math.floor(Math.random() * shuffleable.length)])
 
   const learned = state.learnedFlags.length
   const learnPct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
 
   // Browse vs. filter: a search query or a non-"All" chip collapses the shelves
   // into a flat result grid. Search spans the *whole* catalogue (sandbox too,
-  // and games filed on Today such as Flag Gacha) so every game stays findable
+  // games filed on Today such as Flag Gacha, and tools) so every game stays findable
   // by name. "Popular" is the hand-picked set.
   const POPULAR = "__popular"
   const query = q.trim().toLowerCase()
   const filtering = !!query || activeGroup !== null
   const filtered = query
-    ? GAMES.filter(r => `${r.title} ${r.subtitle}`.toLowerCase().includes(query))
+    ? [...GAMES, ...TOOLS].filter(r => `${r.title} ${r.subtitle}`.toLowerCase().includes(query))
     : activeGroup === POPULAR
       ? featured
       : activeGroup

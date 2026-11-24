@@ -4,6 +4,16 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-11-24",
+    title: "New: Flag Identifier",
+    items: [
+      "Saw a flag on the drive or on TV and can't name it? Describe it and Globalio finds it. Pick its layout (stripes, a cross, a triangle at the pole, a circle in the middle…), the colours you remember, then anything on it, like stars, a sun, a crescent, a coat of arms or writing.",
+      "Every country flag is ranked by how well it fits, so one colour remembered wrong doesn't hide the answer: that flag shows as close instead. The count of flags that fit is always on screen, and you can open the list or change an answer at any step.",
+      "Tap a match to see the flag up close, how to tell it apart, and a link to its meaning and history.",
+      "A new page, globalio.app/flag-identifier/, lists every flag by design: Nordic crosses, triangles at the hoist, suns, crescents, red, white and blue flags and more.",
+    ],
+  },
+  {
     date: "2026-11-17",
     title: "New game: Flag Fusion",
     items: [

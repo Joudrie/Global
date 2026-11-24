@@ -37,6 +37,7 @@ const TheCropScreen = lazy(() => import("./components/TheCropScreen"))
 const FlagDNAScreen = lazy(() => import("./components/FlagDNAScreen"))
 const BuildFlagScreen = lazy(() => import("./components/BuildFlagScreen"))
 const FlagStudioScreen = lazy(() => import("./components/FlagStudioScreen"))
+const FlagIdentifierScreen = lazy(() => import("./components/FlagIdentifierScreen"))
 const GeoPaintScreen = lazy(() => import("./components/GeoPaintScreen"))
 const SketchFlagScreen = lazy(() => import("./components/SketchFlagScreen"))
 const SpotErrorScreen = lazy(() => import("./components/SpotErrorScreen"))
@@ -89,7 +90,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "citiesabroad" | "countriesabroad" | "nativenames" | "flagfusion"
+type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "citiesabroad" | "countriesabroad" | "nativenames" | "flagfusion"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -427,6 +428,7 @@ export default function App() {
       {screen === "flagdna"    && <FlagDNAScreen     onBack={() => setScreen("home")} />}
       {screen === "buildflag"    && <BuildFlagScreen    onBack={() => setScreen("home")} />}
       {screen === "flagstudio"   && <FlagStudioScreen   onBack={() => { sharedDesign.current = null; setScreen("home") }} initialDesign={sharedDesign.current} />}
+      {screen === "flagidentifier" && <FlagIdentifierScreen onBack={() => setScreen("home")} />}
       {screen === "geopaint"     && <GeoPaintScreen     onBack={() => setScreen("home")} />}
       {screen === "sketchflag"   && <SketchFlagScreen   onBack={() => setScreen("home")} />}
       {screen === "spoterror"    && <SpotErrorScreen    onBack={() => setScreen("home")} />}
