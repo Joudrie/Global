@@ -18,7 +18,7 @@ export const SUPABASE_URL = "https://usksolhvjjpesshorxiv.supabase.co"
  *  secret or service_role key here, or anywhere in this repo.
  *  Empty = sign-in isn't available yet: the account card says so and nothing
  *  else changes. */
-export const SUPABASE_PUBLISHABLE_KEY = ""
+export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lNr6wne3XmTURc5MBVKJyw_TLNfiVhU"
 
 /** localStorage keys that belong to the account on this device (the sign-in
  *  session, sync bookkeeping, the ?accounts=1 preview). They are never synced
