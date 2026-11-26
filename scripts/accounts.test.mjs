@@ -456,7 +456,7 @@ test('with no publishable key, accounts are off and nothing loads', async () => 
     assert.equal(A.startAccountSync(), false)
     await assert.rejects(A.loadAccountService())
   }
-  assert.equal(A.accountsVisible(), false) // no ?accounts=1 here
+  assert.equal(A.accountsVisible(), true) // live: shown to everyone, no ?accounts=1 needed
 })
 
 test('the key in the code is a publishable key, never a secret one', () => {
