@@ -3,7 +3,7 @@ import type { FormEvent, ReactNode, Ref } from "react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
-import { accountsConfigured, GOOGLE_CLIENT_ID, hasStoredSession, loadAccountService, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
+import { accountsConfigured, EMAIL_SIGNIN, GOOGLE_CLIENT_ID, hasStoredSession, loadAccountService, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
 import type { AccountView } from "../account/service"
 
 /* "Keep your progress on every device": sign in with Google or an emailed
@@ -320,6 +320,7 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
             {busy === "google" ? "Opening Google…" : "Continue with Google"}
           </PrimaryButton>
         } />
+      {EMAIL_SIGNIN ? (<>
       <div aria-hidden style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ flex: 1, height: 1, background: T.line }} />
         <span className="text-xs" style={{ color: T.dim }}>or</span>
@@ -336,6 +337,7 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
           {busy === "link" ? "Sending…" : "Email me a sign-in link"}
         </SecondaryButton>
       </form>
+      </>) : <Alert text={error} />}
       <Fine inSettings={inSettings} />
     </Card>
   )

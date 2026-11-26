@@ -7,7 +7,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: "2026-11-26",
     title: "Accounts: keep your progress on every device",
     items: [
-      "Sign in with Google or an emailed link (Settings → Your progress, or the You tab) and your flags, streaks, best scores and collections stay the same on your phone, tablet and computer. It's free and optional; we only use your email and your game progress.",
+      "Sign in with Google (Settings → Your progress, or the You tab) and your flags, streaks, best scores and collections stay the same on your phone, tablet and computer. It's free and optional; we only use your email and your game progress.",
       "Nothing is ever overwritten: what's already on each device is combined with your account, keeping the best of both, and it keeps syncing in the background as you play, even after time offline.",
       "Supporters stay ad-free on every device they sign in on. You can sign out or delete your account at any time; your progress stays on your device.",
     ],
