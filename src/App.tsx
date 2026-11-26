@@ -82,6 +82,7 @@ const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
 import { setSupporterHandler } from "./utils/supporterNav"
+import { startAccountSync, SIGN_IN_RETURN, accountsVisible } from "./accounts"
 import { FLAGS } from "./data/flags"
 import type { FlagRecord } from "./data/flags"
 import { loadState, saveState, markFlagLearned, markSubLearned, recordDailyResult, awardCrown, saveShareResult, setPremium, recordGamePlayed } from "./utils/storage"
@@ -191,7 +192,8 @@ export default function App() {
   const [histRegion, setHistRegion] = useState<HistoricalRegion | undefined>(undefined)
   // Historical and Identity open from Home or from Flag Sets; Back returns there.
   const [deckBack, setDeckBack] = useState<Screen>("home")
-  const [tab, setTab] = useState<TabKey>("today")
+  // Back from signing in: open You, where the account card shows it worked.
+  const [tab, setTab] = useState<TabKey>(() => (SIGN_IN_RETURN && accountsVisible() ? "you" : "today"))
   // Deep-link target for the full-screen Codex (e.g. from the World Cup explorer)
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
   // A shared Flag Studio design opens once; after that the studio shows the player's own work.
@@ -222,7 +224,10 @@ export default function App() {
   // returns defaults, and an immediate save would overwrite intact data with an
   // empty profile — the "my account reset" bug. Only write after a real change.
   const firstSave = useRef(true)
+  // The state last read from or written to storage.
+  const stored = useRef(appState)
   useEffect(() => {
+    stored.current = appState
     if (firstSave.current) { firstSave.current = false; return }
     saveState(appState)
   }, [appState])
@@ -230,13 +235,20 @@ export default function App() {
   // Keep state in sync when the same profile is open in another tab, or when the
   // tab is restored after the OS evicted+reloaded it. Re-reading on focus means
   // an external write (or recovery) is picked up instead of being clobbered.
+  // A change made here that isn't saved yet wins over the stored copy: it is
+  // saved a moment later, and account sync merges the two on its next pass.
   useEffect(() => {
-    const resync = () => { if (document.visibilityState === "visible") setAppState(loadState()) }
-    const onStorage = (e: StorageEvent) => { if (e.key === null || e.key === "dailyglobe_v1") setAppState(loadState()) }
+    const reread = () => setAppState(s => (s === stored.current ? loadState() : s))
+    const resync = () => { if (document.visibilityState === "visible") reread() }
+    const onStorage = (e: StorageEvent) => { if (e.key === null || e.key === "dailyglobe_v1") reread() }
     document.addEventListener("visibilitychange", resync)
     window.addEventListener("storage", onStorage)
     return () => { document.removeEventListener("visibilitychange", resync); window.removeEventListener("storage", onStorage) }
   }, [])
+
+  // A signed-in player's progress syncs with their account in the background.
+  // Loads nothing unless this device is signed in (see src/accounts.ts).
+  useEffect(() => { startAccountSync() }, [])
 
   // Let any ad component open the Supporter screen without prop-drilling.
   useEffect(() => {

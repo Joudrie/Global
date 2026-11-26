@@ -7,10 +7,14 @@
 --               only the owner grants these, by SQL (see the end of this file).
 -- delete_account()  lets a signed-in player delete their own account; the
 --               foreign keys remove their progress and entitlements with it.
+--
+-- Safe to run more than once (supabase/setup.sql runs it by hand, and Supabase
+-- may also apply supabase/migrations itself): everything is created only if
+-- missing, or replaced with the same definition.
 
 -- ── progress ────────────────────────────────────────────────────────────────
 
-create table public.progress (
+create table if not exists public.progress (
   user_id    uuid primary key references auth.users (id) on delete cascade,
   data       jsonb not null default '{}'::jsonb,
   updated_at timestamptz not null default now(),
@@ -26,7 +30,7 @@ comment on table public.progress is
 -- The server sets updated_at on every write, so clients can't fake it and can
 -- use it as the row version (an update names the version it read, and does
 -- nothing if another device saved in between).
-create function public.progress_set_updated_at()
+create or replace function public.progress_set_updated_at()
 returns trigger
 language plpgsql
 set search_path = ''
@@ -37,25 +41,30 @@ begin
 end;
 $$;
 
+drop trigger if exists progress_set_updated_at on public.progress;
 create trigger progress_set_updated_at
   before insert or update on public.progress
   for each row execute function public.progress_set_updated_at();
 
 alter table public.progress enable row level security;
 
+drop policy if exists "Players read their own progress" on public.progress;
 create policy "Players read their own progress"
   on public.progress for select to authenticated
   using ((select auth.uid()) = user_id);
 
+drop policy if exists "Players create their own progress" on public.progress;
 create policy "Players create their own progress"
   on public.progress for insert to authenticated
   with check ((select auth.uid()) = user_id);
 
+drop policy if exists "Players update their own progress" on public.progress;
 create policy "Players update their own progress"
   on public.progress for update to authenticated
   using ((select auth.uid()) = user_id)
   with check ((select auth.uid()) = user_id);
 
+drop policy if exists "Players delete their own progress" on public.progress;
 create policy "Players delete their own progress"
   on public.progress for delete to authenticated
   using ((select auth.uid()) = user_id);
@@ -66,7 +75,7 @@ grant select, insert, update, delete on table public.progress to authenticated;
 
 -- ── entitlements ────────────────────────────────────────────────────────────
 
-create table public.entitlements (
+create table if not exists public.entitlements (
   user_id    uuid primary key references auth.users (id) on delete cascade,
   supporter  boolean not null default false,
   badge      text check (badge is null or char_length(badge) between 1 and 40),
@@ -78,6 +87,7 @@ comment on table public.entitlements is
 
 alter table public.entitlements enable row level security;
 
+drop policy if exists "Players read their own entitlements" on public.entitlements;
 create policy "Players read their own entitlements"
   on public.entitlements for select to authenticated
   using ((select auth.uid()) = user_id);
@@ -88,7 +98,9 @@ grant select on table public.entitlements to authenticated;
 
 -- ── delete_account() ────────────────────────────────────────────────────────
 
-create function public.delete_account()
+-- (20261126100100_delete_account_private.sql replaces this with a wrapper
+-- around a function in a private schema; the app's call stays the same.)
+create or replace function public.delete_account()
 returns void
 language plpgsql
 security definer

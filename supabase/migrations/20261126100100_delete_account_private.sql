@@ -6,12 +6,14 @@
 -- arguments: it only ever deletes the caller. public.delete_account() is a
 -- plain SECURITY INVOKER wrapper, so the app's call stays the same:
 -- POST /rest/v1/rpc/delete_account.
+--
+-- Safe to run more than once, like the migration before it.
 
 create schema if not exists private;
 revoke all on schema private from public, anon;
 grant usage on schema private to authenticated;
 
-create function private.delete_current_user()
+create or replace function private.delete_current_user()
 returns void
 language plpgsql
 security definer

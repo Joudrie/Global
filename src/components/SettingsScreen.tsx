@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, lazy, Suspense } from "react"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon, HeartIcon } from "./icons"
@@ -7,6 +7,9 @@ import { SUPPORTER_LIVE } from "../ads"
 import { loadState, saveState, setPremium, isSupporter } from "../utils/storage"
 import { exportProgress } from "../utils/backup"
 import RestoreBackup from "./RestoreBackup"
+import { accountsVisible } from "../accounts"
+
+const AccountCard = lazy(() => import("./AccountCard"))
 
 interface Props { onBack: () => void; onMegaCodex: () => void; onFlagCheck: () => void }
 
@@ -91,6 +94,7 @@ async function backUpProgress() {
 
 export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Props) {
   const [creator] = useState(creatorTools)
+  const [accounts] = useState(accountsVisible)
   const [restoring, setRestoring] = useState(false)
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
@@ -106,6 +110,7 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
 
         {/* Your data — back up / restore progress (no account needed) */}
         <h2 className="text-xs font-semibold uppercase tracking-widest mt-8 mb-3" style={{ color: T.muted }}>Your Progress</h2>
+        {accounts && <div className="mb-3"><Suspense fallback={null}><AccountCard inSettings /></Suspense></div>}
         <div className="grid grid-cols-2 gap-3">
           <button onClick={backUpProgress}
             className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
