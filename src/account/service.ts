@@ -225,6 +225,15 @@ export async function signInWithGoogle(): Promise<string | null> {
   return error ? friendly(error.message, "Couldn’t open Google sign-in. Try again.") : null
 }
 
+/** Sign in with the ID token from Google's own button (see GoogleButton in
+ *  AccountCard). `nonce` is the raw nonce whose SHA-256 was given to Google.
+ *  An error message, or null when signed in. */
+export async function signInWithGoogleToken(token: string, nonce: string): Promise<string | null> {
+  await start()
+  const { error } = await client!.auth.signInWithIdToken({ provider: "google", token, nonce })
+  return error ? friendly(error.message, "Google sign-in didn’t work. Try again.") : null
+}
+
 /** Email a sign-in link (and code). An error message, or null when sent. */
 export async function sendSignInLink(email: string): Promise<string | null> {
   await start()
