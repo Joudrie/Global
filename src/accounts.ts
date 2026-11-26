@@ -20,6 +20,12 @@ export const SUPABASE_URL = "https://usksolhvjjpesshorxiv.supabase.co"
  *  else changes. */
 export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lNr6wne3XmTURc5MBVKJyw_TLNfiVhU"
 
+/** The Google OAuth client ("Globalio web" in Google Cloud → Google Auth
+ *  Platform → Clients). Public by design. Google's own sign-in button uses it
+ *  in the page, so Google's screen names globalio.app (not the Supabase
+ *  address) and no client secret is involved. Empty = only the redirect flow. */
+export const GOOGLE_CLIENT_ID = "321526074184-hae4hb7101k8l64958bb1ur04422628j.apps.googleusercontent.com"
+
 /** localStorage keys that belong to the account on this device (the sign-in
  *  session, sync bookkeeping, the ?accounts=1 preview). They are never synced
  *  or put in a backup, and a restore leaves them alone. */
@@ -63,7 +69,9 @@ export const SIGN_IN_ERROR: string | null = (() => {
     if (!code && !error && !p.get("error_description")) return null
     if (code === "otp_expired") return "That sign-in link has expired or was already used. Ask for a new one."
     if (error === "access_denied") return "Sign-in was cancelled or didn’t finish. Try again."
-    return "Sign-in didn’t work. Try again."
+    // Keep Supabase's reason (short) so a setup problem can be told apart.
+    const why = (p.get("error_description") ?? "").replace(/\+/g, " ").slice(0, 90)
+    return why ? `Sign-in didn’t work (${why}). Try again.` : "Sign-in didn’t work. Try again."
   } catch { return null }
 })()
 

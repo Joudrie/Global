@@ -3,7 +3,7 @@ import type { FormEvent, ReactNode, Ref } from "react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
-import { accountsConfigured, hasStoredSession, loadAccountService, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
+import { accountsConfigured, GOOGLE_CLIENT_ID, hasStoredSession, loadAccountService, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
 import type { AccountView } from "../account/service"
 
 /* "Keep your progress on every device": sign in with Google or an emailed
@@ -22,6 +22,80 @@ const Note = ({ children, color = T.muted }: { children: ReactNode; color?: stri
   <p className="text-xs" style={{ margin: 0, lineHeight: 1.6, color }}>{children}</p>
 )
 const Alert = ({ text }: { text: string }) => text ? <div role="alert"><Note color={T.danger}>{text}</Note></div> : null
+
+/* ── Google's own sign-in button ──────────────────────────────────────────
+   Google Identity Services draws the button and signs the player in inside
+   this page (a popup on phones), then hands back an ID token that Supabase
+   checks. Google's screen therefore names globalio.app, not the Supabase
+   address. A nonce ties the token to this sign-in: Google gets its SHA-256,
+   Supabase the raw value. If Google's script can't load (blocked, offline),
+   the plain redirect button is shown instead. */
+interface GoogleId {
+  initialize(o: { client_id: string; nonce: string; callback: (r: { credential?: string }) => void; ux_mode?: "popup"; itp_support?: boolean; use_fedcm_for_button?: boolean }): void
+  renderButton(el: HTMLElement, o: Record<string, string | number>): void
+}
+declare global { interface Window { google?: { accounts?: { id?: GoogleId } } } }
+
+let gisScript: Promise<GoogleId> | null = null
+function loadGoogleScript(): Promise<GoogleId> {
+  gisScript ??= new Promise<GoogleId>((resolve, reject) => {
+    const done = () => window.google?.accounts?.id ? resolve(window.google.accounts.id) : reject(new Error("no google"))
+    if (window.google?.accounts?.id) return done()
+    const el = document.createElement("script")
+    el.src = "https://accounts.google.com/gsi/client"
+    el.async = true
+    el.onload = done
+    el.onerror = () => reject(new Error("blocked"))
+    document.head.appendChild(el)
+    window.setTimeout(() => reject(new Error("timeout")), 8000)
+  })
+  gisScript.catch(() => { gisScript = null })
+  return gisScript
+}
+
+async function makeNonce(): Promise<{ raw: string; hashed: string }> {
+  const bytes = crypto.getRandomValues(new Uint8Array(16))
+  const raw = Array.from(bytes, b => b.toString(16).padStart(2, "0")).join("")
+  const digest = await crypto.subtle.digest("SHA-256", new TextEncoder().encode(raw))
+  const hashed = Array.from(new Uint8Array(digest), b => b.toString(16).padStart(2, "0")).join("")
+  return { raw, hashed }
+}
+
+function GoogleButton({ busy, onToken, fallback }: { busy: boolean; onToken: (token: string, nonce: string) => void; fallback: ReactNode }) {
+  const box = useRef<HTMLDivElement>(null)
+  const [state, setState] = useState<"loading" | "ready" | "failed">(GOOGLE_CLIENT_ID ? "loading" : "failed")
+  const [round, setRound] = useState(0) // a fresh nonce for every try
+  const handler = useRef(onToken)
+  handler.current = onToken
+
+  useEffect(() => {
+    if (!GOOGLE_CLIENT_ID) return
+    let live = true
+    Promise.all([loadGoogleScript(), makeNonce()]).then(([gid, nonce]) => {
+      if (!live || !box.current) return
+      gid.initialize({
+        client_id: GOOGLE_CLIENT_ID, nonce: nonce.hashed, ux_mode: "popup", itp_support: true,
+        callback: r => { if (r.credential) { handler.current(r.credential, nonce.raw); setRound(n => n + 1) } },
+      })
+      box.current.innerHTML = ""
+      gid.renderButton(box.current, {
+        type: "standard", theme: "outline", size: "large", text: "continue_with", shape: "pill",
+        logo_alignment: "center", width: Math.max(200, Math.min(400, box.current.clientWidth || 320)),
+      })
+      setState("ready")
+    }, () => { if (live) setState("failed") })
+    return () => { live = false }
+  }, [round])
+
+  if (state === "failed") return <>{fallback}</>
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 4, opacity: busy ? 0.5 : 1, pointerEvents: busy ? "none" : "auto" }}>
+      <div ref={box} aria-busy={state === "loading" || busy} style={{ minHeight: 44, display: "flex", justifyContent: "center" }} />
+      {state === "loading" && <Note color={T.dim}>Loading Google sign-in…</Note>}
+      {busy && <div role="status"><Note>Signing in…</Note></div>}
+    </div>
+  )
+}
 
 const inputStyle = (bad: boolean) => ({
   width: "100%", height: 48, padding: "0 12px", borderRadius: 10, fontSize: 16, // 16px: iOS doesn't zoom in
@@ -238,10 +312,14 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
       <Title>Keep your progress on every device</Title>
       <Note>Sign in and your flags, streaks and best scores stay the same on your phone, tablet and computer. What’s on this device now comes with you.</Note>
       {deleted && <div role="status"><Note color={T.green}>Your account is deleted. Your progress is still on this device.</Note></div>}
-      <PrimaryButton accent={ACC} disabled={busy !== ""} aria-busy={busy === "google"}
-        onClick={() => act("google", s => s.signInWithGoogle())}>
-        {busy === "google" ? "Opening Google…" : "Continue with Google"}
-      </PrimaryButton>
+      <GoogleButton busy={busy === "google"}
+        onToken={(token, nonce) => { void act("google", s => s.signInWithGoogleToken(token, nonce)) }}
+        fallback={
+          <PrimaryButton accent={ACC} disabled={busy !== ""} aria-busy={busy === "google"}
+            onClick={() => act("google", s => s.signInWithGoogle())}>
+            {busy === "google" ? "Opening Google…" : "Continue with Google"}
+          </PrimaryButton>
+        } />
       <div aria-hidden style={{ display: "flex", alignItems: "center", gap: 12 }}>
         <span style={{ flex: 1, height: 1, background: T.line }} />
         <span className="text-xs" style={{ color: T.dim }}>or</span>
