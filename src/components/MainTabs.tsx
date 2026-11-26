@@ -17,10 +17,13 @@ import { GamePoster } from "./GamePoster"
 import { WordUpSlide, ReignSlide } from "./MakerSlides"
 import AdBox from "./AdBox"
 import { AD_SLOTS, SUPPORTER_LIVE } from "../ads"
+import { accountsVisible } from "../accounts"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
 // Lazy so the dashboard bundle stays lean — same chunk App.tsx already splits.
 const CodexScreenLazy = lazy(() => import("./CodexScreen"))
+// The account card (and the sign-in code behind it) loads only where accounts are shown.
+const AccountCard = lazy(() => import("./AccountCard"))
 
 interface Props {
   state: AppState
@@ -1007,6 +1010,7 @@ function YouTab({ state, streak, learned, onNavigate, onSetUsername }: {
 }) {
   const [editing, setEditing] = useState(false)
   const [draft, setDraft] = useState(state.username)
+  const [accounts] = useState(accountsVisible)
   const name = state.username.trim() || "Explorer"
   const pct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
   const saveName = () => { onSetUsername(clampName(draft.trim())); setEditing(false) }
@@ -1151,6 +1155,9 @@ function YouTab({ state, streak, learned, onNavigate, onSetUsername }: {
           </div>
         </div>
       )}
+
+      {/* Account — keep this progress on every device (hidden until accounts are on) */}
+      {accounts && <Suspense fallback={null}><AccountCard /></Suspense>}
 
       {/* Collection — the codex's companion reference tools */}
       <div>

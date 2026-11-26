@@ -3,7 +3,7 @@
 // A save is a snapshot of localStorage: storage key → the string stored there
 // (see utils/backup.ts). mergeSnapshots(local, incoming) returns the combined
 // snapshot. It is pure (no storage, no clock, no randomness), so the backup
-// restore uses it today and account sync can use it later.
+// restore and account sync (src/account/engine.ts) both use it.
 //
 // Guarantees:
 // - Nothing is lost: every key on either side is in the result, and progress
@@ -87,6 +87,8 @@ export const RULES: Rule[] = [
   { key: "globalio_onboarded", rule: "device", symmetric: false, note: "Intro seen." },
   { key: "globalio_fs_shuffle_hint", rule: "device", symmetric: false, note: "Flag Studio hint seen." },
   { key: "globalio_creator", rule: "device", symmetric: false, note: "Creator tools shown." },
+  { key: /^globalio_account/, rule: "device", symmetric: false,
+    note: "The account on this device (sign-in session, sync status, ?accounts=1). Never in a backup or synced (src/accounts.ts), so this rule never runs." },
 ]
 
 export function ruleFor(key: string): Rule | null {

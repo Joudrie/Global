@@ -5,18 +5,40 @@
 //
 // Restoring either combines the backup with this device (utils/mergeProgress.ts
 // keeps the best of both) or replaces this device's progress with it.
+//
+// The account's own keys (the sign-in session; see src/accounts.ts) are never
+// put in a backup, and a restore leaves them as they are.
 import { MAIN_KEY, mergeSnapshots } from "./mergeProgress"
 import type { Snapshot } from "./mergeProgress"
+import { isAccountKey } from "../accounts"
 
 const MARK = "GLOBALIO1:"
 
-export function snapshot(): Snapshot {
+function readStorage(keep: (key: string) => boolean): Snapshot {
   const data: Snapshot = {}
   for (let i = 0; i < localStorage.length; i++) {
     const k = localStorage.key(i)
-    if (k != null) data[k] = localStorage.getItem(k) ?? ""
+    if (k != null && keep(k)) data[k] = localStorage.getItem(k) ?? ""
   }
   return data
+}
+
+/** Everything this site keeps on this device, except the account's keys. */
+export function snapshot(): Snapshot {
+  return readStorage(k => !isAccountKey(k))
+}
+
+/** The game's own keys: what account sync sends. Other scripts' storage (ads,
+ *  consent) stays on the device. */
+export const isGameKey = (k: string) => (k === MAIN_KEY || k.startsWith("globalio_")) && !isAccountKey(k)
+export function gameSnapshot(): Snapshot {
+  return readStorage(isGameKey)
+}
+
+// Tell the open app its saved state changed, so it re-reads it instead of
+// writing its old copy back over the new one.
+function notifyApp() {
+  try { window.dispatchEvent(new StorageEvent("storage", { key: null })) } catch { /* not a browser */ }
 }
 
 export function exportProgress(): string {
@@ -51,17 +73,21 @@ export function readBackup(code: string): Snapshot | null {
 // Write `next` as the whole of localStorage. If storage fills up or is blocked
 // part-way through, put `before` back so nothing is half-written.
 function writeAll(next: Snapshot, before: Snapshot): boolean {
-  try {
+  // The account's keys stay as they are (a backup never holds them).
+  let account: Snapshot
+  try { account = readStorage(isAccountKey) } catch { return false }
+  const write = (save: Snapshot) => {
     // A restore must fully *replace* local state — otherwise stale keys not in
     // `next` survive and mix in. (A combined save already holds every key.)
     localStorage.clear()
-    Object.entries(next).forEach(([k, v]) => localStorage.setItem(k, v))
+    Object.entries(account).forEach(([k, v]) => localStorage.setItem(k, v))
+    Object.entries(save).forEach(([k, v]) => { if (!isAccountKey(k)) localStorage.setItem(k, v) })
+  }
+  try {
+    write(next)
     return true
   } catch {
-    try {
-      localStorage.clear()
-      Object.entries(before).forEach(([k, v]) => localStorage.setItem(k, v))
-    } catch { /* ignore */ }
+    try { write(before) } catch { /* ignore */ }
     return false
   }
 }
@@ -79,10 +105,32 @@ export function restoreBackup(backup: Snapshot, mode: RestoreMode): RestoreResul
   try { before = snapshot() } catch { return null }
   const after = mode === "combine" ? mergeSnapshots(before, backup) : { ...backup }
   if (!writeAll(after, before)) return null
-  // Tell the open app its saved state changed, so it re-reads it instead of
-  // writing its old copy back over the restore.
-  try { window.dispatchEvent(new StorageEvent("storage", { key: null })) } catch { /* not a browser */ }
+  notifyApp()
   return { before, after }
+}
+
+/** Account sync: combine the account's save into this device, writing only the
+ *  keys that change (nothing is cleared, so a game open right now never sees
+ *  its save vanish). Returns this device's game save after the merge, or null
+ *  when it couldn't be written; this device is then unchanged. */
+export function mergeIntoDevice(incoming: Snapshot): Snapshot | null {
+  let before: Snapshot
+  try { before = gameSnapshot() } catch { return null }
+  const clean: Snapshot = {}
+  if (Object.prototype.toString.call(incoming) === "[object Object]") {
+    for (const [k, v] of Object.entries(incoming)) if (isGameKey(k) && typeof v === "string") clean[k] = v
+  }
+  const after = mergeSnapshots(before, clean)
+  const changed = Object.keys(after).filter(k => after[k] !== before[k])
+  if (!changed.length) return after
+  try {
+    changed.forEach(k => localStorage.setItem(k, after[k]))
+  } catch {
+    try { changed.forEach(k => (Object.hasOwn(before, k) ? localStorage.setItem(k, before[k]) : localStorage.removeItem(k))) } catch { /* ignore */ }
+    return null
+  }
+  notifyApp()
+  return after
 }
 
 /** Replace this device's progress with a backup code. */

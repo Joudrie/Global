@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Privacy Policy · Globalio</title>
-  <meta name="description" content="How Globalio handles your data: game progress stays on your device, plus ads, analytics, cookies and your privacy rights." />
+  <meta name="description" content="How Globalio handles your data: game progress stays on your device unless you make an optional account, plus ads, analytics, cookies and your privacy rights." />
   <link rel="canonical" href="https://globalio.app/privacy.html" />
   <meta name="theme-color" content="#FBF4E4" />
   <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
@@ -16,7 +16,7 @@
   <meta property="og:site_name" content="Globalio" />
   <meta property="og:url" content="https://globalio.app/privacy.html" />
   <meta property="og:title" content="Privacy Policy · Globalio" />
-  <meta property="og:description" content="How Globalio handles your data: game progress stays on your device, plus ads, analytics, cookies and your privacy rights." />
+  <meta property="og:description" content="How Globalio handles your data: game progress stays on your device unless you make an optional account, plus ads, analytics, cookies and your privacy rights." />
   <meta property="og:image" content="https://globalio.app/og-image.jpg" />
   <script src="/analytics.js"></script>
   <style>
@@ -36,7 +36,7 @@
   <div class="wrap">
     <a class="back" href="/">&larr; Back to Globalio</a>
     <h1>Privacy Policy</h1>
-    <p class="muted">Last updated: 2 October 2026</p>
+    <p class="muted">Last updated: 26 November 2026</p>
 
     <p>Globalio (“we”, “the app”) is a free flags &amp; geography game. This policy explains what information the app handles and how. We aim to collect as little as possible.</p>
 
@@ -45,9 +45,21 @@
 
     <h2>Information we collect</h2>
     <ul>
-      <li><strong>Game progress, stored on your device.</strong> Your streaks, scores, learned flags, settings and similar progress are saved locally in your browser (using <em>localStorage</em>). This data stays on your device and is not sent to us. It is needed for the game to work, so it does not require consent.</li>
-      <li><strong>No accounts.</strong> Globalio has no sign-up or login, and we do not ask for your name, email, or other personal details.</li>
+      <li><strong>Game progress, stored on your device.</strong> Your streaks, scores, learned flags, settings and similar progress are saved locally in your browser (using <em>localStorage</em>). Unless you make an account, this data stays on your device and is not sent to us. It is needed for the game to work, so it does not require consent.</li>
+      <li><strong>An account, only if you make one.</strong> You can play without one. If you sign in to keep your progress on every device, we store your email address and your game progress; see <a href="#accounts">Accounts</a> below.</li>
       <li><strong>Basic technical data.</strong> Like any website, our host (Netlify) processes standard request information such as your IP address and browser type to deliver and secure the site. Fonts are loaded from Google Fonts, which receives your IP address when your browser fetches them. Flag images are served from Globalio’s own site; if a country flag fails to load, your browser may fetch a backup copy from flagcdn.com or the jsDelivr CDN, which also see your IP address. The Atlas game loads its historical map scans directly from the Library of Congress (tile.loc.gov) and the David Rumsey Map Collection (davidrumsey.com), which receive your IP address when your browser fetches them.</li>
+    </ul>
+
+    <h2 id="accounts">Accounts</h2>
+    <p>Accounts are optional and free. You must be 13 or older to make one. An account keeps your progress the same on every device you sign in on.</p>
+    <ul>
+      <li><strong>What we store.</strong> Your email address; your game progress (a copy of the streaks, scores, learned flags and settings saved on your device, so your devices can share them); when your account was made and when you last signed in; and, if you support Globalio, that your account is a Supporter. Supabase also keeps short-lived security logs of sign-ins, which include your IP address.</li>
+      <li><strong>Signing in with Google.</strong> If you choose “Continue with Google”, Google confirms who you are and shares your email address, name and profile picture link with us. They are stored with your sign-in details; we only use your email. We never see your Google password. Google’s own privacy policy covers your Google account.</li>
+      <li><strong>Signing in by email.</strong> If you ask for a sign-in link, we email it to you. We use your email address only to sign you in and, if you write to us, to reply.</li>
+      <li><strong>Who stores it.</strong> Accounts run on <a href="https://supabase.com/privacy" target="_blank" rel="noopener">Supabase</a> (Supabase, Inc., USA), which stores this data for us as our processor. Only you can read or change your progress through the app; we can see it to keep the service running and to help when you ask.</li>
+      <li><strong>What we don’t do.</strong> We never sell your account data, never use it for advertising, and never share it with advertisers. Ads on Globalio don’t know whether you have an account.</li>
+      <li><strong>Why.</strong> We use your account data to provide the account you asked for (performing our agreement with you).</li>
+      <li><strong>Deleting it.</strong> In the app, go to Settings → Your progress → Delete account. That deletes your account, your email address and the progress saved in it straight away; the progress on your device stays until you clear it. Signing out keeps your account. You can also email us and we will delete it for you. Supabase’s security logs expire on their own.</li>
     </ul>
 
     <h2>Analytics</h2>
@@ -72,22 +84,24 @@
     <ul>
       <li><strong>Delivering and securing the site</strong> (hosting, request logs): our legitimate interest in running a working, safe website.</li>
       <li><strong>Cookie-free page counts</strong> (GoatCounter): our legitimate interest in understanding which pages and games are used. No personal profile is built.</li>
+      <li><strong>Accounts</strong> (Supabase, and Google if you sign in with it): to provide the account you asked for.</li>
       <li><strong>Advertising and analytics cookies</strong> (Google AdSense, Google Analytics): your consent where the law requires it, including in the EEA, UK and Switzerland. You can withdraw it at any time.</li>
     </ul>
 
     <h2>How long data is kept</h2>
     <ul>
       <li>Game progress stays in your browser until you clear it.</li>
+      <li>Account data (email, progress, sign-in times) is kept until you delete your account.</li>
       <li>Google Analytics data is kept for up to 14 months.</li>
       <li>Hosting request logs are kept by Netlify for a short period for security and are not used to identify you.</li>
       <li>Emails you send us are kept only as long as needed to answer them.</li>
     </ul>
 
     <h2>Where data is processed</h2>
-    <p>Our providers (Netlify, Google, GoatCounter and the flag image CDNs above) may process data in the United States and other countries. Where data leaves the EEA, UK or Switzerland, these providers rely on recognised safeguards such as the EU-US Data Privacy Framework or the European Commission’s standard contractual clauses.</p>
+    <p>Our providers (Netlify, Supabase, Google, GoatCounter and the flag image CDNs above) may process data in the United States and other countries. Where data leaves the EEA, UK or Switzerland, these providers rely on recognised safeguards such as the EU-US Data Privacy Framework or the European Commission’s standard contractual clauses.</p>
 
     <h2>Your rights</h2>
-    <p>Depending on where you live, you may have the right to access, correct or delete personal data about you, to object to or restrict its use, to data portability, and to withdraw consent at any time without affecting earlier use. In the EEA, UK and Switzerland you can also complain to your local data protection authority. Because we don’t hold accounts or profiles, most data about you is held by the providers above; email us and we will help with any request.</p>
+    <p>Depending on where you live, you may have the right to access, correct or delete personal data about you, to object to or restrict its use, to data portability, and to withdraw consent at any time without affecting earlier use. In the EEA, UK and Switzerland you can also complain to your local data protection authority. If you have an account, you can delete it yourself in Settings, or email us for a copy of what it holds. Without one, we hold no profile of you, and most data about you is held by the providers above; email us and we will help with any request.</p>
 
     <h2>US state privacy rights</h2>
     <p>Residents of California and other US states with privacy laws may opt out of the “sale” or “sharing” of personal information for targeted advertising. Google’s US privacy message on this site provides that choice. We do not sell personal information for money.</p>
@@ -96,10 +110,10 @@
     <p>Flag and emblem images are sourced from <a href="https://commons.wikimedia.org" target="_blank" rel="noopener">Wikimedia Commons</a> and are used under their respective licenses; Globalio serves its own copies. Web fonts are loaded from Google Fonts.</p>
 
     <h2>Children</h2>
-    <p>Globalio is an educational game for a general audience and is not directed at children under 13. We don’t ask anyone for personal information. In the EEA, visitors under 16 (or the lower age set by their country) should ask a parent before accepting advertising cookies. If you believe a child has provided personal information, contact us and we will delete it.</p>
+    <p>Globalio is an educational game for a general audience and is not directed at children under 13. We don’t ask anyone for personal information, and accounts are only for people 13 or older. In the EEA, visitors under 16 (or the lower age set by their country) should ask a parent before accepting advertising cookies. If you believe a child has provided personal information, contact us and we will delete it.</p>
 
     <h2>Your choices</h2>
-    <p>You can clear all locally-stored game data at any time by clearing your browser’s site data for Globalio. You can manage or block cookies through your browser settings.</p>
+    <p>You can clear all locally-stored game data at any time by clearing your browser’s site data for Globalio. If you have an account, Delete account in Settings removes it and the progress saved in it. You can manage or block cookies through your browser settings.</p>
 
     <h2>Changes</h2>
     <p>We may update this policy from time to time. Material changes will be reflected by the “last updated” date above.</p>
