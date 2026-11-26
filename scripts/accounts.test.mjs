@@ -447,7 +447,7 @@ test('a failed entitlements read keeps the badge it had and still counts as sync
 // ── switches, keys, backups ─────────────────────────────────────────────────
 
 test('with no publishable key, accounts are off and nothing loads', async () => {
-  assert.equal(A.ACCOUNTS_LIVE, false, 'accounts launch hidden; switch ACCOUNTS_LIVE on deliberately')
+  assert.equal(A.ACCOUNTS_LIVE, true, 'accounts are live (switched on 2026-11-26 after a real sign-in on the test site)')
   assert.equal(A.accountsConfigured(''), false)
   assert.equal(A.accountsConfigured('   '), false)
   assert.equal(A.accountsConfigured('sb_publishable_abc'), true)

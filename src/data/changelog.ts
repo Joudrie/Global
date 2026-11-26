@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-26",
+    title: "Accounts: keep your progress on every device",
+    items: [
+      "Sign in with Google or an emailed link (Settings → Your progress, or the You tab) and your flags, streaks, best scores and collections stay the same on your phone, tablet and computer. It's free and optional; we only use your email and your game progress.",
+      "Nothing is ever overwritten: what's already on each device is combined with your account, keeping the best of both, and it keeps syncing in the background as you play, even after time offline.",
+      "Supporters stay ad-free on every device they sign in on. You can sign out or delete your account at any time; your progress stays on your device.",
+    ],
+  },
+  {
+    date: "2026-11-26",
     title: "Combine backups: bring progress from your phone and computer together",
     items: [
       "Backed up on two devices? Restore in Settings now asks whether to combine the backup with this device or replace it. Combine keeps the best of both: every flag learned, the higher score in each game and your longest streaks. You can choose the backup file instead of pasting the code, and combine several backups one after another.",
