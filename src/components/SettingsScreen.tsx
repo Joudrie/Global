@@ -5,7 +5,8 @@ import { LineIcon, HeartIcon } from "./icons"
 import { openSupporter } from "../utils/supporterNav"
 import { SUPPORTER_LIVE } from "../ads"
 import { loadState, saveState, setPremium, isSupporter } from "../utils/storage"
-import { exportProgress, importProgress } from "../utils/backup"
+import { exportProgress } from "../utils/backup"
+import RestoreBackup from "./RestoreBackup"
 
 interface Props { onBack: () => void; onMegaCodex: () => void; onFlagCheck: () => void }
 
@@ -78,7 +79,7 @@ async function backUpProgress() {
     setTimeout(() => URL.revokeObjectURL(url), 1000)
     downloaded = true
   } catch { /* download may be blocked */ }
-  const keep = "Keep it somewhere safe — paste it into “Restore” on any device (or after clearing your browser) to bring all your progress back."
+  const keep = "Keep it somewhere safe. Restore it on any device (or after clearing your browser) to bring your progress back, or to combine it with the progress already there."
   if (!copied && !downloaded) {
     window.prompt("Copy this backup code and keep it somewhere safe. Paste it into “Restore” to bring your progress back.", code)
     return
@@ -88,19 +89,9 @@ async function backUpProgress() {
   alert(`${what}\n\n${keep}`)
 }
 
-function restoreProgress() {
-  const code = window.prompt("Paste your Globalio backup code.\n\nThis replaces the progress currently on this device.")
-  if (!code) return
-  if (importProgress(code)) {
-    alert("Progress restored! Reloading…")
-    window.location.reload()
-  } else {
-    alert("That doesn’t look like a valid Globalio backup code. Make sure you copied the whole thing.")
-  }
-}
-
 export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Props) {
   const [creator] = useState(creatorTools)
+  const [restoring, setRestoring] = useState(false)
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
       <ScreenHeader title="Settings" subtitle="Progress, support & feedback" onBack={onBack} />
@@ -121,14 +112,15 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
             style={{ background: tint(ACCENT.codex, 0.12), border: `1px solid ${tint(ACCENT.codex, 0.4)}`, color: ACCENT.codex }}>
             <span className="inline-flex items-center justify-center gap-2"><LineIcon name="codex" size={15} color={ACCENT.codex} /> Back up</span>
           </button>
-          <button onClick={restoreProgress}
+          <button onClick={() => setRestoring(r => !r)} aria-expanded={restoring}
             className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
-            style={{ background: tint(ACCENT.learn, 0.12), border: `1px solid ${tint(ACCENT.learn, 0.4)}`, color: ACCENT.learn }}>
+            style={{ background: tint(ACCENT.learn, restoring ? 0.2 : 0.12), border: `1px solid ${tint(ACCENT.learn, restoring ? 0.7 : 0.4)}`, color: ACCENT.learn }}>
             <span className="inline-flex items-center justify-center gap-2"><LineIcon name="historical" size={15} color={ACCENT.learn} /> Restore</span>
           </button>
         </div>
+        {restoring && <RestoreBackup onClose={() => setRestoring(false)} />}
         <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
-          Progress lives on this device. Back up to keep your streaks safe or move to another device.
+          Progress lives on this device. Back up to keep it safe or move it, and restore to combine progress from your phone and computer.
         </div>
 
         {/* Creator unlock — enter the passcode to turn ads off on this device */}

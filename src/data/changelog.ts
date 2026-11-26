@@ -4,6 +4,13 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-11-26",
+    title: "Combine backups: bring progress from your phone and computer together",
+    items: [
+      "Backed up on two devices? Restore in Settings now asks whether to combine the backup with this device or replace it. Combine keeps the best of both: every flag learned, the higher score in each game and your longest streaks. You can choose the backup file instead of pasting the code, and combine several backups one after another.",
+    ],
+  },
+  {
     date: "2026-11-24",
     title: "New: Flag Identifier",
     items: [
