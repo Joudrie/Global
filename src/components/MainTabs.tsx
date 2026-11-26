@@ -338,7 +338,7 @@ function AboutGlobalio() {
         Behind the games is a hand-researched flag archive. Every <a href="/flags/" style={link}>country page</a> tells
         the story of its flag through history, the <a href="/historical/" style={link}>historical archive</a> covers
         hundreds of vanished states and empires, and the <a href="/identity/" style={link}>identity archive</a> covers
-        pride, indigenous, regional and micronation flags. No account or sign-up; your progress stays on your device.
+        pride, indigenous, regional and micronation flags. No sign-up needed: your progress stays on your device, and a free, optional account keeps it the same on every device.
       </p>
     </details>
   )

@@ -8,7 +8,7 @@
 /** Switch accounts on for everyone. Until then the account card only shows on
  *  a device that has opened the site with ?accounts=1 (it remembers; ?accounts=0
  *  forgets), so they can be tried on globalio.app and the test site. */
-export const ACCOUNTS_LIVE = false
+export const ACCOUNTS_LIVE = true
 
 export const SUPABASE_URL = "https://usksolhvjjpesshorxiv.supabase.co"
 

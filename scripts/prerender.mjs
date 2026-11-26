@@ -649,7 +649,7 @@ ${TOOLS.map(e => `<div class="game">
 // studio itself lives in the app at /?play=flagstudio.
 const STUDIO_URL = '/?play=flagstudio'
 const FLAG_MAKER_FAQ = [
-  ['Is it free?', 'Yes. No account, no sign-up, and every download size is free.'],
+  ['Is it free?', 'Yes. No account needed, and every download size is free.'],
   ['Can I use the flags I make?', 'Yes, they\'re yours: games, stories, school projects, clubs. Real national emblems can have legal limits, so keep those to creative and fictional flags.'],
   ['Does it work on a phone?', 'Yes. The flag stays on top with the tools underneath, and you can pinch to resize and rotate a symbol.'],
   ['Where are my flags saved?', 'On your own device, automatically, under My flags. Nothing is uploaded unless you share a link.'],
@@ -743,7 +743,7 @@ const IDENTIFIER_FAQ = [
   ['How does it work?', 'Answer three questions: the flag\'s layout, its colours and anything on it, like stars, a sun or a coat of arms. Every country flag is ranked by how well it fits, and the list is there at every step.'],
   ['What if I remember a colour wrong?', 'It still shows up. Flags are ranked, not filtered: one wrong colour or detail moves a flag into the "close" list instead of hiding it, and light blue for blue only counts half.'],
   ['Which flags can it find?', `All ${FLAGS.length} country flags for now.`],
-  ['Is it free?', 'Yes. No account, no sign-up, and nothing you pick leaves your device.'],
+  ['Is it free?', 'Yes. No account needed, and nothing you pick leaves your device.'],
 ]
 
 function cards(codes) {

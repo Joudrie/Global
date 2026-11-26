@@ -125,7 +125,7 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
         </div>
         {restoring && <RestoreBackup onClose={() => setRestoring(false)} />}
         <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
-          Progress lives on this device. Back up to keep it safe or move it, and restore to combine progress from your phone and computer.
+          Signed in, your progress syncs on its own. Without an account it lives on this device: back up to keep a copy, and restore to combine progress from your phone and computer.
         </div>
 
         {/* Creator unlock — enter the passcode to turn ads off on this device */}
