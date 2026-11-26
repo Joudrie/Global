@@ -33,7 +33,7 @@ const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 function Fine({ inSettings }: { inSettings: boolean }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-      <Note>Free. We only store your email and your game progress.</Note>
+      <Note>Free. We only use your email and your game progress.</Note>
       <Note>You must be 13 or older to make an account.</Note>
       <Note>
         <a href="/privacy.html#accounts" target="_blank" rel="noopener" style={{ color: T.muted, textDecoration: "underline" }}>How accounts use your data</a>
