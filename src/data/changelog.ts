@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Province Roulette and Subdivision Stumper are now two different games",
+    items: [
+      "Province Roulette: choose where the spins come from: the whole world, a continent or one country. Each spin asks for the continent, then the country, then the state or province, and three misses stop the wheel.",
+      "Subdivision Stumper has two ways to play. Whose is it? shows a flag from anywhere and asks for its country. Name it lets you pick a country or continent, and all four answers come from the flag's own country (Oregon, Florida, Massachusetts, Texas), so you have to know the flag, not guess from the names.",
+      "Both games now keep your best score.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Flag Bracket: mix any continents and Codex sections",
     items: [
       "Flag Bracket: pick any mix of continents, so Asia and Europe can share one bracket while the rest sit out.",
