@@ -1,5 +1,7 @@
 // The engine behind Cities Abroad, Countries Abroad and Native Names: a place's
 // name as some language writes it, and the player names the place in English.
+// Demonyms uses it too, turned around: a place, and the player names its people
+// (the optional fields on AbroadRound say how its cards read).
 // Ten right before three strikes wins.
 //
 // This file is the part the three games share: folding names for comparison,
@@ -199,6 +201,12 @@ export interface AbroadRound {
   choices: string[]                     // four English names, one of them right
   judge: (typed: string) => Verdict
   isRight: (picked: string) => boolean
+  // For a game that asks something other than "name this place" (Demonyms):
+  prompt?: string                       // the card's label, instead of "in Slovenian"
+  context?: string                      // small, under the name on the card and in the results ("Italy")
+  spoken?: string                       // the round read aloud, instead of "Benetke, in Slovenian"
+  learn?: string                        // the line after an answer, instead of "Benetke — Slovenian for Venice, Italy"
+  aside?: (given: string) => string | null  // one more line, from what was picked or typed ("Nepalese is someone from Nepal.")
 }
 
 /** At most this many rounds of a game are in another script while the pool

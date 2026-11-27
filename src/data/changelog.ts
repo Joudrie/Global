@@ -5,6 +5,49 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Coats of arms in the Codex (beta)",
+    items: [
+      "A new Coats of Arms section in the Codex, below Browse all 4,500+ flags: every country from A to M with its current coat of arms, emblem or seal, grouped by region, with what it shows and where the image comes from.",
+      "49 countries also show the coats of arms that came before, in the same browser as flag history. N to Z is next.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Province Roulette and Subdivision Stumper are now two different games",
+    items: [
+      "Province Roulette: choose where the spins come from: the whole world, a continent or one country. Each spin asks for the continent, then the country, then the state or province, and three misses stop the wheel.",
+      "Subdivision Stumper has two ways to play. Whose is it? shows a flag from anywhere and asks for its country. Name it lets you pick a country or continent, and all four answers come from the flag's own country (Oregon, Florida, Massachusetts, Texas), so you have to know the flag, not guess from the names.",
+      "Both games now keep your best score.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Flag Bracket: mix any continents and Codex sections",
+    items: [
+      "Flag Bracket: pick any mix of continents, so Asia and Europe can share one bracket while the rest sit out.",
+      "A new More flags drop-down adds any Codex section to the mix: Pride, Separatist & Autonomous, Micronations, former states, American cities, US states, provinces and more. Each set gets an even share of the bracket.",
+      "Bracket sizes the pool can't fill are greyed out, and your last mix is remembered.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Flashcards for every section of the Codex",
+    items: [
+      "Flashcards has a new Codex tab with a deck for every Codex section: Pride, Separatist & Autonomous, Civic & Ideological, Micronations, Extinct & Former States, American Cities, International Organizations, Signal flags, Peoples & Cultures, and 50 random flags from the Mega Codex.",
+      "The big decks split by region like the Codex does, so you can study just Europe's former states or just Africa's peoples.",
+      "Identity Flags: Movements & Identity is now five decks that match the Codex: Separatist & Autonomous, Civic & Ideological, Micronations, Pan-National & Ethnic and Indigenous Peoples.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "New game: Demonyms",
+    items: [
+      "What do you call someone from Naples? Neapolitan, not Nepalese. Name the people of 195 cities, regions and countries, from Venetian and Mancunian to Haligonian, Porteño and I-Kiribati.",
+      "Pick from four believable answers (some are real words for somewhere else, and the game tells you whose) or type it for double points. Every answer is checked against Wikidata, Wikipedia and Wiktionary.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Gauntlet progress, faster Dead or Alive, records in The Peel, fairer Real or Bot",
     items: [
       "Gauntlet: your best run in every region now shows as a progress bar, and clearing a region marks it Passed with the date. Two new achievements: Survivor and Iron will.",

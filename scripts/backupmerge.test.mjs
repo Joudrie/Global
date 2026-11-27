@@ -252,7 +252,7 @@ test('best scores: the higher one, per tier when there are several', () => {
     assert.deepEqual(both(key, '4', '11'), ['11', '11'], key)
     assert.equal(ruleFor(key).rule, 'max', key)
   }
-  for (const id of ['flagfusion', 'citiesabroad', 'countriesabroad', 'nativenames']) {
+  for (const id of ['flagfusion', 'citiesabroad', 'countriesabroad', 'nativenames', 'demonyms']) {
     const [ab, ba] = both(`globalio_${id}_best`, S({ easy: 5, hard: 50 }), S({ easy: 9, medium: 1 }))
     assert.equal(ab, ba)
     assert.deepEqual(P(ab), { easy: 9, hard: 50, medium: 1 })
@@ -299,7 +299,7 @@ test('tier lists and Atlas guesses: everything placed, this device\'s on a clash
 })
 
 test('settings, recents and seen-it flags stay this device\'s', () => {
-  for (const key of ['globalio_flagfusion_prefs', 'globalio_nativenames_prefs', 'globalio_recent_games', 'globalio_flashcard_recent', 'globalio_onboarded', 'globalio_fs_shuffle_hint', 'globalio_creator']) {
+  for (const key of ['globalio_flagfusion_prefs', 'globalio_nativenames_prefs', 'globalio_demonyms_prefs', 'globalio_recent_games', 'globalio_flashcard_recent', 'globalio_onboarded', 'globalio_fs_shuffle_hint', 'globalio_creator']) {
     assert.equal(ruleFor(key).rule, 'device', key)
     assert.equal(merge({ [key]: '"mine"' }, { [key]: '"theirs"' })[key], '"mine"', key)
     assert.equal(merge({}, { [key]: '"theirs"' })[key], '"theirs"', `${key}: filled in when this device has none`)
@@ -374,7 +374,7 @@ test('every key the app writes has a merge rule', () => {
     for (const [, k] of fs.readFileSync(f, 'utf8').matchAll(/["'](globalio_[a-z0-9_]+|dailyglobe_v1)["']/g)) if (!SESSION_ONLY.has(k)) keys.add(k)
   }
   // Keys built from a template, with example values.
-  for (const k of ['globalio_tierlist_Europe', 'globalio_prideroulette_best_30', 'globalio_citiesabroad_best', 'globalio_citiesabroad_prefs', 'globalio_countriesabroad_best', 'globalio_nativenames_prefs']) keys.add(k)
+  for (const k of ['globalio_tierlist_Europe', 'globalio_prideroulette_best_30', 'globalio_citiesabroad_best', 'globalio_citiesabroad_prefs', 'globalio_countriesabroad_best', 'globalio_nativenames_prefs', 'globalio_demonyms_best', 'globalio_demonyms_prefs']) keys.add(k)
   assert.ok(keys.size >= 25, `found only ${keys.size} keys`)
   for (const k of keys) assert.ok(ruleFor(k), `${k} has no rule: add one to RULES in src/utils/mergeProgress.ts (the fallback may already be right; a rule says so)`)
   for (const r of RULES) assert.ok(r.note.length > 5)

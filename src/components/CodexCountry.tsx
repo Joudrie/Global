@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import type { FlagRecord } from '../data/flags'
 import { CODEX } from '../data/codex'
-import type { HistoricalFlag } from '../data/codex'
 import { UK_NATIONS } from '../data/ukNations'
 import type { UKNation } from '../data/ukNations'
 import { TERRITORIES } from '../data/territories'
@@ -13,7 +12,8 @@ import { commonsSource } from '../utils/commons'
 type Facts = typeof import('../data/curatedFacts')
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
 import { LineIcon } from './icons'
-import { ChevronDown, GitBranch, Crown } from 'lucide-react'
+import { ChevronDown, Crown } from 'lucide-react'
+import { FlagImg, FlagHistoryCard, HistoryBrowser } from './CodexHistory'
 
 // One country's Codex entry, opened beneath its row in the Codex list. Its own
 // chunk: the codex, history and subdivision data load when a country opens
@@ -130,74 +130,7 @@ export default function CountryDetail({ flag }: { flag: FlagRecord }) {
                 <p className="text-sm" style={{ color: T.muted }}>No earlier national flags are recorded for {flag.name}.</p>
               </div>
             ) : (
-              <div>
-                {/* Navigation row */}
-                <div className="flex items-center justify-between mb-3">
-                  <span className="text-xs" style={{ color: T.dim, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>
-                    {historyIdx + 1} / {history.length} · newest → oldest
-                  </span>
-                  {/* 44px tap targets around 32px circles; the negative margin
-                      keeps the row its old height. */}
-                  <div className="flex" style={{ margin: '-6px -6px -6px 0' }}>
-                    <button
-                      onClick={() => setHistoryIdx(i => Math.max(0, i - 1))}
-                      disabled={historyIdx === 0}
-                      aria-label="Previous flag"
-                      className="w-11 h-11 flex items-center justify-center transition-all active:scale-90">
-                      <span className="w-8 h-8 flex items-center justify-center rounded-full" style={{
-                        background: T.surface,
-                        border: `1px solid ${historyIdx === 0 ? T.line : tint(ACCENT.codex, 0.4)}`,
-                        color: historyIdx === 0 ? T.dim : ACCENT.codex,
-                        opacity: historyIdx === 0 ? 0.5 : 1,
-                        fontSize: 18,
-                      }}>‹</span>
-                    </button>
-                    <button
-                      onClick={() => setHistoryIdx(i => Math.min(history.length - 1, i + 1))}
-                      disabled={historyIdx === history.length - 1}
-                      aria-label="Next flag"
-                      className="w-11 h-11 flex items-center justify-center transition-all active:scale-90">
-                      <span className="w-8 h-8 flex items-center justify-center rounded-full" style={{
-                        background: T.surface,
-                        border: `1px solid ${historyIdx === history.length - 1 ? T.line : tint(ACCENT.codex, 0.4)}`,
-                        color: historyIdx === history.length - 1 ? T.dim : ACCENT.codex,
-                        opacity: historyIdx === history.length - 1 ? 0.5 : 1,
-                        fontSize: 18,
-                      }}>›</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Main card */}
-                <FlagHistoryCard hf={history[historyIdx]} isFirst={historyIdx === 0} />
-
-                {/* Timeline strip */}
-                <div className="mt-4">
-                  <p className="text-xs mb-2" style={{ color: T.dim }}>Timeline — tap to jump</p>
-                  <div style={{ display: 'flex', gap: 8, overflowX: 'auto', paddingBottom: 6 }}>
-                    {history.map((hf: HistoricalFlag, i: number) => (
-                      <button key={i} onClick={() => setHistoryIdx(i)}
-                        style={{
-                          flexShrink: 0, borderRadius: 8, overflow: 'hidden',
-                          border: `2px solid ${i === historyIdx ? ACCENT.codex : T.line}`,
-                          opacity: i === historyIdx ? 1 : 0.55,
-                          transition: 'opacity 0.2s, border-color 0.2s',
-                          background: T.surfaceHi,
-                        }}>
-                        <img src={hf.flagUrl} alt={hf.label}
-                          style={{ width: 72, height: 46, objectFit: 'contain', display: 'block', background: T.surfaceHi }}
-                          onError={e => { (e.target as HTMLImageElement).style.opacity = '0.15' }}
-                        />
-                        <div style={{ padding: '3px 5px', textAlign: 'center', background: T.surface }}>
-                          <span style={{ fontSize: 9, fontFamily: FONT.mono, color: i === historyIdx ? ACCENT.codex : T.dim, fontWeight: 600 }}>
-                            {hf.fromYear}
-                          </span>
-                        </div>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <HistoryBrowser history={history} idx={historyIdx} onIdx={setHistoryIdx} />
             )}
           </div>
         )}
@@ -610,77 +543,3 @@ function SubdivisionGrid({ subRegions, headerLabel, memberLabel, confirmedNoFlag
     </div>
   )
 }
-
-function FlagImg({ src, alt, height }: { src: string; alt: string; height: number }) {
-  return (
-    <div style={{ width: '100%', height, position: 'relative', overflow: 'hidden' }}>
-      <img
-        src={src}
-        alt={alt}
-        style={{ width: '100%', height, objectFit: 'contain', display: 'block', background: T.surfaceHi }}
-        onError={e => {
-          const el = e.target as HTMLImageElement
-          el.style.display = 'none'
-          const placeholder = el.parentElement?.querySelector('.flag-placeholder') as HTMLElement
-          if (placeholder) (placeholder as HTMLElement).style.display = 'flex'
-        }}
-      />
-      <div className="flag-placeholder" style={{ display: 'none', position: 'absolute', inset: 0, alignItems: 'center', justifyContent: 'center', background: T.surfaceHi }}>
-        <LineIcon name="flag" size={40} color={T.dim} />
-      </div>
-    </div>
-  )
-}
-
-function yearRange(hf: HistoricalFlag) {
-  return hf.toYear === null ? `${hf.fromYear} — Present` : `${hf.fromYear} — ${hf.toYear}`
-}
-
-function FlagHistoryCard({ hf, isFirst }: { hf: HistoricalFlag; isFirst: boolean }) {
-  return (
-    <div className="rounded-2xl overflow-hidden" style={{ background: T.surface, border: `1px solid ${isFirst ? tint(ACCENT.codex, 0.35) : T.line}` }}>
-      {isFirst && (
-        <div className="flex items-center justify-center gap-1.5 py-1.5"
-          style={{ background: tint(ACCENT.codex, 0.1), borderBottom: `1px solid ${tint(ACCENT.codex, 0.2)}` }}>
-          <span style={{ color: ACCENT.codex, fontSize: 11, fontWeight: 600 }}>↑ Current flag</span>
-        </div>
-      )}
-      <FlagImg src={hf.flagUrl} alt={hf.label} height={160} />
-      <div className="p-4">
-        <div className="flex items-start justify-between gap-2 mb-2">
-          <div className="geo-display font-bold text-sm" style={{ color: T.text }}>{hf.label}</div>
-          <span className="text-xs px-2 py-0.5 rounded-full flex-shrink-0"
-            style={{ background: tint(ACCENT.codex, 0.12), color: ACCENT.codex, border: `1px solid ${tint(ACCENT.codex, 0.25)}`, whiteSpace: 'nowrap', fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>
-            {yearRange(hf)}
-          </span>
-        </div>
-        <p className="text-xs leading-relaxed" style={{ color: T.muted, lineHeight: 1.65 }}>{hf.note}</p>
-
-        {/* Branch — flags that existed at the same time (e.g. East/West Germany) */}
-        {hf.parallel && hf.parallel.length > 0 && (
-          <div className="mt-3 pt-3" style={{ borderTop: `1px dashed ${T.lineHi}` }}>
-            <div className="flex items-center gap-1.5 mb-2.5">
-              <GitBranch size={13} color={T.gold} strokeWidth={1.6} absoluteStrokeWidth />
-              <span className="text-xs font-semibold uppercase tracking-wider" style={{ color: T.gold }}>
-                {hf.parallelCaption ?? 'Flown at the same time'}
-              </span>
-            </div>
-            <div className={`grid gap-2.5 ${hf.parallel.length > 1 ? 'grid-cols-2' : 'grid-cols-1'}`}>
-              {hf.parallel.map((p, i) => (
-                <div key={i} className="rounded-xl overflow-hidden" style={{ background: T.surfaceHi, border: `1px solid ${T.line}` }}>
-                  <FlagImg src={p.flagUrl} alt={p.label} height={90} />
-                  <div className="p-2.5">
-                    <div className="font-semibold mb-0.5" style={{ color: T.text, fontSize: 12 }}>{p.label}</div>
-                    <div className="mb-1" style={{ color: ACCENT.codex, fontSize: 10, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums' }}>{yearRange(p)}</div>
-                    <p style={{ color: T.muted, fontSize: 10.5, lineHeight: 1.5 }}>{p.note}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-

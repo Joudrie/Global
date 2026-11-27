@@ -548,11 +548,11 @@ const GROUP_INTRO = {
 }
 const GAME_DESC = {
   flags: 'Browse and study flag sets for every country, plus historical states and identity flags, and track which ones you have mastered.',
-  flashcards: 'Swipe through all 197 country flags as flashcards until you know each one by sight.',
+  flashcards: 'Swipe through flags as flashcards until you know each one by sight: all 197 countries, subdivision flags country by country, and a deck for every section of the Codex, from micronations to former states.',
   historical: 'Learn and quiz yourself on the flags of empires, kingdoms and republics that no longer exist.',
   identity: 'Learn pride, ethnic, indigenous, separatist and micronation flags and the stories behind them.',
-  provinceroulette: 'Spin a continent, then a country, then name the flag of one of its regions.',
-  substumper: 'You are shown the flag of a state or province. Name the country it belongs to.',
+  provinceroulette: 'Spin the flag of a state or province and say where it is from: its continent, then its country, then its name. Spin the whole world, one continent or one country, and keep going until your third miss.',
+  substumper: 'Two ways to play, ten flags a game. In Whose is it?, see the flag of a state or province and pick the country it belongs to. In Name it, pick a country or a continent and name each flag from four answers that all come from the same country, so Oregon sits next to Florida, Texas and Massachusetts and the spelling gives nothing away.',
   gacha: 'Pull a random flag every day and build up your collection.',
   connections: 'In beta, with a new puzzle every two weeks: sort sixteen tiles into four hidden groups of four. Tiles show a country, its capital, its flag or its own name for itself, with groups from Nordic crosses to capitals that used to be named after a person. Six mistakes allowed, and three free hints.',
   funfact: 'A new fact about a flag every day.',
@@ -587,6 +587,7 @@ const GAME_DESC = {
   citiesabroad: 'Name the city from its name in another language, from Wien and Benetke to Kaupmannahöfn and Москва. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,732 names for 310 cities in 57 languages, from Wikidata.',
   countriesabroad: 'Name the country from its name in another language, from Allemagne and Niemcy to Saksa, Németország and Китай. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,900 names for 184 countries in 57 languages, from Wikidata.',
   nativenames: 'Name the country from what it calls itself, from Deutschland and Suomi to Magyarország, Sakartvelo and 日本 (Nihon). Ten right before three strikes wins, and the further a name strays from English, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 85 names for 68 countries in 64 languages, with a Latin spelling under every other script.',
+  demonyms: 'What do you call someone from Naples? Neapolitan, not Nepalese. Name the people of 195 cities, regions and countries, from Venetian and Mancunian to Haligonian, Porteño and I-Kiribati. Pick from four believable answers, some of them real words for somewhere else, or type it for double points. Ten right before three strikes wins, on easy, medium or hard. Every answer is checked against Wikidata, Wikipedia and Wiktionary.',
   statclash: 'Two countries, one question: which has the bigger population or area?',
   prideroulette: 'Name pride flags one after another. One mistake and the run is over.',
   language: 'Read a sentence and pick which of 88 languages it is written in, from easy to extreme.',
