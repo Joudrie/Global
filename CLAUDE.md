@@ -11,7 +11,7 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
 
 - Sean never merges by hand. When a PR is ready (build passes, checks green), merge it yourself
   (squash). Don't leave PRs waiting on him.
-- After merging, deploy (see Deploys).
+- After merging, deploy (see Deploys; deploys are paused right now).
 
 ## Test site
 
@@ -20,6 +20,11 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
   friends test there. Always merge finished work so it reaches the test site, and give Sean the link.
 
 ## Deploys
+
+- **PAUSED (2026-11-27). Do not run the `Deploy to Netlify` workflow until Sean says so.** The Netlify
+  site is on a team shared with a friend ("flexyn", 300 credits a month on the free plan). Each production
+  deploy costs about 15 credits, and running out pauses every site on that team, the friend's included.
+  Merging to `main` still updates the test site (GitHub Pages, free).
 
 - Netlify hosts the site, but it is **not** linked to GitHub: pushes never deploy by themselves.
 - Sean wants finished work live right away (2026-10-08): after a PR is merged and verified, run the
