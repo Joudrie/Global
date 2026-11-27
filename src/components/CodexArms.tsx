@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import type { CountryArms, ArmsCredit } from '../data/coatsOfArms'
-import type { HistoricalFlag } from '../data/codex'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
-import { HistoryBrowser } from './CodexHistory'
+import { HistoryBrowser, PALE_BACKING } from './CodexHistory'
+import type { HistoryItem } from './CodexHistory'
 
 // One country's coat of arms (or emblem, or seal), opened beneath its row in
 // the Codex's "Coats of arms" section: the current one large, then its former
@@ -30,13 +30,15 @@ export default function ArmsDetail({ arms, color }: { arms: CountryArms; color: 
   const [formerOpen, setFormerOpen] = useState(false)
   const [idx, setIdx] = useState(0)
   const heading = FORMER_HEADING[arms.kind]
-  const history: HistoricalFlag[] = arms.former.map(f => ({ fromYear: f.from, toYear: f.to, flagUrl: f.src, label: f.name, note: '' }))
+  const history: HistoryItem[] = arms.former.map(f => ({ fromYear: f.from ?? null, toYear: f.to ?? null, flagUrl: f.src, label: f.name, note: '', light: f.light }))
   return (
     <div className="carto-slide-up" style={{ margin: '6px 0 10px', padding: 14, borderRadius: 14, background: T.surfaceHi, border: `1px solid ${tint(color, 0.22)}` }}>
       {/* The emblem */}
       <div className="rounded-xl overflow-hidden mb-3" style={{ border: `1px solid ${T.line}`, background: T.surface }}>
         <img src={arms.src} alt={arms.name}
-          style={{ width: '100%', height: 180, objectFit: 'contain', display: 'block', padding: '12px 0' }}
+          style={arms.light
+            ? { maxWidth: 'calc(100% - 24px)', height: 180, margin: '12px auto', objectFit: 'contain', display: 'block', padding: 12, boxSizing: 'border-box', background: PALE_BACKING, borderRadius: 12 }
+            : { width: '100%', height: 180, objectFit: 'contain', display: 'block', padding: '12px 0' }}
           onError={e => { (e.target as HTMLImageElement).style.opacity = '0' }} />
       </div>
 

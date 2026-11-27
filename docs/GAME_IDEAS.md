@@ -78,13 +78,15 @@ Left to do, most looked-for first:
 ## Notes / smaller follow-ups
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
   "Browse all 4,500+ flags") covers countries A–M: 116 current coats of arms,
-  emblems and seals, 49 with former ones. Built by `scripts/arms/fetch.mjs`
-  (Wikidata + English Wikipedia + Wikimedia Commons; `--offline` rebuilds from
-  its cache). Still to do:
+  emblems and seals, 86 with former ones (277 images, a few undated). Built by
+  `scripts/arms/fetch.mjs` (Wikidata + English Wikipedia + Wikimedia Commons;
+  `--offline` rebuilds from its cache, `--why` explains every image). Still to do:
   - N–Z countries: widen `SCOPE` in the script, run it, check its notes.
-  - Former arms where they're missing ("coming soon"): many articles list them
-    in tables, not galleries (Hungary, Lithuania, Chile, Ecuador, Cambodia,
-    Mexico, Australia, Canada, Malaysia, Iran…); the script reads galleries only.
+  - Former arms for the 30 A–M countries still on "coming soon" (Argentina,
+    Belgium, Denmark, Ecuador, Estonia, Iran, Japan, Luxembourg, Mongolia…):
+    many never changed their arms, and the rest show the history only in
+    drawings, photos, royal arms or rows without dates. Next sources: other-language Wikipedias (es, fr, de, ru)
+    and Commons' "Historical coats of arms of …" categories, checked by hand.
   - Lebanon and Libya are skipped (no official arms in Wikipedia's infobox);
     Canada and France were chosen by hand. Recheck when their infoboxes change.
   - Later: subdivisions (states, provinces) and royal houses.

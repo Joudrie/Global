@@ -9,14 +9,28 @@ import { GitBranch } from 'lucide-react'
 // History (CodexCountry) and its former coats of arms (CodexArms); kept out of
 // both so neither pulls in the other's data.
 
+/** A history entry: a flag, or a former coat of arms (which may be undated,
+ *  or pale enough to need a backing). */
+export type HistoryItem = Omit<HistoricalFlag, 'fromYear' | 'parallel'> & {
+  fromYear: number | null
+  parallel?: HistoricalFlag[]
+  /** Pale and colourless (Afghanistan's white emblem): shown on a slate backing. */
+  light?: boolean
+}
+
+/** The slate tile behind a pale emblem, so white doesn't vanish into the parchment. */
+export const PALE_BACKING = tint(T.text, 0.32)
+
 /** An image that shows a placeholder icon instead of a broken image. */
-export function FlagImg({ src, alt, height }: { src: string; alt: string; height: number }) {
+export function FlagImg({ src, alt, height, pale = false }: { src: string; alt: string; height: number; pale?: boolean }) {
   return (
-    <div style={{ width: '100%', height, position: 'relative', overflow: 'hidden' }}>
+    <div style={{ width: '100%', height, position: 'relative', overflow: 'hidden', background: T.surfaceHi }}>
       <img
         src={src}
         alt={alt}
-        style={{ width: '100%', height, objectFit: 'contain', display: 'block', background: T.surfaceHi }}
+        style={pale
+          ? { maxWidth: '100%', height: height - 16, margin: '8px auto', objectFit: 'contain', display: 'block', background: PALE_BACKING, borderRadius: 10, padding: 8, boxSizing: 'border-box' }
+          : { width: '100%', height, objectFit: 'contain', display: 'block', background: T.surfaceHi }}
         onError={e => {
           const el = e.target as HTMLImageElement
           el.style.display = 'none'
@@ -31,12 +45,15 @@ export function FlagImg({ src, alt, height }: { src: string; alt: string; height
   )
 }
 
-export function yearRange(hf: Pick<HistoricalFlag, 'fromYear' | 'toYear'>) {
+/** "1949 — 1956", "1912 — Present", "1826" (a one-year design), "Date unknown". */
+export function yearRange(hf: { fromYear: number | null; toYear: number | null }) {
+  if (hf.fromYear === null) return 'Date unknown'
+  if (hf.toYear === hf.fromYear) return `${hf.fromYear}`
   return hf.toYear === null ? `${hf.fromYear} — Present` : `${hf.fromYear} — ${hf.toYear}`
 }
 
 export function FlagHistoryCard({ hf, isFirst, currentLabel = '↑ Current flag', footer }: {
-  hf: HistoricalFlag; isFirst: boolean
+  hf: HistoryItem; isFirst: boolean
   /** The banner over the newest entry. */
   currentLabel?: string
   /** Under the note: a credit line, say. */
@@ -50,7 +67,7 @@ export function FlagHistoryCard({ hf, isFirst, currentLabel = '↑ Current flag'
           <span style={{ color: ACCENT.codex, fontSize: 11, fontWeight: 600 }}>{currentLabel}</span>
         </div>
       )}
-      <FlagImg src={hf.flagUrl} alt={hf.label} height={160} />
+      <FlagImg src={hf.flagUrl} alt={hf.label} height={160} pale={hf.light} />
       <div className="p-4">
         <div className="flex items-start justify-between gap-2 mb-2">
           <div className="geo-display font-bold text-sm" style={{ color: T.text }}>{hf.label}</div>
@@ -93,7 +110,7 @@ export function FlagHistoryCard({ hf, isFirst, currentLabel = '↑ Current flag'
 /** Card + ‹ › + "Timeline — tap to jump", newest first. The parent owns the
  *  index so it survives the section being closed and opened again. */
 export function HistoryBrowser({ history, idx, onIdx, unit = 'flag', currentLabel, footer }: {
-  history: HistoricalFlag[]; idx: number; onIdx: (i: number) => void
+  history: HistoryItem[]; idx: number; onIdx: (i: number) => void
   /** For the ‹ › buttons' labels: "Previous flag". */
   unit?: string
   /** The newest entry's banner; null for a list of former ones only. */
@@ -149,12 +166,12 @@ export function HistoryBrowser({ history, idx, onIdx, unit = 'flag', currentLabe
                 background: T.surfaceHi,
               }}>
               <img src={hf.flagUrl} alt={hf.label}
-                style={{ width: 72, height: 46, objectFit: 'contain', display: 'block', background: T.surfaceHi }}
+                style={{ width: 72, height: 46, objectFit: 'contain', display: 'block', background: hf.light ? PALE_BACKING : T.surfaceHi, padding: hf.light ? 3 : 0, boxSizing: 'border-box' }}
                 onError={e => { (e.target as HTMLImageElement).style.opacity = '0.15' }}
               />
               <div style={{ padding: '3px 5px', textAlign: 'center', background: T.surface }}>
                 <span style={{ fontSize: 9, fontFamily: FONT.mono, color: i === idx ? ACCENT.codex : T.dim, fontWeight: 600 }}>
-                  {hf.fromYear}
+                  {hf.fromYear ?? '—'}
                 </span>
               </div>
             </button>
