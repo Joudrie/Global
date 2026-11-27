@@ -33,6 +33,8 @@ export interface AchievementFacts {
   designs: number
   /** Best score for a game id (the highest of its tiers/modes), or 0. */
   best: (game: string, tier?: string) => number
+  /** Gauntlet regions passed at least once ("world", "europe", …; utils/gauntlet.ts). */
+  gauntlets: string[]
 }
 
 export interface Achievement {
@@ -86,6 +88,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   // Connections (reported by the game)
   { id: "connections-win", title: "Connected", how: "Solve a Connections puzzle.", icon: "connections", game: "connections", group: "Connections" },
   { id: "connections-perfect", title: "Perfect Connections", how: "Solve Connections with no mistakes and no hints.", icon: "trophy", game: "connections", group: "Connections" },
+
+  // Gauntlet: passed means every flag in a region with no mistake
+  { id: "gauntlet-pass", title: "Survivor", how: "Pass any Gauntlet.", icon: "gauntlet", game: "gauntlet", group: "Gauntlet", check: f => f.gauntlets.length >= 1 },
+  { id: "gauntlet-world", title: "Iron will", how: "Pass the World Gauntlet.", icon: "trophy", game: "gauntlet", group: "Gauntlet", check: f => f.gauntlets.includes("world") },
 
   // Other games
   { id: "forgery-20", title: "Forgery Expert", how: "Score 20 in Flag Forgery.", icon: "forgery", game: "forgery", group: "More games", check: f => f.best("forgery") >= 20 },
