@@ -52,7 +52,8 @@ export const RULES: Rule[] = [
 
   // Best scores: a number ("12"), or one per tier/mode ({ "easy-type": 340 }).
   // Covers hl, doa, realorbot, forgery, statclash, prideroulette (and _best_<n>),
-  // flagfusion, citiesabroad, countriesabroad, nativenames.
+  // flagfusion, citiesabroad, countriesabroad, nativenames, composer (Tile
+  // Flipper: { level, score }, each field the higher).
   { key: /^globalio_[a-z0-9-]+_best(_\d+)?$/, rule: "max", symmetric: true,
     note: "Best score: the higher one (per tier/mode when it holds several)." },
   { key: "globalio_total_plays", rule: "max", symmetric: true,
