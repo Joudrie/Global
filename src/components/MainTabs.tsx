@@ -5,33 +5,26 @@ import { FLAGS } from "../data/flags"
 import type { AppState } from "../utils/storage"
 import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
-import { openSupporter } from "../utils/supporterNav"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
-import { TabBar, ModuleCard, FlagTile, SectionHeader, ProgressRing } from "./ui"
-import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon, CrownIcon, MailIcon, HeartIcon } from "./icons"
+import { TabBar, FlagTile, SectionHeader } from "./ui"
+import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon } from "./icons"
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
 import { WordUpSlide, ReignSlide } from "./MakerSlides"
 import AdBox from "./AdBox"
-import { AD_SLOTS, SUPPORTER_LIVE } from "../ads"
-import { accountsVisible } from "../accounts"
-import YouProfile, { avatarFor } from "./YouProfile"
-import Avatar from "./Avatar"
+import { AD_SLOTS } from "../ads"
+import Avatar, { avatarFor } from "./Avatar"
 import { PROFILE_EVENT, readProfile } from "../profile/local"
-import { profileLook } from "../profile/look"
-import type { Look } from "../profile/look"
 import { gameSnapshot } from "../utils/backup"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
 // Lazy so the dashboard bundle stays lean — same chunk App.tsx already splits.
 const CodexScreenLazy = lazy(() => import("./CodexScreen"))
-// The account card (and the sign-in code behind it) loads only where accounts are shown.
-const AccountCard = lazy(() => import("./AccountCard"))
-// A trial profile layout (?look=a|b|c, src/profile/look.ts) and the calmer You tab around it.
-const YouLooks = lazy(() => import("./YouLooks"))
+// The You tab (your profile, progress, sign-in) loads when it's opened.
+const YouTabLazy = lazy(() => import("./YouTab"))
 
 interface Props {
   state: AppState
@@ -123,8 +116,6 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
     onNavigate(e.id)
   }
 
-  const learned = state.learnedFlags.length
-
   return (
     <div className="carto-paper" style={{ position: "fixed", inset: 0, maxWidth: 720, margin: "0 auto", display: "flex", flexDirection: "column", zIndex: 1, background: T.bg }}>
 
@@ -162,7 +153,7 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
             <CodexScreenLazy embedded initialCode={codexCode} />
           </Suspense>
         )}
-        {tab === "you" && <YouTab state={state} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} />}
+        {tab === "you" && <YouTab state={state} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} />}
       </main>
 
       <TabBar active={tab} onChange={handleTab} />
@@ -994,241 +985,13 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
   )
 }
 
-/* ── YOU — the explorer's logbook. One page, everything that used to be split
-   across You / Full Profile / Achievements: identity (editable name), world
-   mastery with the regional breakdown, the field record, a compact trophy
-   shelf of the seven set-crowns, the daily log, and the Collection tools.
-   No Settings / Full Profile links — the gear lives in the header and the
-   profile IS this page now. ──────────────────────────────────────────────── */
-const CROWN_SETS = [
-  { id: "world", label: "World" },
-  { id: "europe", label: "Europe" },
-  { id: "africa", label: "Africa" },
-  { id: "asia", label: "Asia" },
-  { id: "americas", label: "Americas" },
-  { id: "oceania", label: "Oceania" },
-  { id: "middle-east", label: "Mid-East" },
-]
-const REGIONS = ["Europe", "Africa", "Asia", "Americas", "Middle East", "Oceania"] as const
-
-function YouTab({ state, learned, onNavigate, onSetUsername, onOpenPlayer }: {
-  state: AppState; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void; onOpenPlayer: (username: string) => void
+/* ── YOU — your profile first, then your progress (./YouTab.tsx). ───────── */
+function YouTab({ state, onNavigate, onSetUsername, onOpenPlayer }: {
+  state: AppState; onNavigate: (s: string) => void; onSetUsername: (name: string) => void; onOpenPlayer: (username: string) => void
 }) {
-  const [accounts] = useState(accountsVisible)
-  const [look, setLook] = useState<Look | null>(profileLook)
-  if (look) return (
+  return (
     <Suspense fallback={<div role="status" aria-busy="true" style={{ padding: 32, textAlign: "center", color: T.muted, fontSize: 13 }}>Loading your profile…</div>}>
-      <YouLooks state={state} look={look} onLook={setLook} onNavigate={onNavigate} onSetName={onSetUsername} onOpenPlayer={onOpenPlayer} />
+      <YouTabLazy state={state} onNavigate={onNavigate} onSetName={onSetUsername} onOpenPlayer={onOpenPlayer} />
     </Suspense>
-  )
-  return <YouTabCurrent state={state} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} accounts={accounts} />
-}
-
-/** The You tab as players see it now (no trial layout chosen). */
-function YouTabCurrent({ state, learned, onNavigate, onSetUsername, onOpenPlayer, accounts }: {
-  state: AppState; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void; onOpenPlayer: (username: string) => void; accounts: boolean
-}) {
-  const pct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
-  // Only the set crowns count: Quick Play, Flag ID and Flashcards quizzes also
-  // record a crown under their own ids, which are not sets on the shelf.
-  const crowns = state.crowns.filter(id => CROWN_SETS.some(c => c.id === id)).length
-
-  const regionStats = REGIONS.map(region => {
-    const inRegion = FLAGS.filter(f => f.region === region)
-    const got = inRegion.filter(f => state.learnedFlags.includes(f.code)).length
-    return { region, got, total: inRegion.length, done: inRegion.length > 0 && got >= inRegion.length }
-  })
-  const dailyDates = Object.keys(state.dailyHistory).sort().slice(-7)
-
-  return (
-    <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* The profile: picture, banner, name, stats, achievements, the card
-          (and, while profiles are public, the username and Find a player) */}
-      <YouProfile state={state} onSetName={onSetUsername} onOpenPlayer={onOpenPlayer} />
-
-      {/* World mastery — the ring plus the regional breakdown, one card */}
-      <div className="carto-card" style={{ padding: 18, borderRadius: 16, ["--wash" as string]: tint(ACCENT.learn, 0.35) }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 18 }}>
-          <ProgressRing done={learned} total={FLAGS.length} accent={ACCENT.learn} size={72} stroke={6} />
-          <div>
-            <div className="geo-micro" style={{ fontSize: 9, color: ACCENT.learn, marginBottom: 4 }}>◦ World Mastery</div>
-            <div className="geo-display" style={{ color: T.text, fontWeight: 700, fontSize: 22 }}>
-              <span className="geo-mono">{pct}</span><span style={{ color: T.dim, fontSize: 15 }}>%</span>
-            </div>
-            <div style={{ color: T.muted, fontSize: 11, marginTop: 2 }}>{learned} of {FLAGS.length} flags mastered</div>
-          </div>
-        </div>
-        <div style={{ height: 1, background: T.line, margin: "14px 0 12px" }} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 9 }}>
-          {regionStats.map(rs => (
-            <div key={rs.region} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-              <span className="geo-display" style={{ width: 86, flexShrink: 0, fontSize: 12.5, fontWeight: 600, color: T.text }}>
-                {rs.region}{rs.done && <span style={{ marginLeft: 4, display: "inline-flex", verticalAlign: "-1px" }} aria-label="complete"><CrownIcon size={12} color={T.gold} strokeWidth={1.7} /></span>}
-              </span>
-              <div style={{ flex: 1, height: 5, borderRadius: 3, overflow: "hidden", background: tint(T.text, 0.08) }}>
-                <div style={{ width: `${rs.total ? (rs.got / rs.total) * 100 : 0}%`, height: "100%", borderRadius: 3,
-                  background: rs.done ? T.gold : ACCENT.learn, transition: "width 0.7s ease" }} />
-              </div>
-              <span style={{ width: 52, flexShrink: 0, textAlign: "right", fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontSize: 10.5, color: T.muted }}>
-                {rs.got}/{rs.total}
-              </span>
-            </div>
-          ))}
-        </div>
-      </div>
-
-      {/* Trophy shelf — all seven set-crowns, earned and waiting */}
-      <div>
-        <SectionHeader title={`Trophy Shelf · ${crowns}/${CROWN_SETS.length}`} accent={T.gold} />
-        <div style={{ display: "flex", justifyContent: "space-between", gap: 4 }}>
-          {CROWN_SETS.map(c => {
-            const earned = state.crowns.includes(c.id)
-            return (
-              <div key={c.id} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 5, flex: 1, minWidth: 0 }}>
-                <div className={earned ? "geo-foil" : undefined} style={{
-                  width: 42, height: 42, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
-                  ...(earned
-                    ? { background: tint(T.gold, 0.14), border: `1px solid ${tint(T.gold, 0.5)}` }
-                    : { border: `1.5px dashed ${T.line}`, opacity: 0.65 }),
-                }}>
-                  {earned ? <CrownIcon size={17} color={T.gold} strokeWidth={1.7} /> : <CrownIcon size={15} color={T.dim} strokeWidth={1.5} />}
-                </div>
-                <span className="geo-micro" style={{ fontSize: 8, letterSpacing: "0.02em", color: earned ? T.gold : T.dim, whiteSpace: "nowrap" }}>{c.label}</span>
-              </div>
-            )
-          })}
-        </div>
-      </div>
-
-      {/* Daily log — the last week of expeditions */}
-      {dailyDates.length > 0 && (
-        <div>
-          <SectionHeader title="Daily Log" accent={ACCENT.today} />
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-            {dailyDates.map(date => {
-              const r = state.dailyHistory[date]
-              const ratio = r ? r.score / r.total : 0
-              const c = ratio >= 0.8 ? T.green : ratio >= 0.5 ? T.amber : T.danger
-              return (
-                <div key={date} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
-                  <div style={{ minWidth: 44, padding: "9px 6px", borderRadius: 11, textAlign: "center",
-                    background: tint(c, 0.12), border: `1.5px solid ${tint(c, 0.4)}`,
-                    color: c, fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontWeight: 700, fontSize: 12 }}>
-                    {r.score}/{r.total}
-                  </div>
-                  <span style={{ color: T.muted, fontSize: 9.5, fontFamily: FONT.mono }}>{date.slice(5)}</span>
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* Account — keep this progress on every device (hidden until accounts are on) */}
-      {accounts && <Suspense fallback={null}><AccountCard /></Suspense>}
-
-      {/* Collection — the codex's companion reference tools */}
-      <div>
-        <SectionHeader title="Collection" accent={ACCENT.codex} />
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {groupsFor("you").flatMap(g => g.entries).map(e => (
-            <ModuleCard key={e.id} icon={e.icon} glyph={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]}
-              progress={e.progress?.(state)} onClick={() => onNavigate(e.id)} />
-          ))}
-        </div>
-      </div>
-
-      {/* Gacha collection — its own block, just beneath the explorer's tools */}
-      <GachaInline onOpen={() => onNavigate("gacha")} />
-
-      {/* Support Globalio — a gentle, non-naggy CTA shown only to non-supporters */}
-      {SUPPORTER_LIVE && !state.premium && (
-        <button onClick={openSupporter}
-          style={{ display: "block", width: "100%", textAlign: "left", cursor: "pointer", borderRadius: 18, padding: 16,
-            border: `1px solid ${tint(T.gold, 0.45)}`,
-            background: `linear-gradient(150deg, ${tint(T.gold, 0.16)}, ${T.surface} 78%)` }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-            <span style={{ display: "flex", flexShrink: 0 }}><HeartIcon size={24} color={T.gold} strokeWidth={1.7} /></span>
-            <div style={{ flex: 1 }}>
-              <div style={{ color: T.gold, fontWeight: 800, fontSize: 15 }}>Support Globalio</div>
-              <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>One-time $2 — remove ads & back a one-person project.</div>
-            </div>
-            <span style={{ color: T.gold, fontSize: 18, flexShrink: 0 }}>›</span>
-          </div>
-        </button>
-      )}
-
-      {/* Feedback — a one-man operation that reads every message */}
-      <FeedbackCard />
-
-      {/* Scroll-to-see ad at the very bottom of the You tab */}
-      <AdBox slot={AD_SLOTS.youFooter} />
-    </div>
-  )
-}
-
-// Pre-addressed mail to the dev. A static-site-friendly way to collect feedback
-// with zero backend — opens the user's mail app with subject + body filled.
-const FEEDBACK_HREF =
-  "mailto:sjoudrie@gmail.com" +
-  "?subject=" + encodeURIComponent("Globalio feedback") +
-  "&body=" + encodeURIComponent("What I love / what I'd change / an idea:\n\n")
-
-function FeedbackCard() {
-  return (
-    <a href={FEEDBACK_HREF} className="geo-tap carto-card"
-      style={{ display: "block", textDecoration: "none", borderRadius: 16, padding: 16, position: "relative", overflow: "hidden",
-        border: `1px solid ${tint(ACCENT.learn, 0.36)}`,
-        background: `linear-gradient(150deg, ${tint(ACCENT.learn, 0.14)}, ${T.surface} 75%)`,
-        ["--wash" as string]: tint(ACCENT.learn, 0.42) }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-        <span style={{ width: 42, height: 42, borderRadius: 12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          background: tint(ACCENT.learn, 0.14), border: `1px solid ${tint(ACCENT.learn, 0.3)}`, color: ACCENT.learn }}>
-          <MailIcon size={20} color={ACCENT.learn} strokeWidth={1.6} />
-        </span>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          <div className="geo-display" style={{ fontWeight: 700, fontSize: 16, color: T.text }}>Send feedback or ideas</div>
-          <div style={{ color: T.muted, fontSize: 11.5, marginTop: 2, lineHeight: 1.4 }}>Globalio is made by one person, and I read every message. Thanks for playing.</div>
-        </div>
-        <span style={{ color: ACCENT.learn, fontSize: 18, opacity: 0.7 }}>→</span>
-      </div>
-    </a>
-  )
-}
-
-// Inline Gacha collection for the You tab — reads the gacha save directly so
-// players see what they've pulled without hopping to another screen.
-function GachaInline({ onOpen }: { onOpen: () => void }) {
-  let collected: string[] = []
-  try { const raw = localStorage.getItem("globalio_gacha"); collected = raw ? (JSON.parse(raw).collected ?? []) : [] } catch { /* ignore */ }
-  const flags = collected
-    .map(c => FLAGS.find(f => f.code === c))
-    .filter((f): f is typeof FLAGS[number] => !!f)
-  return (
-    // The whole card is one tap straight to the collection — no secondary
-    // "open" button to hunt for.
-    <button onClick={onOpen} className="geo-tap carto-card"
-      style={{ width: "100%", textAlign: "left", cursor: "pointer", padding: 11, borderRadius: 14 }}>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: flags.length ? 7 : 0 }}>
-        <div className="geo-display" style={{ fontWeight: 700, fontSize: 13, color: T.text }}>
-          Gacha Collection{flags.length ? <span style={{ color: T.dim, fontWeight: 600 }}> · {flags.length}/{FLAGS.length}</span> : null}
-        </div>
-        <span style={{ fontSize: 11.5, fontWeight: 700, color: ACCENT.today, fontFamily: FONT.display }}>
-          {flags.length ? "Open →" : "Daily pull →"}
-        </span>
-      </div>
-      {flags.length === 0 ? (
-        <div style={{ color: T.muted, fontSize: 11.5, marginTop: 4 }}>No pulls yet — grab your free daily pull.</div>
-      ) : (
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(30px, 1fr))", gap: 5 }}>
-          {flags.map(f => (
-            <div key={f.code} title={f.name}
-              style={{ aspectRatio: "3 / 2", borderRadius: 4, overflow: "hidden", border: `1px solid ${T.line}` }}>
-              <FlagImage code={f.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
-            </div>
-          ))}
-        </div>
-      )}
-    </button>
   )
 }

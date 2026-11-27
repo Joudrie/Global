@@ -1,13 +1,14 @@
-// Putting the card together in the browser: the banner, the picture (a flag
-// file or a drawn design) and the pinned badges' icons, then share or save
-// the PNG. Loaded when "Save my card" is pressed.
+// Putting the card together in the browser: the banner (a preset, or a
+// country's flag under the same light tan wash as on the profile), the
+// picture (a flag file or a drawn design) and the pinned badges' icons, then
+// share or save the PNG. Loaded when "Save my card" is pressed.
 import { createRoot } from "react-dom/client"
 import { flushSync } from "react-dom"
 import { LineIcon } from "../components/icons"
 import { flagSources } from "../components/FlagImage"
 import { achievementById } from "../data/achievements"
 import { T } from "../ui/tokens"
-import { bannerSvg } from "./banners"
+import { FLAG_WASH, bannerFlag, bannerSvg } from "./banners"
 import { renderProfileCard, canvasPng, shareOrSave, sizedSvg, svgUri } from "./card"
 import type { CardData } from "./card"
 
@@ -47,7 +48,9 @@ async function pictureSrc(p: CardPicture): Promise<string | null> {
 /** Make the card and share or download it. */
 export async function saveProfileCard(data: CardData, banner: string, picture: CardPicture, filename: string) {
   const pins = data.pinned.map(id => achievementById(id)).filter(a => !!a).map(a => svgUri(iconSvg(a!.icon, T.gold)))
-  const canvas = await renderProfileCard(data, { banner: svgUri(bannerSvg(banner)), picture: await pictureSrc(picture), pins })
+  const flag = bannerFlag(banner)
+  const [bannerSrc, pictureUri] = await Promise.all([flag ? flagPicture(flag) : svgUri(bannerSvg(banner)), pictureSrc(picture)])
+  const canvas = await renderProfileCard(data, { banner: bannerSrc, bannerWash: flag ? FLAG_WASH : null, picture: pictureUri, pins })
   const blob = await canvasPng(canvas)
   return shareOrSave(blob, filename, `${data.name} on Globalio`)
 }

@@ -185,7 +185,7 @@ test('the profile on a device: later change wins, junk is dropped', () => {
   for (const m of [mergeSnapshots(older, newer), mergeSnapshots(newer, older)]) assert.equal(L.profileOf(m).bio, 'new')
   const junk = L.profileOf({ globalio_profile: S({ picture: { kind: 'flag', code: 'ZZ' }, banner: 'nope', bio: 'x'.repeat(300), pinned: ['learn-50', 'fake', 'learn-50', 'daily-first', 'streak-7', 'learn-100'], designs: [1, 'd1'] }) })
   assert.equal(junk.picture, null)
-  assert.equal(junk.banner, 'parchment')
+  assert.equal(junk.banner, 'plain')
   assert.equal(junk.bio.length, 120)
   assert.deepEqual(junk.pinned, ['learn-50', 'daily-first', 'streak-7'])
   assert.deepEqual(junk.designs, ['d1'])
@@ -205,7 +205,7 @@ test('the public row: only what is meant to be public', () => {
   assert.equal(pic.name, 'Shared flag', 'no name in the public copy')
   assert.equal(pic.motto, undefined, 'no motto either')
   assert.equal(row.designs.length, 1, 'a design with an uploaded picture is never public')
-  assert.equal(row.banner, 'compass')
+  assert.equal(row.banner, 'sun', 'a banner from the first set reads as the closest one now')
   assert.deepEqual(row.pinned, ['learn-50'])
   assert.equal(row.stats.flags, 3)
   assert.ok(!S(row).includes('Secret name') && !S(row).includes('AAAA') && !S(row).includes('My nation'))
@@ -465,42 +465,72 @@ test('supabase/profiles-rls-check.sql runs in one transaction that is rolled bac
   assert.ok(text.includes(`"${numbers.size} of ${numbers.size} checks passed"`), `the header should expect ${numbers.size} checks`)
 })
 
-// ── Trial layouts (?look=a|b|c) and the sample profile (?demo=1) ─────────────
+// ── Banners ─────────────────────────────────────────────────────────────────
 
-const LOOK = await src('profile/look.ts')
-const DEMO = await src('profile/demo.ts')
+const BAN = await src('profile/banners.ts')
+const { T } = await src('ui/tokens.ts')
 
-test('?look= picks a trial layout: a, b or c; 0 forgets; anything else says nothing', () => {
-  for (const [q, want] of [['?look=a', 'a'], ['?look=B', 'b'], ['?profiles=1&look=c', 'c'], ['?look=0', 'forget'], ['?look=off', 'forget'],
-    ['?look=d', null], ['?look=', null], ['', null], ['?looks=a', null], ['?look=ab', null]]) {
-    assert.equal(LOOK.lookParam(q), want, q)
+test('banners: the tan paper and at most one other colour each, from the palette', () => {
+  const tans = new Set([T.void, T.bg].map(c => c.toLowerCase()))
+  const palette = new Set([T.text, T.amber, T.cyan, T.green, T.warm].map(c => c.toLowerCase()))
+  assert.ok(BAN.BANNERS.length >= 10)
+  assert.equal(new Set(BAN.BANNERS.map(b => b.id)).size, BAN.BANNERS.length, 'ids are unique')
+  assert.equal(BAN.BANNERS[0].id, BAN.DEFAULT_BANNER)
+  for (const b of BAN.BANNERS) {
+    const colours = new Set([...BAN.bannerSvg(b.id).matchAll(/(?:fill|stroke)="(#[0-9A-Fa-f]{6})"/g)].map(m => m[1].toLowerCase()))
+    const others = [...colours].filter(c => !tans.has(c))
+    assert.ok(others.length <= 1, `${b.id} uses ${others.join(', ')}`)
+    assert.equal(others[0] ?? null, b.accent?.toLowerCase() ?? null, `${b.id}: its accent is the one colour it adds`)
+    if (b.accent) assert.ok(palette.has(b.accent.toLowerCase()), `${b.id}: ${b.accent} is not in the palette`)
+    assert.ok(BAN.bannerSvg(b.id).length < 12000, `${b.id} stays small`)
   }
-  assert.equal(LOOK.demoParam('?look=a&demo=1'), true)
-  assert.equal(LOOK.demoParam('?demo=yes'), false)
 })
 
-test('the layout is remembered on this device until ?look=0, and stays out of syncing', () => {
-  const run = search => { globalThis.window = { location: { search } }; return LOOK.profileLook() }
-  globalThis.localStorage = new MemoryStorage()
-  assert.equal(run(''), null, 'no look: the current profile')
-  assert.equal(run('?look=b'), 'b')
-  assert.equal(run(''), 'b', 'remembered')
-  assert.equal(globalThis.localStorage.getItem(LOOK.LOOK_KEY), 'b')
-  assert.equal(run('?look=zzz'), 'b', 'an unknown look changes nothing')
-  assert.equal(run('?look=a'), 'a')
-  assert.equal(run('?look=0'), null)
-  assert.equal(run(''), null, 'forgotten')
-  assert.equal(globalThis.localStorage.m.size, 0)
-  globalThis.localStorage.setItem(LOOK.LOOK_KEY, 'not-a-look')
-  assert.equal(run(''), null, 'a bad stored value is ignored')
-  // ?demo=1 only counts with a look chosen, and is never stored.
+test('banners: old ids read as the closest new one, flags by code, anything else plain tan', () => {
+  for (const [old, now] of Object.entries(BAN.LEGACY)) {
+    assert.ok(BAN.BANNERS.some(b => b.id === now), `${old} → ${now}`)
+    assert.ok(!BAN.BANNERS.some(b => b.id === old), `${old} is a current id, so it needs no mapping`)
+  }
+  for (const old of ['parchment', 'contours', 'graticule', 'waves', 'compass', 'routes', 'hills', 'tricolour', 'bands', 'nordic', 'saltire']) {
+    assert.ok(BAN.BANNERS.some(b => b.id === BAN.bannerOf(old)), old)
+  }
+  assert.equal(BAN.bannerOf('compass'), 'sun')
+  assert.equal(BAN.bannerOf('nordic'), 'nordic')
+  assert.equal(BAN.bannerOf('flag:JP'), 'flag:JP')
+  assert.equal(BAN.bannerFlag('flag:JP'), 'JP')
+  for (const bad of ['flag:ZZ', 'flag:jp', 'flag:', 'flag:JPN', 'nope', '', null, 7, undefined]) assert.equal(BAN.bannerOf(bad), 'plain', String(bad))
+  assert.equal(BAN.bannerFlag('nordic'), null)
+  assert.equal(L.profileOf({ globalio_profile: S({ banner: 'flag:BR' }) }).banner, 'flag:BR')
+  assert.equal(L.profileOf({ globalio_profile: S({ banner: 'hills' }) }).banner, 'chevron')
+})
+
+test('banners: the database accepts every preset and every flag, and nothing else', () => {
+  for (const f of ['migrations/20261127100000_profiles.sql', 'profiles-setup.sql']) {
+    const sql = fs.readFileSync(path.join(ROOT, 'supabase', f), 'utf8')
+    const shapes = [...sql.matchAll(/profiles_banner_shape check \(banner is null or banner ~ '([^']+)'\)/g)].map(m => m[1])
+    assert.ok(shapes.length >= 2, `${f}: the check is in the table and re-added for a table that already exists`)
+    assert.equal(new Set(shapes).size, 1, `${f}: one definition`)
+    assert.match(sql, /drop constraint if exists profiles_banner_shape/)
+    const re = new RegExp(shapes[0])
+    for (const b of BAN.BANNERS) assert.ok(re.test(b.id), `${f}: ${b.id}`)
+    for (const flag of FLAGS) assert.ok(re.test(BAN.flagBanner(flag.code)), `${f}: flag:${flag.code}`)
+    for (const bad of ['flag:jp', 'flag:JPN', 'Flag:JP', 'x'.repeat(25), 'a b', '<b>']) assert.ok(!re.test(bad), `${f}: ${bad}`)
+  }
+})
+
+// ── The sample profile (?demo=1) ────────────────────────────────────────────
+
+const DEMO = await src('profile/demo.ts')
+
+test('?demo=1 shows the sample profile; nothing else does', () => {
+  assert.equal(LINK.demoParam('?demo=1'), true)
+  assert.equal(LINK.demoParam('?profiles=1&demo=1'), true)
+  for (const q of ['', '?demo=yes', '?demo=0', '?demos=1']) assert.equal(LINK.demoParam(q), false, q)
   globalThis.window = { location: { search: '?demo=1' } }
-  assert.equal(LOOK.demoOn(null), false)
-  assert.equal(LOOK.demoOn('c'), true)
+  assert.equal(LINK.demoOn(), true)
   delete globalThis.window
-  // Merge rule: this device's choice, never another device's.
-  assert.equal(ruleFor(LOOK.LOOK_KEY)?.rule, 'device')
-  assert.equal(mergeSnapshots({ [LOOK.LOOK_KEY]: 'a' }, { [LOOK.LOOK_KEY]: 'c' })[LOOK.LOOK_KEY], 'a')
+  assert.equal(LINK.demoOn(), false, 'no window: no sample')
+  assert.equal(ruleFor('globalio_profile_look'), null, 'the layout trial left no storage key behind')
 })
 
 test('the sample profile never touches storage, and is a valid public profile', () => {
@@ -531,7 +561,7 @@ test('the sample profile never touches storage, and is a valid public profile', 
   // Shown read-only: no edit controls are passed, and the files never write.
   const demoSrc = fs.readFileSync(path.join(ROOT, 'src/profile/demo.ts'), 'utf8')
   assert.ok(!/localStorage|sessionStorage|saveProfile|^import (?!type)/m.test(demoSrc), 'demo.ts imports nothing at run time and stores nothing')
-  const you = fs.readFileSync(path.join(ROOT, 'src/components/YouLooks.tsx'), 'utf8')
-  const demoUse = you.match(/<ProfileLook look=\{look\} data=\{demoView\}[^>]*>/)?.[0]
+  const you = fs.readFileSync(path.join(ROOT, 'src/components/YouTab.tsx'), 'utf8')
+  const demoUse = you.match(/<ProfileView data=\{demoView\}[^>]*>/)?.[0]
   assert.ok(demoUse && !/\bown=/.test(demoUse), 'the sample profile is drawn without edit controls')
 })

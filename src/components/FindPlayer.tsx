@@ -6,9 +6,9 @@ import { BadgeChip } from "./ProfileView"
 import { loadAccountService } from "../accounts"
 import type { PlayerCard } from "../account/profiles"
 
-/* "Find a player": type the start of a username, see up to 10 public
-   profiles, tap one to open it. No following, no messages: just a look at
-   someone's profile. Works signed out too. */
+/* "Find a player" (a folding row on the You tab, which names it): type the
+   start of a username, see up to 10 public profiles, tap one to open it. No
+   following, no messages: just a look at someone's profile. Works signed out too. */
 
 type State =
   | { kind: "idle" }
@@ -18,7 +18,7 @@ type State =
 
 const MIN = 2
 
-export default function FindPlayer({ onOpen, bare = false }: { onOpen: (username: string) => void; /** No card or heading (inside a row that names it). */ bare?: boolean }) {
+export default function FindPlayer({ onOpen }: { onOpen: (username: string) => void }) {
   const [q, setQ] = useState("")
   const [state, setState] = useState<State>({ kind: "idle" })
   const seq = useRef(0)
@@ -43,12 +43,8 @@ export default function FindPlayer({ onOpen, bare = false }: { onOpen: (username
   }, [q])
 
   return (
-    <section aria-labelledby={bare ? undefined : "find-player-title"} aria-label={bare ? "Find a player" : undefined}
-      style={bare ? { display: "flex", flexDirection: "column", gap: 12 } : { borderRadius: 16, padding: 16, background: T.surface, border: `1px solid ${T.line}`, display: "flex", flexDirection: "column", gap: 12 }}>
-      <div>
-        {!bare && <h3 id="find-player-title" className="geo-display" style={{ margin: 0, fontSize: 17, fontWeight: 700, color: T.text }}>Find a player</h3>}
-        <p className="text-xs" style={{ margin: bare ? 0 : "4px 0 0", color: T.muted, lineHeight: 1.6 }}>Look up a friend’s profile by the start of their username.</p>
-      </div>
+    <section aria-label="Find a player" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <p className="text-xs" style={{ margin: 0, color: T.muted, lineHeight: 1.6 }}>Look up a friend’s profile by the start of their username.</p>
       <div style={{ position: "relative" }}>
         <span aria-hidden style={{ position: "absolute", left: 12, top: 14, display: "flex" }}><SearchIcon size={18} color={T.muted} strokeWidth={1.7} /></span>
         <input id="player-search" type="search" value={q} onChange={e => setQ(e.target.value.slice(0, 21))}
