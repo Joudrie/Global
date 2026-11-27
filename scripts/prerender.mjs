@@ -144,7 +144,7 @@ const showsHateSymbol = html => NO_AD_FLAGS.some(u => html.includes(u))
 // with little content of its own; hate-symbol pages never get the script.
 const FONTS = 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:wght@600;700;800&display=swap'
 function page({ title, description, canonical, body, noindex = false, ads = true, ogImage, jsonLd = null }) {
-  ogImage ??= `${ORIGIN}/og-image.jpg`
+  ogImage ??= `${ORIGIN}/og-globalio.jpg`
   const adScript = ads && !noindex && !showsHateSymbol(body)
   return `<!doctype html>
 <html lang="en">
