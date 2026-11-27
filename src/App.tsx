@@ -83,6 +83,7 @@ const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
 import { setSupporterHandler } from "./utils/supporterNav"
+import { countGameOpen } from "./utils/gameCounts"
 import { startAccountSync, SIGN_IN_RETURN, accountsVisible, profilesVisible } from "./accounts"
 import AchievementToast from "./components/AchievementToast"
 import { gameSnapshot } from "./utils/backup"
@@ -212,6 +213,18 @@ export default function App() {
   const sharedDesign = useRef(SHARED_DESIGN)
   // The player whose profile is open (Find a player, or a ?u= link).
   const [player, setPlayer] = useState<string | null>(LINKED_PLAYER)
+
+  // Count which games people open (cookie-free, in GoatCounter; see utils/gameCounts).
+  useEffect(() => {
+    if (screen === "quiz" && activeQuiz) {
+      const id = activeQuiz.isDaily ? "daily" : activeQuiz.setId === "quickplay" ? "quickplay" : `set-${activeQuiz.setId}`
+      countGameOpen(id, activeQuiz.title)
+      return
+    }
+    if (screen === "reversequiz") { countGameOpen("reversequiz", "Reverse quiz"); return }
+    const game = REGISTRY.find(r => r.id === screen)
+    if (game) countGameOpen(game.id, game.title)
+  }, [screen, activeQuiz])
 
   // Phone and browser Back: any screen past home sits on one extra history
   // entry, so Back returns home instead of leaving the site. Coming home any
