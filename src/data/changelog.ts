@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flag DNA now plays like Wordle",
+    items: [
+      "Each guess lists only what its own flag has: colours, pattern and symbols. Green means the mystery flag has it too, yellow means its stripes or cross run the other way, grey means it doesn't. Nothing is said about things your guess doesn't have.",
+      "A Known so far panel collects what you've confirmed and ruled out, and shows how many colours the mystery flag has. Six guesses, and your best streak is saved.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Spot the Error uses real forgeries, and Flag Families stays still",
     items: [
       "Spot the Error: each flag now has one doctored detail, like a missing star, a mirrored crescent, an off-centre disc or a wrong-coloured band. Tap where it is, then see the real flag beside it with the mistake circled. It gets harder as your streak grows, and your best streak is saved.",

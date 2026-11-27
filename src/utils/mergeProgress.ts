@@ -59,7 +59,8 @@ export const RULES: Rule[] = [
   // flagfusion, citiesabroad and countriesabroad (Abroad's two switches),
   // nativenames, demonyms,
   // frankenflag (pieces named in a game), composer (Tile Flipper: { level,
-  // score }), thepeel ({ streak, points }), provinceroulette ({ world: 14,
+  // score }), thepeel ({ streak, points }), flagdna ({ streak }, the best
+  // run of wins), provinceroulette ({ world: 14,
   // US: 30 }) and substumper ({ whose: 8, "name-US": 10 }): each field the higher.
   { key: /^globalio_[a-z0-9-]+_best(_\d+)?$/, rule: "max", symmetric: true,
     note: "Best score: the higher one (per tier/mode when it holds several)." },
