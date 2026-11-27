@@ -102,6 +102,10 @@ const FORMER_DROP = new Set([
   'Coat of arms of Portuguese India (1935-1951).svg', 'Coat of arms of Portuguese India (1951-1974).svg',
   // China: the Japanese-backed Wang Jingwei regime (1940–1945).
   'Emblem of the Republic of China-Nanjing 1940-1945.svg',
+  // Emblems of fascist regimes during the Second World War, which the Codex
+  // shouldn't show beside a country's arms without context: the Arrow Cross
+  // government of Hungary (1944–1945) and the Ustaše state in Croatia (1941–1945).
+  'Coat of arms of Hungary (1945).svg', 'Coat of arms of Croatia (1941–1945).svg',
   // Azerbaijan: the 1920 design was never adopted.
   'Coat of arms of the Azerbaijan Democratic Republic.svg',
   // Chad's seal is in use today, beside the arms.

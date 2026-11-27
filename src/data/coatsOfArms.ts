@@ -2839,19 +2839,10 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
       },
       {
-        "name": "Coat of arms of the Independent State of Croatia",
-        "from": 1941,
-        "to": 1945,
-        "src": "/arms/hr-3.png",
-        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Croatia_(1941%E2%80%931945).svg",
-        "author": "Barryob",
-        "licence": "Public domain"
-      },
-      {
         "name": "Coat of arms of the Banovina of Croatia",
         "from": 1939,
         "to": 1941,
-        "src": "/arms/hr-4.png",
+        "src": "/arms/hr-3.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_the_Banate_of_Croatia.svg",
         "author": "Ex13",
         "licence": "Public domain"
@@ -2860,7 +2851,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of the Kingdom of Croatia-Slavonia",
         "from": 1868,
         "to": 1918,
-        "src": "/arms/hr-5.png",
+        "src": "/arms/hr-4.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_the_Kingdom_of_Croatia-Slavonia.svg",
         "author": "DIREKTOR (derived from User:Ex13 's images)",
         "licence": "Public domain"
@@ -2869,7 +2860,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of the Kingdom of Croatia",
         "from": 1525,
         "to": 1868,
-        "src": "/arms/hr-6.png",
+        "src": "/arms/hr-5.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_Kingdom_of_Croatia.svg",
         "author": "Felipe Fidelis Tobias",
         "licence": "CC BY-SA 4.0",
@@ -2877,7 +2868,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
       },
       {
         "name": "Early coat of arms of the Republic of Croatia",
-        "src": "/arms/hr-7.png",
+        "src": "/arms/hr-6.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Croatia_(white_chequy).svg",
         "author": "-- Barryob",
         "licence": "Public domain"
@@ -3004,18 +2995,9 @@ export const COATS_OF_ARMS: CountryArms[] = [
       },
       {
         "name": "Coat of arms of Hungary",
-        "from": 1945,
-        "to": 1945,
-        "src": "/arms/hu-4.png",
-        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1945).svg",
-        "author": "Thommy",
-        "licence": "Public domain"
-      },
-      {
-        "name": "Coat of arms of Hungary",
         "from": 1918,
         "to": 1919,
-        "src": "/arms/hu-5.png",
+        "src": "/arms/hu-4.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1918-1919).svg",
         "author": "Thommy",
         "licence": "Public domain"
@@ -3024,7 +3006,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of Hungary",
         "from": 1915,
         "to": 1918,
-        "src": "/arms/hu-6.png",
+        "src": "/arms/hu-5.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1915-1918,_1919-1946%3B_angels).svg",
         "author": "József Sebestyén",
         "licence": "Public domain"
@@ -3033,7 +3015,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of Hungary",
         "from": 1896,
         "to": 1915,
-        "src": "/arms/hu-7.png",
+        "src": "/arms/hu-6.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1896-1915%3B_angels).svg",
         "author": "Thommy",
         "licence": "Public domain"
@@ -3042,7 +3024,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of Hungary",
         "from": 1874,
         "to": 1896,
-        "src": "/arms/hu-8.png",
+        "src": "/arms/hu-7.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1874-1896).svg",
         "author": "Thommy",
         "licence": "Public domain"
@@ -3051,7 +3033,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of Hungary",
         "from": 1869,
         "to": 1874,
-        "src": "/arms/hu-9.png",
+        "src": "/arms/hu-8.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1869-1874).svg",
         "author": "Thommy",
         "licence": "Public domain"
@@ -3060,7 +3042,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "name": "Coat of arms of Hungary",
         "from": 1848,
         "to": 1849,
-        "src": "/arms/hu-10.png",
+        "src": "/arms/hu-9.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Hungary_(1848-1849,_1867-1869).svg",
         "author": "Thommy",
         "licence": "Public domain"
