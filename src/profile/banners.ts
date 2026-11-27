@@ -52,10 +52,13 @@ function waves(): string {
   }).join("")
 }
 
-// Norway, Sweden, Finland: the cross set towards the hoist.
-const nordic = () =>
-  `<rect x="${CX - 72}" width="44" height="${H}" fill="${INK}" fill-opacity="0.62"/>` +
-  `<rect y="${CY - 22}" width="${W}" height="44" fill="${INK}" fill-opacity="0.62"/>`
+// Norway, Sweden, Finland: the cross set towards the hoist. One shape (not two
+// bars laid over each other), so the crossing is the same tone as the arms.
+function nordic(): string {
+  const x0 = CX - 72, x1 = CX - 28, y0 = CY - 22, y1 = CY + 22
+  const d = `M${x0} 0H${x1}V${y0}H${W}V${y1}H${x1}V${H}H${x0}V${y1}H0V${y0}H${x0}Z`
+  return `<path d="${d}" fill="${INK}" fill-opacity="0.62"/>`
+}
 
 // Japan, Bangladesh, Palau: one disc.
 const disc = () => `<circle cx="${CX}" cy="${CY}" r="104" fill="${RED}" fill-opacity="0.9"/>`
@@ -74,9 +77,10 @@ function band(): string {
     `<path d="${along(86)}" stroke="${AMBER}" stroke-opacity="0.4" stroke-width="6"/>`
 }
 
-// Scotland, Jamaica, Alabama: a saltire, corner to corner.
+// Scotland, Jamaica, Alabama: a saltire, corner to corner. Drawn solid inside
+// one faded group, so where the arms cross it stays the same tone.
 const saltire = () =>
-  `<path d="M0 0L${W} ${H}M${W} 0L0 ${H}" stroke="${RED}" stroke-opacity="0.5" stroke-width="40"/>`
+  `<g opacity="0.5"><path d="M0 0L${W} ${H}M${W} 0L0 ${H}" stroke="${RED}" stroke-width="40"/></g>`
 
 // Taiwan, Argentina, Kiribati: a sun with twelve rays.
 function sun(): string {
