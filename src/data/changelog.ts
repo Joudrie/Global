@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Favourites, Abroad, and Flag Fusion up front",
+    items: [
+      "Star any game to pin it to a new Favourites row at the top of Play, with the games you open most first.",
+      "Cities Abroad and Countries Abroad are now one game, Abroad, with a Countries / Cities switch. Your best scores in both carried over.",
+      "Flag Fusion now leads the Top games row, and US City Flags is back on the main list.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Patch notes in the app",
     items: [
       "A new line at the top of Today sums up the week's changes, with a dot when there's something you haven't read. Tap it (or Patch notes in Settings) to see every update grouped by day, newest first, with the ones you haven't read marked New.",
