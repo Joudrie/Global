@@ -207,10 +207,13 @@ body {
 .carto-stagger > *:nth-child(5) { animation-delay: 0.18s; }
 .carto-stagger > *:nth-child(n+6) { animation-delay: 0.22s; }
 
+/* Codex chevrons that turn when a section opens (Coats of arms). */
+.codex-chev { display: inline-flex; flex-shrink: 0; transition: transform 0.2s; }
+
 @media (prefers-reduced-motion: reduce) {
   .carto-pulse, .carto-slide-up, .carto-rise, .carto-stagger > *, .geo-foil::after,
   .animate-spin-slow { animation: none; }
-  .carto-card, .geo-tap { transition: none; }
+  .carto-card, .geo-tap, .codex-chev { transition: none; }
 }
 
 /* Profiles: rows and choices change colour and border on hover, nothing else. */

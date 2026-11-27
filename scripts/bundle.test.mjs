@@ -43,6 +43,7 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
   const { ORG_FLAGS } = await src('data/orgFlags.ts')
   const { US_CITY_FLAGS } = await src('data/usCityFlags.ts')
   const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  const { COATS_OF_ARMS } = await src('data/coatsOfArms.ts')
   const inCat = c => IDENTITY_FLAGS.filter(f => f.category === c).length
   assert.deepEqual(CODEX_COUNTS, {
     mega: ALL_FLAGS_AZ.length,
@@ -53,6 +54,7 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
     usCities: US_CITY_FLAGS.length,
     orgs: g.rowCount(g.orgRegions(ORG_FLAGS)),
     signal: SIGNAL_FLAGS.length,
+    arms: COATS_OF_ARMS.length,
   }, 'update src/data/codexCounts.ts')
 })
 
@@ -60,8 +62,10 @@ test('every Codex section is a flashcard deck, and DECK_COUNTS match the decks',
   const { CODEX_COUNTS } = await src('data/codexCounts.ts')
   const { DECK_COUNTS, DECK_REGIONS, loadCodexDeck } = await src('data/codexDecks.ts')
   // One deck per "Beyond countries" section: each identity category shown as
-  // its own section, plus every other entry in CODEX_COUNTS.
-  const sections = Object.keys(CODEX_COUNTS).length - 1 + CODEX_COUNTS.identity.length
+  // its own section, plus every other entry in CODEX_COUNTS. Coats of arms
+  // (beta) has no deck yet: flags come first (docs/GAME_IDEAS.md).
+  const NO_DECK_YET = ['arms']
+  const sections = Object.keys(CODEX_COUNTS).filter(k => !NO_DECK_YET.includes(k)).length - 1 + CODEX_COUNTS.identity.length
   assert.equal(Object.keys(DECK_COUNTS).length, sections, 'a Codex section has no flashcard deck (src/data/codexDecks.ts)')
   for (const id of Object.keys(DECK_COUNTS)) {
     const groups = await loadCodexDeck(id)

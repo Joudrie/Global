@@ -4,10 +4,10 @@ import type { FlagRecord } from "../data/flags"
 import { flagSources } from "./FlagImage"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
 import { LineIcon } from "./icons"
 import { Flame, Thermometer, Snowflake } from "lucide-react"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 import {
   BEST_KEY, BOARD_BORDER, BOARD_MAX, TILE_GAP, betterBest, gridFor, levelPoints, nextTile, parseBest, pickFlag, tileBands,
 } from "../utils/tileFlipper"
@@ -98,6 +98,7 @@ export default function TheComposerScreen({ onBack }: Props) {
   // Type-in
   const [input, setInput]       = useState("")
   const [showDrop, setShowDrop] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
 
   const { level, runScore, target, flipped, guesses, solved, gaveUp, pts, round } = game
   const { cols, rows, tiles } = gridFor(level)
@@ -121,6 +122,7 @@ export default function TheComposerScreen({ onBack }: Props) {
   const handleGuess = (flag: FlagRecord) => {
     setInput("")
     setShowDrop(false)
+    setMaybe([])
     if (done) return
 
     if (flag.code === target.code) {
@@ -149,7 +151,7 @@ export default function TheComposerScreen({ onBack }: Props) {
     setGame(g => ({ ...g, flipped: allTiles(tiles), gaveUp: true }))
   }
 
-  const reset = (g: GameState) => { setGame(g); setInput(""); setShowDrop(false) }
+  const reset = (g: GameState) => { setGame(g); setInput(""); setShowDrop(false); setMaybe([]) }
   const handleNextLevel = () => reset(roundAt(level + 1, runScore, game.used, round + 1))
   const handleNewRun = () => reset(roundAt(1, 0, [], round + 1))
 
@@ -289,10 +291,14 @@ export default function TheComposerScreen({ onBack }: Props) {
           <div className="w-full max-w-sm relative">
             <input aria-label="Type a country"
               value={input}
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onKeyDown={e => {
-                if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) handleGuess(pick) }
-                if (e.key === "Escape") { setInput(""); setShowDrop(false) }
+                if (e.key === "Enter") {
+                  const pick = pickOnEnter(matches, input)
+                  if (pick) handleGuess(pick)
+                  else if (!matches.length) setMaybe(didYouMean(FLAGS, input).filter(f => !guesses.some(g => g.flag.code === f.code)))
+                }
+                if (e.key === "Escape") { setInput(""); setShowDrop(false); setMaybe([]) }
               }}
               onFocus={() => setShowDrop(true)}
               onBlur={() => setTimeout(() => setShowDrop(false), 150)}
@@ -315,6 +321,7 @@ export default function TheComposerScreen({ onBack }: Props) {
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={handleGuess} accent={ACC} />
           </div>
         )}
 

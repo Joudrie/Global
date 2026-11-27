@@ -1,3 +1,4 @@
+import { Fragment } from "react"
 import type { ButtonHTMLAttributes, CSSProperties, MouseEvent, MouseEventHandler, ReactNode } from "react"
 import { X, Timer, TrendingDown, Scissors, Star, Plus, Shield, Rows3, Columns3, Hourglass, Anchor } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
@@ -89,6 +90,32 @@ export function SecondaryButton({ disabled, className = "", style, type = "butto
       }}>
       {children}
     </button>
+  )
+}
+
+/* ── "Did you mean Papua New Guinea?" under a type-a-country box, after
+   Enter found no country by that name (didYouMean in utils/pickOnEnter).
+   Showing it costs nothing; tapping a name submits that guess. The press
+   keeps the focus in the box, so the keyboard stays up for the next one. ── */
+export function DidYouMean<X extends { code: string; name: string }>({ options, onPick, accent = T.text, style }:
+  { options: X[]; onPick: (x: X) => void; accent?: string; style?: CSSProperties }) {
+  if (!options.length) return null
+  return (
+    <div role="status" style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8, marginTop: 8, fontSize: 13, color: T.muted, ...style }}>
+      <span>Did you mean</span>
+      {options.map((o, i) => (
+        <Fragment key={o.code}>
+          {i > 0 && <span>or</span>}
+          <button type="button" onMouseDown={e => e.preventDefault()} onClick={() => onPick(o)}
+            className="geo-tap"
+            style={{ minHeight: 40, padding: "0 12px", borderRadius: 999, cursor: "pointer", fontSize: 14, fontWeight: 700,
+              color: T.text, background: T.surface, border: `1.5px solid ${tint(accent, 0.55)}` }}>
+            {o.name}
+          </button>
+        </Fragment>
+      ))}
+      <span aria-hidden style={{ marginLeft: -4 }}>?</span>
+    </div>
   )
 }
 

@@ -31,6 +31,22 @@ elimination.
   per-flag feature set (stripes/canton/disc/cross/star) rather than pixel diff.
 
 ## Notes / smaller follow-ups
+- **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
+  "Browse all 4,500+ flags") covers countries A–M: 116 current coats of arms,
+  emblems and seals, 49 with former ones. Built by `scripts/arms/fetch.mjs`
+  (Wikidata + English Wikipedia + Wikimedia Commons; `--offline` rebuilds from
+  its cache). Still to do:
+  - N–Z countries: widen `SCOPE` in the script, run it, check its notes.
+  - Former arms where they're missing ("coming soon"): many articles list them
+    in tables, not galleries (Hungary, Lithuania, Chile, Ecuador, Cambodia,
+    Mexico, Australia, Canada, Malaysia, Iran…); the script reads galleries only.
+  - Lebanon and Libya are skipped (no official arms in Wikipedia's infobox);
+    Canada and France were chosen by hand. Recheck when their infoboxes change.
+  - Later: subdivisions (states, provinces) and royal houses.
+  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms),
+    and a Flashcards deck (Flashcards → Codex; `scripts/bundle.test.mjs` lets
+    `arms` off the "every Codex section is a deck" rule until then).
+    Flags stay front and center: the arms are a side door, not the main menu.
 - "Peoples & Cultures" fun-fact pool currently has **32** entries (only flags
   with a written `note` show). Expanding it means writing more cultural facts in
   `src/data/ethnicFlags.ts` — content task, flagged for a decision.

@@ -15,4 +15,6 @@ export const CODEX_COUNTS = {
   usCities: 124,
   orgs: 67,
   signal: 27,
+  /** Coats of arms (beta): countries with one so far (coatsOfArms.ts COATS_OF_ARMS). */
+  arms: 116,
 }

@@ -3,8 +3,8 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
-import { isExactName, normName } from "../utils/pickOnEnter"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
+import { didYouMean, isExactName, normName } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.codex
 const MAX = 6
@@ -32,6 +32,8 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
   const [status, setStatus] = useState<"play" | "won" | "lost">("play")
   const [wins, setWins] = useState(0)
   const [note, setNote] = useState("")
+  // Names close to a guess that isn't on the list ("Papua New Guinae").
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
 
   const names = useMemo(() => FLAGS.map(f => f.name).sort(), [])
   const wrong = guesses.length
@@ -42,9 +44,21 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
 
   const submit = () => {
     if (status !== "play" || !input.trim()) return
-    // Only a real country costs a guess, and only once.
+    // Only a real country costs a guess, and only once. A near miss offers
+    // the names it might be, for free.
     const country = countryNamed(input)
-    if (!country) { setNote("That's not a country on the list"); return }
+    if (!country) {
+      const close = didYouMean(FLAGS, input)
+      const fresh = close.filter(f => !guesses.includes(f.name))
+      setMaybe(fresh)
+      setNote(fresh.length ? "" : close.length ? `Already guessed ${close[0].name}` : "That's not a country on the list")
+      return
+    }
+    guess(country)
+  }
+  const guess = (country: FlagRecord) => {
+    if (status !== "play") return
+    setMaybe([])
     if (country.code === answer.code) { setStatus("won"); setWins(w => w + 1); setNote(""); return }
     if (guesses.includes(country.name)) { setNote(`Already guessed ${country.name}`); return }
     setNote("")
@@ -54,7 +68,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
   }
   const giveUp = () => setStatus("lost")
   const giveUpNote = status === "lost" && wrong < MAX
-  const next = () => { setAnswer(deal()); setGuesses([]); setInput(""); setNote(""); setStatus("play") }
+  const next = () => { setAnswer(deal()); setGuesses([]); setInput(""); setNote(""); setMaybe([]); setStatus("play") }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
@@ -90,7 +104,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
             {/* Guess input with autocomplete */}
             <div className="w-full max-w-sm flex gap-2">
               <input list="flag-names" value={input}
-                onChange={e => { setInput(e.target.value); setNote("") }}
+                onChange={e => { setInput(e.target.value); setNote(""); setMaybe([]) }}
                 onKeyDown={e => { if (e.key === "Enter") submit() }}
                 placeholder="Type a country…" aria-label="Guess the country"
                 style={{ flex: 1, minWidth: 0, padding: "0 14px", height: 46, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 15, outline: "none" }} />
@@ -103,6 +117,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
             </div>
 
             {note && <p role="status" className="w-full max-w-sm text-xs" style={{ color: T.muted, marginTop: -8 }}>{note}</p>}
+            <DidYouMean options={maybe} onPick={guess} accent={ACC} style={{ width: "100%", maxWidth: 384, marginTop: -8 }} />
 
             {/* Past wrong guesses */}
             {guesses.length > 0 && (
