@@ -518,7 +518,8 @@ export default function App() {
           onSetUsername={name => setAppState(s => ({ ...s, username: name }))} />
       )}
       {screen === "achievements" && <AchievementsScreen state={appState} onBack={() => setScreen("home")} />}
-      {screen === "player" && player && <PlayerScreen key={player} username={player} onBack={() => { setTab("you"); setScreen("home") }} />}
+      {screen === "player" && player && <PlayerScreen key={player} username={player} onBack={() => { setTab("you"); setScreen("home") }}
+        onPlay={id => { setTab("you"); setDeckBack("home"); setHistRegion(undefined); setScreen(id as Screen) }} />}
       {screen === "progressmap" && <ProgressMapScreen state={appState} onBack={() => setScreen("home")} />}
       {screen === "historical" && <HistoricalFlagScreen onBack={() => setScreen(deckBack)} region={histRegion} />}
       {screen === "identity" && <IdentityFlagScreen onBack={() => setScreen(deckBack)} />}

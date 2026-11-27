@@ -25,6 +25,8 @@
 -- Then switch profiles on in the app (PROFILES_LIVE in src/accounts.ts), or
 -- try them first on any device with ?profiles=1. To check the security rules,
 -- run supabase/profiles-rls-check.sql the same way (it changes nothing).
+--
+-- Friends need this first, then their own file: supabase/friends-setup.sql.
 
 -- ════════════════════════════════════════════════════════════════════════════
 -- supabase/migrations/20261127100000_profiles.sql
