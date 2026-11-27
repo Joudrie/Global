@@ -47,10 +47,10 @@ export default function FindPlayer({ onOpen }: { onOpen: (username: string) => v
       <p className="text-xs" style={{ margin: 0, color: T.muted, lineHeight: 1.6 }}>Look up a friend’s profile by the start of their username.</p>
       <div style={{ position: "relative" }}>
         <span aria-hidden style={{ position: "absolute", left: 12, top: 14, display: "flex" }}><SearchIcon size={18} color={T.muted} strokeWidth={1.7} /></span>
-        <input id="player-search" type="search" value={q} onChange={e => setQ(e.target.value.slice(0, 21))}
+        <input id="player-search" className="pf-input" type="search" value={q} onChange={e => setQ(e.target.value.slice(0, 21))}
           aria-label="Find a player" placeholder="Search players" autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
           enterKeyHint="search" maxLength={21}
-          style={{ width: "100%", height: 48, padding: "0 12px 0 40px", borderRadius: 10, fontSize: 16, background: T.surfaceHi, border: `1px solid ${T.line}`, color: T.text, outline: "none" }} />
+          style={{ width: "100%", height: 48, padding: "0 12px 0 40px", borderRadius: 10, fontSize: 16, background: T.surfaceHi, border: `1px solid ${T.line}`, color: T.text }} />
       </div>
       <div role="status" aria-live="polite">
         {state.kind === "idle" && q.trim().length > 0 && <p className="text-xs" style={{ margin: 0, color: T.dim }}>Keep typing: at least {MIN} characters.</p>}

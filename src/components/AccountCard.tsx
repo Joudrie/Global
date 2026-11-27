@@ -99,7 +99,7 @@ function GoogleButton({ busy, onToken, fallback }: { busy: boolean; onToken: (to
 
 const inputStyle = (bad: boolean) => ({
   width: "100%", height: 48, padding: "0 12px", borderRadius: 10, fontSize: 16, // 16px: iOS doesn't zoom in
-  background: T.surfaceHi, border: `1px solid ${bad ? T.danger : T.line}`, color: T.text, outline: "none",
+  background: T.surfaceHi, border: `1px solid ${bad ? T.danger : T.line}`, color: T.text,
 })
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
@@ -287,7 +287,7 @@ export default function AccountCard({ inSettings = false, compact = false }: { i
         if (ok) { setSentTo(""); setCode("") }
       }} style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <label htmlFor="account-code" className="text-xs font-semibold" style={{ color: T.muted }}>Or enter the code from the email</label>
-        <input id="account-code" value={code} onChange={e => { setCode(e.target.value); setError("") }}
+        <input id="account-code" className="pf-input" value={code} onChange={e => { setCode(e.target.value); setError("") }}
           inputMode="numeric" autoComplete="one-time-code" maxLength={12} placeholder="123456"
           style={{ ...inputStyle(!!error), fontFamily: FONT.mono, letterSpacing: "0.2em", fontVariantNumeric: "tabular-nums" }} />
         <Alert text={error} />
@@ -329,7 +329,7 @@ export default function AccountCard({ inSettings = false, compact = false }: { i
       </div>
       <form onSubmit={sendLink} noValidate style={{ display: "flex", flexDirection: "column", gap: 8 }}>
         <label htmlFor="account-email" className="text-xs font-semibold" style={{ color: T.muted }}>Email</label>
-        <input id="account-email" type="email" autoComplete="email" inputMode="email" autoCapitalize="off" spellCheck={false}
+        <input id="account-email" className="pf-input" type="email" autoComplete="email" inputMode="email" autoCapitalize="off" spellCheck={false}
           value={email} onChange={e => { setEmail(e.target.value); setError("") }} placeholder="name@example.com"
           style={inputStyle(!!error && !!email)} />
         <Alert text={error} />
