@@ -1,182 +1,287 @@
-import { useState } from "react"
-import { SUB_FLAGS, SUB_CONTINENTS } from "../data/subdivisions"
+import { useEffect, useRef, useState } from "react"
 import type { SubFlag } from "../data/subdivisions"
+import { shuffleWithRng } from "../utils/prng"
+import { ADVANCE_MS, advanceTimer } from "../utils/autoAdvance"
+import {
+  ROULETTE_LIVES, STEP_LABEL, poolFlags, poolFromKey, poolKey, poolLabel, poolRegion, spinSteps, stepKinds,
+} from "../utils/subdivisionQuiz"
+import type { Pool, Step } from "../utils/subdivisionQuiz"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { FlagLoadFailed, MAX_FLAG_RETRIES, HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { FlagLoadFailed, MAX_FLAG_RETRIES, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
+import { GamePoster } from "./GamePoster"
+import { Choices, FlagFrame, PoolPicker, Reveal, Review, SUB_STYLES, readBests, readJson, writeJson } from "./subdivisionUi"
+
+/* Province Roulette: where is this flag from? Pick where the spins come from
+   (the whole world, a continent or one country). Each spin is a state or
+   province flag, traced down from there: its continent, its country, then its
+   name. A right answer moves on by itself; three misses end the run. The
+   steps and choices are in utils/subdivisionQuiz.ts.
+
+   Saved on this device: globalio_provinceroulette_prefs (the last pool picked)
+   and globalio_provinceroulette_best ({ world: 14, europe: 9, US: 30 }, the
+   most right answers in one run from each pool). */
 
 interface Props { onBack: () => void; onSubLearned: (code: string) => void }
 
 const A = ACCENT.learn
+const PREFS_KEY = "globalio_provinceroulette_prefs"
+const BEST_KEY = "globalio_provinceroulette_best"
+const STEP_MS = 700 // a right answer, before the next step of the same flag
 
-function shuffle<X>(a: X[]): X[] { return [...a].sort(() => Math.random() - 0.5) }
-function pick<X>(a: X[]): X { return a[Math.floor(Math.random() * a.length)] }
-
-interface Step { label: string; choices: string[]; answer: string }
-
-// Always returns exactly 4 distinct options: the answer + 3 distractors,
-// preferring `primary`, then backfilling from `fallback` so it's never short.
-function fourChoices(answer: string, primary: string[], fallback: string[]): string[] {
-  const seen = new Set<string>([answer])
-  const out = [answer]
-  for (const list of [primary, fallback]) {
-    for (const x of shuffle(list)) {
-      if (out.length >= 4) break
-      if (!seen.has(x)) { seen.add(x); out.push(x) }
-    }
-  }
-  return shuffle(out)
+type Prefs = { region: string; pool: string | null }
+const loadPrefs = (): Prefs => {
+  const p = readJson<{ region?: unknown; pool?: unknown }>(PREFS_KEY, {})
+  const pool = poolFromKey(p.pool)
+  return { region: pool ? poolRegion(pool) : typeof p.region === "string" ? p.region : "world", pool: pool ? poolKey(pool) : null }
 }
 
-const ALL_COUNTRIES = Array.from(new Set(SUB_FLAGS.map(s => s.countryName)))
-const ALL_REGIONS = Array.from(new Set(SUB_FLAGS.map(s => s.name)))
+interface Spin { flag: SubFlag; marks: boolean[] }
+interface Outcome { pool: Pool; spins: Spin[]; score: number; cleared: boolean; best: number; beat: boolean }
 
-function buildSteps(target: SubFlag): Step[] {
-  const sameContCountries = SUB_FLAGS
-    .filter(s => s.continent === target.continent && s.countryName !== target.countryName)
-    .map(s => s.countryName)
-  // Never a twin of the answer: some subdivisions share one flag (Sharjah and
-  // Ras al-Khaimah), and picking the twin would be marked wrong.
-  const sameCountryRegions = SUB_FLAGS
-    .filter(s => s.countryCode === target.countryCode && s.name !== target.name && s.flagUrl !== target.flagUrl)
-    .map(s => s.name)
-  const twins = new Set(SUB_FLAGS.filter(s => s.flagUrl === target.flagUrl).map(s => s.name))
+export default function ProvinceRouletteScreen({ onBack, onSubLearned }: Props) {
+  const [prefs, setPrefs] = useState(loadPrefs)
+  const [run, setRun] = useState<{ id: number; pool: Pool } | null>(null)
+  const [outcome, setOutcome] = useState<Outcome | null>(null)
 
-  return [
-    { label: "Which region?", choices: shuffle(SUB_CONTINENTS.map(c => c.name)), answer: target.continent },
-    { label: "Which country?", choices: fourChoices(target.countryName, sameContCountries, ALL_COUNTRIES), answer: target.countryName },
-    { label: "Which subdivision?", choices: fourChoices(target.name, sameCountryRegions, ALL_REGIONS.filter(n => !twins.has(n))), answer: target.name },
-  ]
-}
-
-function ProvinceRouletteScreenGame({ onBack, onSubLearned , onReplay }: Props & { onReplay: () => void }) {
-  const [target, setTarget] = useState<SubFlag>(() => pick(SUB_FLAGS))
-  const [steps, setSteps] = useState<Step[]>(() => buildSteps(target))
-  const [fails, setFails] = useState(0)
-  const [broken, setBroken] = useState<Set<string>>(() => new Set())
-  const [stepIdx, setStepIdx] = useState(0)
-  const [picked, setPicked] = useState<string | null>(null)
-  const [results, setResults] = useState<boolean[]>([])
-  const [done, setDone] = useState(false)
-
-  const step = steps[stepIdx]
-  const answered = picked !== null
-
-  const choose = (c: string) => {
-    if (answered) return
-    setPicked(c)
-    setResults(r => [...r, c === step.answer])
+  const savePrefs = (p: Prefs) => { setPrefs(p); writeJson(PREFS_KEY, p) }
+  const start = (pool: Pool) => {
+    savePrefs({ region: poolRegion(pool), pool: poolKey(pool) })
+    setOutcome(null)
+    setRun(r => ({ id: (r?.id ?? 0) + 1, pool }))
+    window.scrollTo({ top: 0 })
   }
-
-  // A flag that won't load makes the round unwinnable: swap in a different
-  // subdivision and start over (nothing is scored). Give up after MAX_FLAG_RETRIES.
-  const reroll = (failed?: string) => {
-    const bad = new Set(broken)
-    if (failed) bad.add(failed)
-    setBroken(bad)
-    const pool = SUB_FLAGS.filter(s => !bad.has(s.code) && s.code !== target.code)
-    const t = pick(pool.length ? pool : SUB_FLAGS.filter(s => s.code !== target.code))
-    setTarget(t)
-    setSteps(buildSteps(t))
-    setStepIdx(0)
-    setPicked(null)
-    setResults([])
-  }
-  const onFlagError = () => {
-    if (results.length > 0 || answered) return
-    setFails(f => f + 1)
-    reroll(target.code)
-  }
-  const retry = () => { setFails(0); reroll() }
-
-  const next = () => {
-    if (stepIdx + 1 >= steps.length) {
-      if (results.every(Boolean)) onSubLearned(target.code)
-      setDone(true)
-      return
-    }
-    setStepIdx(i => i + 1)
-    setPicked(null)
-  }
-
-  if (done) {
-    const correct = results.filter(Boolean).length
-    return (
-      <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-        <ScreenHeader title="Province Roulette" subtitle="Results" onBack={onBack} />
-        <div className="w-full max-w-sm mx-auto px-5 pb-8 flex flex-col gap-3">
-          <ResultCard>
-            <ResultHeader icon={correct === 3 ? "target" : correct >= 1 ? "compass" : "globe"} accent={A}
-              title={`${correct} of 3 steps right`}
-              score={`${target.countryEmoji} ${target.name}, ${target.countryName}`} />
-            <div className="rounded-xl overflow-hidden" style={{ border: `1px solid ${T.line}` }}>
-              <img src={target.flagUrl} alt={target.name} style={{ width: "100%", height: 150, objectFit: "contain", display: "block", background: T.surfaceHi, padding: 6 }}
-                onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />
-            </div>
-            <div className="flex justify-center gap-2">
-              {["Region", "Country", "Subdivision"].map((l, i) => (
-                <span key={l} className="px-2 py-1 rounded-full" style={{ fontSize: 12,
-                  background: tint(results[i] ? T.green : T.danger, 0.13), color: results[i] ? T.green : T.danger, border: `1px solid ${tint(results[i] ? T.green : T.danger, 0.3)}` }}>
-                  {results[i] ? "✓" : "✗"} {l}
-                </span>
-              ))}
-            </div>
-          </ResultCard>
-          <PrimaryButton onClick={onReplay} accent={A}>New flag</PrimaryButton>
-          <SecondaryButton onClick={onBack}>Home</SecondaryButton>
-        </div>
-      </div>
-    )
+  const finish = (pool: Pool, spins: Spin[], cleared: boolean) => {
+    const score = spins.reduce((n, s) => n + s.marks.filter(Boolean).length, 0)
+    const bests = readBests(BEST_KEY)
+    const key = poolKey(pool)
+    const prev = bests[key]
+    if (prev === undefined || score > prev) writeJson(BEST_KEY, { ...bests, [key]: score })
+    setOutcome({ pool, spins, score, cleared, best: Math.max(prev ?? 0, score), beat: prev !== undefined && score > prev })
+    window.scrollTo({ top: 0 })
   }
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-      <ScreenHeader title="Province Roulette" subtitle="Continent, country, then region" onBack={onBack}
-        right={<HeaderStat accent={A}>{stepIdx + 1} / 3</HeaderStat>} />
-
-      {fails >= MAX_FLAG_RETRIES ? (
-        <div className="flex flex-col items-center px-5 gap-4">
-          <FlagLoadFailed onRetry={retry} onBack={onBack} accent={A} />
-        </div>
-      ) : (
-      <div className="flex flex-col items-center px-5 gap-4">
-        <div style={{ width: 280, height: 186, borderRadius: 14, overflow: "hidden", border: `2px solid ${tint(A, 0.3)}`, boxShadow: `0 6px 18px -10px ${tint(T.text, 0.5)}`, background: T.surfaceHi }}>
-          <img key={target.code} src={target.flagUrl} alt="subdivision flag"
-            style={{ width: "100%", height: "100%", objectFit: "contain", display: "block", padding: 8 }}
-            onLoad={() => setFails(0)} onError={onFlagError} />
-        </div>
-        <div className="text-sm font-semibold" style={{ color: A }}>{step.label}</div>
-
-        <div className="grid grid-cols-1 gap-2.5 w-full max-w-sm">
-          {step.choices.map(c => {
-            const isAnswer = c === step.answer
-            const isChosen = picked === c
-            let border = `2px solid ${T.line}`
-            if (answered) { if (isAnswer) border = `2px solid ${T.green}`; else if (isChosen) border = `2px solid ${T.danger}` }
-            return (
-              <button key={c} onClick={() => choose(c)} disabled={answered}
-                className="py-3 px-4 rounded-xl font-semibold text-sm transition-all active:scale-95"
-                style={{ background: T.surface, border, color: T.text, textAlign: "left" }}>
-                {c}
-                {answered && isAnswer && <span style={{ float: "right", color: T.green }}>✓</span>}
-                {answered && isChosen && !isAnswer && <span style={{ float: "right", color: T.danger }}>✗</span>}
-              </button>
-            )
-          })}
-        </div>
-
-        {answered && (
-          <PrimaryButton onClick={next} accent={A} style={{ maxWidth: 384 }}>
-            {stepIdx + 1 >= steps.length ? "See Result →" : "Next →"}
-          </PrimaryButton>
-        )}
-      </div>
-      )}
+      <style>{SUB_STYLES}</style>
+      {!run && <Start prefs={prefs} onRegion={region => savePrefs({ ...prefs, region })} onPick={start} onBack={onBack} />}
+      {run && !outcome && <Run key={run.id} pool={run.pool} onBack={onBack} onSubLearned={onSubLearned}
+        onDone={(spins, cleared) => finish(run.pool, spins, cleared)} />}
+      {run && outcome && <Result outcome={outcome} onBack={onBack} onAgain={() => start(run.pool)}
+        onChange={() => { setRun(null); setOutcome(null); window.scrollTo({ top: 0 }) }} />}
     </div>
   )
 }
 
-export default function ProvinceRouletteScreen({ onBack, onSubLearned }: Props) {
-  const [replayKey, setReplayKey] = useState(0)
-  return <ProvinceRouletteScreenGame key={replayKey} onBack={onBack} onSubLearned={onSubLearned} onReplay={() => setReplayKey(k => k + 1)} />
+/* ── Start: pick where the spins come from; a tap starts the run. ───────── */
+function Start({ prefs, onRegion, onPick, onBack }:
+  { prefs: Prefs; onRegion: (r: string) => void; onPick: (p: Pool) => void; onBack: () => void }) {
+  const bests = readBests(BEST_KEY)
+  const last = prefs.pool
+  return (
+    <>
+      <ScreenHeader title="Province Roulette" onBack={onBack} />
+      <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "4px 16px 32px", gap: 20 }}>
+        <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          <div aria-hidden style={{ position: "relative", height: 112, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}` }}>
+            <GamePoster id="provinceroulette" accent={A} />
+          </div>
+          <div>
+            <h2 className="geo-display" style={{ margin: 0, fontSize: 22, fontWeight: 700, lineHeight: 1.2, color: T.text }}>Spin a flag, then say where it's from.</h2>
+            <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.5, color: T.muted }}>
+              Each spin is the flag of a state or province. Name its continent, then its country, then the place itself.
+              Three misses and the wheel stops.
+            </p>
+            <p style={{ margin: "8px 0 0", fontSize: 13, lineHeight: 1.5, color: T.muted }}>
+              Spin a continent to skip straight to the country, or one country to name its flags.
+            </p>
+          </div>
+        </section>
+        <PoolPicker label="Spin from · tap to start" allowWorld region={prefs.region} onRegion={onRegion} onPick={onPick} accent={A}
+          bestFor={p => {
+            const b = bests[poolKey(p)]
+            const tag = poolKey(p) === last ? "Last played" : null
+            return b !== undefined ? `Best ${b}` : tag
+          }} />
+      </main>
+    </>
+  )
+}
+
+/* ── Misses left, as three marks that fill as they're used. ─────────────── */
+function Lives({ used }: { used: number }) {
+  return (
+    <span role="img" aria-label={`${used} of ${ROULETTE_LIVES} misses`} style={{ display: "inline-flex", gap: 4, flexShrink: 0 }}>
+      {Array.from({ length: ROULETTE_LIVES }, (_, i) => {
+        const on = i < used
+        return <span key={i} style={{ width: 20, height: 20, borderRadius: 6, background: on ? T.danger : "transparent", border: `1.5px solid ${on ? T.danger : T.line}` }} />
+      })}
+    </span>
+  )
+}
+
+/* ── A run: spin after spin until three misses (or every flag is done). ─── */
+function Run({ pool, onBack, onSubLearned, onDone }:
+  { pool: Pool; onBack: () => void; onSubLearned: (code: string) => void; onDone: (spins: Spin[], cleared: boolean) => void }) {
+  const [deck, setDeck] = useState<SubFlag[]>(() => shuffleWithRng(poolFlags(pool), Math.random))
+  const [pos, setPos] = useState(0)
+  const [steps, setSteps] = useState<Step[]>(() => spinSteps(pool, deck[0], Math.random))
+  const [stepIdx, setStepIdx] = useState(0)
+  const [picked, setPicked] = useState<string | null>(null)
+  const [marks, setMarks] = useState<boolean[]>([])
+  const [spins, setSpins] = useState<Spin[]>([])
+  const [misses, setMisses] = useState(0)
+  const [fails, setFails] = useState(0)
+  // The answer waiting to move on; cleared the moment it does, so the timer
+  // and the Next button can't both move it on.
+  const pending = useRef(false)
+  // A tap meant for Next can land on an answer as the next step appears.
+  const readyAt = useRef(0)
+
+  const flag = deck[pos]
+  const step = steps[stepIdx]
+  const answered = picked !== null
+  const score = spins.reduce((n, s) => n + s.marks.filter(Boolean).length, 0) + marks.filter(Boolean).length
+  const out = misses >= ROULETTE_LIVES
+  const lastStep = stepIdx + 1 >= steps.length
+  const kinds = stepKinds(pool)
+
+  // Load the next flag while this one is answered.
+  useEffect(() => {
+    const n = deck[pos + 1]
+    if (n) try { new Image().src = n.flagUrl } catch { /* not a browser */ }
+  }, [deck, pos])
+
+  const choose = (c: string) => {
+    if (answered || performance.now() < readyAt.current) return
+    const ok = c === step.answer
+    setPicked(c)
+    setMarks(m => [...m, ok])
+    if (!ok) setMisses(n => n + 1)
+    pending.current = true
+  }
+
+  const next = () => {
+    if (!pending.current) return
+    pending.current = false
+    readyAt.current = performance.now() + 300
+    if (!out && !lastStep) {
+      setStepIdx(i => i + 1)
+      setPicked(null)
+      return
+    }
+    const done = [...spins, { flag, marks }]
+    if (marks.length === steps.length && marks.every(Boolean)) onSubLearned(flag.code)
+    if (out || pos + 1 >= deck.length) { onDone(done, !out); return }
+    setSpins(done)
+    setPos(pos + 1)
+    setSteps(spinSteps(pool, deck[pos + 1], Math.random))
+    setStepIdx(0)
+    setPicked(null)
+    setMarks([])
+  }
+  const nextRef = useRef(next)
+  nextRef.current = next
+
+  // A right answer moves on by itself; a wrong one waits for Next, so the
+  // right answer can be read. Paused while the tab is hidden.
+  const rightAnswer = answered && picked === step.answer
+  useEffect(() => {
+    if (!rightAnswer) return
+    const t = advanceTimer(() => nextRef.current(), lastStep ? ADVANCE_MS.correct : STEP_MS)
+    const onVisibility = () => (document.hidden ? t.pause() : t.resume())
+    if (document.hidden) t.pause()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => { t.cancel(); document.removeEventListener("visibilitychange", onVisibility) }
+  }, [rightAnswer, lastStep, pos, stepIdx])
+
+  // A flag that won't load can't be answered: swap in another from the pool
+  // (nothing is scored). Give up after MAX_FLAG_RETRIES in a row.
+  const swapFlag = () => {
+    const rest = deck.filter((_, i) => i !== pos)
+    if (pos >= rest.length) { onDone(spins, false); return }
+    setDeck(rest)
+    setSteps(spinSteps(pool, rest[pos], Math.random))
+    setStepIdx(0)
+    setPicked(null)
+    setMarks([])
+  }
+  const onFlagError = () => {
+    if (marks.length > 0 || answered) return
+    setFails(f => f + 1)
+    swapFlag()
+  }
+
+  const nextLabel = out ? "See results" : !lastStep ? "Next" : pos + 1 >= deck.length ? "See results" : "Next spin"
+
+  return (
+    <>
+      <ScreenHeader title="Province Roulette" subtitle={`${poolLabel(pool)} · ${score} right`} onBack={onBack}
+        right={<Lives used={misses} />} />
+      {fails >= MAX_FLAG_RETRIES ? (
+        <div className="flex flex-col items-center px-4">
+          <FlagLoadFailed onRetry={() => { setFails(0); swapFlag() }} onBack={onBack} accent={A} />
+        </div>
+      ) : (
+        <div className="flex flex-col items-center px-4 pb-8" style={{ gap: 16 }}>
+          <div className="w-full max-w-sm" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+            <span className="geo-micro" style={{ fontSize: 11, color: T.muted }}>Spin {spins.length + 1}</span>
+            {kinds.length > 1 && (
+              <span style={{ display: "flex", gap: 4 }}>
+                {kinds.map((k, i) => {
+                  const m = marks[i]
+                  const now = i === stepIdx
+                  const color = m === undefined ? (now ? A : T.muted) : m ? T.green : T.danger
+                  return (
+                    <span key={k} style={{ padding: "2px 8px", borderRadius: 999, fontSize: 12, fontWeight: now ? 700 : 600, color,
+                      background: m === undefined && !now ? "transparent" : tint(color, 0.1), border: `1px solid ${m === undefined && !now ? T.line : tint(color, 0.4)}` }}>
+                      {STEP_LABEL[k]}
+                    </span>
+                  )
+                })}
+              </span>
+            )}
+          </div>
+          <FlagFrame flag={flag} accent={A} onLoad={() => setFails(0)} onError={onFlagError} />
+          {answered && (lastStep || out)
+            ? <Reveal flag={flag} />
+            : <div className="text-sm font-semibold" style={{ color: A, textAlign: "center" }}>{step.label}</div>}
+          <Choices choices={step.choices} answer={step.answer} picked={picked} onPick={choose} columns={step.kind === "continent" ? 2 : 1} />
+          {answered && (
+            <PrimaryButton onClick={next} accent={out ? T.danger : A} style={{ maxWidth: 384 }}>{nextLabel}</PrimaryButton>
+          )}
+        </div>
+      )}
+    </>
+  )
+}
+
+/* ── Result: the score, the best from this pool and every flag spun. ────── */
+function Result({ outcome, onBack, onAgain, onChange }:
+  { outcome: Outcome; onBack: () => void; onAgain: () => void; onChange: () => void }) {
+  const { pool, spins, score, cleared, best, beat } = outcome
+  const kinds = stepKinds(pool)
+  return (
+    <>
+      <ScreenHeader title="Province Roulette" subtitle="Results" onBack={onBack} />
+      <main className="w-full max-w-sm mx-auto flex flex-col" style={{ padding: "4px 16px 32px", gap: 12 }}>
+        <ResultCard>
+          <ResultHeader icon={cleared ? "trophy" : score >= 10 ? "target" : "compass"} accent={cleared ? T.gold : A}
+            eyebrow={poolLabel(pool)}
+            title={cleared ? `All ${spins.length} flags spun` : `${score} right`}
+            score={cleared ? `${score} right, and never three misses.` : beat ? "A new best from here." : `Three misses after ${spins.length} ${spins.length === 1 ? "spin" : "spins"}.`} />
+          <ResultStats stats={[
+            { label: "Right", value: score, accent: A },
+            { label: "Spins", value: spins.length },
+            { label: "Best", value: best, accent: beat ? T.green : undefined },
+          ]} />
+        </ResultCard>
+        <PrimaryButton onClick={onAgain} accent={A}>Spin again</PrimaryButton>
+        <SecondaryButton onClick={onChange}>Spin somewhere else</SecondaryButton>
+        <SecondaryButton onClick={onBack}>Home</SecondaryButton>
+        <div style={{ height: 8 }} />
+        <Review title="This run" items={spins.map(s => ({ flag: s.flag, marks: s.marks.map((ok, i) => ({ label: STEP_LABEL[kinds[i]], ok })) }))} />
+      </main>
+    </>
+  )
 }
