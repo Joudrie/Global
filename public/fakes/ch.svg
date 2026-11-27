@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" id="fake-ch" viewBox="0 0 640 480">
+  <g fill-rule="evenodd" stroke-width="1pt">
+    <path fill="red" d="M0 0h640v480H0z"/>
+    <g fill="#fff">
+      <path d="M0 195h640v90H0z"/>
+      <path d="M275 0h90v480h-90z"/>
+    </g>
+  </g>
+</svg>

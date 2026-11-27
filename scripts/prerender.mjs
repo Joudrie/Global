@@ -576,7 +576,7 @@ const GAME_DESC = {
   flagdna: 'Guess the mystery flag. Each guess shows which attributes match, like colours, stripes, symbols and region, and how close you are.',
   symbolhunt: 'Find every flag that carries a particular symbol, such as a star, eagle or crescent.',
   flagfamilies: 'Sort flags into the families they belong to, like Nordic crosses and Pan-African colours.',
-  spoterror: 'One colour on this flag is wrong. Find it.',
+  spoterror: 'Each flag has one doctored detail: a band in the wrong colour, a missing star, a mirrored crescent, a crest in the wrong place. Tap where the mistake is, then see it next to the real flag. The longer your streak, the smaller the mistakes.',
   forgery: 'Swipe to decide whether each flag is correct or has been doctored.',
   geo: 'Identify countries from the shape of their borders.',
   bordermap: "Fill in all of a country's neighbours on the map.",
