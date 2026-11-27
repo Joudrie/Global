@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Coats of arms in the Codex (beta)",
+    items: [
+      "A new Coats of Arms section in the Codex, below Browse all 4,500+ flags: every country from A to M with its current coat of arms, emblem or seal, grouped by region, with what it shows and where the image comes from.",
+      "49 countries also show the coats of arms that came before, in the same browser as flag history. N to Z is next.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Province Roulette and Subdivision Stumper are now two different games",
     items: [
       "Province Roulette: choose where the spins come from: the whole world, a continent or one country. Each spin asks for the continent, then the country, then the state or province, and three misses stop the wheel.",
