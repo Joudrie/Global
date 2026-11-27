@@ -326,7 +326,7 @@ test('both new games sit next to Cities Abroad on the Sharp Recall shelf, and ev
     assert.equal(e.tab, 'play')
     assert.ok(!e.sandbox)
   }
-  assert.equal(GAME_COUNT, 56) // 55 with these two, then Flag Fusion
+  assert.equal(GAME_COUNT, 57) // 55 with these two, then Flag Fusion, then Demonyms
   const prerender = fs.readFileSync(path.join(ROOT, 'scripts/prerender.mjs'), 'utf8')
   assert.match(prerender, /countriesabroad: '/)
   assert.match(prerender, /nativenames: '/)

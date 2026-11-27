@@ -56,6 +56,24 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
   }, 'update src/data/codexCounts.ts')
 })
 
+test('every Codex section is a flashcard deck, and DECK_COUNTS match the decks', async () => {
+  const { CODEX_COUNTS } = await src('data/codexCounts.ts')
+  const { DECK_COUNTS, DECK_REGIONS, loadCodexDeck } = await src('data/codexDecks.ts')
+  // One deck per "Beyond countries" section: each identity category shown as
+  // its own section, plus every other entry in CODEX_COUNTS.
+  const sections = Object.keys(CODEX_COUNTS).length - 1 + CODEX_COUNTS.identity.length
+  assert.equal(Object.keys(DECK_COUNTS).length, sections, 'a Codex section has no flashcard deck (src/data/codexDecks.ts)')
+  for (const id of Object.keys(DECK_COUNTS)) {
+    const groups = await loadCodexDeck(id)
+    const cards = groups.flatMap(g => g.cards)
+    assert.equal(cards.length, DECK_COUNTS[id], `${id}: update DECK_COUNTS in src/data/codexDecks.ts`)
+    assert.ok(cards.every(c => c.flagUrl && c.name && !/[<>]/.test(c.name)), `${id}: every card has a flag and a plain name`)
+    assert.equal(new Set(cards.map(c => c.key)).size, cards.length, `${id}: card keys are unique`)
+    assert.equal(groups.length > 1, DECK_REGIONS.includes(id), `${id}: split by region only when DECK_REGIONS says so`)
+    assert.ok(groups.every(g => g.cards.length && (groups.length === 1 || g.label)), `${id}: every region has a name and cards`)
+  }
+})
+
 test('onboarding flags match fp()', async () => {
   const { fp } = await src('data/codex.ts')
   const text = fs.readFileSync(path.join(ROOT, 'src/components/Onboarding.tsx'), 'utf8')

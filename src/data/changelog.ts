@@ -5,6 +5,32 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flag Bracket: mix any continents and Codex sections",
+    items: [
+      "Flag Bracket: pick any mix of continents, so Asia and Europe can share one bracket while the rest sit out.",
+      "A new More flags drop-down adds any Codex section to the mix: Pride, Separatist & Autonomous, Micronations, former states, American cities, US states, provinces and more. Each set gets an even share of the bracket.",
+      "Bracket sizes the pool can't fill are greyed out, and your last mix is remembered.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Flashcards for every section of the Codex",
+    items: [
+      "Flashcards has a new Codex tab with a deck for every Codex section: Pride, Separatist & Autonomous, Civic & Ideological, Micronations, Extinct & Former States, American Cities, International Organizations, Signal flags, Peoples & Cultures, and 50 random flags from the Mega Codex.",
+      "The big decks split by region like the Codex does, so you can study just Europe's former states or just Africa's peoples.",
+      "Identity Flags: Movements & Identity is now five decks that match the Codex: Separatist & Autonomous, Civic & Ideological, Micronations, Pan-National & Ethnic and Indigenous Peoples.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "New game: Demonyms",
+    items: [
+      "What do you call someone from Naples? Neapolitan, not Nepalese. Name the people of 195 cities, regions and countries, from Venetian and Mancunian to Haligonian, Porteño and I-Kiribati.",
+      "Pick from four believable answers (some are real words for somewhere else, and the game tells you whose) or type it for double points. Every answer is checked against Wikidata, Wikipedia and Wiktionary.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Gauntlet progress, faster Dead or Alive, records in The Peel, fairer Real or Bot",
     items: [
       "Gauntlet: your best run in every region now shows as a progress bar, and clearing a region marks it Passed with the date. Two new achievements: Survivor and Iron will.",
