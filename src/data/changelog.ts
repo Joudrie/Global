@@ -5,6 +5,13 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Sign in with an email link",
+    items: [
+      "No Google account? On the You tab or in Settings, enter your email and we'll send you a sign-in link from noreply@globalio.app. Open it and your progress syncs across your devices, just like with Google.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Profiles: find a friend by username",
     items: [
       "Signed in? Claim a username on the You tab and your profile becomes public: anyone can look it up with Find a player or open it from a link like globalio.app/?u=yourname. Only your username, picture, banner, bio, badges, stats and the Flag Studio designs you choose are shown, never your email.",

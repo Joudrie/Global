@@ -3,7 +3,7 @@ import type { FormEvent, ReactNode, Ref } from "react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from "./icons"
-import { accountsConfigured, EMAIL_SIGNIN, GOOGLE_CLIENT_ID, hasStoredSession, loadAccountService, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
+import { accountsConfigured, EMAIL_CODE, EMAIL_SIGNIN, GOOGLE_CLIENT_ID, hasStoredSession, loadAccountService, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
 import type { AccountView } from "../account/service"
 
 /* "Keep your progress on every device": sign in with Google or an emailed
@@ -279,6 +279,7 @@ export default function AccountCard({ inSettings = false, compact = false }: { i
     <Card cardRef={ref} compact={compact}>
       <Title>Check your email</Title>
       <Note>We sent a sign-in link to <strong style={{ color: T.text, overflowWrap: "anywhere" }}>{sentTo}</strong>. Open it on this device. It can take a minute, so check your spam folder too.</Note>
+      {EMAIL_CODE ? (
       <form onSubmit={async (e: FormEvent) => {
         e.preventDefault()
         const token = code.replace(/\s+/g, "")
@@ -295,6 +296,7 @@ export default function AccountCard({ inSettings = false, compact = false }: { i
           {busy === "code" ? "Signing in…" : "Sign in"}
         </PrimaryButton>
       </form>
+      ) : <Alert text={error} />}
       <SecondaryButton onClick={() => { setSentTo(""); setCode(""); setError("") }}>Use a different email</SecondaryButton>
     </Card>
   )
