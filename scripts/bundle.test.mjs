@@ -43,6 +43,7 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
   const { ORG_FLAGS } = await src('data/orgFlags.ts')
   const { US_CITY_FLAGS } = await src('data/usCityFlags.ts')
   const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  const { COATS_OF_ARMS } = await src('data/coatsOfArms.ts')
   const inCat = c => IDENTITY_FLAGS.filter(f => f.category === c).length
   assert.deepEqual(CODEX_COUNTS, {
     mega: ALL_FLAGS_AZ.length,
@@ -53,6 +54,7 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
     usCities: US_CITY_FLAGS.length,
     orgs: g.rowCount(g.orgRegions(ORG_FLAGS)),
     signal: SIGNAL_FLAGS.length,
+    arms: COATS_OF_ARMS.length,
   }, 'update src/data/codexCounts.ts')
 })
 
