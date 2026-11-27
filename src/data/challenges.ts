@@ -43,7 +43,7 @@ const US_STATES: SubRegion[] = [
   { code: "us-ct", name: "Connecticut", flagUrl: wiki("Flag of Connecticut.svg"), group: "States" },
   { code: "us-de", name: "Delaware", flagUrl: wiki("Flag of Delaware.svg"), group: "States" },
   { code: "us-fl", name: "Florida", flagUrl: wiki("Flag of Florida.svg"), group: "States" },
-  { code: "us-ga", name: "Georgia", flagUrl: wiki("Flag of Georgia.svg"), group: "States" },
+  { code: "us-ga", name: "Georgia", flagUrl: wiki("Flag of Georgia (U.S. state).svg"), group: "States" },
   { code: "us-hi", name: "Hawaii", flagUrl: wiki("Flag of Hawaii.svg"), group: "States" },
   { code: "us-id", name: "Idaho", flagUrl: wiki("Flag of Idaho.svg"), group: "States" },
   { code: "us-il", name: "Illinois", flagUrl: wiki("Flag of Illinois.svg"), group: "States" },

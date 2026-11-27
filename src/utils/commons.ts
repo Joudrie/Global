@@ -6,3 +6,7 @@ export const commonsSource = (url: string): string | null => {
   const m = url.match(/Special:FilePath\/([^?#]+)/)
   return m ? `https://commons.wikimedia.org/wiki/File:${m[1]}` : null
 }
+
+/** A small version of a flag image for lists: Commons hotlinks get a
+ *  rasterised thumbnail; self-hosted and local files are already small. */
+export const galleryThumb = (u: string): string => (u.includes('Special:FilePath') && !u.includes('?') ? `${u}?width=240` : u)
