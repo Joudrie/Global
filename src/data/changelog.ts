@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Lineage scores double when you type, and the Tier List gets eight new lists",
+    items: [
+      "Lineage: type the country instead of picking from four and every round scores double. Small spelling slips still count, and your results show which rounds you typed.",
+      "Tier List Maker: the “Other” pile is now eight lists: Pride, Separatist, Regions, Peoples, Indigenous, Micronations, Organizations and Movements. Your old rankings moved over with them.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "A paint bucket for Sketch the Flag, and levels in Tile Flipper",
     items: [
       "Sketch the Flag has a paint bucket: tap an area to fill it, or tap the blank canvas to paint the background. Drawings are sharper on phones too.",
