@@ -11,9 +11,10 @@ import { GamePoster } from "./GamePoster"
 import { unlockAchievement } from "../profile/achievements"
 
 /* The screen of the three Abroad games: Cities Abroad, Countries Abroad and
-   Native Names. A place's name as some language writes it ("Benetke",
-   Slovenian; "Suomi", Finnish); type the English name ("Venice", "Finland"),
-   or pick it from four. Ten right before three strikes wins; the further a
+   Native Names, and Demonyms. A place's name as some language writes it
+   ("Benetke", Slovenian; "Suomi", Finnish); type the English name ("Venice",
+   "Finland"), or pick it from four. Demonyms turns it around (a place, and the
+   word for its people) through the optional fields on AbroadRound. Ten right before three strikes wins; the further a
    name strays from English, the more it's worth. Each game's file
    (CitiesAbroadScreen, CountriesAbroadScreen, NativeNamesScreen) hands this
    screen its names, copy and rules as an AbroadGame.
@@ -33,6 +34,8 @@ export interface AbroadGame {
   samples: Record<Tier, { name: string; lang: string }>
   languages: Record<string, string>
   rounds: (tier: Tier, rng: () => number) => AbroadRound[]
+  typingNote?: string                   // under the answer switch, instead of "Small slips in spelling still count."
+  choicesLabel?: string                 // the four choices, read aloud
 }
 export type { AbroadRound }
 
@@ -68,7 +71,8 @@ const loadBest = (g: AbroadGame): Record<string, number> => {
 
 const langsOf = (g: AbroadGame, n: AbroadEntry, max = 3) => listLanguages(n.langs, g.languages, max)
 // "Benetke — Slovenian for Venice, Italy"; "Москва (Moskva) — Russian for Moscow, Russia"
-const learnLine = (g: AbroadGame, r: AbroadRound) => `${r.entry.name}${r.entry.roman ? ` (${r.entry.roman})` : ""} — ${langsOf(g, r.entry)} for ${r.learnAs}`
+const learnLine = (g: AbroadGame, r: AbroadRound) => r.learn ?? `${r.entry.name}${r.entry.roman ? ` (${r.entry.roman})` : ""} — ${langsOf(g, r.entry)} for ${r.learnAs}`
+const endStop = (s: string) => (/[.!?]["”]?$/.test(s) ? s : `${s}.`)
 
 // Visually hidden, still read aloud.
 const srOnly: CSSProperties = { position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)", whiteSpace: "nowrap" }
@@ -192,7 +196,7 @@ function Start({ abroad, prefs, onMode, onStart, onBack }:
               )
             })}
           </div>
-          <p style={{ margin: 0, fontSize: 13, color: T.muted }}>Typing scores double. Small slips in spelling still count.</p>
+          <p style={{ margin: 0, fontSize: 13, color: T.muted }}>{abroad.typingNote ?? "Typing scores double. Small slips in spelling still count."}</p>
         </section>
 
         <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
@@ -316,6 +320,7 @@ function Play({ abroad, game, onBack, onDone }: { abroad: AbroadGame; game: Game
     ? (answer.misspelt ? `Right — it's spelled ${r.answer} · +${answer.points}` : `Right · +${answer.points}`)
     : answer.vague ? `Which one? It's ${r.answer}` : answer.near ? `Almost — it's spelled ${r.answer}` : `It's ${r.answer}`
   const strikeLine = answer && !answer.correct ? (strikes >= STRIKES ? "Third strike: game over." : `Strike ${strikes} of ${STRIKES}.`) : ""
+  const aside = answer ? r.aside?.(answer.given) ?? null : null
 
   return (
     <>
@@ -328,7 +333,7 @@ function Play({ abroad, game, onBack, onDone }: { abroad: AbroadGame; game: Game
       </div>
       {/* One live region for the round and its result, so both are read aloud. */}
       <div aria-live="polite" style={srOnly}>
-        {answer ? `${verdict}. ${strikeLine} ${learnLine(abroad, r)}.` : `${r.entry.name}, in ${langsOf(abroad, r.entry)}. Worth ${worth} points.`}
+        {answer ? `${verdict}. ${strikeLine} ${aside ? `${aside} ` : ""}${endStop(learnLine(abroad, r))}` : `${r.spoken ?? `${r.entry.name}, in ${langsOf(abroad, r.entry)}`}. Worth ${worth} points.`}
       </div>
 
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "12px 16px 32px", gap: 12 }}>
@@ -352,7 +357,7 @@ function Play({ abroad, game, onBack, onDone }: { abroad: AbroadGame; game: Game
           </form>
         ) : (
           <>
-            <div role="group" aria-label={`Choose the ${abroad.noun} in English`} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+            <div role="group" aria-label={abroad.choicesLabel ?? `Choose the ${abroad.noun} in English`} style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
               {r.choices.map((c, i) => {
                 const isRight = r.isRight(c)
                 const look = !answered ? "idle" : isRight ? "right" : picked === c ? "wrong" : "off"
@@ -362,7 +367,9 @@ function Play({ abroad, game, onBack, onDone }: { abroad: AbroadGame; game: Game
                     aria-label={`${c}${look === "right" ? ", the answer" : look === "wrong" ? ", your answer" : ""}`}
                     aria-keyshortcuts={String(i + 1)}
                     className="ca-tap ca-choice"
-                    style={{ minHeight: 56, padding: "8px 12px", borderRadius: 12, fontSize: 15, fontWeight: 600, lineHeight: 1.25,
+                    style={{ minHeight: 56, padding: "8px 12px", borderRadius: 12, fontWeight: 600, lineHeight: 1.25,
+                      // A single long word (Liechtensteinish) a size down, so a 320px phone needn't break it.
+                      fontSize: Math.max(...c.split(/\s+/).map(w => w.length)) > 14 ? 14 : 15,
                       cursor: answered ? "default" : "pointer", textAlign: "center", overflowWrap: "anywhere",
                       background: color ? tint(color, 0.12) : T.surface, border: `1.5px solid ${color ?? T.line}`,
                       color: color ?? (look === "off" ? T.muted : T.text) }}>
@@ -386,7 +393,8 @@ function Play({ abroad, game, onBack, onDone }: { abroad: AbroadGame; game: Game
               <div style={{ minWidth: 0 }}>
                 <div style={{ fontSize: 15, fontWeight: 700, color: answer.correct ? T.green : T.danger }}>{verdict}</div>
                 {strikeLine && <div style={{ marginTop: 2, fontSize: 13, fontWeight: 600, color: T.muted }}>{strikeLine}</div>}
-                <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.45, color: T.text, overflowWrap: "anywhere" }}>{learnLine(abroad, r)}.</p>
+                {aside && <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.45, fontWeight: 600, color: T.text, overflowWrap: "anywhere" }}>{aside}</p>}
+                <p style={{ margin: "4px 0 0", fontSize: 14, lineHeight: 1.45, color: T.text, overflowWrap: "anywhere" }}>{endStop(learnLine(abroad, r))}</p>
               </div>
             </div>
             <div ref={nextWrap}>
@@ -412,7 +420,7 @@ function NameCard({ abroad, round, hinted, worth }: { abroad: AbroadGame; round:
       style={{ padding: "16px 16px 20px", borderRadius: 16, background: T.surface, border: `1px solid ${T.line}`, textAlign: "center",
         display: "flex", flexDirection: "column", alignItems: "center", gap: 8 }}>
       <div style={{ alignSelf: "stretch", display: "flex", justifyContent: "space-between", alignItems: "baseline", gap: 12 }}>
-        <span className="geo-micro" style={{ fontSize: 11, color: T.muted, textAlign: "left", minWidth: 0 }}>in {langsOf(abroad, entry)}</span>
+        <span className="geo-micro" style={{ fontSize: 11, color: T.muted, textAlign: "left", minWidth: 0 }}>{round.prompt ?? `in ${langsOf(abroad, entry)}`}</span>
         <span className="geo-mono" aria-hidden style={{ flexShrink: 0, fontSize: 12, color: T.muted, fontVariantNumeric: "tabular-nums" }}>
           {worth !== null ? `${worth} pts` : ""}
         </span>
@@ -420,6 +428,7 @@ function NameCard({ abroad, round, hinted, worth }: { abroad: AbroadGame; round:
       <p lang={lang} className="geo-display" style={{ margin: 0, fontSize: size, fontWeight: 700, lineHeight: 1.15, color: T.text, overflowWrap: "anywhere", hyphens: "auto" }}>
         {entry.name}
       </p>
+      {round.context && <p style={{ margin: 0, fontSize: 15, color: T.muted, fontWeight: 500, overflowWrap: "anywhere" }}>{round.context}</p>}
       {entry.roman && (
         <p style={{ margin: 0, fontSize: 17, color: T.muted, fontWeight: 500, overflowWrap: "anywhere" }}>
           <span style={srOnly}>In Latin letters: </span><span lang={`${lang}-Latn`}>{entry.roman}</span>
@@ -482,12 +491,12 @@ function Result({ abroad, game, outcome, onBack, onAgain, onChange }:
                   <span style={{ flex: 1, minWidth: 0 }}>
                     <span lang={r.entry.langs[0]} className="geo-display" style={{ display: "block", fontSize: 16, fontWeight: 700, color: T.text, overflowWrap: "anywhere" }}>{r.entry.name}</span>
                     <span style={{ display: "block", fontSize: 12, color: T.muted, marginTop: 2 }}>
-                      {r.entry.roman && <><span lang={`${r.entry.langs[0]}-Latn`}>{r.entry.roman}</span> · </>}{langsOf(abroad, r.entry)}
+                      {r.entry.roman && <><span lang={`${r.entry.langs[0]}-Latn`}>{r.entry.roman}</span> · </>}{r.context ?? langsOf(abroad, r.entry)}
                     </span>
                   </span>
-                  <span style={{ flexShrink: 0, maxWidth: "45%", textAlign: "right", fontSize: 15, fontWeight: 700, color: T.text }}>
+                  <span style={{ flexShrink: 0, maxWidth: "45%", textAlign: "right", fontSize: 15, fontWeight: 700, color: T.text, overflowWrap: "anywhere" }}>
                     <span style={srOnly}>is </span>{r.answer}
-                    <span style={{ display: "block", fontSize: 12, fontWeight: 400, color: T.muted }}>{r.where}</span>
+                    {r.where && <span style={{ display: "block", fontSize: 12, fontWeight: 400, color: T.muted }}>{r.where}</span>}
                   </span>
                 </li>
               )
