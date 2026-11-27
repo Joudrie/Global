@@ -166,7 +166,7 @@ test('"None" ignores details that are the layout itself', () => {
   assert.equal(U.scoreFlag(BY.get('CA'), ask({ colors: ['red', 'white'], none: true })).diff, 1)
 })
 
-test('Flag Identifier is a tool next to Flag Studio, and the game count stays 57', () => {
+test('Flag Identifier is a tool next to Flag Studio, and the game count stays 56', () => {
   const ids = REGISTRY.map(e => e.id)
   assert.equal(ids[ids.indexOf('flagstudio') + 1], 'flagidentifier')
   const e = REGISTRY.find(x => x.id === 'flagidentifier')
@@ -176,7 +176,7 @@ test('Flag Identifier is a tool next to Flag Studio, and the game count stays 57
   assert.equal(e.tab, 'play')
   assert.ok(e.tool && !e.sandbox && !e.featured)
   assert.ok(!GAMES.includes(e))
-  assert.equal(GAME_COUNT, 57)
+  assert.equal(GAME_COUNT, 56)
   assert.match(read('src/App.tsx'), /screen === "flagidentifier"/)
   assert.match(read('src/components/icons.tsx'), /flagidentifier: \w+/)
   assert.match(read('src/components/GamePoster.tsx'), /case "flagidentifier":/)

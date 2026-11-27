@@ -546,7 +546,7 @@ const GROUP_INTRO = {
   'Sharp Recall': 'Fast-paced quizzes that test what you remember.',
   'Loremaster': 'History, language and trivia for people who want to go deeper.',
   'Challenge': 'Long-form tests for when you think you know them all.',
-  'More games': 'Quick extra games, from the daily Flagle puzzle to American city flags.',
+  'More games': 'Quick extra games, from the daily Flagle puzzle to dating old world maps in Atlas.',
 }
 const GAME_DESC = {
   flags: 'Browse and study flag sets for every country, plus historical states and identity flags, and track which ones you have mastered.',
@@ -586,8 +586,7 @@ const GAME_DESC = {
   continentsort: 'Sort as many countries into their continents as you can in one minute.',
   reversequiz: 'You are given a country name. Pick its flag from the options.',
   capitalquiz: 'Name the capital city of each country.',
-  citiesabroad: 'Name the city from its name in another language, from Wien and Benetke to Kaupmannahöfn and Москва. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,732 names for 310 cities in 57 languages, from Wikidata.',
-  countriesabroad: 'Name the country from its name in another language, from Allemagne and Niemcy to Saksa, Németország and Китай. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 1,900 names for 184 countries in 57 languages, from Wikidata.',
+  abroad: 'Name the country or the city from its name in another language. Countries runs from Allemagne and Niemcy to Saksa, Németország and Китай: 1,900 names for 184 countries. Cities runs from Wien and Benetke to Kaupmannahöfn and Москва: 1,732 names for 310 cities. Both come in 57 languages, from Wikidata. Ten right before three strikes wins, and the stranger the name, the more it scores. Type it for double points or pick from four, on easy, medium or hard.',
   nativenames: 'Name the country from what it calls itself, from Deutschland and Suomi to Magyarország, Sakartvelo and 日本 (Nihon). Ten right before three strikes wins, and the further a name strays from English, the more it scores. Type it for double points or pick from four, on easy, medium or hard. 85 names for 68 countries in 64 languages, with a Latin spelling under every other script.',
   demonyms: 'What do you call someone from Naples? Neapolitan, not Nepalese. Name the people of 195 cities, regions and countries, from Venetian and Mancunian to Haligonian, Porteño and I-Kiribati. Pick from four believable answers, some of them real words for somewhere else, or type it for double points. Ten right before three strikes wins, on easy, medium or hard. Every answer is checked against Wikidata, Wikipedia and Wiktionary.',
   statclash: 'Two countries, one question: which has the bigger population or area?',

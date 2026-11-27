@@ -44,8 +44,9 @@ export function mainOf(snap: Snapshot): MainSave {
   }
 }
 
-/** Best-score keys whose name isn't the game's registry id. */
-const BEST_ALIASES: Record<string, string> = { hl: "higherlower", doa: "deadoralive" }
+/** Best-score keys whose name isn't the game's registry id. Abroad keeps one
+ *  per switch (its Countries and Cities were two games). */
+const BEST_ALIASES: Record<string, string> = { hl: "higherlower", doa: "deadoralive", countriesabroad: "abroad", citiesabroad: "abroad" }
 const BEST_KEY = /^globalio_([a-z0-9-]+)_best(?:_(\d+))?$/
 
 export interface BestEntry { game: string; variant: string; value: number }
