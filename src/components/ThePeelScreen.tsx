@@ -3,8 +3,8 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton, HeaderStat, DidYouMean } from "./gameUi"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 import { loadRecord, raiseRecord, saveRecord } from "../utils/records"
 import type { BestRecord } from "../utils/records"
 
@@ -56,6 +56,7 @@ function ThePeelScreenGame({ onBack, onReplay, run, best, raised, onRound }: Pro
   // Type-in
   const [input, setInput]       = useState("")
   const [showDrop, setShowDrop] = useState(false)
+  const [maybe, setMaybe]       = useState<FlagRecord[]>([])
   const inputRef                = useRef<HTMLInputElement>(null)
 
   const matches = useMemo(() => {
@@ -115,6 +116,7 @@ function ThePeelScreenGame({ onBack, onReplay, run, best, raised, onRound }: Pro
     onRound(flag.code === target.code, s)
     setInput("")
     setShowDrop(false)
+    setMaybe([])
   }
 
   const right = guess?.code === target.code
@@ -209,17 +211,20 @@ function ThePeelScreenGame({ onBack, onReplay, run, best, raised, onRound }: Pro
           <div className="w-full max-w-sm relative">
             <p className="text-sm text-center mb-3 font-semibold" style={{ color: T.muted }}>
               Which flag did you reveal?{" "}
-              <button onClick={() => { setPhase('scratch'); setInput(""); setShowDrop(false) }} className="geo-tap"
+              <button onClick={() => { setPhase('scratch'); setInput(""); setShowDrop(false); setMaybe([]) }} className="geo-tap"
                 style={{ color: ACC, fontWeight: 600, background: "transparent", minHeight: 32 }}>← keep scratching</button>
             </p>
             <input aria-label="Type a country"
               ref={inputRef}
               autoFocus
               value={input}
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onKeyDown={e => {
-                if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) handleGuess(pick) }
-                if (e.key === "Escape") { setInput(""); setShowDrop(false) }
+                if (e.key === "Enter") {
+                  const pick = pickOnEnter(matches, input)
+                  if (pick) handleGuess(pick); else if (!matches.length) setMaybe(didYouMean(FLAGS, input))
+                }
+                if (e.key === "Escape") { setInput(""); setShowDrop(false); setMaybe([]) }
               }}
               onFocus={() => setShowDrop(true)}
               onBlur={() => setTimeout(() => setShowDrop(false), 150)}
@@ -242,6 +247,7 @@ function ThePeelScreenGame({ onBack, onReplay, run, best, raised, onRound }: Pro
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={handleGuess} accent={ACC} />
           </div>
         )}
 

@@ -4,8 +4,8 @@ import type { FlagRecord } from "../data/flags"
 import FlagImage from "./FlagImage"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, HeaderStat, DidYouMean } from "./gameUi"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 const ACC = ACCENT.play
 
@@ -42,6 +42,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
 
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
   const guessedCodes = useRef<Set<string>>(new Set())
 
@@ -74,6 +75,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
     guessedCodes.current.add(flag.code)
     setInput("")
     setShowDrop(false)
+    setMaybe([])
 
     if (flag.code === target.code) {
       setSolved(true)
@@ -91,8 +93,12 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submitGuess(pick) }
-    if (e.key === "Escape") { setInput(""); setShowDrop(false) }
+    if (e.key === "Enter") {
+      const pick = pickOnEnter(matches, input)
+      if (pick) submitGuess(pick)
+      else if (!matches.length) setMaybe(didYouMean(FLAGS, input).filter(f => !guessedCodes.current.has(f.code)))
+    }
+    if (e.key === "Escape") { setInput(""); setShowDrop(false); setMaybe([]) }
   }
 
   // ── Result ────────────────────────────────────────────────────────────────
@@ -183,7 +189,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             <input aria-label="Type a country"
               ref={inputRef}
               value={input}
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onKeyDown={handleKeyDown}
               onFocus={() => setShowDrop(true)}
               onBlur={() => setTimeout(() => setShowDrop(false), 150)}
@@ -205,6 +211,7 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={submitGuess} accent={ACC} />
             {guessedCodes.current.size > 0 && (
               <p className="text-xs mt-2 text-center" style={{ color: T.danger }}>
                 {guessedCodes.current.size} wrong · it lightens with each miss

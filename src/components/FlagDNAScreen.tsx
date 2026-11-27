@@ -4,9 +4,9 @@ import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
 import { LineIcon } from "./icons"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -111,6 +111,7 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const [guesses, setGuesses] = useState<GuessResult[]>([])
   const [phase,  setPhase]  = useState<"playing" | "won" | "lost" | "gaveup">("playing")
   const [showDrop, setShowDrop] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   const guessedCodes = useMemo(() => new Set(guesses.map(g => g.flag.code)), [guesses])
@@ -126,6 +127,7 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
     setGuesses(next)
     setInput("")
     setShowDrop(false)
+    setMaybe([])
     inputRef.current?.focus()
 
     if (flag.code === target.code) { setPhase("won"); return }
@@ -175,10 +177,15 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
             <input
               ref={inputRef}
               value={input}
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onFocus={() => setShowDrop(true)}
               onBlur={() => setTimeout(() => setShowDrop(false), 200)}
-              onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submitGuess(pick) } }}
+              onKeyDown={e => {
+                if (e.key !== "Enter") return
+                const pick = pickOnEnter(matches, input)
+                if (pick) submitGuess(pick)
+                else if (!matches.length) setMaybe(didYouMean(FLAGS, input).filter(f => !guessedCodes.has(f.code)))
+              }}
               enterKeyHint="go" aria-label="Guess the country"
               placeholder="Type a country…"
               className="w-full px-4 py-3 rounded-xl text-sm font-medium"
@@ -200,6 +207,7 @@ function FlagDNAScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
               </div>
             )}
           </div>
+          <DidYouMean options={maybe} onPick={submitGuess} accent={ACC} />
           {/* Give up button after 3 guesses */}
           {guesses.length >= 3 && (
             <button onClick={handleGiveUp}
