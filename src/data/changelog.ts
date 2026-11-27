@@ -4,6 +4,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-11-27",
+    title: "Profiles: your stats in one place, and 25 achievements",
+    items: [
+      "The You tab now opens on your profile. Pick any country's flag or one of your own Flag Studio designs as your picture, choose a banner and write a short bio. Underneath are your flags learned, crowns, streaks, Daily Games, games played, Gacha flags and your best score in every game you've played. The new button at the top right of the app opens it from anywhere.",
+      "25 achievements to unlock across the Daily Game, Flagle, Real or Bot, Cities Abroad, Flag Fusion, Connections and more, from your first expedition to Real or Bot Master. Progress you've already made counts. Pin up to three as badges on your profile.",
+      "Save my card turns your profile into a picture sized for posts and stories, ready to share or save.",
+    ],
+  },
+  {
     date: "2026-11-26",
     title: "Accounts: keep your progress on every device",
     items: [

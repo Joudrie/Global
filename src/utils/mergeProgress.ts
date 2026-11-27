@@ -63,6 +63,15 @@ export const RULES: Rule[] = [
   { key: "globalio_flagstudio_v1", rule: "flagStudio", symmetric: false,
     note: "Flag Studio: every saved design (newer edit wins, newest first, 60 max); the open design stays this device's." },
 
+  // The profile (src/profile/): unlocks keep the earliest time; the profile's
+  // look is one choice, so the later change wins as a whole.
+  { key: "globalio_achievements", rule: "min", symmetric: true,
+    note: "Achievements ({ id: unlock time }): every one unlocked on either device, at the earlier time." },
+  { key: "globalio_first_seen", rule: "min", symmetric: true,
+    note: "When the player first opened Globalio (ms), for “Playing since”: the earlier." },
+  { key: "globalio_profile", rule: "dated", symmetric: true,
+    note: "Profile picture, banner, bio, pinned badges and designs shown ({ …, date }): the later change." },
+
   // A day's game in progress or finished: { date | day, … }.
   { key: "globalio_daily_progress", rule: "dated", symmetric: true,
     note: "Today's daily answers so far: the later day; same day, the one further along." },

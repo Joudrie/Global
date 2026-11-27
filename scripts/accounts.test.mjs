@@ -498,11 +498,13 @@ test('fingerprint notices any change and ignores key order', () => {
 
 const sql = f => fs.readFileSync(path.join(ROOT, 'supabase', f), 'utf8')
 const MIGRATIONS = fs.readdirSync(path.join(ROOT, 'supabase/migrations')).sort().map(f => `migrations/${f}`)
+// setup.sql is the accounts migrations; profiles have their own (profiles-setup.sql, see profiles.test.mjs).
+const ACCOUNT_MIGRATIONS = MIGRATIONS.filter(m => !m.includes('_profiles'))
 
 test('supabase/setup.sql is the migrations, unchanged, plus a check', () => {
   const setup = sql('setup.sql')
   let at = 0
-  for (const m of MIGRATIONS) {
+  for (const m of ACCOUNT_MIGRATIONS) {
     const i = setup.indexOf(sql(m).trim(), at)
     assert.ok(i >= 0, `setup.sql is missing ${m} (or it changed): paste the migration in again`)
     at = i

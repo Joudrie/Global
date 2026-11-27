@@ -54,6 +54,26 @@ export function accountsVisible(): boolean {
   } catch { return false }
 }
 
+/** Public profiles: usernames, "Find a player" and other players' profiles
+ *  (a player's own profile, stats, achievements and card work without it).
+ *  Off until the owner has run supabase/profiles-setup.sql. Until then they
+ *  show only on a device that opened the site with ?profiles=1 (it remembers;
+ *  ?profiles=0 forgets), the way accounts were tried before they went live. */
+export const PROFILES_LIVE = false
+const PROFILES_PREVIEW_KEY = "globalio_account_profiles_preview"
+
+/** Whether to show the public parts of profiles on this device. */
+export function profilesVisible(): boolean {
+  if (!accountsConfigured()) return false
+  if (PROFILES_LIVE) return true
+  try {
+    const flag = new URLSearchParams(window.location.search).get("profiles")
+    if (flag === "1") localStorage.setItem(PROFILES_PREVIEW_KEY, "1")
+    if (flag === "0") localStorage.removeItem(PROFILES_PREVIEW_KEY)
+    return localStorage.getItem(PROFILES_PREVIEW_KEY) === "1"
+  } catch { return false }
+}
+
 export function hasStoredSession(): boolean {
   try { return localStorage.getItem(SESSION_KEY) != null } catch { return false }
 }
@@ -83,14 +103,29 @@ export const SIGN_IN_ERROR: string | null = (() => {
 
 type Service = typeof import("./account/service")
 let service: Promise<Service> | null = null
+let loaded: Service | null = null
+const onLoad = new Set<() => void>()
 
 /** Load the account service (and with it the Supabase client) once. A failed
  *  load (a connection blip) can be tried again. */
 export function loadAccountService(): Promise<Service> {
   if (!accountsConfigured()) return Promise.reject(new Error("Accounts are not configured"))
-  service ??= import("./account/service").then(async m => { await m.start(); return m })
+  service ??= import("./account/service").then(async m => {
+    await m.start()
+    loaded = m
+    onLoad.forEach(fn => fn())
+    return m
+  })
   service.catch(() => { service = null })
   return service
+}
+
+/** The account service if it has loaded already (nothing is loaded by asking). */
+export const loadedAccountService = () => loaded
+/** Run `fn` once the account service has loaded (by anything on the page). */
+export function onAccountServiceLoad(fn: () => void): () => void {
+  onLoad.add(fn)
+  return () => { onLoad.delete(fn) }
 }
 
 /** At app start: if this device is signed in, or just came back from signing

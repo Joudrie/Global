@@ -3,11 +3,18 @@
 // players who never open the account card never download it.
 import { createClient } from "@supabase/supabase-js"
 import type { Session, SupabaseClient } from "@supabase/supabase-js"
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SESSION_KEY, ACCOUNT_KEY_PREFIX } from "../accounts"
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SESSION_KEY, ACCOUNT_KEY_PREFIX, profilesVisible } from "../accounts"
 import { SyncEngine, SyncError } from "./engine"
 import type { Backend, SyncState, SyncStatus } from "./engine"
 import { browserDevice as device } from "./device"
 import type { Snapshot } from "../utils/mergeProgress"
+import { supabaseProfiles, claimUsername as claimOn, searchPlayers, viewPlayer, ProfileError, PROFILE_MESSAGE } from "./profiles"
+import type { MyProfile, PlayerCard, PlayerProfile, ProfileErrorKind } from "./profiles"
+import { publicRowOf, offeredDesigns } from "../profile/public"
+import type { PublicRow } from "../profile/public"
+import { profileOf, PROFILE_EVENT } from "../profile/local"
+import { ACHIEVEMENTS_EVENT } from "../profile/achievements"
+import { canonical } from "../utils/mergeProgress"
 
 export interface AccountView {
   /** The stored session has been checked. */
@@ -18,7 +25,21 @@ export interface AccountView {
   lastSynced: number | null
   supporter: boolean
   badge: string | null
+  /** The public profile (only looked up while profiles are shown, see src/accounts.ts). */
+  profile: ProfileState
 }
+
+export interface ProfileState {
+  /** off: profiles aren't shown here, or signed out. unavailable: the database
+   *  isn't set up for them yet. */
+  status: "off" | "loading" | "ready" | "unavailable" | "offline"
+  /** The player's row; null until they claim a username. */
+  mine: MyProfile | null
+  /** Why the last update of the public profile didn't go through, if it didn't. */
+  note: string | null
+}
+
+const PROFILE_OFF: ProfileState = { status: "off", mine: null, note: null }
 
 const META_KEY = `${ACCOUNT_KEY_PREFIX}_meta` // { uid, badge, supporter, lastSynced }: shown before the first sync
 const TICK_MS = 2000
@@ -26,7 +47,7 @@ const TICK_MS = 2000
 let client: SupabaseClient | null = null
 let engine: SyncEngine | null = null
 let uid: string | null = null
-let view: AccountView = { ready: false, email: null, signedIn: false, status: "idle", lastSynced: null, supporter: false, badge: null }
+let view: AccountView = { ready: false, email: null, signedIn: false, status: "idle", lastSynced: null, supporter: false, badge: null, profile: PROFILE_OFF }
 const listeners = new Set<() => void>()
 
 function publish(patch: Partial<AccountView>) {
@@ -125,13 +146,14 @@ function applySession(session: Session | null) {
   const id = session?.user?.id ?? null
   if (!id) {
     stopEngine(); uid = null
-    publish({ ready: true, signedIn: false, email: null, status: "idle", lastSynced: null, supporter: false, badge: null })
+    publish({ ready: true, signedIn: false, email: null, status: "idle", lastSynced: null, supporter: false, badge: null, profile: PROFILE_OFF })
     return
   }
   publish({ ready: true, signedIn: true, email: session?.user?.email ?? null })
   if (id === uid && engine) return
   stopEngine()
   uid = id
+  lastPushed = null
   const meta = readMeta(id)
   const initial: Partial<SyncState> = { badge: meta.badge ?? null, supporter: !!meta.supporter, lastSynced: meta.lastSynced ?? null }
   publish({ ...initial, status: "syncing" })
@@ -143,11 +165,13 @@ function applySession(session: Session | null) {
       if (engine !== e) return
       publish({ status: s.status, lastSynced: s.lastSynced, supporter: s.supporter, badge: s.badge })
       writeMeta({ uid: id, badge: s.badge, supporter: s.supporter, lastSynced: s.lastSynced })
+      if (s.status === "synced") schedulePush()
     },
   })
   engine = e
   wire(e)
   void e.start()
+  void refreshProfile()
 }
 
 let started: Promise<void> | null = null
@@ -187,6 +211,131 @@ export function start(): Promise<void> {
   })
   return started
 }
+
+// ── The public profile ──────────────────────────────────────────────────────
+
+const backend = () => supabaseProfiles(client!, uid)
+const setProfile = (patch: Partial<ProfileState>) => publish({ profile: { ...view.profile, ...patch } })
+const statusFor = (kind: ProfileErrorKind): ProfileState["status"] => (kind === "unavailable" ? "unavailable" : "offline")
+
+/** Look up this player's profile row (while profiles are shown here). */
+export async function refreshProfile(): Promise<void> {
+  await start()
+  if (!uid || !profilesVisible()) { setProfile(PROFILE_OFF); return }
+  const id = uid
+  if (view.profile.status !== "ready") setProfile({ status: "loading" })
+  try {
+    const mine = await backend().mine()
+    if (uid !== id) return
+    setProfile({ status: "ready", mine })
+    schedulePush()
+  } catch (e) {
+    if (uid !== id) return
+    setProfile({ status: statusFor(e instanceof ProfileError ? e.kind : "offline") })
+  }
+}
+
+/** The public row from this device's save. Flag Studio's code (to encode
+ *  designs) only loads when the profile shows a design. */
+async function publicRow(): Promise<PublicRow> {
+  const snap = device.read()
+  const p = profileOf(snap)
+  const needsStudio = (p.picture?.kind === "design" || p.designs.length > 0) && offeredDesigns(snap).length > 0
+  const encode = needsStudio ? (await import("../profile/designs")).encodeForProfile : () => ""
+  return publicRowOf(snap, encode)
+}
+
+let lastPushed: string | null = null
+let pushTimer: number | null = null
+let pushing: Promise<void> | null = null
+
+/** Bring the public row up to date a moment after something changes. */
+function schedulePush(ms = 2500) {
+  if (!view.profile.mine || pushTimer != null) return
+  pushTimer = window.setTimeout(() => { pushTimer = null; void pushProfile() }, ms)
+}
+
+async function pushProfile(): Promise<void> {
+  if (pushing) return pushing
+  if (!uid || !view.profile.mine || view.profile.status !== "ready") return
+  const id = uid
+  pushing = (async () => {
+    const row = await publicRow()
+    const text = canonical(row)
+    if (text === lastPushed) return
+    try {
+      await backend().update(row)
+      if (uid === id) { lastPushed = text; setProfile({ note: null }) }
+    } catch (e) {
+      if (uid !== id) return
+      let err = e instanceof ProfileError ? e : new ProfileError("offline", PROFILE_MESSAGE.offline)
+      if (err.reason === "bio") {
+        // Keep the rest of the profile up to date without the bio.
+        try {
+          await backend().update({ ...row, bio: null })
+          if (uid === id) { lastPushed = text; setProfile({ note: "Your bio isn’t on your public profile: a word in it isn’t allowed." }) }
+          return
+        } catch (e2) { err = e2 instanceof ProfileError ? e2 : err }
+      }
+      if (err.kind === "unavailable") setProfile({ status: "unavailable" })
+      else if (err.kind !== "offline") setProfile({ note: err.message })
+    }
+  })().finally(() => { pushing = null })
+  return pushing
+}
+
+if (typeof window !== "undefined") {
+  window.addEventListener(PROFILE_EVENT, () => schedulePush(800))
+  window.addEventListener(ACHIEVEMENTS_EVENT, () => schedulePush())
+}
+
+/** Claim a username (or change it). An error message, or null when done. */
+export async function claimUsername(name: string): Promise<string | null> {
+  await start()
+  if (!uid) return PROFILE_MESSAGE.signed_out
+  try {
+    const mine = await claimOn(backend(), name, await publicRow(), view.profile.mine)
+    setProfile({ status: "ready", mine, note: null })
+    lastPushed = null
+    schedulePush(300)
+    return null
+  } catch (e) {
+    if (e instanceof ProfileError) {
+      if (e.kind === "unavailable") setProfile({ status: "unavailable" })
+      return e.message
+    }
+    return PROFILE_MESSAGE.offline
+  }
+}
+
+/** Turn the public profile on or off. An error message, or null. */
+export async function setProfilePublic(on: boolean): Promise<string | null> {
+  await start()
+  if (!uid || !view.profile.mine) return PROFILE_MESSAGE.signed_out
+  try {
+    const mine = await backend().update({ is_public: on })
+    if (mine) setProfile({ mine })
+    return null
+  } catch (e) {
+    return e instanceof ProfileError ? e.message : PROFILE_MESSAGE.offline
+  }
+}
+
+export type Lookup<T> = { ok: true; value: T } | { ok: false; kind: ProfileErrorKind; message: string }
+async function lookup<T>(fn: () => Promise<T>): Promise<Lookup<T>> {
+  try {
+    await start()
+    return { ok: true, value: await fn() }
+  } catch (e) {
+    const err = e instanceof ProfileError ? e : new ProfileError("offline", PROFILE_MESSAGE.offline)
+    return { ok: false, kind: err.kind, message: err.message }
+  }
+}
+
+/** Public profiles whose username starts with `prefix` (works signed out too). */
+export const findPlayers = (prefix: string) => lookup<PlayerCard[]>(() => searchPlayers(backend(), prefix))
+/** One public profile, or null when there's no public profile by that name. */
+export const getPlayer = (username: string) => lookup<PlayerProfile | null>(() => viewPlayer(backend(), username))
 
 // ── Sign-in and the account itself ──────────────────────────────────────────
 
