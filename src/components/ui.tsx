@@ -1,4 +1,5 @@
-import type { CSSProperties, ReactNode } from "react"
+import type { CSSProperties, MouseEvent, ReactNode } from "react"
+import { Star } from "lucide-react"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import type { TabKey } from "../ui/registry"
 import { LineIcon, ChevronLeftIcon, CrownIcon } from "./icons"
@@ -157,18 +158,49 @@ export function GameTile({ glyph, title, subtitle, accent, onClick, style }:
   )
 }
 
+/* ── Favourite star: a small round toggle that sits in a card's corner.
+   With a mouse it shows when the card is hovered or focused (and always once
+   the game is a favourite); on a touch screen, which has no hover, it always
+   shows. A sibling of the card's own button, never inside it, and absolutely
+   placed, so toggling never opens the game or moves anything. Styles:
+   .fav-star / .fav-host / .fav-tile in index.css. ───────────────────────── */
+export function FavoriteStar({ on, title, onToggle, style }:
+  { on: boolean; title: string; onToggle: (el: HTMLElement) => void; style?: CSSProperties }) {
+  const press = (e: MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    onToggle(e.currentTarget)
+  }
+  return (
+    <button type="button" className="fav-star" onClick={press} onPointerDown={e => e.stopPropagation()}
+      aria-pressed={on} aria-label={`Add ${title} to favourites`} title={on ? "Remove from favourites" : "Add to favourites"}
+      style={{
+        position: "absolute", width: 26, height: 26, borderRadius: 999, padding: 0, zIndex: 2,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        background: T.surface, border: `1px solid ${on ? tint(T.gold, 0.55) : T.line}`,
+        color: on ? T.gold : T.muted, boxShadow: `0 1px 3px ${tint(T.text, 0.18)}`,
+        ...style,
+      }}>
+      <Star size={13} strokeWidth={1.9} fill={on ? T.gold : "none"} aria-hidden />
+    </button>
+  )
+}
+
 /* ── Flag tile: the flag-forward catalogue card. A framed GamePoster up top
    (art that *demonstrates* the game — see GamePoster), serif title beneath.
-   The flag is inset with parchment around it so it reads calm, not loud. ─── */
-export function FlagTile({ id, title, subtitle, accent, onClick, style }:
-  { id: string; title: string; subtitle: string; accent: string; onClick: () => void; style?: CSSProperties }) {
-  return (
+   The flag is inset with parchment around it so it reads calm, not loud.
+   With onFavorite, a FavoriteStar sits in the poster's top-right corner. ─── */
+export function FlagTile({ id, title, subtitle, accent, onClick, style, favorite = false, onFavorite }:
+  { id: string; title: string; subtitle: string; accent: string; onClick: () => void; style?: CSSProperties
+    favorite?: boolean; onFavorite?: (el: HTMLElement) => void }) {
+  const card = (
     <button onClick={onClick} className="geo-tap carto-card"
       style={{
         width: 140, flexShrink: 0, textAlign: "left", padding: 7, borderRadius: 14,
         display: "flex", flexDirection: "column", gap: 8, position: "relative",
         ["--wash" as string]: tint(accent, 0.4),
         ...style,
+        ...(onFavorite ? { width: "100%" } : null),
       }}>
       <div style={{ position: "relative", width: "100%", aspectRatio: "140 / 72", borderRadius: 9, overflow: "hidden", border: `1px solid ${T.line}`, background: tint(accent, 0.08) }}>
         <GamePoster id={id} accent={accent} />
@@ -178,6 +210,14 @@ export function FlagTile({ id, title, subtitle, accent, onClick, style }:
         <div style={{ color: T.muted, fontSize: 10, marginTop: 2, lineHeight: 1.2, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{subtitle}</div>
       </div>
     </button>
+  )
+  if (!onFavorite) return card
+  return (
+    <div className="fav-host fav-tile" style={{ position: "relative", flexShrink: 0, width: style?.width ?? 140 }}>
+      {card}
+      {/* 4px inside the poster's corner (the card's padding is 7) */}
+      <FavoriteStar on={favorite} title={title} onToggle={onFavorite} style={{ top: 11, right: 11 }} />
+    </div>
   )
 }
 

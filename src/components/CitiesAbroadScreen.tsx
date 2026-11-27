@@ -1,13 +1,15 @@
 import { ABROAD_CITIES, ABROAD_LANGUAGES, ABROAD_NAMES } from "../data/citiesAbroad"
 import { GUESS_FIELD, TIER_SAMPLES, hintFor, isCity, judgeAnswer, pickRounds } from "../utils/citiesAbroad"
+import type { ComponentProps } from "react"
 import AbroadScreen from "./AbroadScreen"
 import type { AbroadGame } from "./AbroadScreen"
 
-/* Cities Abroad — a city's name as another language writes it ("Benetke",
-   Slovenian); type the English name ("Venice"), or pick it from four. Ten
-   right before three strikes wins. The names come from Wikidata
-   (src/data/citiesAbroad.ts); the screen is shared with Countries Abroad and
-   Native Names (AbroadScreen). */
+/* Cities Abroad, the Cities switch of Abroad (AbroadGameScreen) — a city's
+   name as another language writes it ("Benetke", Slovenian); type the English
+   name ("Venice"), or pick it from four. Ten right before three strikes wins.
+   The names come from Wikidata (src/data/citiesAbroad.ts); the screen is
+   shared with Countries Abroad and Native Names (AbroadScreen). Its id stays
+   "citiesabroad", so its best scores and settings keep their keys. */
 
 const CITY_LIST = Object.values(ABROAD_CITIES)
 
@@ -33,6 +35,7 @@ const CITIES_ABROAD: AbroadGame = {
   })),
 }
 
-export default function CitiesAbroadScreen({ onBack, onFinish }: { onBack: () => void; onFinish?: () => void }) {
-  return <AbroadScreen game={CITIES_ABROAD} onBack={onBack} onFinish={onFinish} />
+/** One switch of Abroad (AbroadGameScreen hands it the title and the switch). */
+export default function CitiesAbroadScreen(props: Omit<ComponentProps<typeof AbroadScreen>, "game">) {
+  return <AbroadScreen game={CITIES_ABROAD} {...props} />
 }
