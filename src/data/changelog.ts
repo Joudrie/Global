@@ -5,16 +5,6 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
-    title: "Friends: see how your friends are doing, and beat their best",
-    items: [
-      "Signed in with a username? Open a player\u2019s profile and tap Add friend. You\u2019re friends once they accept: no followers, both of you have to agree.",
-      "Friends can see each other\u2019s stats, even on a private profile. Your friends are on the You tab, with each one\u2019s best streak, achievements and anything they unlocked this week.",
-      "Open a friend to see You vs them: your best scores side by side, with \u201cBeat 14\u201d where they\u2019re ahead. Tap it to play that game.",
-      "Friend requests waiting for you show as a number on the profile button.",
-    ],
-  },
-  {
-    date: "2026-11-27",
     title: "Name it no longer shows flags with the answer written on them",
     items: [
       "Subdivision Stumper's Name it and Province Roulette never ask you to name a flag that spells out its own name, like Kansas, Montana or Indiana. Those flags can still turn up as wrong answers.",
