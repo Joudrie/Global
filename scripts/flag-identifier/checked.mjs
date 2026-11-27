@@ -12,7 +12,9 @@
 // hoist triangle and chevron, a circle for the disc.
 //
 // Colours are the words people use, not the pigment: Argentina is light
-// blue, Latvia, Qatar and Sri Lanka maroon, Armenia's apricot orange.
+// blue, Latvia, Qatar and Sri Lanka maroon, Armenia's apricot orange. A coat
+// of arms or seal in a round frame at the centre (Paraguay, Belize) is a
+// "disc", the way people describe it: a circle in the middle.
 export const CHECKED = {
   // ── Europe ──────────────────────────────────────────────────────────────
   AL: 'plain / red black / emblem animal',
@@ -114,7 +116,7 @@ export const CHECKED = {
   TZ: 'diagonal / green lightblue|blue black yellow / triangle?',
   TG: 'hstripes canton / green yellow red white / star manystripes',
   TN: 'plain disc / red white / star crescent',
-  UG: 'hstripes disc / black yellow red white / animal manystripes emblem?',
+  UG: 'hstripes disc / black yellow red white grey? / animal manystripes emblem?',
   ZM: 'plain vstripes / green red black orange / animal emblem?',
   ZW: 'hstripes hoist / green yellow red black white / star animal manystripes emblem?',
 
@@ -128,7 +130,7 @@ export const CHECKED = {
   KH: 'hstripes / blue red white / building emblem',
   CN: 'plain / red yellow / star',
   GE: 'cross / white red /',
-  IN: 'hstripes / orange white green blue / circle emblem?',
+  IN: 'hstripes disc / orange white green blue / emblem?',
   ID: 'hstripes split / red white /',
   JP: 'disc plain / white red / sun?',
   KZ: 'plain / lightblue yellow / sun animal emblem?',
@@ -175,28 +177,28 @@ export const CHECKED = {
   AR: 'hstripes / lightblue white yellow / sun',
   BS: 'hstripes hoist / lightblue|blue yellow black /',
   BB: 'vstripes / blue yellow black / weapon',
-  BZ: 'hstripes plain / blue red white green? / emblem circle plant writing?',
+  BZ: 'hstripes plain disc / blue red white green? brown? / emblem plant writing? person?',
   BO: 'hstripes / red yellow green / emblem animal? sun? plant? weapon?',
-  BR: 'diamond / green yellow blue white? / circle star writing',
+  BR: 'diamond disc / green yellow blue white? / star writing',
   CA: 'vstripes / red white / plant',
   CL: 'hstripes split canton / white red blue / star',
   CO: 'hstripes / yellow blue red /',
   CR: 'hstripes / blue white red / manystripes',
   CU: 'hstripes hoist / blue white red / star manystripes',
-  DM: 'cross disc plain / green yellow black white red / star animal',
+  DM: 'cross disc plain / green yellow black white red purple? / star animal',
   DO: 'cross quartered / blue red white / emblem writing? plant? weapon?',
   EC: 'hstripes / yellow blue red / emblem animal? sun? plant? weapon?',
-  SV: 'hstripes / blue white yellow? green? / emblem writing? triangle? plant?',
-  GD: 'border saltire / red yellow green / star triangle circle? plant?',
+  SV: 'hstripes disc / blue white yellow? green? / emblem writing? triangle? plant?',
+  GD: 'border saltire disc / red yellow green / star triangle plant?',
   GT: 'vstripes / lightblue white / emblem animal weapon plant writing?',
   GY: 'hoist chevron / green red yellow white black /',
   HT: 'hstripes split / blue red white green? / emblem plant weapon? writing?',
   HN: 'hstripes / lightblue|blue white / star',
   JM: 'saltire / yellow green black / triangle?',
-  MX: 'vstripes / green white red / emblem animal plant',
-  NI: 'hstripes / blue white / emblem triangle? writing? sun?',
+  MX: 'vstripes / green white red brown? / emblem animal plant',
+  NI: 'hstripes disc / blue white / emblem triangle? writing? sun?',
   PA: 'quartered / white red blue / star',
-  PY: 'hstripes / red white blue / emblem star? plant? writing? circle?',
+  PY: 'hstripes disc / red white blue / emblem star? plant? writing?',
   PE: 'vstripes / red white /',
   KN: 'diagonal / green red black yellow white / star',
   LC: 'plain / lightblue|blue yellow black white / triangle',

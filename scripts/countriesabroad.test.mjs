@@ -316,21 +316,24 @@ test('the answer box never mentions a name, so iOS offers no contact AutoFill', 
   }
 })
 
-test('both new games sit next to Cities Abroad on the Sharp Recall shelf, and every count matches', () => {
+test('Abroad (Countries and Cities) sits before Native Names on the Sharp Recall shelf, and every count matches', () => {
   const ids = REGISTRY.map(e => e.id)
-  const i = ids.indexOf('citiesabroad')
-  assert.deepEqual(ids.slice(i, i + 3), ['citiesabroad', 'countriesabroad', 'nativenames'])
-  for (const id of ['countriesabroad', 'nativenames']) {
+  const i = ids.indexOf('abroad')
+  assert.deepEqual(ids.slice(i, i + 2), ['abroad', 'nativenames'])
+  for (const id of ['citiesabroad', 'countriesabroad']) assert.ok(!ids.includes(id), `${id} is a switch of Abroad now`)
+  for (const id of ['abroad', 'nativenames']) {
     const e = REGISTRY.find(x => x.id === id)
     assert.equal(e.group, 'Sharp Recall')
     assert.equal(e.tab, 'play')
     assert.ok(!e.sandbox)
   }
-  assert.equal(GAME_COUNT, 57) // 55 with these two, then Flag Fusion, then Demonyms
+  assert.equal(REGISTRY.find(x => x.id === 'abroad').title, 'Abroad')
+  // 57 with Cities Abroad and Countries Abroad apart; one game since they became Abroad.
+  assert.equal(GAME_COUNT, 56)
   const prerender = fs.readFileSync(path.join(ROOT, 'scripts/prerender.mjs'), 'utf8')
-  assert.match(prerender, /countriesabroad: '/)
+  assert.match(prerender, /abroad: '/)
   assert.match(prerender, /nativenames: '/)
   const app = fs.readFileSync(path.join(ROOT, 'src/App.tsx'), 'utf8')
-  assert.match(app, /screen === "countriesabroad"/)
+  assert.match(app, /screen === "abroad"/)
   assert.match(app, /screen === "nativenames"/)
 })

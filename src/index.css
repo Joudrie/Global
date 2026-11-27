@@ -161,6 +161,36 @@ body {
 }
 .carto-card:hover::before, .carto-card:focus-visible::before, .carto-card:active::before { opacity: 0.5; }
 
+/* Favourite star (components/ui.tsx FavoriteStar). The button is 26px; its
+   ::after widens the tap target to 38px without moving anything. Hover only
+   changes its border and colour. With a mouse it hides until the card is
+   hovered or focused, unless the game is already a favourite; a touch screen
+   has no hover, so there it always shows. */
+.fav-star { transition: opacity 0.15s ease, border-color 0.15s ease, color 0.15s ease, transform 0.22s cubic-bezier(0.2,0.7,0.2,1); }
+.fav-star::after { content: ""; position: absolute; inset: -6px; border-radius: 999px; }
+.fav-star:focus-visible { outline: 2px solid #5C8CA8; outline-offset: 2px; }
+@media (hover: hover) and (pointer: fine) {
+  .fav-star:hover { border-color: #C8B58C; }
+  .fav-star[aria-pressed="false"]:hover { color: #1F3A3C; }
+  .fav-host .fav-star[aria-pressed="false"] { opacity: 0; }
+  .fav-host:hover .fav-star, .fav-host:focus-within .fav-star { opacity: 1; }
+  /* On a game tile the star sits beside the card's button: hovering the star
+     keeps the card raised (as .carto-card:hover does), and the star rides up
+     with it. */
+  .fav-tile:hover > .carto-card {
+    transform: translateY(-2px) rotate(-0.15deg);
+    box-shadow: 0 2px 4px rgba(31,58,60,0.06), 0 16px 30px -16px rgba(31,58,60,0.4);
+    border-color: #C8B58C;
+  }
+  .fav-tile:hover > .carto-card::before { opacity: 0.5; }
+  .fav-tile:hover > .fav-star { transform: translateY(-2px); }
+}
+.fav-tile > .carto-card:focus-visible ~ .fav-star,
+.fav-tile > .carto-card:active ~ .fav-star { transform: translateY(-2px); }
+@media (prefers-reduced-motion: reduce) {
+  .fav-star { transition: none; }
+}
+
 /* Streak pulse — counters celebrate (1 → 1.14, calm cadence) */
 @keyframes cartoPulse {
   0%, 100% { transform: scale(1); }
@@ -215,6 +245,10 @@ body {
   .animate-spin-slow { animation: none; }
   .carto-card, .geo-tap, .codex-chev { transition: none; }
 }
+
+/* Patch notes (the Today line and the screen's cards): paper and a hairline,
+   set here rather than inline so .geo-row's hover colours below can apply. */
+.geo-note { background-color: #FFFCF4; border: 1px solid #DDCEAF; }
 
 /* Profiles: rows and choices change colour and border on hover, nothing else. */
 .geo-row { transition: border-color 0.15s ease, background-color 0.15s ease; }

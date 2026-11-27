@@ -8,23 +8,34 @@
 // Naming uses only countries with at least MIN_NAME_FLAGS different flags, so
 // all four name choices can come from the answer's own country: Oregon sits
 // next to Florida, Texas and Massachusetts, never next to Bavaria, and the
-// spelling gives nothing away. Pure apart from the rng passed in.
+// spelling gives nothing away. A flag with its own name written on it
+// (Kansas, Montana: data/flagText.ts) is never the one to name, though it can
+// be a wrong option; a flag that spells out its country ("ROMANIA") is never
+// the one to place in "Whose is it?". Pure apart from the rng passed in.
 
 import { SUB_FLAGS, SUB_CONTINENTS } from "../data/subdivisions"
 import type { SubFlag } from "../data/subdivisions"
+import { COUNTRY_ON_FLAG, NAME_ON_FLAG } from "../data/flagText"
 import { shuffleWithRng } from "./prng"
 
 export type Rng = () => number
 
 /** A country needs this many different flags to be named from four of its own. */
 export const MIN_NAME_FLAGS = 4
+/** …and this many without their name written on them, to ask about. */
+export const MIN_NAME_ROUNDS = 4
+
+/** Its name is written on it, so it's never the flag to name. */
+export const showsName = (s: SubFlag) => Object.hasOwn(NAME_ON_FLAG, s.code)
+/** Its country is written on it, so it's never the flag to place. */
+export const showsCountry = (s: SubFlag) => Object.hasOwn(COUNTRY_ON_FLAG, s.code)
 
 export interface PickCountry {
   code: string
   name: string
   continentId: string
   continent: string
-  /** Its flags that can come up. */
+  /** Its flags that can come up (not those with the name on them). */
   total: number
 }
 
@@ -39,20 +50,25 @@ const continentId = (name: string) => SUB_CONTINENTS.find(c => c.name === name)?
 
 /** Every country whose subdivisions can be named, A to Z. */
 export const NAMEABLE_COUNTRIES: PickCountry[] = [...byCountry.values()]
-  .filter(subs => new Set(subs.map(s => s.flagUrl)).size >= MIN_NAME_FLAGS)
+  .filter(subs => new Set(subs.map(s => s.flagUrl)).size >= MIN_NAME_FLAGS
+    && subs.filter(s => !showsName(s)).length >= MIN_NAME_ROUNDS)
   .map(subs => ({
     code: subs[0].countryCode,
     name: subs[0].countryName,
     continentId: continentId(subs[0].continent),
     continent: subs[0].continent,
-    total: subs.length,
+    total: subs.filter(s => !showsName(s)).length,
   }))
   .sort((a, b) => a.name.localeCompare(b.name))
 
 const nameable = new Set(NAMEABLE_COUNTRIES.map(c => c.code))
 
-/** The flags that can be named: those of NAMEABLE_COUNTRIES. */
-export const NAMEABLE_FLAGS: SubFlag[] = SUB_FLAGS.filter(s => nameable.has(s.countryCode))
+/** The flags that can be asked about by name: those of NAMEABLE_COUNTRIES
+ *  without their name written on them. */
+export const NAMEABLE_FLAGS: SubFlag[] = SUB_FLAGS.filter(s => nameable.has(s.countryCode) && !showsName(s))
+
+/** The flags "Whose is it?" can show: any without its country written on it. */
+export const PLACEABLE_FLAGS: SubFlag[] = SUB_FLAGS.filter(s => !showsCountry(s))
 
 export interface PickContinent {
   id: string
@@ -188,9 +204,9 @@ export function stumperRound(mode: StumperMode, target: SubFlag, rng: Rng): Stum
     : { target, label: namePrompt(target), choices: nameChoices(target, rng), answer: target.name }
 }
 
-/** The flags a Stumper game can show: any for "Whose is it?", the pool's for "Name it". */
+/** The flags a Stumper game can show: nearly any for "Whose is it?", the pool's for "Name it". */
 export function stumperFlags(mode: StumperMode, pool: Pool): SubFlag[] {
-  return mode === "whose" ? SUB_FLAGS : poolFlags(pool)
+  return mode === "whose" ? PLACEABLE_FLAGS : poolFlags(pool)
 }
 
 /** How many rounds a game has: ten, or every flag when the pool has fewer. */
