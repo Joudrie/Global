@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flag Identifier finds 662 flags, not just countries",
+    items: [
+      "Flag Identifier now finds US states and Canadian provinces, regions of Europe and Brazil, 104 US city flags, every pride flag, movements like the Catalan estelada, and organisations like the EU and the Olympics.",
+      "A new first step asks what kind of flag it was (country, region, city, pride, movement…). Your pick comes first, and every other flag that fits still shows underneath.",
+      "A seal or coat of arms in a round frame now counts as a circle in the middle, so Boston turns up. New colours (pink, purple, brown, grey) and a person or face detail help with pride and city flags.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Name it no longer shows flags with the answer written on them",
     items: [
       "Subdivision Stumper's Name it and Province Roulette never ask you to name a flag that spells out its own name, like Kansas, Montana or Indiana. Those flags can still turn up as wrong answers.",
