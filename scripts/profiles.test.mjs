@@ -464,3 +464,74 @@ test('supabase/profiles-rls-check.sql runs in one transaction that is rolled bac
   const numbers = new Set([...code.matchAll(/(?:refused\(|values \(|select )(\d+), '/g)].map(m => +m[1]))
   assert.ok(text.includes(`"${numbers.size} of ${numbers.size} checks passed"`), `the header should expect ${numbers.size} checks`)
 })
+
+// ── Trial layouts (?look=a|b|c) and the sample profile (?demo=1) ─────────────
+
+const LOOK = await src('profile/look.ts')
+const DEMO = await src('profile/demo.ts')
+
+test('?look= picks a trial layout: a, b or c; 0 forgets; anything else says nothing', () => {
+  for (const [q, want] of [['?look=a', 'a'], ['?look=B', 'b'], ['?profiles=1&look=c', 'c'], ['?look=0', 'forget'], ['?look=off', 'forget'],
+    ['?look=d', null], ['?look=', null], ['', null], ['?looks=a', null], ['?look=ab', null]]) {
+    assert.equal(LOOK.lookParam(q), want, q)
+  }
+  assert.equal(LOOK.demoParam('?look=a&demo=1'), true)
+  assert.equal(LOOK.demoParam('?demo=yes'), false)
+})
+
+test('the layout is remembered on this device until ?look=0, and stays out of syncing', () => {
+  const run = search => { globalThis.window = { location: { search } }; return LOOK.profileLook() }
+  globalThis.localStorage = new MemoryStorage()
+  assert.equal(run(''), null, 'no look: the current profile')
+  assert.equal(run('?look=b'), 'b')
+  assert.equal(run(''), 'b', 'remembered')
+  assert.equal(globalThis.localStorage.getItem(LOOK.LOOK_KEY), 'b')
+  assert.equal(run('?look=zzz'), 'b', 'an unknown look changes nothing')
+  assert.equal(run('?look=a'), 'a')
+  assert.equal(run('?look=0'), null)
+  assert.equal(run(''), null, 'forgotten')
+  assert.equal(globalThis.localStorage.m.size, 0)
+  globalThis.localStorage.setItem(LOOK.LOOK_KEY, 'not-a-look')
+  assert.equal(run(''), null, 'a bad stored value is ignored')
+  // ?demo=1 only counts with a look chosen, and is never stored.
+  globalThis.window = { location: { search: '?demo=1' } }
+  assert.equal(LOOK.demoOn(null), false)
+  assert.equal(LOOK.demoOn('c'), true)
+  delete globalThis.window
+  // Merge rule: this device's choice, never another device's.
+  assert.equal(ruleFor(LOOK.LOOK_KEY)?.rule, 'device')
+  assert.equal(mergeSnapshots({ [LOOK.LOOK_KEY]: 'a' }, { [LOOK.LOOK_KEY]: 'c' })[LOOK.LOOK_KEY], 'a')
+})
+
+test('the sample profile never touches storage, and is a valid public profile', () => {
+  const touched = []
+  globalThis.localStorage = new Proxy({}, { get: (_, k) => { touched.push(String(k)); throw new Error(`storage used: ${String(k)}`) } })
+  const d = DEMO.demoProfile(Date.UTC(2026, 10, 27, 12))
+  assert.deepEqual(touched, [])
+  delete globalThis.localStorage
+  assert.equal(d.name, 'Bob')
+  const p = d.player
+  // It reads back unchanged through the same checks a server profile goes through.
+  assert.deepEqual(ST.readStats(JSON.parse(JSON.stringify(p.stats))), p.stats)
+  assert.deepEqual(PUB.readPicture(p.picture), p.picture)
+  assert.equal(TX.usernameProblem(p.username), null)
+  assert.equal(TX.bioProblem(p.bio), null)
+  assert.equal(p.pinned.length, 3)
+  for (const id of p.pinned) assert.ok(d.unlocks[id], `${id} is pinned but not unlocked`)
+  assert.equal(Object.keys(d.unlocks).length, 12)
+  assert.equal(p.stats.achievements, 12)
+  for (const id of Object.keys(d.unlocks)) assert.ok(ACHIEVEMENTS.some(a => a.id === id), id)
+  assert.ok(p.designs.length >= 6)
+  for (const code of p.designs) {
+    const back = decodeDesign(code)
+    assert.ok(back && typeof back.base === 'string', 'a real Flag Studio share code')
+    assert.equal(encodeDesign({ ...back, name: '' }), code, 'round-trips')
+  }
+  assert.equal(ST.shownStreak(p.stats, p.stats.streakDay), 34, 'the streak shows as current')
+  // Shown read-only: no edit controls are passed, and the files never write.
+  const demoSrc = fs.readFileSync(path.join(ROOT, 'src/profile/demo.ts'), 'utf8')
+  assert.ok(!/localStorage|sessionStorage|saveProfile|^import (?!type)/m.test(demoSrc), 'demo.ts imports nothing at run time and stores nothing')
+  const you = fs.readFileSync(path.join(ROOT, 'src/components/YouLooks.tsx'), 'utf8')
+  const demoUse = you.match(/<ProfileLook look=\{look\} data=\{demoView\}[^>]*>/)?.[0]
+  assert.ok(demoUse && !/\bown=/.test(demoUse), 'the sample profile is drawn without edit controls')
+})

@@ -90,6 +90,7 @@ import { gameSnapshot } from "./utils/backup"
 import { noteFirstSeen } from "./profile/local"
 import { checkAchievements } from "./profile/achievements"
 import { profileLinkUser } from "./profile/link"
+import { demoOn, profileLook } from "./profile/look"
 import { FLAGS } from "./data/flags"
 import type { FlagRecord } from "./data/flags"
 import { loadState, saveState, markFlagLearned, markSubLearned, recordDailyResult, awardCrown, saveShareResult, setPremium, recordGamePlayed } from "./utils/storage"
@@ -179,6 +180,10 @@ const LINKED_PLAYER = (() => {
   try { return profilesVisible() ? profileLinkUser(window.location.search) : null } catch { return null }
 })()
 
+// A trial profile layout (?look=a|b|c) is remembered now, before a ?u= link
+// tidies the address; ?demo=1 with one opens the You tab on the sample profile.
+const LOOK_AT_START = profileLook()
+
 function readDeepLink(): string | null {
   try {
     const id = new URLSearchParams(window.location.search).get("play")?.toLowerCase()
@@ -206,7 +211,7 @@ export default function App() {
   // Historical and Identity open from Home or from Flag Sets; Back returns there.
   const [deckBack, setDeckBack] = useState<Screen>("home")
   // Back from signing in: open You, where the account card shows it worked.
-  const [tab, setTab] = useState<TabKey>(() => (SIGN_IN_RETURN && accountsVisible() ? "you" : "today"))
+  const [tab, setTab] = useState<TabKey>(() => ((SIGN_IN_RETURN && accountsVisible()) || demoOn(LOOK_AT_START) ? "you" : "today"))
   // Deep-link target for the full-screen Codex (e.g. from the World Cup explorer)
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
   // A shared Flag Studio design opens once; after that the studio shows the player's own work.

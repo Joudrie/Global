@@ -18,7 +18,7 @@ type State =
 
 const MIN = 2
 
-export default function FindPlayer({ onOpen }: { onOpen: (username: string) => void }) {
+export default function FindPlayer({ onOpen, bare = false }: { onOpen: (username: string) => void; /** No card or heading (inside a row that names it). */ bare?: boolean }) {
   const [q, setQ] = useState("")
   const [state, setState] = useState<State>({ kind: "idle" })
   const seq = useRef(0)
@@ -43,10 +43,11 @@ export default function FindPlayer({ onOpen }: { onOpen: (username: string) => v
   }, [q])
 
   return (
-    <section aria-labelledby="find-player-title" style={{ borderRadius: 16, padding: 16, background: T.surface, border: `1px solid ${T.line}`, display: "flex", flexDirection: "column", gap: 12 }}>
+    <section aria-labelledby={bare ? undefined : "find-player-title"} aria-label={bare ? "Find a player" : undefined}
+      style={bare ? { display: "flex", flexDirection: "column", gap: 12 } : { borderRadius: 16, padding: 16, background: T.surface, border: `1px solid ${T.line}`, display: "flex", flexDirection: "column", gap: 12 }}>
       <div>
-        <h3 id="find-player-title" className="geo-display" style={{ margin: 0, fontSize: 17, fontWeight: 700, color: T.text }}>Find a player</h3>
-        <p className="text-xs" style={{ margin: "4px 0 0", color: T.muted, lineHeight: 1.6 }}>Look up a friend’s profile by the start of their username.</p>
+        {!bare && <h3 id="find-player-title" className="geo-display" style={{ margin: 0, fontSize: 17, fontWeight: 700, color: T.text }}>Find a player</h3>}
+        <p className="text-xs" style={{ margin: bare ? 0 : "4px 0 0", color: T.muted, lineHeight: 1.6 }}>Look up a friend’s profile by the start of their username.</p>
       </div>
       <div style={{ position: "relative" }}>
         <span aria-hidden style={{ position: "absolute", left: 12, top: 14, display: "flex" }}><SearchIcon size={18} color={T.muted} strokeWidth={1.7} /></span>

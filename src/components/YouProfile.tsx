@@ -35,7 +35,7 @@ const FindPlayer = lazy(() => import("./FindPlayer"))
 type Svc = NonNullable<ReturnType<typeof useAccount>["svc"]>
 
 /** Re-render when the profile, achievements or another tab's save change. */
-function useProfileTick(): number {
+export function useProfileTick(): number {
   const [tick, bump] = useReducer((n: number) => n + 1, 0)
   useEffect(() => {
     const onStorage = (e: StorageEvent) => { if (e.key === null || e.key === PROFILE_KEY || e.key.startsWith("globalio_")) bump() }
@@ -61,8 +61,8 @@ export function avatarFor(p: Picture | null, snap: Snapshot): AvatarSource {
 
 // Names are capped by what a reader sees as characters, so an emoji or an
 // accented letter counts once and is never cut in half.
-const NAME_MAX = 24
-function clampName(s: string): string {
+export const NAME_MAX = 24
+export function clampName(s: string): string {
   const chars = typeof Intl !== "undefined" && Intl.Segmenter
     ? Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s), g => g.segment)
     : Array.from(s)
@@ -122,8 +122,10 @@ function Switch({ on, busy, onChange, children }: { on: boolean; busy: boolean; 
   )
 }
 
-/** Claim a username, or (once claimed) the public switch. Signed-in only. */
-function UsernameSection({ svc, signedIn, ready }: { svc: Svc | null; signedIn: boolean; ready: boolean }) {
+/** Claim a username, or (once claimed) the public switch. Signed-in only.
+ *  `onSignIn`: where "Sign in" goes when the account card isn't below (the
+ *  trial layouts keep sign-in in a row on the You tab). */
+export function UsernameSection({ svc, signedIn, ready, onSignIn }: { svc: Svc | null; signedIn: boolean; ready: boolean; onSignIn?: () => void }) {
   const view = svc?.getView()
   const p = view?.profile
   const [draft, setDraft] = useState("")
@@ -136,7 +138,7 @@ function UsernameSection({ svc, signedIn, ready }: { svc: Svc | null; signedIn: 
   if (!signedIn) return (
     <Box label="Username">
       <Note>Sign in to claim a username, so friends can find your profile. <a href="#account" style={{ color: ACCENT.learn, fontWeight: 600 }}
-        onClick={e => { e.preventDefault(); document.getElementById("account")?.scrollIntoView({ block: "center" }) }}>Sign in below</a></Note>
+        onClick={e => { e.preventDefault(); if (onSignIn) onSignIn(); else document.getElementById("account")?.scrollIntoView({ block: "center" }) }}>{onSignIn ? "Sign in" : "Sign in below"}</a></Note>
     </Box>
   )
   if (!svc || !p || !ready || p.status === "loading" || p.status === "off") return (

@@ -135,16 +135,16 @@ function statusLine(v: AccountView, now: number): { text: string; color: string 
   }
 }
 
-function Card({ children, cardRef }: { children: ReactNode; cardRef?: Ref<HTMLElement> }) {
+function Card({ children, cardRef, compact = false }: { children: ReactNode; cardRef?: Ref<HTMLElement>; compact?: boolean }) {
   return (
     <section ref={cardRef} aria-label="Account" id="account"
-      style={{ borderRadius: 16, padding: 16, background: T.surface, border: `1px solid ${T.line}`, display: "flex", flexDirection: "column", gap: 12 }}>
+      style={compact ? { display: "flex", flexDirection: "column", gap: 12 } : { borderRadius: 16, padding: 16, background: T.surface, border: `1px solid ${T.line}`, display: "flex", flexDirection: "column", gap: 12 }}>
       {children}
     </section>
   )
 }
 
-export default function AccountCard({ inSettings = false }: { inSettings?: boolean }) {
+export default function AccountCard({ inSettings = false, compact = false }: { inSettings?: boolean; compact?: boolean }) {
   const configured = accountsConfigured()
   const [svc, setSvc] = useState<Service | null>(null)
   const [loadFailed, setLoadFailed] = useState(false)
@@ -208,14 +208,14 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
   }
 
   if (!configured) return (
-    <Card>
+    <Card compact={compact}>
       <Title>Keep your progress on every device</Title>
       <Note>Sign-in isn’t available yet. Until then, {inSettings ? "Back up and Restore below" : "Back up and Restore in Settings"} move your progress between devices.</Note>
     </Card>
   )
 
   if (wanted && !view?.ready) return (
-    <Card cardRef={ref}>
+    <Card cardRef={ref} compact={compact}>
       <Title>Your account</Title>
       {loadFailed
         ? <>
@@ -229,7 +229,7 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
   if (signedIn && view) {
     const line = statusLine(view, now)
     if (confirmDelete) return (
-      <Card cardRef={ref}>
+      <Card cardRef={ref} compact={compact}>
         <Title>Delete your account?</Title>
         <Note>This deletes your account and the progress saved in it. Your other devices stop syncing. This device keeps its progress. It can’t be undone.</Note>
         <Alert text={error} />
@@ -244,7 +244,7 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
       </Card>
     )
     return (
-      <Card cardRef={ref}>
+      <Card cardRef={ref} compact={compact}>
         <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           <span className="geo-micro" style={{ fontSize: 10, color: ACC }}>Signed in</span>
           <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
@@ -276,7 +276,7 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
 
   // Signed out.
   if (sentTo) return (
-    <Card cardRef={ref}>
+    <Card cardRef={ref} compact={compact}>
       <Title>Check your email</Title>
       <Note>We sent a sign-in link to <strong style={{ color: T.text, overflowWrap: "anywhere" }}>{sentTo}</strong>. Open it on this device. It can take a minute, so check your spam folder too.</Note>
       <form onSubmit={async (e: FormEvent) => {
@@ -308,8 +308,9 @@ export default function AccountCard({ inSettings = false }: { inSettings?: boole
   }
 
   return (
-    <Card cardRef={ref}>
-      <Title>Keep your progress on every device</Title>
+    <Card cardRef={ref} compact={compact}>
+      {/* compact: opened from a row that already says it */}
+      {!compact && <Title>Keep your progress on every device</Title>}
       <Note>Sign in and your flags, streaks and best scores stay the same on your phone, tablet and computer. What’s on this device now comes with you.</Note>
       {deleted && <div role="status"><Note color={T.green}>Your account is deleted. Your progress is still on this device.</Note></div>}
       <GoogleButton busy={busy === "google"}

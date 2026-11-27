@@ -9,7 +9,7 @@ import {
   Building2, Signpost, FolderTree, Scale,
   ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Heart, TrendingUp, Pencil, Mail,
   Pipette, Grid2x2, PenTool, Rainbow, Building, RotateCcw, Hourglass, Luggage, Plane, House, Combine, Binoculars,
-  Download, Pin, Link2, Lock, X,
+  Download, Pin, Link2, Lock, X, Plus, Share2, ChevronRight, Grid3x3,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -49,6 +49,7 @@ const MAP: Record<string, LucideIcon> = {
   dna: Dna, medal: Medal, scale: Scale, waypoints: Waypoints, layers: Layers,
   // profiles
   download: Download, pushpin: Pin, link: Link2, lock: Lock, close: X, edit: Pencil,
+  plus: Plus, share: Share2, history: History, chevronright: ChevronRight, chevrondown: ChevronDown, grid: Grid3x3,
 }
 
 export function LineIcon({ name, size = 21, strokeWidth = 1.6, color = "currentColor" }:
