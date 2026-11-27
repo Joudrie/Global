@@ -5,7 +5,7 @@ import { FLAG_ATTRIBS } from "../data/flagAttribs"
 import type { FlagAttribs } from "../data/flagAttribs"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
 
 interface Props { onBack: () => void }
 
@@ -155,8 +155,18 @@ const TOTAL_ROUNDS = 5
 const ACCENT_A = ACCENT.play
 const ACCENT_B = T.green
 
+// Every tile, and the empty slot a sorted flag leaves in the pool, is the
+// same fixed size, and nothing about a tile's state changes its box: the
+// border stays TILE_BORDER wide and a selected or marked tile gets a coloured
+// ring (box-shadow, outside the layout) instead of a thicker border. So
+// selecting, dropping or checking never nudges a tile or a group.
 const FLAG_W = 72
 const FLAG_H = 48
+const TILE_BORDER = 1.5
+const LABEL_H = 24                                   // two 10px lines + padding
+const TILE_H = FLAG_H + LABEL_H + 2 * TILE_BORDER
+// The hint line above the groups is always two lines tall, whichever message it shows.
+const HINT_H = 32
 
 function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () => void }) {
   const [rounds]    = useState(() => buildRounds(TOTAL_ROUNDS))
@@ -261,33 +271,82 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
     const isSelected = selected === flag.code
     // Once checked we know it's a valid partition; honour the swap direction.
     const correctRow = inRow !== null ? (revealSwap ? inRow !== family : inRow === family) : null
-    let border = `1.5px solid ${T.line}`
-    if (checked && inRow !== null) {
-      border = `2px solid ${correctRow ? T.green : T.danger}`
-    } else if (isSelected) {
-      border = `2px solid ${T.gold}`
-    }
+    const marked = checked && inRow !== null
+    const ring = marked ? (correctRow ? T.green : T.danger) : isSelected ? T.gold : null
 
     return (
-      <button key={flag.code}
+      <button key={flag.code} data-tile={flag.code}
         draggable={!checked}
         onDragStart={() => setDragged(flag.code)}
         onDragEnd={() => setDragged(null)}
         onClick={e => { e.stopPropagation(); if (inRow !== null) handleUnassign(flag.code); else handleFlagTap(flag.code) }}
-        className="flex flex-col items-center rounded-xl overflow-hidden transition-all active:scale-95"
-        style={{ border, background: isSelected ? tint(T.gold, 0.15) : T.surface, width: FLAG_W, cursor: checked ? 'default' : 'grab' }}>
-        <img src={flag.flagUrl} alt={flag.name}
-          style={{ width: FLAG_W, height: FLAG_H, objectFit: 'cover', display: 'block' }} />
-        <div style={{ padding: '2px 4px', textAlign: 'center', width: '100%' }}>
-          <span style={{ fontSize: 9, color: T.muted, fontWeight: 600, lineHeight: 1.05,
-            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2.1em' }}>
+        aria-pressed={inRow === null ? isSelected : undefined}
+        className="flex flex-col items-center rounded-xl overflow-hidden transition-colors motion-reduce:transition-none"
+        style={{
+          position: 'relative', flexShrink: 0, width: FLAG_W, height: TILE_H,
+          border: `${TILE_BORDER}px solid ${ring ?? T.line}`,
+          boxShadow: ring ? `0 0 0 ${TILE_BORDER}px ${ring}` : 'none',
+          background: isSelected ? tint(T.gold, 0.15) : T.surface, cursor: checked ? 'default' : 'grab',
+        }}>
+        <img src={flag.flagUrl} alt={flag.name} draggable={false}
+          style={{ width: FLAG_W - 2 * TILE_BORDER, height: FLAG_H, objectFit: 'cover', display: 'block', flexShrink: 0 }} />
+        <div style={{ height: LABEL_H, padding: '2px 4px', textAlign: 'center', width: '100%' }}>
+          <span style={{ fontSize: 9, color: T.muted, fontWeight: 600, lineHeight: '10px',
+            display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {flag.name}
           </span>
-          {checked && inRow !== null && (
-            <span style={{ fontSize: 10, color: correctRow ? T.green : T.danger }}>{correctRow ? '✓' : '✗'}</span>
+        </div>
+        {/* The verdict sits over the flag's corner, so marking a tile doesn't make it taller. */}
+        {marked && (
+          <span role="img" aria-label={correctRow ? 'Right group' : 'Wrong group'}
+            style={{ position: 'absolute', top: 3, right: 3, width: 16, height: 16, borderRadius: 999,
+              display: 'flex', alignItems: 'center', justifyContent: 'center',
+              background: correctRow ? T.green : T.danger, color: T.onAccent, border: `1px solid ${T.surface}` }}>
+            <GameIcon name={correctRow ? 'check' : 'x'} size={10} strokeWidth={2.5} />
+          </span>
+        )}
+      </button>
+    )
+  }
+
+  // Where a sorted flag was: an empty slot the same size as a tile, so the
+  // flags left in the pool stay where they are.
+  const emptySlot = (code: string) => (
+    <span key={code} aria-hidden
+      style={{ width: FLAG_W, height: TILE_H, flexShrink: 0, borderRadius: 12, border: `${TILE_BORDER}px dashed ${T.line}` }} />
+  )
+
+  // A group always has room for one row of tiles, so the first flag dropped
+  // in doesn't make it taller. Highlighting changes only its colours.
+  const renderGroup = (row: 'A' | 'B') => {
+    const accent = row === 'A' ? ACCENT_A : ACCENT_B
+    const items = row === 'A' ? flagsInA : flagsInB
+    const lit = (selected || dragged) && !checked
+    const fam = row === 'A' ? (revealSwap ? round.familyB : round.familyA) : (revealSwap ? round.familyA : round.familyB)
+    return (
+      <div role="group" aria-label={`Group ${row}`} tabIndex={selected && !checked ? 0 : -1} data-group={row}
+        onClick={() => handleRowTap(row)}
+        onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowTap(row) } }}
+        onDragOver={e => { if (!checked) e.preventDefault() }}
+        onDrop={() => { if (dragged && !checked) { assign(dragged, row); setDragged(null) } }}
+        className="w-full max-w-sm rounded-xl transition-colors motion-reduce:transition-none"
+        style={{
+          background: lit ? tint(accent, 0.12) : T.surface,
+          border: `2px solid ${lit ? accent : tint(accent, 0.3)}`,
+          padding: '8px 10px',
+          cursor: selected && !checked ? 'pointer' : 'default',
+        }}>
+        <div className="flex items-center gap-2 mb-2">
+          <span style={{ width: 22, height: 22, flexShrink: 0, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(accent, 0.15), color: accent, fontSize: 11, fontWeight: 800 }}>{row}</span>
+          <span className="text-sm font-bold" style={{ color: checked ? T.text : accent, fontFamily: FONT.display, lineHeight: '20px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{checked ? fam.label : `Group ${row}`}</span>
+        </div>
+        <div className="flex flex-wrap gap-2" style={{ minHeight: TILE_H, alignContent: 'flex-start' }}>
+          {items.map(item => renderFlag(item, row))}
+          {items.length === 0 && (
+            <span style={{ fontSize: 11, color: tint(accent, 0.5), paddingLeft: 2, alignSelf: 'center' }}>drop here</span>
           )}
         </div>
-      </button>
+      </div>
     )
   }
 
@@ -305,8 +364,10 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
 
       <div className="flex flex-col items-center px-5 gap-4">
 
-        {/* Instruction — categories stay secret; sort by the visual pattern */}
-        <p className="text-xs text-center" style={{ color: T.muted }}>
+        {/* Instruction — categories stay secret; sort by the visual pattern.
+            Always HINT_H tall, so swapping the message moves nothing below it. */}
+        <p className="text-xs text-center w-full max-w-sm" data-hint
+          style={{ color: T.muted, height: HINT_H, lineHeight: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
           {checked
             ? 'Revealed! Two hidden families:'
             : selected
@@ -314,67 +375,20 @@ function FlagFamiliesScreenGame({ onBack , onReplay }: Props & { onReplay: () =>
               : 'Two secret groups. Sort each flag by what it shares — tap or drag.'}
         </p>
 
-        {/* Row A */}
-        <div role="group" aria-label="Group A" tabIndex={selected && !checked ? 0 : -1}
-          onClick={() => handleRowTap('A')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowTap('A') } }}
+        {renderGroup('A')}
+        {renderGroup('B')}
+
+        {/* The pool keeps a slot for every flag in the round. */}
+        <div className="w-full max-w-sm" data-pool
           onDragOver={e => { if (!checked) e.preventDefault() }}
-          onDrop={() => { if (dragged && !checked) { assign(dragged, 'A'); setDragged(null) } }}
-          className="w-full max-w-sm rounded-xl transition-all"
-          style={{
-            background: (selected || dragged) && !checked ? tint(ACCENT_A, 0.12) : T.surface,
-            border: `2px solid ${(selected || dragged) && !checked ? ACCENT_A : tint(ACCENT_A, 0.3)}`,
-            minHeight: 80, padding: '8px 10px',
-            cursor: selected && !checked ? 'pointer' : 'default',
-          }}>
-          <div className="flex items-center gap-2 mb-2">
-            <span style={{ width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT_A, 0.15), color: ACCENT_A, fontSize: 11, fontWeight: 800 }}>A</span>
-            <span className="text-sm font-bold" style={{ color: checked ? T.text : ACCENT_A, fontFamily: FONT.display }}>{checked ? (revealSwap ? round.familyB : round.familyA).label : 'Group A'}</span>
+          onDrop={() => { if (dragged && !checked) { handleUnassign(dragged); setDragged(null) } }}>
+          <div className="text-xs mb-2 font-semibold" style={{ color: T.muted, lineHeight: '16px' }}>
+            {unassigned.length > 0 ? 'Unsorted flags:' : 'All sorted.'}
           </div>
-          <div className="flex flex-wrap gap-2">
-            {flagsInA.map(item => renderFlag(item, 'A'))}
-            {flagsInA.length === 0 && (
-              <span style={{ fontSize: 11, color: tint(ACCENT_A, 0.5), paddingLeft: 2 }}>drop here</span>
-            )}
+          <div className="flex flex-wrap gap-3">
+            {round.flags.map(item => assignments[item.flag.code] ? emptySlot(item.flag.code) : renderFlag(item, null))}
           </div>
         </div>
-
-        {/* Row B */}
-        <div role="group" aria-label="Group B" tabIndex={selected && !checked ? 0 : -1}
-          onClick={() => handleRowTap('B')}
-          onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); handleRowTap('B') } }}
-          onDragOver={e => { if (!checked) e.preventDefault() }}
-          onDrop={() => { if (dragged && !checked) { assign(dragged, 'B'); setDragged(null) } }}
-          className="w-full max-w-sm rounded-xl transition-all"
-          style={{
-            background: (selected || dragged) && !checked ? tint(ACCENT_B, 0.12) : T.surface,
-            border: `2px solid ${(selected || dragged) && !checked ? ACCENT_B : tint(ACCENT_B, 0.3)}`,
-            minHeight: 80, padding: '8px 10px',
-            cursor: selected && !checked ? 'pointer' : 'default',
-          }}>
-          <div className="flex items-center gap-2 mb-2">
-            <span style={{ width: 22, height: 22, borderRadius: 999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: tint(ACCENT_B, 0.15), color: ACCENT_B, fontSize: 11, fontWeight: 800 }}>B</span>
-            <span className="text-sm font-bold" style={{ color: checked ? T.text : ACCENT_B, fontFamily: FONT.display }}>{checked ? (revealSwap ? round.familyA : round.familyB).label : 'Group B'}</span>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            {flagsInB.map(item => renderFlag(item, 'B'))}
-            {flagsInB.length === 0 && (
-              <span style={{ fontSize: 11, color: tint(ACCENT_B, 0.5), paddingLeft: 2 }}>drop here</span>
-            )}
-          </div>
-        </div>
-
-        {/* Unassigned pool */}
-        {unassigned.length > 0 && (
-          <div className="w-full max-w-sm"
-            onDragOver={e => { if (!checked) e.preventDefault() }}
-            onDrop={() => { if (dragged && !checked) { handleUnassign(dragged); setDragged(null) } }}>
-            <div className="text-xs mb-2 font-semibold" style={{ color: T.muted }}>Unsorted flags:</div>
-            <div className="flex flex-wrap gap-3">
-              {unassigned.map(item => renderFlag(item, null))}
-            </div>
-          </div>
-        )}
 
         {/* "Try again" hint after a wrong check (round stays editable) */}
         {tryAgain && !checked && (

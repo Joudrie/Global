@@ -67,6 +67,8 @@ export const REGISTRY: Entry[] = [
   { id: "worldcup", title: "World Cup 2026", subtitle: "48 nations · flags & history", icon: "🏆", tab: "play", group: "Daily Rituals", size: "tile", accent: "today", featured: true },
 
   // One Glance — reveal & make (visual, satisfying, fast)
+  // Flag Fusion leads the shelf (and every hand-picked list: FRONT_GAME below).
+  { id: "flagfusion", title: "Flag Fusion", subtitle: "Structure · emblem · colours", icon: "🔀", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "silhouette", title: "Silhouette", subtitle: "Guess from the dark", icon: "🌑", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "thecrop", title: "The Crop", subtitle: "Zoom out to guess", icon: "🔍", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "thepeel", title: "The Peel", subtitle: "Scratch to reveal", icon: "🖌️", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
@@ -78,7 +80,6 @@ export const REGISTRY: Entry[] = [
   { id: "sketchflag", title: "Sketch the Flag", subtitle: "Draw it from memory", icon: "✏️", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
   { id: "flagoutline", title: "Flag Outline", subtitle: "Guess from the outlines", icon: "🔲", tab: "play", group: "One Glance", size: "tile", accent: "codex" },
   { id: "frankenflag", title: "Frankenflag", subtitle: "Name every piece", icon: "🧟", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
-  { id: "flagfusion", title: "Flag Fusion", subtitle: "Structure · emblem · colours", icon: "🔀", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
 
   // Spot It — eagle-eye difference & pattern hunting
   { id: "oddoneout", title: "Odd One Out", subtitle: "Find the impostor", icon: "🕵️", tab: "play", group: "Spot It", size: "tile", accent: "play" },
@@ -86,7 +87,7 @@ export const REGISTRY: Entry[] = [
   { id: "flagdna", title: "Flag DNA", subtitle: "Guess by attributes", icon: "🧬", tab: "play", group: "Spot It", size: "tile", accent: "play" },
   { id: "symbolhunt", title: "Symbol Hunt", subtitle: "Find every flag with a symbol", icon: "🔎", tab: "play", group: "Spot It", size: "tile", accent: "play" },
   { id: "flagfamilies", title: "Flag Families", subtitle: "Sort into families", icon: "👪", tab: "play", group: "Spot It", size: "tile", accent: "play" },
-  { id: "spoterror", title: "Spot the Error", subtitle: "Find the wrong colour", icon: "🔺", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
+  { id: "spoterror", title: "Spot the Error", subtitle: "Tap where the flag is wrong", icon: "🔺", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
   { id: "forgery", title: "Flag Forgery", subtitle: "Swipe: correct or doctored?", icon: "🔍", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
 
   // Cartographer — maps, borders & shapes
@@ -98,12 +99,16 @@ export const REGISTRY: Entry[] = [
   // Sharp Recall — fast reps, reflex quizzes
   { id: "reversequiz", action: "reverse", title: "Flag ID Challenge", subtitle: "See the name, pick the flag", icon: "🎯", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "capitalquiz", title: "Capital Cities", subtitle: "Name that capital", icon: "🏛️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
-  { id: "citiesabroad", title: "Cities Abroad", subtitle: "Benetke → Venice", icon: "🧳", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
-  { id: "countriesabroad", title: "Countries Abroad", subtitle: "Allemagne → Germany", icon: "✈️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  // Abroad: Countries Abroad and Cities Abroad in one game, with a switch on
+  // its start screen (components/AbroadGameScreen.tsx). Their old ids still
+  // open it: see RENAMED below. The subtitle fits a 140px tile; the poster's
+  // small "+ Cities" stamp says cities are in it too.
+  { id: "abroad", title: "Abroad", subtitle: "Allemagne → Germany", icon: "✈️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "nativenames", title: "Native Names", subtitle: "Suomi → Finland", icon: "🏠", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "demonyms", title: "Demonyms", subtitle: "Neapolitan or Nepalese?", icon: "🪪", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "statclash", title: "Stat Clash", subtitle: "Bigger population or area?", icon: "⚖️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill", featured: true },
   { id: "prideroulette", title: "Pride Roulette", subtitle: "Name the pride flag · survival", icon: "🏳️‍🌈", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  { id: "uscityflags", title: "US City Flags", subtitle: "Name the American city", icon: "🏙️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
 
   // Loremaster — deep knowledge & trivia
   { id: "language", title: "Guess the Language", subtitle: "88 languages · easy → extreme", icon: "🗣️", tab: "play", group: "Loremaster", size: "tile", accent: "codex", featured: true },
@@ -125,7 +130,6 @@ export const REGISTRY: Entry[] = [
   { id: "oddborder", title: "Odd Border Out", subtitle: "Spot the non-neighbour", icon: "🧭", tab: "play", group: "Beta Sandbox", size: "tile", accent: "learn", sandbox: true },
   { id: "describeit", title: "Describe-It", subtitle: "Guess from the clues", icon: "📝", tab: "play", group: "Beta Sandbox", size: "tile", accent: "codex", sandbox: true },
   { id: "atlas", title: "Atlas", subtitle: "Guess the year a world map was made", icon: "🗺️", tab: "play", group: "Beta Sandbox", size: "tile", accent: "codex", sandbox: true },
-  { id: "uscityflags", title: "US City Flags", subtitle: "Name the American city", icon: "🏙️", tab: "play", group: "Beta Sandbox", size: "tile", accent: "drill", sandbox: true },
 
   // ── CODEX → the bottom tab now opens the Codex itself (no launcher page).
   // Its companion reference tools live on the YOU tab as the Collection.
@@ -141,6 +145,27 @@ export const GAMES: Entry[] = REGISTRY.filter(e => e.tab !== "you" && !e.tool)
 export const GAME_COUNT = GAMES.length
 /** Tools that open from Play beside the games. */
 export const TOOLS: Entry[] = REGISTRY.filter(e => e.tool)
+
+/** Old game ids → the game that took them over. Links (?play=…) and saved
+ *  recents with an old id open the new game. Cities Abroad and Countries
+ *  Abroad became the two switches of Abroad; ABROAD_LINK_KINDS says which
+ *  switch an old link opens on. */
+export const RENAMED: Record<string, string> = {
+  atlaswhen: "atlas",          // Atlas's first name; links to it were shared
+  capitalsabroad: "abroad",    // Cities Abroad's first name, on the test site
+  citiesabroad: "abroad",
+  countriesabroad: "abroad",
+}
+/** Abroad's two switches (components/AbroadGameScreen.tsx). */
+export type AbroadKind = "countries" | "cities"
+export const ABROAD_LINK_KINDS: Record<string, AbroadKind> = {
+  capitalsabroad: "cities", citiesabroad: "cities", countriesabroad: "countries",
+}
+/** A registry id for an id that may be an old one, or null if it's no game. */
+export function currentId(id: string): string | null {
+  const now = RENAMED[id] ?? id
+  return REGISTRY.some(r => r.id === now) ? now : null
+}
 
 export function groupsFor(tab: TabKey): { group: string; entries: Entry[] }[] {
   const out: { group: string; entries: Entry[] }[] = []
@@ -161,9 +186,17 @@ export function groupsFor(tab: TabKey): { group: string; entries: Entry[] }[] {
 // Every launchable Play game that isn't buried in the Beta Sandbox.
 const playable = (): Entry[] => REGISTRY.filter(r => r.tab === "play" && !r.sandbox)
 
-/** Hand-picked A-tier games for the "Most Loved" shelf, in registry order. */
+/** The game that leads every hand-picked list on Play (Popular, Top games and
+ *  its own shelf), by request: "Flag Fusion is a super fun game". */
+export const FRONT_GAME = "flagfusion"
+const frontFirst = (list: Entry[]): Entry[] => {
+  const at = list.findIndex(e => e.id === FRONT_GAME)
+  return at > 0 ? [list[at], ...list.slice(0, at), ...list.slice(at + 1)] : list
+}
+
+/** Hand-picked A-tier games for the Popular chip: Flag Fusion, then registry order. */
 export function featuredGames(): Entry[] {
-  return playable().filter(r => r.featured)
+  return frontFirst(playable().filter(r => r.featured))
 }
 
 /** "Because you played X" — games that share a shelf or category with the most
@@ -200,8 +233,9 @@ export function trendingGames(weekSeed: number, count = 9): Entry[] {
 }
 
 // The hand-picked hit list for the "Top games" shelf. Fixed membership (these
-// may also appear in their own category shelves — that's fine), order
-// reshuffled daily so the shelf stays fresh without ever hiding anything.
+// may also appear in their own category shelves — that's fine). Flag Fusion
+// (FRONT_GAME) always comes first; the rest reshuffle daily so the shelf stays
+// fresh without ever hiding anything.
 const TOP_GAME_IDS = [
   "realorbot", "forgery", "language", "spoterror", "historical", "thepeel",
   "bordermap", "composer", "deadoralive", "lineage", "gauntlet",
@@ -210,5 +244,6 @@ export function topGames(daySeed: number): Entry[] {
   const games = TOP_GAME_IDS
     .map(id => REGISTRY.find(r => r.id === id))
     .filter((e): e is Entry => !!e)
-  return shuffleWithSeed(games, `top:${daySeed}`)
+  const front = REGISTRY.find(r => r.id === FRONT_GAME)
+  return [...(front ? [front] : []), ...shuffleWithSeed(games, `top:${daySeed}`)]
 }

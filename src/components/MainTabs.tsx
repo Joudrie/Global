@@ -1,14 +1,16 @@
 import { useState, useRef, useEffect, useLayoutEffect, useReducer, lazy, Suspense } from "react"
 import { LAST_UPDATED, formatDate } from "../data/changelog"
-import type { ReactNode } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import { FLAGS } from "../data/flags"
 import type { AppState } from "../utils/storage"
 import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
+import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, recommendFor, discoverGames, trendingGames, topGames, featuredGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
-import { TabBar, FlagTile, SectionHeader } from "./ui"
+import { TabBar, FlagTile, FavoriteStar, SectionHeader } from "./ui"
+import { Star } from "lucide-react"
+import { FAVORITES_EVENT, readFavorites, readPlayCounts, setFavorite, rankFavorites, hasUsedFavorites } from "../utils/favorites"
 import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon } from "./icons"
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
@@ -19,6 +21,7 @@ import PatchNotesStrip from "./PatchNotesStrip"
 import { AD_SLOTS } from "../ads"
 import Avatar, { avatarFor } from "./Avatar"
 import { PROFILE_EVENT, readProfile } from "../profile/local"
+import { FriendDot, friendRequestsLabel, useFriendRequests } from "./FriendDot"
 import { gameSnapshot } from "../utils/backup"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
@@ -53,7 +56,10 @@ const dayIndex = (today: string) => Math.floor(Date.parse(today) / 86400000)
 const RECENT_KEY = "globalio_recent_games"
 const PLAYS_KEY = "globalio_total_plays"
 function loadRecent(): string[] {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || "[]") as string[] } catch { return [] }
+  try {
+    const ids = (JSON.parse(localStorage.getItem(RECENT_KEY) || "[]") as string[]).map(id => RENAMED[id] ?? id)
+    return [...new Set(ids)] // Cities Abroad and Countries Abroad are both Abroad now
+  } catch { return [] }
 }
 // Total games ever launched — "Jump back in" stays hidden until you've played a
 // few, so a fresh user never sees a half-empty recents shelf.
@@ -78,10 +84,12 @@ function HeaderAvatar({ onOpen, active }: { onOpen: () => void; active: boolean 
   }, [])
   const picture = readProfile().picture
   const source = picture ? avatarFor(picture, picture.kind === "design" ? gameSnapshot() : {}) : null
+  const requests = useFriendRequests()
   return (
-    <button onClick={onOpen} aria-label="Your profile" aria-current={active ? "page" : undefined} className="geo-tap"
-      style={{ width: 44, height: 44, borderRadius: 999, padding: 0, background: T.surface, border: `1px solid ${active ? tint(ACCENT.learn, 0.6) : T.line}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <button onClick={onOpen} aria-label={friendRequestsLabel(requests)} aria-current={active ? "page" : undefined} className="geo-tap"
+      style={{ position: "relative", width: 44, height: 44, borderRadius: 999, padding: 0, background: T.surface, border: `1px solid ${active ? tint(ACCENT.learn, 0.6) : T.line}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
       {source ? <Avatar source={source} size={34} /> : <LineIcon name="profile" size={18} color={T.muted} />}
+      <FriendDot count={requests} />
     </button>
   )
 }
@@ -582,6 +590,44 @@ function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark,
   )
 }
 
+/* ── Favourites: the games a player starred (utils/favorites.ts), most played
+   first. Redraws when a star changes anywhere (or in another tab). Starring a
+   game can add or remove the whole Favourites row at the top of Play; the
+   page scrolls by the same amount, so the star just tapped stays under the
+   finger instead of jumping. ──────────────────────────────────────────────── */
+interface Fav { on: (id: string) => boolean; toggle: (id: string, el: HTMLElement) => void }
+function useFavoriteGames() {
+  const [, bump] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    const onStorage = (e: StorageEvent) => { if (e.key === null || e.key === "globalio_favorites" || e.key === "globalio_playcounts") bump() }
+    window.addEventListener(FAVORITES_EVENT, bump)
+    window.addEventListener("storage", onStorage)
+    return () => { window.removeEventListener(FAVORITES_EVENT, bump); window.removeEventListener("storage", onStorage) }
+  }, [])
+  const marks = readFavorites()
+  const anchor = useRef<{ el: HTMLElement; top: number } | null>(null)
+  useLayoutEffect(() => {
+    const a = anchor.current
+    anchor.current = null
+    if (!a || !a.el.isConnected) return
+    const scroller = a.el.closest("main")
+    const moved = a.el.getBoundingClientRect().top - a.top
+    if (scroller && Math.abs(moved) > 1) scroller.scrollTop += moved
+  })
+  const fav: Fav = {
+    on: id => marks[id]?.on === true,
+    toggle: (id, el) => {
+      anchor.current = { el, top: el.getBoundingClientRect().top }
+      setFavorite(id, marks[id]?.on !== true)
+    },
+  }
+  const findable = [...GAMES, ...TOOLS]
+  const games = rankFavorites(marks, readPlayCounts())
+    .map(id => findable.find(e => e.id === id))
+    .filter((e): e is Entry => !!e)
+  return { fav, games, used: hasUsedFavorites(marks) }
+}
+
 /* ── PLAY — the game browser. A flag-forward Game-of-the-Day hero sits above
    the fold (one tap to play), then locally-derived personal rails (jump back
    in · because-you-played · most loved), the learning spine, the full
@@ -592,11 +638,17 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   const [sandboxOpen, setSandboxOpen] = useState(false)
   const [q, setQ] = useState("")
   const [activeGroup, setActiveGroup] = useState<string | null>(null)
+  const { fav, games: favorites, used: usedFavorites } = useFavoriteGames()
 
   const all = REGISTRY.filter(r => r.tab === "play")
   const playable = all.filter(r => !r.sandbox)
   const sandbox = all.filter(r => r.sandbox)
-  const featured = playable.filter(r => r.featured)
+  const featured = featuredGames() // Flag Fusion first
+  // Every game tile on Play, with its favourite star.
+  const tile = (e: Entry, accent: string, style?: CSSProperties) => (
+    <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={accent} onClick={() => launch(e)} style={style}
+      favorite={fav.on(e.id)} onFavorite={el => fav.toggle(e.id, el)} />
+  )
   const categoryGroups = groupsFor("play").filter(g => !g.entries[0].sandbox)
 
   // Local personalization, all derived on-device from recently-played ids.
@@ -702,10 +754,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
       {filtering ? (
         filtered.length ? (
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {filtered.map(e => (
-              <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle}
-                accent={e.sandbox ? T.muted : ACCENT[e.accent]} onClick={() => launch(e)} style={{ width: "100%" }} />
-            ))}
+            {filtered.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent], { width: "100%" }))}
           </div>
         ) : (
           <div style={{ padding: 18, borderRadius: 12, border: `1px dashed ${T.line}`, textAlign: "center", color: T.dim, fontSize: 12 }}>
@@ -714,8 +763,23 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
         )
       ) : (
       <>
+        {/* Favourites — the games this player starred, most played first. Leads
+            the page once there is one; before the first star, a one-line hint. */}
+        {favorites.length > 0 ? (
+          <div>
+            <ShelfHead icon={<Star size={15} color={T.gold} strokeWidth={1.7} />} accent={T.gold}
+              title="Favourites" reason="Your starred games · most played first" />
+            <Rail>{favorites.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent]))}</Rail>
+          </div>
+        ) : !usedFavorites && (
+          <p style={{ display: "flex", alignItems: "center", gap: 6, margin: "-8px 0 0", color: T.dim, fontSize: 11.5 }}>
+            <Star size={13} color={T.dim} strokeWidth={1.7} aria-hidden />
+            {HAS_MOUSE ? "Hover a game and click its star to keep it up here." : "Tap the star on a game to keep it up here."}
+          </p>
+        )}
+
         {/* Trending this week — the swipeable flag-card deck (showpiece) */}
-        <TrendingDeck games={trending} launch={launch} />
+        <TrendingDeck games={trending} launch={launch} fav={fav} />
 
         {/* Jump back in — your recent rotation, one tap away (only after a few
             plays, so it never shows up half-empty for a new user) */}
@@ -723,12 +787,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
           <div>
             <ShelfHead icon={<HistoryIcon size={15} color={ACCENT.play} strokeWidth={1.7} />} accent={ACCENT.play}
               title="Jump back in" reason="Pick up a recent game" />
-            <Rail>
-              {recents.map(e => (
-                <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle}
-                  accent={e.sandbox ? T.muted : ACCENT[e.accent]} onClick={() => launch(e)} />
-              ))}
-            </Rail>
+            <Rail>{recents.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent]))}</Rail>
           </div>
         )}
 
@@ -737,11 +796,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
           <div>
             <ShelfHead icon={<LineIcon name="lightbulb" size={15} color={ACCENT.codex} strokeWidth={1.7} />} accent={ACCENT.codex}
               title="Recommended for you" reason={`Because you played ${rec.seed.title}`} />
-            <Rail>
-              {rec.entries.map(e => (
-                <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]} onClick={() => launch(e)} />
-              ))}
-            </Rail>
+            <Rail>{rec.entries.map(e => tile(e, ACCENT[e.accent]))}</Rail>
           </div>
         )}
 
@@ -750,11 +805,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
         <div>
           <ShelfHead icon={<LineIcon name="tierlist" size={15} color={T.amber} />} accent={T.amber}
             title="Top games" reason="The all-star lineup · shuffled daily" />
-          <Rail>
-            {top.map(e => (
-              <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]} onClick={() => launch(e)} />
-            ))}
-          </Rail>
+          <Rail>{top.map(e => tile(e, ACCENT[e.accent]))}</Rail>
         </div>
 
         {/* The collections — every game, filed by appetite. Each shelf swipes.
@@ -769,11 +820,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
             ) : (
               <SectionHeader title={g.group} accent={ACCENT[g.entries[0].accent]} />
             )}
-            <Rail>
-              {g.entries.map(e => (
-                <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]} onClick={() => launch(e)} />
-              ))}
-            </Rail>
+            <Rail>{g.entries.map(e => tile(e, ACCENT[e.accent]))}</Rail>
           </div>
         ))}
 
@@ -790,11 +837,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
                   <ShuffleIcon size={15} color={ACCENT.today} strokeWidth={1.7} />
                 </button>
               } />
-            <Rail>
-              {discover.map(e => (
-                <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]} onClick={() => launch(e)} />
-              ))}
-            </Rail>
+            <Rail>{discover.map(e => tile(e, ACCENT[e.accent]))}</Rail>
           </div>
         )}
 
@@ -815,9 +858,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
 
           {sandboxOpen && (
             <div className="carto-slide-up" style={{ marginTop: 10, display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(150px, 1fr))", gap: 10 }}>
-              {sandbox.map(e => (
-                <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={ACCENT[e.accent]} onClick={() => launch(e)} style={{ width: "100%" }} />
-              ))}
+              {sandbox.map(e => tile(e, ACCENT[e.accent], { width: "100%" }))}
             </div>
           )}
         </div>
@@ -866,7 +907,7 @@ function ShelfHead({ icon, title, reason, accent, action }: {
    Pointer-drag is an enhancement; explicit Play + Skip buttons and a position
    counter keep every game reachable without dragging, and it honours
    prefers-reduced-motion (instant swap, no fly-out). ─────────────────────── */
-function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) => void }) {
+function TrendingDeck({ games, launch, fav }: { games: Entry[]; launch: (e: Entry) => void; fav: Fav }) {
   const [idx, setIdx] = useState(0)
   const [dx, setDx] = useState(0)
   const startX = useRef(0)
@@ -970,6 +1011,7 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
             if (horizontal && (Math.abs(dx) > 60 || flick)) commit((flick ? last.current.v : dx) > 0 ? 1 : -1); else setDx(0)
           }}
           onPointerCancel={() => { dragging.current = false; axis.current = null; setDx(0) }}
+          className="fav-host"
           style={{
             position: "absolute", left: 0, right: 0, top: 0, height: CARD_H, borderRadius: 18, overflow: "hidden", touchAction: "pan-y", cursor: "grab",
             background: T.surface, border: `1px solid ${tint(accent, 0.5)}`,
@@ -978,6 +1020,8 @@ function TrendingDeck({ games, launch }: { games: Entry[]; launch: (e: Entry) =>
             transition: dragging.current || instant ? "none" : "transform 0.22s cubic-bezier(0.2,0.7,0.2,1)",
           }}>
           {face(top, accent)}
+          {/* The poster's top-right corner (it sits 12px in; 9px more, like the Trending pill) */}
+          <FavoriteStar on={fav.on(top.id)} title={top.title} onToggle={el => fav.toggle(top.id, el)} style={{ top: 21, right: 21 }} />
           {/* Actions */}
           <div style={{ position: "absolute", left: 16, right: 16, bottom: 14, display: "flex", alignItems: "center", gap: 10 }}>
             <button onClick={() => launch(top)} onPointerDown={e => e.stopPropagation()}

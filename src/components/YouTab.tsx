@@ -21,7 +21,8 @@ import { bestsList, statsOf } from "../profile/stats"
 import { demoProfile } from "../profile/demo"
 import { demoOn, leaveDemo } from "../profile/link"
 
-/* The You tab: your profile first (./YouProfile.tsx), then one calm "Your
+/* The You tab: your profile first (./YouProfile.tsx), then Friends (signed
+   in, once friends are available: ./Friends.tsx), then one calm "Your
    progress" list (World mastery, Trophy shelf, Daily log, best scores,
    activity, the Collection tools and Gacha), a slim sign-in row while signed
    out (nothing once signed in: the sync status is in Settings), Find a player
@@ -29,6 +30,7 @@ import { demoOn, leaveDemo } from "../profile/link"
    ?demo=1 the sample profile "Bob" shows first, labelled, and read-only. */
 
 const FindPlayer = lazy(() => import("./FindPlayer"))
+const FriendsSection = lazy(() => import("./Friends"))
 const AccountCard = lazy(() => import("./AccountCard"))
 
 const FEEDBACK_HREF = "mailto:sjoudrie@gmail.com?subject=" + encodeURIComponent("Globalio feedback") +
@@ -272,6 +274,13 @@ export default function YouTab({ state, onNavigate, onSetName, onOpenPlayer }: {
   const demoView = useMemo(() => (demo ? demoData() : null), [demo])
   const stats = statsOf(snap)
   const unlocks = unlocksOf(snap)
+  const openFind = () => {
+    setFindOpen(true)
+    window.requestAnimationFrame(() => {
+      document.getElementById("you-find-card")?.scrollIntoView({ block: "center" })
+      document.getElementById("player-search")?.focus({ preventScroll: true })
+    })
+  }
   const openSignIn = () => {
     setSignInOpen(true)
     window.requestAnimationFrame(() => document.getElementById("pf-signin")?.scrollIntoView({ block: "center" }))
@@ -288,13 +297,17 @@ export default function YouTab({ state, onNavigate, onSetName, onOpenPlayer }: {
         <YouProfile state={state} snap={snap} onSetName={onSetName} onNavigate={onNavigate} onSignIn={openSignIn} />
       )}
 
+      {accounts && publicOn && (
+        <Suspense fallback={null}><FriendsSection onOpen={onOpenPlayer} onFind={openFind} /></Suspense>
+      )}
+
       <Progress state={state} onNavigate={onNavigate} stats={stats} unlocks={unlocks} />
 
       {(accounts || publicOn) && (
         <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           {accounts && <SignInRow open={signInOpen} onToggle={() => setSignInOpen(o => !o)} />}
           {publicOn && (
-            <div style={card}>
+            <div id="you-find-card" style={card}>
               <FoldRow icon="search" title="Find a player" open={findOpen} onToggle={() => setFindOpen(o => !o)} id="you-find">
                 <div style={{ marginLeft: -30 }}>
                   <Suspense fallback={<Loading text="Loading search…" />}><FindPlayer onOpen={onOpenPlayer} /></Suspense>

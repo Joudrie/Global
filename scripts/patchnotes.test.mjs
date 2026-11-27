@@ -135,9 +135,10 @@ test('an entry links to a game only when its title names exactly one', () => {
 })
 
 test('patch notes open from Today, Settings and ?play=patchnotes, and are not a game', () => {
-  assert.equal(CHANGELOG[0].title, 'Patch notes in the app')
-  assert.equal(CHANGELOG[0].date, '2026-11-27')
-  assert.equal(CHANGELOG[0].items.length, 1)
+  const entry = CHANGELOG.find(e => e.title === 'Patch notes in the app')
+  assert.ok(entry, 'the feature has its own changelog entry')
+  assert.equal(entry.date, '2026-11-27')
+  assert.equal(entry.items.length, 1)
   assert.ok(!REGISTRY.some(r => r.id === 'patchnotes'), 'not in the registry, so not in GAMES, GAME_COUNT or the game counts')
   assert.ok(!GAMES.some(r => r.id === 'patchnotes'))
   const app = read('src/App.tsx')

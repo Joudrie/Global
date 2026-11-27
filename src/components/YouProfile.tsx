@@ -166,7 +166,7 @@ function UsernameSection({ svc, signedIn, ready, onSignIn }: { svc: Svc | null; 
       }}>Public profile: anyone can find you by username</Switch>
       <Note>{mine.isPublic
         ? "Shown to anyone: your username, picture, banner, bio, badges, stats and the designs you choose. Never your email."
-        : "Private: only you can see your profile. Nobody can find it or open its link."}</Note>
+        : "Private: only you and your friends can see your profile. Nobody else can find it or open its link."}</Note>
       {mine.hidden && <Note color={T.danger}>Your profile has been hidden by Globalio, so nobody else can see it. Email sjoudrie@gmail.com if you think that’s a mistake.</Note>}
       {p.note && <Note color={T.danger}>{p.note}</Note>}
       {error && <div role="alert"><Note color={T.danger}>{error}</Note></div>}

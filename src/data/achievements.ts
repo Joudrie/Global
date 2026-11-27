@@ -77,9 +77,10 @@ export const ACHIEVEMENTS: Achievement[] = [
   { id: "realorbot-10", title: "Bot spotter", how: "Call 10 flags right in a row in Real or Bot.", icon: "realorbot", game: "realorbot", group: "Real or Bot", check: f => f.best("realorbot") >= 10 },
   { id: "realorbot-25", title: "Real or Bot Master", how: "Call 25 flags right in a row in Real or Bot.", icon: "trophy", game: "realorbot", group: "Real or Bot", check: f => f.best("realorbot") >= 25 },
 
-  // Cities Abroad (wins reported by the game)
-  { id: "citiesabroad-win", title: "Well travelled", how: "Win a game of Cities Abroad (10 right).", icon: "citiesabroad", game: "citiesabroad", group: "Cities Abroad" },
-  { id: "citiesabroad-hard", title: "Cities Abroad Master", how: "Win a game of Cities Abroad on Hard.", icon: "trophy", game: "citiesabroad", group: "Cities Abroad" },
+  // Abroad's Cities switch, once its own game Cities Abroad (wins reported by
+  // the game; the ids keep the old name so unlocks stay unlocked)
+  { id: "citiesabroad-win", title: "Well travelled", how: "Win a game of Abroad on Cities (10 right).", icon: "citiesabroad", game: "abroad", group: "Abroad" },
+  { id: "citiesabroad-hard", title: "Cities Abroad Master", how: "Win a game of Abroad on Cities, on Hard.", icon: "trophy", game: "abroad", group: "Abroad" },
 
   // Flag Fusion: 2,000 points is a perfect game
   { id: "flagfusion-first", title: "First fusion", how: "Finish a game of Flag Fusion.", icon: "flagfusion", game: "flagfusion", group: "Flag Fusion", check: f => f.best("flagfusion") > 0 },

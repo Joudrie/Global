@@ -15,6 +15,8 @@ import type { PublicRow } from "../profile/public"
 import { profileOf, PROFILE_EVENT } from "../profile/local"
 import { ACHIEVEMENTS_EVENT } from "../profile/achievements"
 import { canonical } from "../utils/mergeProgress"
+import { FriendsStore, FriendError, FRIENDS_OFF, FRIEND_MESSAGE, supabaseFriends } from "../profile/friends"
+import type { FriendsState } from "../profile/friends"
 
 export interface AccountView {
   /** The stored session has been checked. */
@@ -27,6 +29,9 @@ export interface AccountView {
   badge: string | null
   /** The public profile (only looked up while profiles are shown, see src/accounts.ts). */
   profile: ProfileState
+  /** Friends and friend requests (src/profile/friends.ts); "unavailable"
+   *  until the owner has run supabase/friends-setup.sql. */
+  friends: FriendsState
 }
 
 export interface ProfileState {
@@ -47,7 +52,7 @@ const TICK_MS = 2000
 let client: SupabaseClient | null = null
 let engine: SyncEngine | null = null
 let uid: string | null = null
-let view: AccountView = { ready: false, email: null, signedIn: false, status: "idle", lastSynced: null, supporter: false, badge: null, profile: PROFILE_OFF }
+let view: AccountView = { ready: false, email: null, signedIn: false, status: "idle", lastSynced: null, supporter: false, badge: null, profile: PROFILE_OFF, friends: FRIENDS_OFF }
 const listeners = new Set<() => void>()
 
 function publish(patch: Partial<AccountView>) {
@@ -145,8 +150,8 @@ function stopEngine() {
 function applySession(session: Session | null) {
   const id = session?.user?.id ?? null
   if (!id) {
-    stopEngine(); uid = null
-    publish({ ready: true, signedIn: false, email: null, status: "idle", lastSynced: null, supporter: false, badge: null, profile: PROFILE_OFF })
+    stopEngine(); uid = null; friends = null
+    publish({ ready: true, signedIn: false, email: null, status: "idle", lastSynced: null, supporter: false, badge: null, profile: PROFILE_OFF, friends: FRIENDS_OFF })
     return
   }
   publish({ ready: true, signedIn: true, email: session?.user?.email ?? null })
@@ -172,6 +177,7 @@ function applySession(session: Session | null) {
   wire(e)
   void e.start()
   void refreshProfile()
+  startFriends()
 }
 
 let started: Promise<void> | null = null
@@ -336,6 +342,65 @@ async function lookup<T>(fn: () => Promise<T>): Promise<Lookup<T>> {
 export const findPlayers = (prefix: string) => lookup<PlayerCard[]>(() => searchPlayers(backend(), prefix))
 /** One public profile, or null when there's no public profile by that name. */
 export const getPlayer = (username: string) => lookup<PlayerProfile | null>(() => viewPlayer(backend(), username))
+
+// ── Friends ─────────────────────────────────────────────────────────────────
+
+let friends: FriendsStore | null = null
+
+/** A fresh friends store for the signed-in player. At start only the requests
+ *  load (one small call: it also tells whether friends exist yet, and feeds
+ *  the count on the profile button); the list loads when the You tab or a
+ *  profile is opened. */
+function startFriends() {
+  if (!uid || !profilesVisible()) { friends = null; publish({ friends: FRIENDS_OFF }); return }
+  const store = new FriendsStore(supabaseFriends(client!), s => { if (friends === store) publish({ friends: s }) })
+  friends = store
+  publish({ friends: store.state })
+  void store.refresh({ list: false })
+}
+
+/** Load friends and requests (with maxAge: only if older than that, in ms). */
+export async function refreshFriends(opts: { list?: boolean; maxAge?: number } = {}): Promise<void> {
+  await start()
+  await friends?.refresh(opts)
+}
+
+/** Ask a player to be friends (accepts instead if they asked you). An error message, or null. */
+export async function sendFriendRequest(card: PlayerCard): Promise<string | null> {
+  await start()
+  return friends ? friends.send(card) : FRIEND_MESSAGE.signed_out
+}
+
+/** Accept or decline a player's request. An error message, or null. */
+export async function respondFriendRequest(username: string, accept: boolean): Promise<string | null> {
+  await start()
+  return friends ? friends.respond(username, accept) : FRIEND_MESSAGE.signed_out
+}
+
+/** Unfriend, cancel your request, or decline theirs. An error message, or null. */
+export async function removeFriend(username: string): Promise<string | null> {
+  await start()
+  return friends ? friends.remove(username) : FRIEND_MESSAGE.signed_out
+}
+
+/** A friend's profile, even a private one; null if they aren't a friend. */
+export async function getFriend(username: string): Promise<Lookup<PlayerProfile | null>> {
+  try {
+    await start()
+    if (!uid || !friends) return { ok: true, value: null }
+    return { ok: true, value: await supabaseFriends(client!).profile(username) }
+  } catch (e) {
+    const err = e instanceof FriendError ? e : new FriendError("offline")
+    return { ok: false, kind: err.kind === "unavailable" ? "unavailable" : err.kind === "offline" ? "offline" : "error", message: err.message }
+  }
+}
+
+if (typeof document !== "undefined") {
+  // Coming back to the app: catch up on requests (and the list, once loaded).
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "visible" && friends) void friends.refresh({ list: friends.state.friends != null, maxAge: 60_000 })
+  })
+}
 
 // ── Sign-in and the account itself ──────────────────────────────────────────
 

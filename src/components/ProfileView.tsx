@@ -600,8 +600,9 @@ function jumpTo(section: HTMLElement | null, headingId: string) {
 
 /** One profile, with its sheets (badge detail, pin picker, all flags).
  *  `own` adds the edit controls; without it, read-only. `tools` sit on the
- *  banner (save card; share link on someone else's). */
-export default function ProfileView({ data, own, tools }: { data: ProfileData; own?: OwnControls; tools: ReactNode }) {
+ *  banner (save card; share link on someone else's). `extra` goes under the
+ *  name and counts (on a friend's profile: the friend button and You vs them). */
+export default function ProfileView({ data, own, tools, extra }: { data: ProfileData; own?: OwnControls; tools: ReactNode; extra?: ReactNode }) {
   const [badge, setBadge] = useState<string | null>(null)
   const [picking, setPicking] = useState(false)
   const [flags, setFlags] = useState(false)
@@ -636,6 +637,8 @@ export default function ProfileView({ data, own, tools }: { data: ProfileData; o
           <Streak data={data} />
         </div>
       </div>
+
+      {extra}
 
       <div ref={flagsRef} style={{ scrollMarginTop: 8 }}>
         <SectionHead id={`${key}-flags`} title="Published flags" count={data.designs.length ? String(data.designs.length) : undefined}

@@ -103,7 +103,8 @@ const asMine = (row: Record<string, unknown> | null): MyProfile | null =>
 const text = (v: unknown, max: number) => (typeof v === "string" ? v.slice(0, max) : "")
 const USERNAME_SHAPE = /^[A-Za-z0-9_]{3,20}$/
 
-function asCard(row: unknown): PlayerCard | null {
+/** A player's card as read from the server (anything malformed is dropped). */
+export function asCard(row: unknown): PlayerCard | null {
   if (!row || typeof row !== "object") return null
   const r = row as Record<string, unknown>
   if (typeof r.username !== "string" || !USERNAME_SHAPE.test(r.username)) return null
@@ -111,7 +112,8 @@ function asCard(row: unknown): PlayerCard | null {
   return { username: r.username, picture: readPicture(r.picture), badge }
 }
 
-function asPlayer(row: unknown): PlayerProfile | null {
+/** A player's profile as read from the server: every field checked. */
+export function asPlayer(row: unknown): PlayerProfile | null {
   const card = asCard(row)
   if (!card) return null
   const r = row as Record<string, unknown>
