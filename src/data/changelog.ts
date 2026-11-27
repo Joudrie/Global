@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flag Bracket: mix any continents and Codex sections",
+    items: [
+      "Flag Bracket: pick any mix of continents, so Asia and Europe can share one bracket while the rest sit out.",
+      "A new More flags drop-down adds any Codex section to the mix: Pride, Separatist & Autonomous, Micronations, former states, American cities, US states, provinces and more. Each set gets an even share of the bracket.",
+      "Bracket sizes the pool can't fill are greyed out, and your last mix is remembered.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Flashcards for every section of the Codex",
     items: [
       "Flashcards has a new Codex tab with a deck for every Codex section: Pride, Separatist & Autonomous, Civic & Ideological, Micronations, Extinct & Former States, American Cities, International Organizations, Signal flags, Peoples & Cultures, and 50 random flags from the Mega Codex.",
