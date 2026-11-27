@@ -8,7 +8,7 @@ import type { MegaFlag } from '../data/megaCodex'
 import type { CountryArms } from '../data/coatsOfArms'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
 import { normName, matchNames } from '../utils/pickOnEnter'
-import { commonsSource } from '../utils/commons'
+import { commonsSource, commonsThumb } from '../utils/commons'
 import { ScreenHeader } from './ui'
 import AdBox from './AdBox'
 import { AD_SLOTS } from '../ads'
@@ -588,9 +588,9 @@ function galleryIcon(name: string): IconType {
   if (n.includes('historic')) return Castle
   return Users
 }
-// Commons full-size SVGs can be megabytes; FilePath ?width= renders a light
-// raster. row.file is always a ready URL (resolved by each section via fp()).
-const galleryThumb = (u: string) => (u.includes('Special:FilePath') && !u.includes('?') ? `${u}?width=240` : u)
+// A light raster for Commons hotlinks (utils/commons.ts). row.file is always a
+// ready URL (resolved by each section via fp()).
+const galleryThumb = (u: string) => commonsThumb(u)
 
 // One flag row — thumbnail, name; tap to reveal a description if it has one.
 // Open state is owned by the parent section so only one row shows at a time.
