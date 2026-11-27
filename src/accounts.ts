@@ -24,11 +24,15 @@ export const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_lNr6wne3XmTURc5MBVKJyw_T
  *  Platform → Clients). Public by design. Google's own sign-in button uses it
  *  in the page, so Google's screen names globalio.app (not the Supabase
  *  address) and no client secret is involved. Empty = only the redirect flow. */
-/** Offer "Email me a sign-in link". Off until the project has its own email
- *  sender (Supabase → Authentication → Emails → SMTP Settings): Supabase's
- *  built-in sender only emails the project's own team, so players would get
- *  an error. Google sign-in works without it. */
-export const EMAIL_SIGNIN = false
+/** Offer "Email me a sign-in link". On since 2026-11-27: the project sends
+ *  through Resend (Supabase → Authentication → Emails → SMTP Settings) from
+ *  noreply@globalio.app, verified for globalio.app. */
+export const EMAIL_SIGNIN = true
+
+/** Offer "Or enter the code from the email". Only works when the Supabase
+ *  email templates (Magic Link and Confirm signup) include {{ .Token }}; the
+ *  current ones carry just the link, so the box stays hidden. */
+export const EMAIL_CODE = false
 
 export const GOOGLE_CLIENT_ID = "321526074184-hae4hb7101k8l64958bb1ur04422628j.apps.googleusercontent.com"
 
