@@ -59,7 +59,7 @@ export function accountsVisible(): boolean {
  *  Off until the owner has run supabase/profiles-setup.sql. Until then they
  *  show only on a device that opened the site with ?profiles=1 (it remembers;
  *  ?profiles=0 forgets), the way accounts were tried before they went live. */
-export const PROFILES_LIVE = false
+export const PROFILES_LIVE = true
 const PROFILES_PREVIEW_KEY = "globalio_account_profiles_preview"
 
 /** Whether to show the public parts of profiles on this device. */

@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Profiles: find a friend by username",
+    items: [
+      "Signed in? Claim a username on the You tab and your profile becomes public: anyone can look it up with Find a player or open it from a link like globalio.app/?u=yourname. Only your username, picture, banner, bio, badges, stats and the Flag Studio designs you choose are shown, never your email.",
+      "Turn off Public profile at any time to keep it to yourself. There are no followers, messages or comments: just your stats, and a card you can save, for a friend's profile too.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Fixes",
     items: [
       "Edit profile stays where you are: picking a picture, banner or design no longer jumps you back to your designs, and the keyboard no longer closes while you type.",

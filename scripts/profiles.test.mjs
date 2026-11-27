@@ -420,16 +420,11 @@ test('before the SQL is run: a quiet "Profiles aren’t available yet"', async (
 
 // ── The switch and the SQL ──────────────────────────────────────────────────
 
-test('public profiles are off until switched on; ?profiles=1 shows them on one device', () => {
-  assert.equal(A.PROFILES_LIVE, false, 'switch on only after the owner has run supabase/profiles-setup.sql')
-  const run = search => { globalThis.window = { location: { search } }; return A.profilesVisible() }
+test('public profiles are live (switched on 2026-11-27 after the owner ran supabase/profiles-setup.sql)', () => {
+  assert.equal(A.PROFILES_LIVE, true)
+  globalThis.window = { location: { search: '' } }
   globalThis.localStorage = new MemoryStorage()
-  assert.equal(run(''), false)
-  assert.equal(run('?profiles=1'), true)
-  assert.equal(run(''), true, 'remembered')
-  assert.ok(A.isAccountKey([...globalThis.localStorage.m.keys()][0]), 'the preview key is an account key: never synced or backed up')
-  assert.equal(run('?profiles=0'), false)
-  assert.equal(run(''), false)
+  assert.equal(A.profilesVisible(), true, 'shown to everyone, no ?profiles=1 needed')
   delete globalThis.window
 })
 
