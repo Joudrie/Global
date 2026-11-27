@@ -43,7 +43,9 @@ elimination.
   - Lebanon and Libya are skipped (no official arms in Wikipedia's infobox);
     Canada and France were chosen by hand. Recheck when their infoboxes change.
   - Later: subdivisions (states, provinces) and royal houses.
-  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms).
+  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms),
+    and a Flashcards deck (Flashcards → Codex; `scripts/bundle.test.mjs` lets
+    `arms` off the "every Codex section is a deck" rule until then).
     Flags stay front and center: the arms are a side door, not the main menu.
 - "Peoples & Cultures" fun-fact pool currently has **32** entries (only flags
   with a written `note` show). Expanding it means writing more cultural facts in
