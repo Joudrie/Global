@@ -1,4 +1,5 @@
-import { useState, useRef, useCallback, useEffect } from "react"
+import { useState, useRef } from "react"
+import { Eraser } from "lucide-react"
 import { PUZZLES } from "../data/buildFlagPuzzles"
 import type { BuildPuzzle, Piece } from "../data/buildFlagPuzzles"
 import { T, ACCENT, tint } from "../ui/tokens"
@@ -10,49 +11,65 @@ const ACC = ACCENT.play
 
 interface Props { onBack: () => void }
 
-interface DragState {
-  pieceId: string
-  x: number
-  y: number
-}
-
 const FLAG_W = 270
 const FLAG_H = 170
 
+// The palette's eraser: pick it (or drag it) onto a part of the flag to empty it.
+const CLEAR = "clear"
+
+// What each part of the flag is called, for the labels under it and screen readers.
+const SLOT_NAME: Record<string, string> = {
+  left: "Left", center: "Centre", right: "Right",
+  top: "Top", middle: "Middle", bottom: "Bottom", upper: "Upper middle", lower: "Lower middle",
+  bg: "Background", disc: "Disc", star: "Star",
+}
+const slotName = (s: string) => SLOT_NAME[s] ?? s
+
 // A slot is correct if the COLOUR placed matches the colour the solution wants —
-// not the specific piece id. (Latvia is maroon-white-maroon: the two maroon
-// pieces are interchangeable, so comparing ids would mark a valid build wrong.)
+// not the specific piece id (Latvia's two maroon bands are the same colour).
 const colorOfPiece = (puzzle: BuildPuzzle, pieceId?: string) =>
   puzzle.pieces.find(p => p.id === pieceId)?.color
 const slotIsCorrect = (puzzle: BuildPuzzle, placed: Record<string, string>, slotId: string) =>
   !!placed[slotId] && colorOfPiece(puzzle, placed[slotId]) === colorOfPiece(puzzle, puzzle.solution[slotId])
 
+// The part of the flag under a point (the star sits inside the background,
+// so this asks the page what's on top rather than comparing boxes).
+const slotAt = (x: number, y: number): string | null => {
+  const el = document.elementFromPoint(x, y) as HTMLElement | null
+  return el?.closest<HTMLElement>("[data-slot]")?.dataset.slot ?? null
+}
+
 // ── Flag canvas renderer ─────────────────────────────────────────────────────
-function FlagCanvas({
-  puzzle, placed, phase, slotRefs,
-  onSlotClick,
-}: {
+function FlagCanvas({ puzzle, placed, phase, over, onSlotClick }: {
   puzzle: BuildPuzzle
   placed: Record<string, string>
   phase: 'playing' | 'result'
-  slotRefs: React.MutableRefObject<Record<string, HTMLDivElement | null>>
+  over?: string | null            // the part a dragged colour would land on
   onSlotClick: (slotId: string) => void
 }) {
   const getPiece = (slotId: string): Piece | undefined =>
     puzzle.pieces.find(p => p.id === placed[slotId])
 
+  // Every part is a button: tap (or Enter) paints it with the picked colour.
+  const slotProps = (slotId: string) => phase === 'playing' ? {
+    'data-slot': slotId,
+    role: 'button',
+    tabIndex: 0,
+    'aria-label': `${slotName(slotId)}: ${getPiece(slotId)?.label ?? 'empty'}`,
+    onKeyDown: (e: React.KeyboardEvent) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); onSlotClick(slotId) } },
+  } : {}
+
+  const border = (slotId: string, dashedWhenEmpty = true) => {
+    if (phase === 'result') return slotIsCorrect(puzzle, placed, slotId) ? `2.5px solid ${T.green}` : `2.5px solid ${T.danger}`
+    if (over === slotId) return `3px solid ${ACC}`
+    return !placed[slotId] && dashedWhenEmpty ? `2px dashed ${tint(ACC, 0.4)}` : `2px solid ${tint(ACC, 0.55)}`
+  }
+
   const slotStyle = (slotId: string): React.CSSProperties => {
     const piece = getPiece(slotId)
-    const isCorrect = phase === 'result' && slotIsCorrect(puzzle, placed, slotId)
-    const isWrong   = phase === 'result' && !!placed[slotId] && !slotIsCorrect(puzzle, placed, slotId)
-    const isEmpty   = !placed[slotId]
     return {
       background: piece ? piece.color : tint(ACC, 0.08),
-      border: phase === 'playing'
-        ? isEmpty ? `2px dashed ${tint(ACC, 0.4)}` : `2px solid ${tint(ACC, 0.55)}`
-        : isCorrect ? `2.5px solid ${T.green}`
-        : isWrong   ? `2.5px solid ${T.danger}`
-        : `2px dashed ${tint(ACC, 0.25)}`,
+      border: border(slotId),
       cursor: phase === 'playing' ? 'pointer' : 'default',
       transition: 'background 0.2s',
       position: 'relative',
@@ -60,21 +77,23 @@ function FlagCanvas({
     }
   }
 
-  const resultOverlay = (slotId: string) => {
+  const mark = (slotId: string, size = 18) => {
     if (phase !== 'result') return null
-    if (!placed[slotId]) return <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, color: T.danger }}>✗</span>
     const ok = slotIsCorrect(puzzle, placed, slotId)
-    return <span style={{ position:'absolute', inset:0, display:'flex', alignItems:'center', justifyContent:'center', fontSize:18, color: ok ? T.green : T.danger }}>{ok ? '✓' : '✗'}</span>
+    return <span style={{ fontSize: size, fontWeight: 800, color: ok ? T.green : T.danger }}>{ok ? '✓' : '✗'}</span>
   }
+  const centredMark = (slotId: string) => phase === 'result'
+    ? <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{mark(slotId)}</span>
+    : null
 
-  if (puzzle.layout === 'v3') {
+  const frame: React.CSSProperties = { width: FLAG_W, height: FLAG_H, borderRadius: 8, overflow: 'hidden', boxShadow: `0 8px 24px -10px ${tint(T.text, 0.45)}` }
+
+  if (puzzle.layout === 'v3' || puzzle.layout === 'v2') {
     return (
-      <div style={{ display:'flex', width:FLAG_W, height:FLAG_H, borderRadius:8, overflow:'hidden', boxShadow:`0 8px 24px -10px ${tint(T.text, 0.45)}` }}>
+      <div style={{ ...frame, display: 'flex' }}>
         {puzzle.slots.map(s => (
-          <div key={s} ref={el => { slotRefs.current[s] = el }}
-            style={{ ...slotStyle(s), flex:1, height:'100%' }}
-            onClick={() => onSlotClick(s)}>
-            {resultOverlay(s)}
+          <div key={s} {...slotProps(s)} style={{ ...slotStyle(s), flex: 1, height: '100%' }} onClick={() => onSlotClick(s)}>
+            {centredMark(s)}
           </div>
         ))}
       </div>
@@ -83,91 +102,44 @@ function FlagCanvas({
 
   if (puzzle.layout === 'h3' || puzzle.layout === 'h2' || puzzle.layout === 'h4') {
     return (
-      <div style={{ display:'flex', flexDirection:'column', width:FLAG_W, height:FLAG_H, borderRadius:8, overflow:'hidden', boxShadow:`0 8px 24px -10px ${tint(T.text, 0.45)}` }}>
+      <div style={{ ...frame, display: 'flex', flexDirection: 'column' }}>
         {puzzle.slots.map(s => (
-          <div key={s} ref={el => { slotRefs.current[s] = el }}
-            style={{ ...slotStyle(s), flex:1, width:'100%' }}
-            onClick={() => onSlotClick(s)}>
-            {resultOverlay(s)}
+          <div key={s} {...slotProps(s)} style={{ ...slotStyle(s), flex: 1, width: '100%' }} onClick={() => onSlotClick(s)}>
+            {centredMark(s)}
           </div>
         ))}
       </div>
     )
   }
 
-  if (puzzle.layout === 'star') {
-    const bg   = getPiece('bg')
-    const star = getPiece('star')
-    const bgOk   = phase === 'result' && slotIsCorrect(puzzle, placed, 'bg')
-    const starOk = phase === 'result' && slotIsCorrect(puzzle, placed, 'star')
+  if (puzzle.layout === 'star' || puzzle.layout === 'disc') {
+    const inner = puzzle.layout
+    const bg = getPiece('bg')
+    const fg = getPiece(inner)
     const STAR_CLIP = 'polygon(50% 0%,61% 35%,98% 35%,68% 57%,79% 91%,50% 70%,21% 91%,32% 57%,2% 35%,39% 35%)'
     return (
-      <div ref={el => { slotRefs.current['bg'] = el }}
-        onClick={() => onSlotClick('bg')}
+      <div {...slotProps('bg')} onClick={() => onSlotClick('bg')}
         style={{
-          width: FLAG_W, height: FLAG_H, borderRadius: 8,
-          background: bg ? bg.color : tint(ACC, 0.08),
-          border: phase === 'playing' ? `2px dashed ${tint(ACC, 0.4)}` : bgOk ? `2.5px solid ${T.green}` : `2.5px solid ${T.danger}`,
-          position: 'relative', cursor: 'pointer', overflow: 'hidden',
-          boxShadow: `0 8px 24px -10px ${tint(T.text, 0.45)}`,
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          ...frame, background: bg ? bg.color : tint(ACC, 0.08), border: border('bg'),
+          position: 'relative', cursor: phase === 'playing' ? 'pointer' : 'default',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', boxSizing: 'border-box',
         }}>
-        {/* Star slot */}
-        <div ref={el => { slotRefs.current['star'] = el }}
-          onClick={e => { e.stopPropagation(); onSlotClick('star') }}
-          style={{
-            width: 86, height: 86,
-            clipPath: STAR_CLIP, WebkitClipPath: STAR_CLIP,
-            background: star ? star.color : tint(ACC, 0.25),
-            cursor: 'pointer',
+        <div {...slotProps(inner)} onClick={e => { e.stopPropagation(); onSlotClick(inner) }}
+          style={inner === 'star' ? {
+            width: 86, height: 86, clipPath: STAR_CLIP, WebkitClipPath: STAR_CLIP,
+            // A clipped shape can't show a border, so the star brightens while a colour hovers it.
+            background: fg ? fg.color : tint(ACC, over === 'star' ? 0.5 : 0.25),
+            cursor: phase === 'playing' ? 'pointer' : 'default',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+          } : {
+            width: 80, height: 80, borderRadius: '50%', boxSizing: 'border-box',
+            background: fg ? fg.color : tint(ACC, 0.12), border: border('disc'),
+            cursor: phase === 'playing' ? 'pointer' : 'default',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
           }}>
-          {phase === 'result' && <span style={{ fontSize: 16, color: starOk ? T.green : T.danger, fontWeight: 800 }}>{starOk ? '✓' : '✗'}</span>}
+          {mark(inner, inner === 'star' ? 16 : 20)}
         </div>
-        {phase === 'result' && (
-          <div style={{ position:'absolute', top:4, right:6, fontSize:16, color: bgOk ? T.green : T.danger }}>
-            {bgOk ? '✓' : '✗'}
-          </div>
-        )}
-      </div>
-    )
-  }
-
-  if (puzzle.layout === 'disc') {
-    const bg   = getPiece('bg')
-    const disc = getPiece('disc')
-    const bgOk   = phase === 'result' && slotIsCorrect(puzzle, placed, 'bg')
-    const discOk = phase === 'result' && slotIsCorrect(puzzle, placed, 'disc')
-    return (
-      <div ref={el => { slotRefs.current['bg'] = el }}
-        onClick={() => onSlotClick('bg')}
-        style={{
-          width: FLAG_W, height: FLAG_H, borderRadius: 8,
-          background: bg ? bg.color : tint(ACC, 0.08),
-          border: phase === 'playing' ? `2px dashed ${tint(ACC, 0.4)}` : bgOk ? `2.5px solid ${T.green}` : `2.5px solid ${T.danger}`,
-          position: 'relative', cursor: 'pointer', overflow: 'hidden',
-          boxShadow: `0 8px 24px -10px ${tint(T.text, 0.45)}`,
-        }}>
-        {/* Disc slot */}
-        <div ref={el => { slotRefs.current['disc'] = el }}
-          onClick={e => { e.stopPropagation(); onSlotClick('disc') }}
-          style={{
-            position: 'absolute',
-            left: '50%', top: '50%',
-            transform: 'translate(-50%,-50%)',
-            width: 80, height: 80, borderRadius: '50%',
-            background: disc ? disc.color : tint(ACC, 0.12),
-            border: phase === 'playing' ? `2px dashed ${tint(ACC, 0.4)}` : discOk ? `2.5px solid ${T.green}` : `2.5px solid ${T.danger}`,
-            cursor: 'pointer',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-          {phase === 'result' && <span style={{ fontSize:20, color: discOk ? T.green : T.danger }}>{discOk ? '✓' : '✗'}</span>}
-        </div>
-        {phase === 'result' && (
-          <div style={{ position:'absolute', top:4, right:6, fontSize:16, color: bgOk ? T.green : T.danger }}>
-            {bgOk ? '✓' : '✗'}
-          </div>
-        )}
+        {phase === 'result' && <div style={{ position: 'absolute', top: 4, right: 6 }}>{mark('bg', 16)}</div>}
       </div>
     )
   }
@@ -217,99 +189,83 @@ function isLight(hex: string): boolean {
   return 0.299 * r + 0.587 * g + 0.114 * b > 150
 }
 
+// A press only becomes a drag once the finger moves this far, so a tap stays a tap.
+const DRAG_PX = 6
+
 export default function BuildFlagScreen({ onBack }: Props) {
   const [puzzle, setPuzzle]  = useState<BuildPuzzle>(dealPuzzle)
   const [placed, setPlaced]   = useState<Record<string, string>>({})
+  // The picked colour (or CLEAR). It stays picked after painting, since a
+  // colour never runs out: pick red, tap the top, tap the bottom.
   const [selected, setSelected] = useState<string | null>(null)
-  const [dragging, setDragging] = useState<DragState | null>(null)
+  const [ghost, setGhost]     = useState<{ pieceId: string; x: number; y: number } | null>(null)
+  const [over, setOver]       = useState<string | null>(null)
   const [phase, setPhase]     = useState<'playing' | 'result'>('playing')
-  const slotRefs = useRef<Record<string, HTMLDivElement | null>>({})
+  const press = useRef<{ pieceId: string; pointerId: number; x0: number; y0: number; moved: boolean } | null>(null)
+  // A drag ends with a click on the piece it started from; that click mustn't pick it.
+  const skipClick = useRef(false)
 
   const startNewGame = () => {
     setPuzzle(dealPuzzle())
     setPlaced({})
     setSelected(null)
-    setDragging(null)
+    setGhost(null)
+    setOver(null)
     setPhase('playing')
-    slotRefs.current = {}
   }
 
-  const placedPieceIds  = new Set(Object.values(placed))
-  const palette         = puzzle.pieces.filter(p => !placedPieceIds.has(p.id))
-  const allSlotsFilled  = puzzle.slots.every(s => placed[s])
+  const remaining = puzzle.slots.filter(s => !placed[s]).length
+  const allSlotsFilled = remaining === 0
+  const labelOf = (id: string | null) => id === CLEAR ? "Clear" : puzzle.pieces.find(p => p.id === id)?.label ?? ""
 
-  const placePieceInSlot = useCallback((pieceId: string, slotId: string) => {
-    setPlaced(prev => {
-      const next = { ...prev }
-      // Remove piece from any existing slot
-      for (const k of Object.keys(next)) if (next[k] === pieceId) delete next[k]
-      next[slotId] = pieceId
-      return next
-    })
-    setSelected(null)
-  }, [])
+  // Paint one part of the flag. The colour stays in the palette.
+  const paint = (slotId: string, pieceId: string) => setPlaced(prev => {
+    const next = { ...prev }
+    if (pieceId === CLEAR) delete next[slotId]
+    else next[slotId] = pieceId
+    return next
+  })
 
-  const removeFromSlot = useCallback((slotId: string) => {
-    setPlaced(prev => { const n = { ...prev }; delete n[slotId]; return n })
-    setSelected(null)
-  }, [])
-
-  // Tap a placed piece in the palette to take it back off the flag.
-  const removePiece = (pieceId: string) => {
-    if (phase !== 'playing') return
-    setPlaced(prev => { const n = { ...prev }; for (const k of Object.keys(n)) if (n[k] === pieceId) delete n[k]; return n })
-    setSelected(null)
-  }
-
-  // Tap on palette piece
-  const handlePaletteTap = (pieceId: string) => {
-    setSelected(s => s === pieceId ? null : pieceId)
-  }
-
-  // Tap on a slot
+  // Tap a part: paint it with the picked colour, or with nothing picked, empty it.
   const handleSlotClick = (slotId: string) => {
     if (phase !== 'playing') return
-    if (selected) {
-      placePieceInSlot(selected, slotId)
-    } else if (placed[slotId]) {
-      removeFromSlot(slotId)
-    }
+    if (selected) paint(slotId, selected)
+    else if (placed[slotId]) paint(slotId, CLEAR)
   }
 
-  // ── Drag ──────────────────────────────────────────────────────────────────
-  const handlePointerDown = (e: React.PointerEvent, pieceId: string) => {
+  const togglePick = (pieceId: string) => setSelected(s => s === pieceId ? null : pieceId)
+
+  // ── Drag from the palette (pointer events, so mouse, pen and touch alike) ──
+  const onPointerDown = (e: React.PointerEvent, pieceId: string) => {
+    if (e.pointerType === 'mouse' && e.button !== 0) return
     e.preventDefault()
+    skipClick.current = false
     ;(e.currentTarget as Element).setPointerCapture(e.pointerId)
-    // Keep this piece's own selection, so the click that follows can toggle it off.
-    setSelected(s => (s === pieceId ? s : null))
-    setDragging({ pieceId, x: e.clientX, y: e.clientY })
+    press.current = { pieceId, pointerId: e.pointerId, x0: e.clientX, y0: e.clientY, moved: false }
   }
-
-  useEffect(() => {
-    const onMove = (e: PointerEvent) => {
-      if (!dragging) return
-      setDragging(d => d ? { ...d, x: e.clientX, y: e.clientY } : null)
-    }
-    const onUp = (_e: PointerEvent) => {
-      if (!dragging) return
-      const { x, y, pieceId } = dragging
-      for (const [slotId, ref] of Object.entries(slotRefs.current)) {
-        if (!ref) continue
-        const r = ref.getBoundingClientRect()
-        if (x >= r.left && x <= r.right && y >= r.top && y <= r.bottom) {
-          placePieceInSlot(pieceId, slotId)
-          break
-        }
-      }
-      setDragging(null)
-    }
-    window.addEventListener('pointermove', onMove)
-    window.addEventListener('pointerup',   onUp)
-    return () => {
-      window.removeEventListener('pointermove', onMove)
-      window.removeEventListener('pointerup',   onUp)
-    }
-  }, [dragging, placePieceInSlot])
+  const onPointerMove = (e: React.PointerEvent) => {
+    const p = press.current
+    if (!p || p.pointerId !== e.pointerId) return
+    if (!p.moved && Math.hypot(e.clientX - p.x0, e.clientY - p.y0) < DRAG_PX) return
+    p.moved = true
+    setGhost({ pieceId: p.pieceId, x: e.clientX, y: e.clientY })
+    setOver(slotAt(e.clientX, e.clientY))
+  }
+  const onPointerUp = (e: React.PointerEvent) => {
+    const p = press.current
+    if (!p || p.pointerId !== e.pointerId) return
+    press.current = null
+    if (!p.moved) return
+    skipClick.current = true
+    const slot = slotAt(e.clientX, e.clientY)
+    if (slot) paint(slot, p.pieceId)
+    setGhost(null); setOver(null)
+  }
+  const onPointerCancel = () => { press.current = null; setGhost(null); setOver(null) }
+  const onPieceClick = (pieceId: string) => {
+    if (skipClick.current) { skipClick.current = false; return }
+    togglePick(pieceId)
+  }
 
   // ── Result ────────────────────────────────────────────────────────────────
   const correct = puzzle.slots.filter(s => slotIsCorrect(puzzle, placed, s)).length
@@ -326,7 +282,7 @@ export default function BuildFlagScreen({ onBack }: Props) {
 
         <div className="flex flex-col items-center px-5 gap-4 w-full max-w-sm">
           {/* Show their answer */}
-          <FlagCanvas puzzle={puzzle} placed={placed} phase="result" slotRefs={slotRefs} onSlotClick={() => {}} />
+          <FlagCanvas puzzle={puzzle} placed={placed} phase="result" onSlotClick={() => {}} />
 
           {/* Score */}
           <ResultCard style={{ width: "100%" }}>
@@ -351,6 +307,39 @@ export default function BuildFlagScreen({ onBack }: Props) {
   }
 
   // ── Playing ────────────────────────────────────────────────────────────────
+  const swatch = (id: string, piece?: Piece) => {
+    const isSelected = selected === id
+    const eraser = id === CLEAR
+    return (
+      <div key={id}
+        onPointerDown={e => onPointerDown(e, id)} onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp} onPointerCancel={onPointerCancel}
+        onClick={() => onPieceClick(id)}
+        role="button" tabIndex={0} aria-pressed={isSelected}
+        aria-label={eraser ? "Clear: empties the part of the flag you tap" : piece!.label}
+        onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); togglePick(id) } }}
+        style={{
+          width: 64, height: 44, borderRadius: 10, boxSizing: 'border-box',
+          background: eraser ? T.surface : piece!.color,
+          border: isSelected ? `3px solid ${ACC}` : eraser ? `2px dashed ${T.lineHi}` : `2px solid ${T.line}`,
+          cursor: 'grab',
+          touchAction: 'none',
+          transform: isSelected ? 'scale(1.08)' : 'scale(1)',
+          transition: 'transform 0.15s',
+          display: 'flex', flexDirection: eraser ? 'column' : 'row', alignItems: eraser ? 'center' : 'flex-end', justifyContent: 'center',
+          paddingBottom: eraser ? 0 : 4, gap: 2,
+          userSelect: 'none', WebkitUserSelect: 'none',
+        }}>
+        {eraser && <Eraser size={15} strokeWidth={1.8} color={T.muted} aria-hidden />}
+        <span style={{ fontSize: 9, fontWeight: 700, color: eraser ? T.muted : isLight(piece!.color) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.92)' }}>
+          {eraser ? "Clear" : piece!.label}
+        </span>
+      </div>
+    )
+  }
+
+  const ghostPiece = ghost && ghost.pieceId !== CLEAR ? puzzle.pieces.find(p => p.id === ghost.pieceId) : undefined
+
   return (
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
@@ -359,104 +348,67 @@ export default function BuildFlagScreen({ onBack }: Props) {
 
       <div className="flex flex-col items-center gap-6 px-5" style={{ zIndex: 1 }}>
         {/* Instruction */}
-        <p className="text-xs text-center" style={{ color: T.muted }}>
-          {selected
-            ? `"${puzzle.pieces.find(p => p.id === selected)?.label}" selected — tap a slot to place it`
-            : 'Drag pieces onto the flag, or tap a piece then tap a slot'}
+        <p role="status" className="text-xs text-center" style={{ color: T.muted, maxWidth: 340, minHeight: 32 }}>
+          {selected === CLEAR ? "Clear picked: tap a part of the flag to empty it"
+            : selected ? `${labelOf(selected)} picked: tap any part of the flag to paint it. Tap ${labelOf(selected)} again to put it down.`
+            : "Drag a colour onto the flag, or tap a colour, then the flag. Each colour can go in as many places as you like."}
         </p>
 
         {/* Flag canvas */}
-        <FlagCanvas
-          puzzle={puzzle} placed={placed} phase="playing"
-          slotRefs={slotRefs} onSlotClick={handleSlotClick}
-        />
+        <FlagCanvas puzzle={puzzle} placed={placed} phase="playing" over={over} onSlotClick={handleSlotClick} />
 
         {/* Slot labels */}
-        <div className="flex justify-center gap-1" style={{ width: FLAG_W }}>
+        <div className="flex justify-center gap-1" style={{ width: FLAG_W, marginTop: -12 }}>
           {puzzle.slots.map(s => {
             const piece = puzzle.pieces.find(p => p.id === placed[s])
             return (
               <div key={s} className="flex-1 text-center text-xs py-1 rounded"
-                style={{ color: piece ? ACC : T.dim, fontSize: 10 }}>
-                {piece ? piece.label : s}
+                style={{ color: piece ? ACC : T.dim, fontSize: 10, fontWeight: piece ? 700 : 400 }}>
+                {piece ? piece.label : slotName(s)}
               </div>
             )
           })}
         </div>
 
-        {/* Palette */}
+        {/* Palette: every colour once, and it never runs out */}
         <div>
           <div className="text-xs mb-3 text-center font-semibold uppercase tracking-widest"
             style={{ color: T.muted }}>
-            {palette.length > 0 ? "Pieces" : "All pieces placed"}
+            Colours
           </div>
-          <div className="flex flex-wrap gap-3 justify-center">
-            {puzzle.pieces.map(piece => {
-              const isPlaced   = placedPieceIds.has(piece.id)
-              const isSelected = selected === piece.id
-              return (
-                <div key={piece.id}
-                  onPointerDown={isPlaced ? undefined : e => handlePointerDown(e, piece.id)}
-                  onClick={() => isPlaced ? removePiece(piece.id) : handlePaletteTap(piece.id)}
-                  role="button" tabIndex={0} aria-pressed={isSelected}
-                  aria-label={isPlaced ? `${piece.label}, placed: tap to take it back` : piece.label}
-                  onKeyDown={e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); if (isPlaced) removePiece(piece.id); else handlePaletteTap(piece.id) } }}
-                  style={{
-                    width: 64, height: 44, borderRadius: 10,
-                    background: isPlaced ? tint(ACC, 0.08) : piece.color,
-                    border: isSelected ? `3px solid ${ACC}`
-                      : isPlaced       ? `2px dashed ${tint(ACC, 0.25)}`
-                      : `2px solid ${T.line}`,
-                    cursor: isPlaced ? 'pointer' : 'grab',
-                    touchAction: 'none',
-                    opacity: isPlaced ? 0.25 : 1,
-                    transform: isSelected ? 'scale(1.08)' : 'scale(1)',
-                    transition: 'transform 0.15s, opacity 0.2s',
-                    boxShadow: isSelected ? `0 0 12px ${tint(ACC, 0.55)}` : 'none',
-                    display: 'flex', alignItems: 'flex-end', justifyContent: 'center',
-                    paddingBottom: 4,
-                    userSelect: 'none',
-                  }}>
-                  {!isPlaced && (
-                    <span style={{ fontSize: 9, fontWeight: 700, color: isLight(piece.color) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.92)' }}>
-                      {piece.label}
-                    </span>
-                  )}
-                </div>
-              )
-            })}
+          <div className="flex flex-wrap gap-3 justify-center" style={{ maxWidth: 340 }}>
+            {puzzle.pieces.map(piece => swatch(piece.id, piece))}
+            {swatch(CLEAR)}
           </div>
         </div>
 
         {/* Confirm */}
         <PrimaryButton onClick={() => setPhase('result')} disabled={!allSlotsFilled} accent={ACC} style={{ maxWidth: 384 }}>
-          {allSlotsFilled ? "Confirm →" : `Fill all ${total - Object.keys(placed).length} remaining slots`}
+          {allSlotsFilled ? "Confirm →" : remaining === 1 ? "Fill the last slot" : `Fill all ${remaining} remaining slots`}
         </PrimaryButton>
       </div>
 
       {/* Drag ghost */}
-      {dragging && (() => {
-        const piece = puzzle.pieces.find(p => p.id === dragging.pieceId)
-        return piece ? (
-          <div style={{
-            position: 'fixed',
-            left: dragging.x - 32,
-            top:  dragging.y - 22,
-            width: 64, height: 44,
-            background: piece.color,
-            borderRadius: 10,
-            border: '2px solid rgba(255,255,255,0.3)',
-            pointerEvents: 'none',
-            zIndex: 9999,
-            opacity: 0.9,
-            boxShadow: '0 8px 28px rgba(0,0,0,0.5)',
-            transform: 'scale(1.12)',
-            display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 4,
-          }}>
-            <span style={{ fontSize: 9, color: 'rgba(0,0,0,0.45)', fontWeight: 700 }}>{piece.label}</span>
-          </div>
-        ) : null
-      })()}
+      {ghost && (
+        <div aria-hidden style={{
+          position: 'fixed',
+          left: ghost.x - 32,
+          top:  ghost.y - 22,
+          width: 64, height: 44, boxSizing: 'border-box',
+          background: ghostPiece ? ghostPiece.color : T.surface,
+          borderRadius: 10,
+          border: ghostPiece ? `2px solid ${T.line}` : `2px dashed ${T.lineHi}`,
+          pointerEvents: 'none',
+          zIndex: 9999,
+          opacity: 0.92,
+          boxShadow: `0 8px 24px -6px ${tint(T.text, 0.45)}`,
+          display: 'flex', alignItems: 'flex-end', justifyContent: 'center', paddingBottom: 4,
+        }}>
+          <span style={{ fontSize: 9, fontWeight: 700, color: !ghostPiece ? T.muted : isLight(ghostPiece.color) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.92)' }}>
+            {ghostPiece ? ghostPiece.label : "Clear"}
+          </span>
+        </div>
+      )}
     </div>
   )
 }

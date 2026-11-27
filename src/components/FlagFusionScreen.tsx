@@ -8,10 +8,10 @@ import {
   countryName, dealGame, emblemUrl, fusionPoints, fusionSvg, isRight, svgUri,
 } from "../utils/flagFusion"
 import type { Fusion, Part, Tier } from "../utils/flagFusion"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { FlagLoadFailed, PrimaryButton, ResultCard, ResultDots, ResultHeader, SecondaryButton } from "./gameUi"
+import { DidYouMean, FlagLoadFailed, PrimaryButton, ResultCard, ResultDots, ResultHeader, SecondaryButton } from "./gameUi"
 import { GamePoster } from "./GamePoster"
 import FlagImage from "./FlagImage"
 
@@ -376,12 +376,13 @@ function PartBox({ part, box, fusion, over, onPick, onSubmit }:
   const [typed, setTyped] = useState("")
   const [focused, setFocused] = useState(false)
   const [active, setActive] = useState(-1) // the option picked out with the arrow keys
+  const [maybe, setMaybe] = useState<FlagRecord[]>([]) // "Did you mean …?" after Enter on a typo
   const inputRef = useRef<HTMLInputElement>(null)
   const id = `ff-${part}`
   const options = useMemo(() => matchNames(FLAGS.filter(c => !box.tried.includes(c.code)), typed, 5), [typed, box.tried])
   useEffect(() => setActive(-1), [typed])
 
-  const choose = useCallback((c: FlagRecord) => { onPick(c); setTyped(""); setFocused(false); inputRef.current?.blur() }, [onPick])
+  const choose = useCallback((c: FlagRecord) => { onPick(c); setTyped(""); setMaybe([]); setFocused(false); inputRef.current?.blur() }, [onPick])
   const onKey = (e: ReactKeyboardEvent<HTMLInputElement>) => {
     if (e.key === "ArrowDown" && options.length) { e.preventDefault(); setActive(a => (a + 1) % options.length) }
     else if (e.key === "ArrowUp" && options.length) { e.preventDefault(); setActive(a => (a <= 0 ? options.length : a) - 1) }
@@ -394,7 +395,8 @@ function PartBox({ part, box, fusion, over, onPick, onSubmit }:
       // arrow keys picked out.
       const pick = pickOnEnter(options, typed) ?? (active >= 0 ? options[active] : undefined)
       if (pick) choose(pick)
-    } else if (e.key === "Escape") { setTyped(""); setFocused(false) }
+      else if (!options.length) setMaybe(didYouMean(FLAGS, typed).filter(c => !box.tried.includes(c.code)))
+    } else if (e.key === "Escape") { setTyped(""); setMaybe([]); setFocused(false) }
   }
 
   const answer = fusion[part].code
@@ -437,7 +439,7 @@ function PartBox({ part, box, fusion, over, onPick, onSubmit }:
             <input ref={inputRef} id={id} className="ff-input" value={typed} role="combobox"
               aria-label={`${PART_LABEL[part]} country`} aria-expanded={showList} aria-controls={`${id}-list`} aria-autocomplete="list"
               aria-activedescendant={showList && active >= 0 ? `${id}-opt-${active}` : undefined}
-              onChange={e => { setTyped(e.target.value); setFocused(true) }} onFocus={() => setFocused(true)}
+              onChange={e => { setTyped(e.target.value); setMaybe([]); setFocused(true) }} onFocus={() => setFocused(true)}
               onBlur={() => setFocused(false)} onKeyDown={onKey}
               placeholder={FIELD.placeholder} autoComplete={FIELD.autoComplete} autoCorrect={FIELD.autoCorrect}
               autoCapitalize={FIELD.autoCapitalize} spellCheck={FIELD.spellCheck} enterKeyHint={FIELD.enterKeyHint}
@@ -462,6 +464,7 @@ function PartBox({ part, box, fusion, over, onPick, onSubmit }:
           ))}
         </ul>
       )}
+      {state === "open" && !box.pick && <DidYouMean options={maybe} onPick={choose} accent={ACC} style={{ marginLeft: 4 }} />}
       {!over && state === "open" && box.tried.length > 0 && (
         <p style={{ margin: "4px 0 0 4px", fontSize: 12, color: T.muted }}>
           Not {box.tried.map(countryName).join(", not ")}

@@ -6,8 +6,9 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { hasOutline as hasPath, useOutlines } from "./CountryOutline"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton } from "./gameUi"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import type { FlagRecord } from "../data/flags"
 
 interface Props { onBack: () => void }
 
@@ -36,6 +37,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const [misses, setMisses] = useState(0)
   const [flash, setFlash] = useState<null | "ok" | "no" | "dup">(null)
   const [revealed, setRevealed] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const inputRef = useRef<HTMLInputElement>(null)
 
   // Focus the camera on the primary country's bounding box (neighbours spill
@@ -60,7 +62,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   const submit = (code: string) => {
     if (over) return
-    setInput(""); setShowDrop(false)
+    setInput(""); setShowDrop(false); setMaybe([])
     if (targetSet.has(code) && !found.has(code)) {
       setFound(s => new Set(s).add(code))
       setFlash("ok")
@@ -75,8 +77,11 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) submit(pick.code) }
-    if (e.key === "Escape") { setInput(""); setShowDrop(false) }
+    if (e.key === "Enter") {
+      const pick = pickOnEnter(matches, input)
+      if (pick) submit(pick.code); else if (!matches.length) setMaybe(didYouMean(FLAGS, input))
+    }
+    if (e.key === "Escape") { setInput(""); setShowDrop(false); setMaybe([]) }
   }
 
   // What to draw: primary + found (+ remaining in red if revealed).
@@ -148,7 +153,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         {!over && (
           <div style={{ position: "relative" }}>
             <input aria-label="Type a country" ref={inputRef} value={input}
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }} onKeyDown={onKey}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               placeholder="Type a bordering country…" autoComplete="off"
               style={{ width: "100%", padding: "13px 14px", borderRadius: 12, outline: "none", fontWeight: 600, fontSize: 15, fontFamily: FONT.display, background: T.surface, border: `1.5px solid ${T.lineHi}`, color: T.text }} />
@@ -162,6 +167,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={f => submit(f.code)} accent={ACCENT.codex} />
             <button onClick={() => setRevealed(true)} className="geo-micro geo-tap"
               style={{ marginTop: 8, fontSize: 11, color: T.muted, background: "transparent", minHeight: 44 }}>give up · reveal the rest</button>
           </div>

@@ -248,7 +248,7 @@ test('main save: fields this file does not know yet use the fallback', () => {
 // ── every other key ─────────────────────────────────────────────────────────
 
 test('best scores: the higher one, per tier when there are several', () => {
-  for (const key of ['globalio_hl_best', 'globalio_doa_best', 'globalio_realorbot_best', 'globalio_forgery_best', 'globalio_statclash_best', 'globalio_prideroulette_best', 'globalio_prideroulette_best_20']) {
+  for (const key of ['globalio_hl_best', 'globalio_doa_best', 'globalio_realorbot_best', 'globalio_forgery_best', 'globalio_statclash_best', 'globalio_prideroulette_best', 'globalio_prideroulette_best_20', 'globalio_frankenflag_best']) {
     assert.deepEqual(both(key, '4', '11'), ['11', '11'], key)
     assert.equal(ruleFor(key).rule, 'max', key)
   }

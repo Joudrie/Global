@@ -5,11 +5,11 @@ import type { FlagRecord } from '../data/flags'
 import { shuffleWithSeed, seededRandom, todayString } from '../utils/prng'
 import { scorePhrase } from '../utils/quiz'
 import { shareOrCopy } from '../utils/share'
-import { matchNames, pickOnEnter } from '../utils/pickOnEnter'
+import { didYouMean, matchNames, pickOnEnter } from '../utils/pickOnEnter'
 import CountryOutline, { loadOutlines } from './CountryOutline'
 import { T, ACCENT, tint } from '../ui/tokens'
 import { ScreenHeader } from "./ui"
-import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
 
 
 interface Props { onBack: () => void }
@@ -69,10 +69,11 @@ export default function GeoQuizScreen({ onBack }: Props) {
   const [copied, setCopied] = useState(false)
 
   const q = questions[idx]
-  useEffect(() => { setSelected(null); setInput('') }, [idx, seed])
+  useEffect(() => { setSelected(null); setInput(''); setMaybe([]) }, [idx, seed])
 
   const matches = useMemo(() => matchNames(FLAGS, input, 6), [input])
   const [typeHint, setTypeHint] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
 
   const resetGame = () => {
     setSeed(Date.now().toString())
@@ -117,7 +118,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
 
   const handleType = (f: FlagRecord) => {
     if (typedGuess || selected !== null) return
-    setTypedGuess(f); setInput(''); setShowDrop(false)
+    setTypedGuess(f); setInput(''); setShowDrop(false); setMaybe([]); setTypeHint(false)
     advance(f.code === q.target.code)
   }
 
@@ -250,24 +251,27 @@ export default function GeoQuizScreen({ onBack }: Props) {
               <>
                 <input
                   value={input} autoFocus autoComplete="off"
-                  onChange={e => { setInput(e.target.value); setShowDrop(true); setTypeHint(false) }}
+                  onChange={e => { setInput(e.target.value); setShowDrop(true); setTypeHint(false); setMaybe([]) }}
                   onFocus={() => setShowDrop(true)}
                   onBlur={() => setTimeout(() => setShowDrop(false), 150)}
                   onKeyDown={e => {
                     if (e.key !== 'Enter' || !input.trim()) return
                     // An exact name ("Niger", "UK") or the only match; never a guess.
                     const pick = pickOnEnter(matches, input)
-                    if (pick) handleType(pick); else setTypeHint(true)
+                    if (pick) { handleType(pick); return }
+                    setTypeHint(true)
+                    if (!matches.length) setMaybe(didYouMean(FLAGS, input))
                   }}
                   aria-label="Name the country"
                   placeholder="Name the country…"
                   className="w-full px-4 py-3.5 rounded-2xl outline-none font-semibold"
                   style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
-                {typeHint && (
+                {typeHint && !maybe.length && (
                   <p role="status" className="text-xs mt-1.5" style={{ color: T.muted }}>
                     {matches.length ? "Pick one from the list" : "No country matches that"}
                   </p>
                 )}
+                <DidYouMean options={maybe} onPick={handleType} accent={ACC} />
                 {showDrop && matches.length > 0 && (
                   <div className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden z-20"
                     style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 8px 32px ${tint(T.text, 0.18)}` }}>

@@ -4,9 +4,9 @@ import type { FlagRecord } from "../data/flags"
 import { FLAG_ATTRIBS, STRIPES_V } from "../data/flagAttribs"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
 
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -52,6 +52,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const [shown, setShown] = useState(2)         // clue lines revealed
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const [result, setResult] = useState<null | { correct: boolean }>(null)
   const [wrongGuesses, setWrongGuesses] = useState<string[]>([])   // this round's misses, shown so they aren't repeated
   const [scores, setScores] = useState<number[]>([])
@@ -66,7 +67,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
   const submit = (f: FlagRecord) => {
     if (result) return
     const correct = f.code === round.target.code
-    setInput(""); setShowDrop(false)
+    setInput(""); setShowDrop(false); setMaybe([])
     if (correct) {
       const pts = Math.max(100, 600 - (shown - 2) * 100)
       setScores(s => [...s, pts]); setResult({ correct: true })
@@ -147,9 +148,14 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
               <p className="text-xs mb-2" style={{ color: T.danger }}>✗ {wrongGuesses.join(" · ")}</p>
             )}
             <input aria-label="Type a country" value={input} autoFocus autoComplete="off"
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-              onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}
+              onKeyDown={e => {
+                if (e.key !== "Enter") return
+                const pick = pickOnEnter(matches, input)
+                if (pick) submit(pick)
+                else if (!matches.length) setMaybe(didYouMean(FLAGS, input).filter(f => !wrongGuesses.includes(f.name)))
+              }}
               placeholder="Type a country name or code…"
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
               style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
@@ -166,6 +172,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={submit} accent={ACCENT.play} />
           </div>
         )}
       </div>

@@ -4,8 +4,9 @@ import { neighborsOf, countriesWithBorders, bfsDistances, shortestPath } from ".
 import { T, ACCENT, FONT } from "../ui/tokens"
 import FlagImage from "./FlagImage"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton } from "./gameUi"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { HeaderStat, ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton, DidYouMean } from "./gameUi"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import type { FlagRecord } from "../data/flags"
 
 interface Props { onBack: () => void }
 
@@ -36,6 +37,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
   const [err, setErr] = useState<string | null>(null)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const [outcome, setOutcome] = useState<null | "win" | "gaveup">(null)
   const inputRef = useRef<HTMLInputElement>(null)
 
@@ -49,7 +51,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
   const submit = (code: string) => {
     if (outcome) return
-    setInput(""); setShowDrop(false); setErr(null)
+    setInput(""); setShowDrop(false); setErr(null); setMaybe([])
     if (used.has(code)) { setErr(`${NAME(code)} is already in your route.`); return }
     if (!neighborsOf(current).includes(code)) { setErr(`${NAME(code)} doesn't border ${NAME(current)}.`); return }
     const next = [...chain, code]
@@ -59,8 +61,11 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
   }
 
   const onKey = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter" && matches.length >= 1) { const pick = pickOnEnter(matches, input); if (pick) submit(pick.code) }
-    if (e.key === "Escape") { setInput(""); setShowDrop(false) }
+    if (e.key === "Enter") {
+      const pick = pickOnEnter(matches, input)
+      if (pick) submit(pick.code); else if (!matches.length) setMaybe(didYouMean(FLAGS, input))
+    }
+    if (e.key === "Escape") { setInput(""); setShowDrop(false); setMaybe([]) }
   }
 
   const Endpoint = ({ code, label, glow }: { code: string; label: string; glow: string }) => (
@@ -152,7 +157,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
 
         <div style={{ position: "relative", marginTop: "auto" }}>
           <input aria-label="Type a country" ref={inputRef} value={input}
-            onChange={e => { setInput(e.target.value); setShowDrop(true) }} onKeyDown={onKey}
+            onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }} onKeyDown={onKey}
             onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
             placeholder={`Borders ${NAME(current)}…`} autoComplete="off"
             style={{ width: "100%", padding: "13px 14px", borderRadius: 12, outline: "none", fontWeight: 600, fontSize: 15, fontFamily: FONT.display, background: T.surface, border: `1.5px solid ${T.lineHi}`, color: T.text }} />
@@ -167,6 +172,7 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               ))}
             </div>
           )}
+          <DidYouMean options={maybe} onPick={f => submit(f.code)} accent={ACCENT.learn} />
           <div style={{ display: "flex", justifyContent: "center", gap: 18, marginTop: 8 }}>
             {/* Out of a dead end (Spain → Portugal) without giving up. */}
             {chain.length > 1 && (

@@ -77,7 +77,7 @@ export const REGISTRY: Entry[] = [
   { id: "geopaint", title: "GeoPaint", subtitle: "Colour-match the flag", icon: "🎨", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "sketchflag", title: "Sketch the Flag", subtitle: "Draw it from memory", icon: "✏️", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
   { id: "flagoutline", title: "Flag Outline", subtitle: "Guess from the outlines", icon: "🔲", tab: "play", group: "One Glance", size: "tile", accent: "codex" },
-  { id: "frankenflag", title: "Frankenflag", subtitle: "Name both halves", icon: "🧟", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
+  { id: "frankenflag", title: "Frankenflag", subtitle: "Name every piece", icon: "🧟", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "flagfusion", title: "Flag Fusion", subtitle: "Structure · emblem · colours", icon: "🔀", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
 
   // Spot It — eagle-eye difference & pattern hunting
