@@ -422,6 +422,7 @@ export const LOCAL_FLAGS: Record<string, string> = {
   "Flag_of_Gangwon_State.svg": "/flags/wm/flag-of-gangwon-state.svg",
   "Flag_of_Gelderland.svg": "/flags/wm/flag-of-gelderland.svg",
   "Flag_of_Georgia.svg": "/flags/wm/flag-of-georgia.svg",
+  "Flag_of_the_State_of_Georgia.svg": "/flags/wm/flag-of-the-state-of-georgia.svg",
   "Flag_of_Gifu_Prefecture.svg": "/flags/wm/flag-of-gifu-prefecture.svg",
   "Flag_of_Gilgit_Baltistan.svg": "/flags/wm/flag-of-gilgit-baltistan-2011-present.png",
   "Flag_of_Giza_Governorate.png": "/flags/wm/flag-of-giza-governorate.png",

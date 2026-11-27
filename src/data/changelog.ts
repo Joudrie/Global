@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Name it no longer shows flags with the answer written on them",
+    items: [
+      "Subdivision Stumper's Name it and Province Roulette never ask you to name a flag that spells out its own name, like Kansas, Montana or Indiana. Those flags can still turn up as wrong answers.",
+      "Whose is it? skips the few flags that spell out their country, like Romania's Timiș.",
+      "The US state of Georgia now shows its own flag instead of the country's.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "\u201cDid you mean…?\u201d, a fairer Build the Flag and harder Frankenflag cuts",
     items: [
       "Typed a country slightly wrong? Thirteen type-in games now offer \u201cDid you mean Papua New Guinea?\u201d after Enter, and it doesn't cost a guess. Old names like Zaire, Ceylon, Persia and Siam are understood too.",
