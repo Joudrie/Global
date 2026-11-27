@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flashcards for every section of the Codex",
+    items: [
+      "Flashcards has a new Codex tab with a deck for every Codex section: Pride, Separatist & Autonomous, Civic & Ideological, Micronations, Extinct & Former States, American Cities, International Organizations, Signal flags, Peoples & Cultures, and 50 random flags from the Mega Codex.",
+      "The big decks split by region like the Codex does, so you can study just Europe's former states or just Africa's peoples.",
+      "Identity Flags: Movements & Identity is now five decks that match the Codex: Separatist & Autonomous, Civic & Ideological, Micronations, Pan-National & Ethnic and Indigenous Peoples.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "New game: Demonyms",
     items: [
       "What do you call someone from Naples? Neapolitan, not Nepalese. Name the people of 195 cities, regions and countries, from Venetian and Mancunian to Haligonian, Porteño and I-Kiribati.",
