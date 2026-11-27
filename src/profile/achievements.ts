@@ -12,6 +12,7 @@ import { ACHIEVEMENTS, SET_CROWNS, achievementById } from "../data/achievements"
 import type { AchievementFacts } from "../data/achievements"
 import { FLAGS } from "../data/flags"
 import type { Snapshot } from "../utils/mergeProgress"
+import { GAUNTLET_KEY, passedRegions, readGauntlet } from "../utils/gauntlet"
 import { bestEntries, bestOf, gachaCount, gamesCount, mainOf, studioDesigns } from "./save"
 
 export const ACHIEVEMENTS_KEY = "globalio_achievements"
@@ -47,6 +48,7 @@ export function factsOf(snap: Snapshot): AchievementFacts {
     collected: gachaCount(snap),
     designs: studioDesigns(snap).length,
     best: (game, tier) => bestOf(bests, game, tier),
+    gauntlets: passedRegions(readGauntlet(snap?.[GAUNTLET_KEY])),
   }
 }
 

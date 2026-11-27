@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react"
+import { useState, useEffect, useRef } from "react"
 import { FLAGS } from "../data/flags"
 import { HISTORICAL_FLAGS } from "../data/historicalFlags"
 import { T, ACCENT, FONT } from "../ui/tokens"
+import { advanceDelay, advanceTimer } from "../utils/autoAdvance"
+import type { AdvanceTimer } from "../utils/autoAdvance"
 import { LineIcon } from "./icons"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, PrimaryButton, ResultCard, ResultHeader } from "./gameUi"
@@ -34,30 +36,60 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
     try { return Number(localStorage.getItem("globalio_doa_best") ?? 0) } catch { return 0 }
   })
   const [reveal, setReveal] = useState<null | { correct: boolean }>(null)
+  // The answer on screen right now; cleared the moment the game moves on, so
+  // the timer and the Next button can't both move it on.
+  const shown = useRef<null | { correct: boolean }>(null)
+  // The next flag, drawn and loading while the answer shows.
+  const upcoming = useRef<Card | null>(null)
+  const timer = useRef<AdvanceTimer | null>(null)
+  // A tap meant for Next can land on an answer button as the next flag
+  // appears; answers are ignored for a moment after it does.
+  const readyAt = useRef(0)
 
   const guess = (guessAlive: boolean) => {
-    if (reveal) return
+    if (shown.current || performance.now() < readyAt.current) return
     const correct = guessAlive === card.alive
+    shown.current = { correct }
     setReveal({ correct })
     if (correct) {
       const s = streak + 1
       setStreak(s)
       if (s > best) { setBest(s); try { localStorage.setItem("globalio_doa_best", String(s)) } catch { /* ignore */ } }
+      const n = nextCard()
+      upcoming.current = n
+      try { new Image().src = n.flagUrl } catch { /* not a browser */ }
     }
   }
 
   const cont = () => {
-    if (!reveal?.correct) setStreak(0)
-    setCard(nextCard())
+    const was = shown.current
+    if (!was) return
+    shown.current = null
+    timer.current?.cancel()
+    if (!was.correct) setStreak(0)
+    setCard(upcoming.current ?? nextCard())
+    upcoming.current = null
     setReveal(null)
+    readyAt.current = performance.now() + 350
   }
 
-  // After a right answer, auto-advance after 10s (the Next button still works
-  // too). A run that just ended waits, so its result stays on screen.
+  // After an answer, move on by itself (1.2 s after a right one). A wrong
+  // answer ends the run, so its result stays. Paused while the tab is hidden;
+  // Next skips the wait.
   useEffect(() => {
-    if (!reveal?.correct) return
-    const t = window.setTimeout(cont, 10000)
-    return () => window.clearTimeout(t)
+    if (!reveal) return
+    const ms = advanceDelay({ correct: reveal.correct, ended: !reveal.correct })
+    if (ms === null) return
+    const t = advanceTimer(cont, ms)
+    timer.current = t
+    const onVisibility = () => (document.hidden ? t.pause() : t.resume())
+    if (document.hidden) t.pause()
+    document.addEventListener("visibilitychange", onVisibility)
+    return () => {
+      t.cancel()
+      document.removeEventListener("visibilitychange", onVisibility)
+      if (timer.current === t) timer.current = null
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [reveal])
 
@@ -71,22 +103,24 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
       <div className="flex-1 flex flex-col items-center justify-center px-5 gap-5">
         <p style={{ fontSize: 13, color: T.muted }}>Is this a flag of a country that exists today?</p>
 
-        <div style={{
-          width: 300, height: 200, borderRadius: 14, overflow: "hidden",
+        <div className="transition-[border-color] duration-200 motion-reduce:transition-none" style={{
+          width: 300, maxWidth: "100%", aspectRatio: "3 / 2", borderRadius: 14, overflow: "hidden",
           border: `2.5px solid ${border}`, background: "#fff", position: "relative",
-          transition: "border-color 0.2s ease",
         }}>
           <img src={card.flagUrl} alt="mystery flag"
             style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }}
             onError={e => { (e.target as HTMLImageElement).style.opacity = "0.15" }} />
           {reveal && (
-            <div className="animate-slide-up" style={{
+            <div className="carto-slide-up" data-reveal style={{
               position: "absolute", bottom: 0, left: 0, right: 0,
-              background: "linear-gradient(transparent,rgba(0,0,0,0.82))", padding: "26px 12px 10px", textAlign: "center",
+              background: T.text, padding: "8px 12px", textAlign: "center",
             }}>
               <div style={{ color: "#fff", fontWeight: 800 }}>{card.name}</div>
-              <div style={{ color: card.alive ? T.green : T.warm, fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
-                {card.alive ? "✓ Still flying today" : <><LineIcon name="skull" size={13} /> Vanished · {card.sub}</>}
+              {/* the accent lightened so it reads on the dark band */}
+              <div style={{ color: `color-mix(in srgb, ${card.alive ? T.green : T.warm} 45%, #fff)`, fontSize: 12, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                {card.alive
+                  ? <><LineIcon name="check" size={13} strokeWidth={2} /> Still flying today</>
+                  : <><LineIcon name="skull" size={13} /> Vanished · {card.sub}</>}
               </div>
             </div>
           )}
@@ -99,14 +133,16 @@ export default function DeadOrAliveScreen({ onBack }: Props) {
               <LineIcon name="skull" size={18} /> Vanished
             </button>
             <button onClick={() => guess(true)} className="geo-tap flex-1 py-4 rounded-xl"
-              style={{ background: T.green, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700 }}>
-              ✓ Current
+              style={{ background: T.green, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700, display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
+              <LineIcon name="check" size={18} strokeWidth={2} /> Current
             </button>
           </div>
         ) : (
           <div className="w-full max-w-sm flex flex-col gap-3">
             {reveal.correct
-              ? <div className="geo-display" style={{ fontSize: 17, fontWeight: 700, color: T.green, textAlign: "center" }}>✓ Correct!</div>
+              ? <div className="geo-display" style={{ fontSize: 17, fontWeight: 700, color: T.green, textAlign: "center", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+                  <LineIcon name="check" size={18} strokeWidth={2} /> Correct!
+                </div>
               : <ResultCard>
                   <ResultHeader icon="skull" accent={T.warm} eyebrow="Run over"
                     title={`You survived ${streak}`} score={`Best streak: ${best}`} />

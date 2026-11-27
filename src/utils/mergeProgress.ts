@@ -33,7 +33,7 @@ type Json = null | boolean | number | string | Json[] | { [key: string]: Json }
 type Obj = { [key: string]: Json }
 
 export type RuleName =
-  | "main" | "max" | "min" | "union" | "dated" | "gacha" | "flagStudio"
+  | "main" | "max" | "min" | "union" | "dated" | "gacha" | "flagStudio" | "gauntlet"
   | "unionKeepLocal" | "device"
 
 interface Rule {
@@ -50,10 +50,15 @@ export const RULES: Rule[] = [
   { key: MAIN_KEY, rule: "main", symmetric: true,
     note: "Main save: learned flags, crowns, streaks, daily history. Field rules in mergeMain()." },
 
+  // Before the best-score pattern below, which would also match it.
+  { key: "globalio_gauntlet_best", rule: "gauntlet", symmetric: true,
+    note: "Gauntlet ({ region: { best, completed, firstCompleted } }): per region the higher best, passed if passed on either, the earlier first pass." },
+
   // Best scores: a number ("12"), or one per tier/mode ({ "easy-type": 340 }).
   // Covers hl, doa, realorbot, forgery, statclash, prideroulette (and _best_<n>),
   // flagfusion, citiesabroad, countriesabroad, nativenames, composer (Tile
-  // Flipper: { level, score }, each field the higher).
+  // Flipper: { level, score }) and thepeel ({ streak, points }): each field
+  // the higher.
   { key: /^globalio_[a-z0-9-]+_best(_\d+)?$/, rule: "max", symmetric: true,
     note: "Best score: the higher one (per tier/mode when it holds several)." },
   { key: "globalio_total_plays", rule: "max", symmetric: true,
@@ -214,6 +219,20 @@ function mergeGacha(local: Json, incoming: Json): Json {
   return out
 }
 
+/** Gauntlet: { region: { best, completed, firstCompleted } } (utils/gauntlet.ts). */
+function mergeGauntlet(local: Json, incoming: Json): Json {
+  if (!isObj(local) || !isObj(incoming)) return isObj(local) ? local : isObj(incoming) ? incoming : local
+  return byKey(local, incoming, (x, y) => {
+    if (!isObj(x) || !isObj(y)) return isObj(x) ? x : isObj(y) ? y : pickStable(x, y)
+    const out = byKey(x, y, mergeAny) // fields this file doesn't know yet
+    out.best = maxNum(x.best, y.best)
+    out.completed = x.completed === true || y.completed === true
+    const times = [x.firstCompleted, y.firstCompleted].filter((t): t is number => isNum(t) && t > 0)
+    out.firstCompleted = times.length ? Math.min(...times) : null
+    return out
+  })
+}
+
 const FLAG_STUDIO_MAX = 60 // utils/flagStudio.ts keeps at most this many
 
 function mergeFlagStudio(local: Json, incoming: Json): Json {
@@ -323,6 +342,7 @@ function mergeValue(rule: RuleName, local: Json, incoming: Json): Json {
     case "dated": return mergeDated(local, incoming)
     case "gacha": return mergeGacha(local, incoming)
     case "flagStudio": return mergeFlagStudio(local, incoming)
+    case "gauntlet": return mergeGauntlet(local, incoming)
     case "unionKeepLocal": return mergeUnionKeepLocal(local, incoming)
     case "device": return local
   }

@@ -3,12 +3,28 @@ import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
+import { ResultCard, ResultHeader, ResultStats, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
 import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { loadRecord, raiseRecord, saveRecord } from "../utils/records"
+import type { BestRecord } from "../utils/records"
 
 const ACC = ACCENT.play
 
 interface Props { onBack: () => void }
+
+// Records: a streak is flags named right in a row, its points the sum of
+// their scores. The best of each is kept ({ streak, points }, synced like
+// every best score).
+const BEST_KEY = "globalio_thepeel_best"
+const BEST_FIELDS = ["streak", "points"]
+interface Run { streak: number; points: number; over: boolean }
+interface RunProps {
+  run: Run
+  best: BestRecord
+  /** Fields of the best record the last round raised. */
+  raised: string[]
+  onRound: (correct: boolean, points: number) => void
+}
 
 const CANVAS_W = 300
 const CANVAS_H = 190
@@ -26,7 +42,7 @@ function scoreFromPct(pct: number): number {
   return 100
 }
 
-function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void }) {
+function ThePeelScreenGame({ onBack, onReplay, run, best, raised, onRound }: Props & RunProps & { onReplay: () => void }) {
   const [target]    = useState<FlagRecord>(() => FLAGS[Math.floor(Math.random() * FLAGS.length)])
   const [brushSize, setBrushSize] = useState<BrushSize>('medium')
 
@@ -96,25 +112,31 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
     setGuess(flag)
     setScore(s)
     setPhase('result')
+    onRound(flag.code === target.code, s)
     setInput("")
     setShowDrop(false)
   }
+
+  const right = guess?.code === target.code
+  const newBest = raised.length > 0
 
   return (
     <div className="min-h-screen flex flex-col"
       style={{ background: T.bg, minHeight: "100vh", color: T.text }}>
 
       <ScreenHeader title="The Peel" onBack={onBack}
-        subtitle={
-          phase === 'scratch'
+        subtitle={<>
+          <span data-peel-best>Best {best.streak}</span>
+          {" · "}
+          {phase === 'scratch'
             ? <span style={{ color: ACC }}>{revealed < 5 ? "Scratch to reveal" : `${revealed}% — guess for ${scoreFromPct(revealed)} pts`}</span>
             : phase === 'result'
-              ? <span style={{ fontWeight: 700, color: guess?.code === target.code ? T.green : T.danger }}>
-                  {guess?.code === target.code ? `✓ ${score} pts` : "✗ Wrong flag"}
+              ? <span style={{ fontWeight: 700, color: right ? T.green : T.danger }}>
+                  {right ? `Right · ${score} pts` : "Wrong flag"}
                 </span>
-              : undefined
-        }
-        right={<HeaderStat label="Revealed" accent={revealed < 20 ? T.green : revealed < 50 ? T.gold : T.danger}>{revealed}%</HeaderStat>} />
+              : <span>{revealed}% revealed</span>}
+        </>}
+        right={<HeaderStat label="Streak" accent={ACC}>{run.over ? 0 : run.streak}</HeaderStat>} />
 
       <div className="flex flex-col items-center gap-4 px-5">
 
@@ -227,12 +249,19 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
         {phase === 'result' && (
           <div className="w-full max-w-sm flex flex-col gap-3">
             <ResultCard>
-              <ResultHeader icon={guess?.code === target.code ? "check" : "x"} accent={guess?.code === target.code ? T.green : T.danger}
-                eyebrow={guess?.code === target.code && score === 1000 ? "Perfect peel, under 5%" : undefined}
-                title={`${guess?.code === target.code ? score : 0} pts`}
-                score={guess?.code === target.code
+              <ResultHeader icon={right ? "check" : "x"} accent={right ? T.green : T.danger}
+                eyebrow={newBest ? "New best!" : right && score === 1000 ? "Perfect peel, under 5%" : !right && run.streak > 0 ? "Streak over" : undefined}
+                title={`${right ? score : 0} pts`}
+                score={right
                   ? `${target.name}: you revealed ${revealed}%`
                   : `That was ${target.name}. You guessed ${guess?.name}.`} />
+              <ResultStats stats={[
+                { label: right ? "Streak" : "Final streak", value: run.streak, accent: raised.includes("streak") ? T.green : ACC },
+                { label: "Streak points", value: run.points.toLocaleString(), accent: raised.includes("points") ? T.green : T.text },
+              ]} />
+              <div data-peel-record style={{ textAlign: "center", fontSize: 13, color: T.muted, fontVariantNumeric: "tabular-nums" }}>
+                Best: {best.streak} in a row · {best.points.toLocaleString()} pts
+              </div>
             </ResultCard>
             <PrimaryButton onClick={onReplay} accent={ACC}>New flag</PrimaryButton>
             <SecondaryButton onClick={onBack}>Home</SecondaryButton>
@@ -245,5 +274,26 @@ function ThePeelScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
 
 export default function ThePeelScreen({ onBack }: Props) {
   const [replayKey, setReplayKey] = useState(0)
-  return <ThePeelScreenGame key={replayKey} onBack={onBack} onReplay={() => setReplayKey(k => k + 1)} />
+  const [run, setRun] = useState<Run>({ streak: 0, points: 0, over: false })
+  const [best, setBest] = useState<BestRecord>(() => loadRecord(BEST_KEY, BEST_FIELDS))
+  const [raised, setRaised] = useState<string[]>([])
+
+  // A right guess extends the streak (and is saved straight away if it's a
+  // record); a wrong one ends it, and the result shows the streak that ended.
+  const onRound = (correct: boolean, points: number) => {
+    if (!correct) { setRun(r => ({ ...r, over: true })); setRaised([]); return }
+    const next = { streak: run.streak + 1, points: run.points + points, over: false }
+    setRun(next)
+    const r = raiseRecord(loadRecord(BEST_KEY, BEST_FIELDS), { streak: next.streak, points: next.points })
+    if (r.raised.length) { saveRecord(BEST_KEY, r.next); setBest(r.next) }
+    setRaised(r.raised)
+  }
+  const replay = () => {
+    if (run.over) setRun({ streak: 0, points: 0, over: false })
+    setRaised([])
+    setReplayKey(k => k + 1)
+  }
+
+  return <ThePeelScreenGame key={replayKey} onBack={onBack} onReplay={replay}
+    run={run} best={best} raised={raised} onRound={onRound} />
 }
