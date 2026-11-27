@@ -114,13 +114,11 @@ export function cardData(d: ProfileViewData, link: string): CardData {
   }
 }
 
-/** The link printed on a card: this site's address, and the profile's own
- *  link when it is public. */
+/** The link printed on a card: always the real site (a card saved on the test
+ *  site or a dev server still points people to globalio.app), plus the
+ *  profile's own link when it is public. */
 export function cardLink(username: string | null): string {
-  try {
-    const host = window.location.host.replace(/^www\./, "")
-    return username ? `${host}${window.location.pathname}?u=${username}` : host
-  } catch { return "globalio.app" }
+  return username ? `globalio.app/?u=${username}` : "globalio.app"
 }
 
 /** "Save my card": draws the profile as a picture and shares or downloads it. */
