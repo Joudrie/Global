@@ -93,7 +93,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
                 onChange={e => { setInput(e.target.value); setNote("") }}
                 onKeyDown={e => { if (e.key === "Enter") submit() }}
                 placeholder="Type a country…" aria-label="Guess the country"
-                style={{ flex: 1, padding: "0 14px", height: 46, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 15, outline: "none" }} />
+                style={{ flex: 1, minWidth: 0, padding: "0 14px", height: 46, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 15, outline: "none" }} />
               <datalist id="flag-names">{names.map(n => <option key={n} value={n} />)}</datalist>
               <button onClick={submit} disabled={!input.trim()}
                 className="px-5 rounded-xl font-bold transition-all active:scale-95"

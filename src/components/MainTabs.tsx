@@ -658,7 +658,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 44, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}` }}>
         <SearchIcon size={16} color={T.dim} strokeWidth={1.6} />
         <input value={q} onChange={e => { setQ(e.target.value); if (e.target.value) setActiveGroup(null) }} placeholder="Find a game…" aria-label="Search games"
-          style={{ flex: 1, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 14 }} />
+          style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 14 }} />
         {q && (
           <button onClick={() => setQ("")} aria-label="Clear search"
             style={{ width: 44, height: 44, marginRight: -12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
