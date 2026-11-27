@@ -6,3 +6,8 @@ export const commonsSource = (url: string): string | null => {
   const m = url.match(/Special:FilePath\/([^?#]+)/)
   return m ? `https://commons.wikimedia.org/wiki/File:${m[1]}` : null
 }
+
+// Commons full-size SVGs can be megabytes; FilePath ?width= renders a light
+// raster of the same image. Self-hosted copies (/cf/, /flags/) pass through.
+export const commonsThumb = (url: string, width = 240): string =>
+  url.includes('Special:FilePath') && !url.includes('?') ? `${url}?width=${width}` : url
