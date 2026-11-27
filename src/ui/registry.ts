@@ -51,8 +51,8 @@ export const REGISTRY: Entry[] = [
   { id: "flashcards", title: "Flashcards", subtitle: "Swipe & learn all 197", icon: "🃏", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: flagProgress },
   { id: "historical", title: "Historical Flags", subtitle: "Vanished empires & states", icon: "📜", tab: "play", group: "Learn the World", size: "module", accent: "learn" },
   { id: "identity", title: "Identity Flags", subtitle: "Pride · ethnic · signal flags", icon: "🏳️‍🌈", tab: "play", group: "Learn the World", size: "module", accent: "learn" },
-  { id: "provinceroulette", title: "Province Roulette", subtitle: "Continent → country → region", icon: "🎰", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },
-  { id: "substumper", title: "Subdivision Stumper", subtitle: "Province flag → country", icon: "📍", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },
+  { id: "provinceroulette", title: "Province Roulette", subtitle: "Spin: continent, country, name", icon: "🎰", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },
+  { id: "substumper", title: "Subdivision Stumper", subtitle: "Guess the country, or name it", icon: "📍", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },
 
   // Daily Rituals — come back every day
   // (Flag Gacha lives on the TODAY tab only — it's a daily ritual, not an
@@ -77,7 +77,7 @@ export const REGISTRY: Entry[] = [
   { id: "geopaint", title: "GeoPaint", subtitle: "Colour-match the flag", icon: "🎨", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "sketchflag", title: "Sketch the Flag", subtitle: "Draw it from memory", icon: "✏️", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
   { id: "flagoutline", title: "Flag Outline", subtitle: "Guess from the outlines", icon: "🔲", tab: "play", group: "One Glance", size: "tile", accent: "codex" },
-  { id: "frankenflag", title: "Frankenflag", subtitle: "Name both halves", icon: "🧟", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
+  { id: "frankenflag", title: "Frankenflag", subtitle: "Name every piece", icon: "🧟", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
   { id: "flagfusion", title: "Flag Fusion", subtitle: "Structure · emblem · colours", icon: "🔀", tab: "play", group: "One Glance", size: "tile", accent: "challenge" },
 
   // Spot It — eagle-eye difference & pattern hunting
@@ -101,6 +101,7 @@ export const REGISTRY: Entry[] = [
   { id: "citiesabroad", title: "Cities Abroad", subtitle: "Benetke → Venice", icon: "🧳", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "countriesabroad", title: "Countries Abroad", subtitle: "Allemagne → Germany", icon: "✈️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "nativenames", title: "Native Names", subtitle: "Suomi → Finland", icon: "🏠", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  { id: "demonyms", title: "Demonyms", subtitle: "Neapolitan or Nepalese?", icon: "🪪", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "statclash", title: "Stat Clash", subtitle: "Bigger population or area?", icon: "⚖️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill", featured: true },
   { id: "prideroulette", title: "Pride Roulette", subtitle: "Name the pride flag · survival", icon: "🏳️‍🌈", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
 

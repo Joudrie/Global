@@ -5,14 +5,15 @@ import { CAPITALS } from '../data/capitals'
 import { CODEX_COUNTS } from '../data/codexCounts'
 import type { GRegion, GRow } from '../data/codexGalleries'
 import type { MegaFlag } from '../data/megaCodex'
+import type { CountryArms } from '../data/coatsOfArms'
 import { T, ACCENT, FONT, tint } from '../ui/tokens'
 import { normName, matchNames } from '../utils/pickOnEnter'
-import { commonsSource, galleryThumb } from '../utils/commons'
+import { commonsSource, commonsThumb } from '../utils/commons'
 import { ScreenHeader } from './ui'
 import AdBox from './AdBox'
 import { AD_SLOTS } from '../ads'
 import { LineIcon } from './icons'
-import { Search, Anchor, ChevronDown, Castle, Sun, Mountain, Landmark, MoonStar, Sailboat, Rainbow, Users, Feather, MapPin, Crown, Vote, Building2 } from 'lucide-react'
+import { Search, Anchor, ChevronDown, Castle, Sun, Mountain, Landmark, MoonStar, Sailboat, Rainbow, Users, Feather, MapPin, Crown, Vote, Building2, Shield } from 'lucide-react'
 
 // The list opens on FLAGS alone. Everything else loads on demand, once: a
 // country's entry (its own chunk) when a region opens, a gallery's data when
@@ -42,6 +43,10 @@ const EXTINCT = lazyData(() => Promise.all([import('../data/codexGalleries'), im
   .then(([g, e, h]) => g.extinctRegions(e.EXTINCT_STATES, h.HISTORICAL_FLAGS)))
 const ORGS = lazyData(() => Promise.all([import('../data/codexGalleries'), import('../data/orgFlags')]).then(([g, o]) => g.orgRegions(o.ORG_FLAGS)))
 const ALL_FLAGS = lazyData(() => import('../data/megaCodex').then(m => m.ALL_FLAGS_AZ))
+// Coats of arms (beta): the list when the section opens, an entry's detail
+// (its own chunk) when a row opens. The images are fetched by the rows.
+const ARMS = lazyData(() => import('../data/coatsOfArms').then(m => m.COATS_OF_ARMS))
+const ArmsDetail = lazy(() => import('./CodexArms'))
 
 // Etched line icon per continent — cartographer style, never emoji.
 const REGION_ICONS: Record<string, typeof Castle> = {
@@ -311,6 +316,8 @@ export default function CodexScreen({ onBack, initialCode, embedded = false, onB
             <LineIcon name="codex" size={14} color={T.muted} /> Browse all 4,500+ flags
           </button>
         )}
+        {/* Coats of arms (beta) — national emblems by region, A–M so far */}
+        {!isSearching && <ArmsCodexSection />}
         {/* Ad box — dormant until a publisher ID is set in src/ads.ts */}
         {!isSearching && <AdBox slot={AD_SLOTS.codexFooter} style={{ marginTop: 24 }} />}
       </div>
@@ -581,8 +588,9 @@ function galleryIcon(name: string): IconType {
   if (n.includes('historic')) return Castle
   return Users
 }
-// Commons full-size SVGs can be megabytes, so rows use galleryThumb()
-// (utils/commons.ts). row.file is always a ready URL (resolved by each section via fp()).
+// A light raster for Commons hotlinks (utils/commons.ts). row.file is always a
+// ready URL (resolved by each section via fp()).
+const galleryThumb = (u: string) => commonsThumb(u)
 
 // One flag row — thumbnail, name; tap to reveal a description if it has one.
 // Open state is owned by the parent section so only one row shows at a time.
@@ -623,6 +631,25 @@ function GalleryRow({ row, color, open, onToggle }: { row: GRow; color: string; 
   )
 }
 
+// A region's header inside a themed section: icon, name, count, chevron.
+function RegionHeader({ label, count, icon: Icon, color, open, onToggle }: {
+  label: string; count: number; icon?: IconType; color: string; open: boolean; onToggle: () => void
+}) {
+  return (
+    <button onClick={onToggle} aria-expanded={open}
+      className="geo-tap w-full flex items-center justify-between px-1 py-2.5 transition-all active:scale-[0.99]"
+      style={{ background: 'transparent', borderBottom: `1px solid ${tint(T.line, 0.6)}` }}>
+      <div className="flex items-center gap-2 min-w-0">
+        {Icon && <Icon size={13} color={color} strokeWidth={1.6} absoluteStrokeWidth style={{ flexShrink: 0 }} />}
+        <span className="text-xs font-bold uppercase tracking-wider truncate" style={{ color }}>{label}</span>
+        <span className="text-xs" style={{ color: T.dim, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{count}</span>
+      </div>
+      <ChevronDown size={15} color={color} strokeWidth={1.6} absoluteStrokeWidth
+        style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
+    </button>
+  )
+}
+
 // A region sub-section — controlled open state so a section's "All" can drive it.
 function GalleryRegionBlock({ region, icon: Icon, color, open, onToggle, keyPrefix, openRow, setOpenRow }: {
   region: GRegion; icon?: IconType; color: string; open: boolean; onToggle: () => void
@@ -631,17 +658,7 @@ function GalleryRegionBlock({ region, icon: Icon, color, open, onToggle, keyPref
   const count = region.groups.reduce((n, g) => n + g.items.length, 0)
   return (
     <div className="mb-0.5">
-      <button onClick={onToggle} aria-expanded={open}
-        className="geo-tap w-full flex items-center justify-between px-1 py-2.5 transition-all active:scale-[0.99]"
-        style={{ background: 'transparent', borderBottom: `1px solid ${tint(T.line, 0.6)}` }}>
-        <div className="flex items-center gap-2 min-w-0">
-          {Icon && <Icon size={13} color={color} strokeWidth={1.6} absoluteStrokeWidth style={{ flexShrink: 0 }} />}
-          <span className="text-xs font-bold uppercase tracking-wider truncate" style={{ color }}>{region.label}</span>
-          <span className="text-xs" style={{ color: T.dim, fontFamily: FONT.mono, fontVariantNumeric: 'tabular-nums', flexShrink: 0 }}>{count}</span>
-        </div>
-        <ChevronDown size={15} color={color} strokeWidth={1.6} absoluteStrokeWidth
-          style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
-      </button>
+      <RegionHeader label={region.label} count={count} icon={Icon} color={color} open={open} onToggle={onToggle} />
       {open && (
         <div className="mt-1">
           {region.groups.map((g, gi) => (
@@ -720,6 +737,104 @@ function ExtinctStatesCodexSection() {
 function OrgCodexSection() {
   return <GallerySection title="International Organizations" icon={Building2} color={T.green} blurb={`${CODEX_COUNTS.orgs} flags · UN, NATO, EU, AU, FIFA, the Olympics…`}
     data={ORGS} iconOf={() => Building2} />
+}
+
+// ── Coats of arms (Beta) ──
+// The country list again, by region, with each country's coat of arms (or
+// emblem, or seal) instead of its flag; a row opens the current one large and
+// its former ones (CodexArms). Built by scripts/arms/fetch.mjs, A–M so far.
+const FLAG_BY_CODE = new Map(FLAGS.map(f => [f.code, f]))
+/** "Coat of arms of Albania" → "Coat of arms"; "State Emblem of India" → "State Emblem". */
+const armsTerm = (name: string) => name.replace(/ of (?!arms\b).*$/, '')
+
+function ArmsCodexSection() {
+  const color = T.gold
+  const [open, setOpen] = useState(false)
+  const [openRegions, setOpenRegions] = useState<Set<string>>(new Set())
+  const [openCode, setOpenCode] = useState<string | null>(null)
+  const arms = useData(ARMS, open)
+  const regions = useMemo(() => {
+    if (!arms) return []
+    const rows = arms.map(a => ({ a, f: FLAG_BY_CODE.get(a.code)! })).filter(r => r.f)
+      .sort((x, y) => x.f.name.localeCompare(y.f.name))
+    return REGION_ORDER.map(region => ({ region, rows: rows.filter(r => r.f.region === region) })).filter(g => g.rows.length)
+  }, [arms])
+  const allOpen = regions.length > 0 && openRegions.size === regions.length
+  const toggleAll = () => setOpenRegions(allOpen ? new Set() : new Set(regions.map(g => g.region)))
+  // Accordion like the other themed sections; "Open all" is the override.
+  const toggleRegion = (r: string) => setOpenRegions(prev => (prev.has(r) ? new Set() : new Set([r])))
+  return (
+    <div className="mt-5">
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
+        className="geo-tap w-full flex items-center justify-between px-1 py-3 transition-all active:scale-[0.99]"
+        style={{ background: 'transparent', borderBottom: `1px solid ${open ? tint(color, 0.45) : T.line}` }}>
+        <div className="text-left">
+          <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2" style={{ color }}>
+            <Shield size={15} color={color} strokeWidth={1.6} absoluteStrokeWidth /> Coats of Arms <span style={{ color: tint(color, 0.6), fontSize: 10 }}>(Beta)</span>
+          </h3>
+          <p className="text-xs" style={{ color: T.dim }}>{CODEX_COUNTS.arms} national emblems · A–M so far</p>
+        </div>
+        <ChevronDown size={17} color={color} strokeWidth={1.6} absoluteStrokeWidth className="codex-chev"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
+      </button>
+      {open && !arms && <p className="text-xs px-1 py-3" role="status" style={{ color: T.dim }}>Loading coats of arms…</p>}
+      {open && arms && (
+        <div className="mt-2">
+          <div className="flex justify-end mb-1.5">
+            <button onClick={toggleAll}
+              className="geo-tap active:scale-95"
+              style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase', color, background: tint(color, 0.1), border: `1px solid ${tint(color, 0.4)}`, borderRadius: 999, padding: '4px 12px', cursor: 'pointer' }}>
+              {allOpen ? 'Collapse all' : 'Open all'}
+            </button>
+          </div>
+          {regions.map(({ region, rows }) => {
+            const regionOpen = openRegions.has(region)
+            return (
+              <div key={region} className="mb-0.5">
+                <RegionHeader label={region} count={rows.length} icon={REGION_ICONS[region]} color={color} open={regionOpen} onToggle={() => toggleRegion(region)} />
+                {regionOpen && (
+                  <div className="mt-1">
+                    {rows.map(({ a, f }) => (
+                      <ArmsRow key={a.code} arms={a} country={f.name} color={color}
+                        open={openCode === a.code} onToggle={() => setOpenCode(c => (c === a.code ? null : a.code))} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// One country: the emblem where the flag would be, its name, the kind of
+// emblem; tap for the detail beneath (same as a country's row up top).
+function ArmsRow({ arms: a, country, color, open, onToggle }: { arms: CountryArms; country: string; color: string; open: boolean; onToggle: () => void }) {
+  return (
+    <div id={`codex-arms-${a.code}`}>
+      <button onClick={onToggle} aria-expanded={open}
+        className="geo-tap w-full flex items-center gap-3 px-1.5 py-2.5 rounded-lg transition-all active:scale-[0.99] text-left"
+        style={{ background: open ? tint(color, 0.07) : 'transparent', borderBottom: `1px solid ${tint(T.line, 0.55)}` }}>
+        <img src={a.thumb} alt={a.name} loading="lazy" width={46} height={40}
+          style={{ width: 46, height: 40, objectFit: 'contain', flexShrink: 0 }}
+          onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }} />
+        <div className="flex-1 min-w-0">
+          <div className="font-semibold text-sm truncate" style={{ color: T.text }}>{country}</div>
+          <div className="truncate" style={{ color: T.muted, marginTop: 2, fontSize: 11, opacity: 0.75 }}>
+            {armsTerm(a.name)}{a.former.length > 0 && ` · ${a.former.length} former`}
+          </div>
+        </div>
+        <span className="codex-chev" style={{ color, fontSize: 18, transform: open ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
+      </button>
+      {open && (
+        <Suspense fallback={<p className="text-xs px-1.5 py-3" role="status" style={{ color: T.dim }}>Loading…</p>}>
+          <ArmsDetail arms={a} color={color} />
+        </Suspense>
+      )}
+    </div>
+  )
 }
 
 // The overwhelmingly-massive full-page wall. Virtualised: only the rows on

@@ -7,6 +7,9 @@ export const commonsSource = (url: string): string | null => {
   return m ? `https://commons.wikimedia.org/wiki/File:${m[1]}` : null
 }
 
-/** A small version of a flag image for lists: Commons hotlinks get a
- *  rasterised thumbnail; self-hosted and local files are already small. */
-export const galleryThumb = (u: string): string => (u.includes('Special:FilePath') && !u.includes('?') ? `${u}?width=240` : u)
+// Commons full-size SVGs can be megabytes; FilePath ?width= renders a light
+// raster of the same image. Self-hosted copies (/cf/, /flags/) pass through.
+export const commonsThumb = (url: string, width = 240): string =>
+  url.includes('Special:FilePath') && !url.includes('?') ? `${url}?width=${width}` : url
+/** A small version of a flag image for lists (alias of commonsThumb). */
+export const galleryThumb = (u: string): string => commonsThumb(u)

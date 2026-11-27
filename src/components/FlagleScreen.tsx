@@ -6,10 +6,10 @@ import { todayString, shuffleWithSeed } from "../utils/prng"
 import { shareOrCopy } from "../utils/share"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
+import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, GameIcon, DidYouMean } from "./gameUi"
 
 import { Share2 } from "lucide-react"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 import { unlockAchievement } from "../profile/achievements"
 
 interface Props { onBack: () => void }
@@ -83,6 +83,7 @@ export default function FlagleScreen({ onBack }: Props) {
   const [guesses, setGuesses] = useState<Guess[]>(() => loadGuesses(today, target))
   const [input, setInput] = useState("")
   const [showDrop, setShowDrop] = useState(false)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const [copied, setCopied] = useState(false)
 
   const guessedCodes = useMemo(() => new Set(guesses.map(g => g.flag.code)), [guesses])
@@ -100,7 +101,7 @@ export default function FlagleScreen({ onBack }: Props) {
     const next = [...guesses, { flag: f, tiles: compare(f, target) }]
     setGuesses(next); saveGuesses(today, next)
     if (f.code === target.code) unlockAchievement("flagle-win", ...(next.length <= 3 ? ["flagle-3"] : []), ...(next.length <= 2 ? ["flagle-2"] : []))
-    setInput(""); setShowDrop(false)
+    setInput(""); setShowDrop(false); setMaybe([])
   }
 
   const shareText = () => {
@@ -156,9 +157,16 @@ export default function FlagleScreen({ onBack }: Props) {
         {!finished ? (
           <div className="w-full max-w-sm relative mt-1">
             <input aria-label="Type a country" value={input} autoComplete="off"
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
-              onKeyDown={e => { if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submit(pick) } }}
+              onKeyDown={e => {
+                if (e.key !== "Enter") return
+                const pick = pickOnEnter(matches, input)
+                if (pick) submit(pick)
+                // Typos checked against every flag, so a country Flagle can't
+                // compare is never swapped for a lookalike name.
+                else if (!matches.length) setMaybe(didYouMean(FLAGS, input).filter(f => FLAG_ATTRIBS[f.code] && !guessedCodes.has(f.code)))
+              }}
               placeholder="Guess a country…"
               className="w-full px-4 py-3 rounded-xl outline-none font-semibold"
               style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
@@ -175,6 +183,7 @@ export default function FlagleScreen({ onBack }: Props) {
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={submit} accent={ACC} />
             <p className="text-xs text-center mt-2 flex items-center justify-center gap-3" style={{ color: T.muted }}>
               <span className="inline-flex items-center gap-1.5"><span style={swatch(T.green)} /> match</span>
               <span className="inline-flex items-center gap-1.5"><span style={swatch(T.gold)} /> partial colours</span>

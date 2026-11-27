@@ -310,5 +310,27 @@ const raw: BuildPuzzle[] = [
   },
 ]
 
-// Export shuffled so each session is different
-export const PUZZLES: BuildPuzzle[] = raw
+// The palette offers each colour once and it never runs out: a colour can
+// fill any number of bands. Listing Austria's red twice told a player that
+// two of its three bands were red before they'd thought about the flag.
+// Pieces of the same colour merge into one (the solution points at it), and
+// a decoy takes the freed place, so the palette is always the same size and
+// a short one can't hint that a colour repeats.
+const DECOYS = [RED, WHITE, BLUE, GREEN, YELLOW, BLACK, ORANGE, SKYBLUE]
+const colourKey = (c: string) => c.toLowerCase()
+
+export function oneOfEachColour(pz: BuildPuzzle): BuildPuzzle {
+  const byColour = new Map<string, Piece>()
+  for (const pc of pz.pieces) if (!byColour.has(colourKey(pc.color))) byColour.set(colourKey(pc.color), pc)
+  const pieces = [...byColour.values()]
+  for (const make of DECOYS) {
+    if (pieces.length >= pz.pieces.length) break
+    const d = make(`d${pieces.length}`)
+    if (!pieces.some(pc => colourKey(pc.color) === colourKey(d.color) || pc.label.toLowerCase() === d.label.toLowerCase())) pieces.push(d)
+  }
+  const keptId = (id: string) => byColour.get(colourKey(pz.pieces.find(pc => pc.id === id)!.color))!.id
+  const solution = Object.fromEntries(Object.entries(pz.solution).map(([slot, id]) => [slot, keptId(id)]))
+  return { ...pz, pieces: pieces.length === pz.pieces.length && pieces.every((pc, i) => pc === pz.pieces[i]) ? pz.pieces : shuffle(pieces), solution }
+}
+
+export const PUZZLES: BuildPuzzle[] = raw.map(oneOfEachColour)

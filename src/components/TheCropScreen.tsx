@@ -4,8 +4,8 @@ import type { FlagRecord } from "../data/flags"
 import FlagImage from "./FlagImage"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
-import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat } from "./gameUi"
-import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { ResultCard, ResultHeader, PrimaryButton, SecondaryButton, HeaderStat, DidYouMean } from "./gameUi"
+import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
 
 interface Props { onBack: () => void }
 
@@ -28,6 +28,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   const [input, setInput]       = useState("")
   const [showDrop, setShowDrop] = useState(false)
   const inputRef = useRef<HTMLInputElement>(null)
+  const [maybe, setMaybe] = useState<FlagRecord[]>([])
   const guessedCodes = useRef<Set<string>>(new Set())
   // Set once the final miss is reached, to reject further guesses during the
   // 800ms reveal delay (phase is still "playing" then).
@@ -46,6 +47,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
     guessedCodes.current.add(flag.code)
     setInput("")
     setShowDrop(false)
+    setMaybe([])
 
     if (flag.code === target.code) {
       setSolved(true)
@@ -62,8 +64,12 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   }
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === "Enter") { const pick = pickOnEnter(matches, input); if (pick) submitGuess(pick) }
-    if (e.key === "Escape") { setInput(""); setShowDrop(false) }
+    if (e.key === "Enter") {
+      const pick = pickOnEnter(matches, input)
+      if (pick) submitGuess(pick)
+      else if (!matches.length) setMaybe(didYouMean(FLAGS, input).filter(f => !guessedCodes.current.has(f.code)))
+    }
+    if (e.key === "Escape") { setInput(""); setShowDrop(false); setMaybe([]) }
   }
 
   return (
@@ -147,7 +153,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
             <input aria-label="Type a country"
               ref={inputRef}
               value={input}
-              onChange={e => { setInput(e.target.value); setShowDrop(true) }}
+              onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }}
               onKeyDown={handleKeyDown}
               onFocus={() => setShowDrop(true)}
               onBlur={() => setTimeout(() => setShowDrop(false), 150)}
@@ -173,6 +179,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
                 ))}
               </div>
             )}
+            <DidYouMean options={maybe} onPick={submitGuess} accent={ACC} />
           </div>
         )}
       </div>

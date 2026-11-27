@@ -155,7 +155,7 @@ function FlagRow({ items, accent, hero }: { items: { code?: string; src?: string
   )
 }
 
-// The Abroad games: three passport stamps, in clay, sky and ink. Each name's
+// The Abroad games and Demonyms: three passport stamps, in clay, sky and ink. Each name's
 // textLength pins its width, so it fits before the font loads.
 interface StampText { label: string; name: string; lang: string; size: number; width: number; sub?: string; labelSize?: number; subSize?: number }
 const ABROAD_STAMPS: Record<string, { rect: StampText; circle: StampText; pill: StampText }> = {
@@ -176,6 +176,12 @@ const ABROAD_STAMPS: Record<string, { rect: StampText; circle: StampText; pill: 
     rect: { label: "FINLAND", name: "SUOMI", lang: "fi", size: 10.5, width: 34, sub: "SUOMEKSI", subSize: 3 },
     circle: { label: "JAPAN", name: "日本", lang: "ja", size: 11, width: 22, labelSize: 3.2, sub: "NIHON", subSize: 3.2 },
     pill: { label: "HUNGARY", name: "MAGYARORSZÁG", lang: "hu", size: 8.4, width: 54 },
+  },
+  // Demonyms: FROM NAPLES, stamped A NEAPOLITAN; OXFORD's OXONIAN beside it.
+  demonyms: {
+    rect: { label: "FROM", name: "NAPLES", lang: "en", size: 10.5, width: 38, sub: "ITALY", subSize: 3 },
+    circle: { label: "OXFORD", name: "OXONIAN", lang: "en", size: 8, width: 29, labelSize: 3.2 },
+    pill: { label: "YOU ARE A", name: "NEAPOLITAN", lang: "en", size: 9.6, width: 52 },
   },
 }
 function AbroadStamps({ id }: { id: string }) {
@@ -570,6 +576,7 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
     case "citiesabroad":
     case "countriesabroad":
     case "nativenames":
+    case "demonyms":
       // Passport stamps (ABROAD_STAMPS): one city or country stamped three
       // ways, or three countries each stamping its own name.
       return { bleed: false, node: (
