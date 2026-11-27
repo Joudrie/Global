@@ -5,6 +5,13 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Patch notes in the app",
+    items: [
+      "A new line at the top of Today sums up the week's changes, with a dot when there's something you haven't read. Tap it (or Patch notes in Settings) to see every update grouped by day, newest first, with the ones you haven't read marked New.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "\u201cDid you mean…?\u201d, a fairer Build the Flag and harder Frankenflag cuts",
     items: [
       "Typed a country slightly wrong? Thirteen type-in games now offer \u201cDid you mean Papua New Guinea?\u201d after Enter, and it doesn't cost a guess. Old names like Zaire, Ceylon, Persia and Siam are understood too.",
