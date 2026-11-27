@@ -241,7 +241,7 @@ function fakeCtx() {
 const cardOf = over => ({
   name: 'Map_Lover', badge: 'Founding player', rank: 'Wayfinder', since: 'November 2026', bio: 'Learning every flag in Africa this year.',
   flags: 123, flagsOf: 197,
-  tiles: [{ label: 'Crowns of 7', value: 3 }, { label: 'Day streak', value: 8 }, { label: 'Best streak', value: 12 }, { label: 'Daily games', value: 40 }, { label: 'Games played', value: 210 }, { label: 'Gacha flags', value: 57 }],
+  tiles: [{ label: 'Crowns of 7', value: 3 }, { label: 'Day streak', value: 8 }, { label: 'Best streak', value: 12 }, { label: 'Daily Games', value: 40 }, { label: 'Games played', value: 210 }, { label: 'Gacha flags', value: 57 }],
   bests: [{ title: 'Real or Bot', value: 27 }, { title: 'Flag Fusion', value: 1300 }], pinned: ['learn-50', 'streak-7', 'realorbot-25'], link: 'globalio.app/?u=Map_Lover', ...over,
 })
 

@@ -3,7 +3,7 @@
 // players who never open the account card never download it.
 import { createClient } from "@supabase/supabase-js"
 import type { Session, SupabaseClient } from "@supabase/supabase-js"
-import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SESSION_KEY, ACCOUNT_KEY_PREFIX, profilesVisible } from "../accounts"
+import { SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY, SESSION_KEY, ACCOUNT_KEY_PREFIX, EMAIL_SIGNIN, profilesVisible } from "../accounts"
 import { SyncEngine, SyncError } from "./engine"
 import type { Backend, SyncState, SyncStatus } from "./engine"
 import { browserDevice as device } from "./device"
@@ -369,7 +369,8 @@ async function googleEnabled(): Promise<boolean> {
 /** Off to Google; the page comes back here signed in. An error message, or null. */
 export async function signInWithGoogle(): Promise<string | null> {
   await start()
-  if (!(await googleEnabled())) return "Google sign-in isn’t set up yet. Use the email link instead."
+  // (The email link is only offered while EMAIL_SIGNIN is on, so only then point to it.)
+  if (!(await googleEnabled())) return EMAIL_SIGNIN ? "Google sign-in isn’t set up yet. Use the email link instead." : "Google sign-in isn’t available right now. Try again later."
   const { error } = await client!.auth.signInWithOAuth({ provider: "google", options: { redirectTo: here() } })
   return error ? friendly(error.message, "Couldn’t open Google sign-in. Try again.") : null
 }
