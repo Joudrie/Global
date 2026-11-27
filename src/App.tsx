@@ -476,7 +476,7 @@ export default function App() {
       {screen === "geo" && <GeoQuizScreen onBack={() => setScreen("home")} />}
       {screen === "gauntlet" && <GauntletScreen onBack={() => setScreen("home")} />}
       {screen === "tierlist" && <TierListScreen onBack={() => setScreen("home")} />}
-      {screen === "settings"   && <SettingsScreen onBack={() => setScreen("home")} onMegaCodex={() => setScreen("megacodex")} onFlagCheck={() => setScreen("flagdiag")} />}
+      {screen === "settings"   && <SettingsScreen onBack={() => setScreen("home")} onFlagCheck={() => setScreen("flagdiag")} />}
       {screen === "oddoneout"  && <OddOneOutScreen  onBack={() => setScreen("home")} />}
       {screen === "connections" && <ConnectionsScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "thecrop"    && <TheCropScreen    onBack={() => setScreen("home")} />}
@@ -510,7 +510,7 @@ export default function App() {
       {screen === "substumper" && <SubdivisionStumperScreen onBack={() => setScreen("home")} onSubLearned={handleSubLearned} />}
       {screen === "lineage" && <LineageScreen onBack={() => setScreen("home")} />}
       {screen === "substats" && <SubdivisionStatsScreen state={appState} onBack={() => setScreen("home")} />}
-      {screen === "megacodex" && <MegaCodexScreen onBack={() => setScreen("settings")} />}
+      {screen === "megacodex" && <MegaCodexScreen onBack={() => setScreen("home")} />}
       {screen === "flagdiag"  && <FlagDiagnosticsScreen onBack={() => setScreen("settings")} />}
       {screen === "flagle"       && <FlagleScreen       onBack={() => setScreen("home")} />}
       {screen === "higherlower"  && <HigherLowerScreen  onBack={() => setScreen("home")} />}

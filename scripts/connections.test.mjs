@@ -247,3 +247,21 @@ test('variety: no kind of group on more than four of the 52 boards', () => {
   for (const p of PUZZLES) for (const g of p.groups) uses.set(key(g.rule), (uses.get(key(g.rule)) ?? 0) + 1)
   for (const [k, n] of uses) assert.ok(n <= 4, `${k} used ${n} times`)
 })
+
+test('from 27 Nov 2026 a puzzle runs for two weeks, carrying the running number on', () => {
+  // Daily before the switch, unchanged.
+  assert.equal(G.puzzleNumber('2026-11-26'), G.daysSinceEpoch('2026-11-26'))
+  const n = G.puzzleNumber('2026-11-27')
+  assert.equal(n, G.daysSinceEpoch('2026-11-27'), 'the puzzle that was on that day stays on')
+  for (const d of ['2026-11-28', '2026-12-05', '2026-12-10']) {
+    assert.equal(G.puzzleNumber(d), n, d)
+    assert.equal(G.puzzleStart(d), '2026-11-27', d)
+    assert.equal(G.nextPuzzleDate(d), '2026-12-11', d)
+  }
+  assert.equal(G.puzzleNumber('2026-12-11'), n + 1)
+  assert.equal(G.puzzleStart('2026-12-24'), '2026-12-11')
+  assert.equal(G.puzzleNumber('2026-12-25'), n + 2)
+  assert.equal(G.puzzleStart('2026-11-20'), '2026-11-20', 'daily days start on themselves')
+  assert.equal(G.nextPuzzleDate('2026-11-20'), '2026-11-21')
+  assert.equal(G.puzzleIndex('2026-12-11', 52), (n + 1) % 52)
+})
