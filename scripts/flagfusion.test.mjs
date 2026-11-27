@@ -257,7 +257,7 @@ test('no input mentions a name, so iOS offers no contact AutoFill', () => {
   for (const label of [...screen.matchAll(/aria-label=\{`\$\{PART_LABEL\[part\]\} ([^`]*)`\}/g)]) assert.doesNotMatch(label[1], /name/i)
 })
 
-test('Flag Fusion sits next to Frankenflag on the One Glance shelf, and every count says 56', () => {
+test('Flag Fusion sits next to Frankenflag on the One Glance shelf, and every count says 57', () => {
   const ids = REGISTRY.map(e => e.id)
   assert.equal(ids[ids.indexOf('frankenflag') + 1], 'flagfusion')
   const e = REGISTRY.find(x => x.id === 'flagfusion')
@@ -266,7 +266,7 @@ test('Flag Fusion sits next to Frankenflag on the One Glance shelf, and every co
   assert.equal(e.group, 'One Glance')
   assert.equal(e.tab, 'play')
   assert.ok(!e.sandbox)
-  assert.equal(GAME_COUNT, 56)
+  assert.equal(GAME_COUNT, 57)
   const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8')
   assert.match(read('scripts/prerender.mjs'), /flagfusion: '/)
   assert.match(read('src/App.tsx'), /screen === "flagfusion"/)

@@ -1,6 +1,6 @@
 import { useState } from "react"
-import { LGBTQ_FLAGS, OTHER_IDENTITY_FLAGS, SIGNAL_FLAGS } from "../data/identityFlags"
-import type { IdentityFlag } from "../data/identityFlags"
+import { IDENTITY_FLAGS } from "../data/identityFlags"
+import type { IdentityCategory, IdentityFlag } from "../data/identityFlags"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton, GameIcon } from "./gameUi"
@@ -11,16 +11,21 @@ interface Props { onBack: () => void }
 const ROUNDS = 6
 const A = ACCENT.learn
 
-// Each play mode keeps its pool separate so a round never mixes types — pride,
-// movements/identity, and the maritime signal alphabet are all their own thing.
-// Each deck has a line icon and a palette accent (no rainbow gradients).
-type ModeId = "lgbtq" | "identity" | "signal"
+// One deck per identity category, named and coloured like its section of the
+// Codex (Pan-National & Ethnic and Indigenous Peoples sit inside Peoples &
+// Cultures there), so a round never mixes types. Each deck has a line icon and
+// a palette accent (no rainbow gradients).
+type ModeId = "lgbtq" | "separatist" | "civic" | "micronations" | "pannational" | "indigenous" | "signal"
 // Entries with no flag (noFlag, or an empty flagUrl) can't be shown — keep them out of every pool.
-const withFlag = (pool: IdentityFlag[]) => pool.filter(f => f.flagUrl && !f.noFlag)
+const inCategory = (c: IdentityCategory) => IDENTITY_FLAGS.filter(f => f.category === c && f.flagUrl && !f.noFlag)
 const MODES: { id: ModeId; label: string; icon: string; pool: IdentityFlag[]; accent: string }[] = [
-  { id: "lgbtq",    label: "Pride & LGBTQ+",        icon: "heart",  pool: withFlag(LGBTQ_FLAGS),          accent: T.chartreuse },
-  { id: "identity", label: "Movements & Identity",  icon: "flag",   pool: withFlag(OTHER_IDENTITY_FLAGS), accent: A },
-  { id: "signal",   label: "Maritime Signal Flags", icon: "anchor", pool: withFlag(SIGNAL_FLAGS),         accent: T.green },
+  { id: "lgbtq",        label: "Pride & LGBTQ+",          icon: "heart",   pool: inCategory("Pride & LGBTQ+"),          accent: T.violet },
+  { id: "separatist",   label: "Separatist & Autonomous", icon: "pin",     pool: inCategory("Separatist & Autonomous"), accent: T.gold },
+  { id: "civic",        label: "Civic & Ideological",     icon: "vote",    pool: inCategory("Civic & Ideological"),     accent: T.chartreuse },
+  { id: "micronations", label: "Micronations",            icon: "crown",   pool: inCategory("Micronations"),            accent: T.green },
+  { id: "pannational",  label: "Pan-National & Ethnic",   icon: "users",   pool: inCategory("Pan-National & Ethnic"),   accent: T.warm },
+  { id: "indigenous",   label: "Indigenous Peoples",      icon: "feather", pool: inCategory("Indigenous Peoples"),      accent: T.amber },
+  { id: "signal",       label: "Signal & Maritime Flags", icon: "anchor",  pool: inCategory("Maritime & Signal"),       accent: A },
 ]
 
 function pickChoices(target: IdentityFlag, pool: IdentityFlag[]): IdentityFlag[] {
@@ -86,9 +91,9 @@ export default function IdentityFlagScreen({ onBack }: Props) {
       <div className="min-h-screen flex flex-col"
         style={{ background: T.bg, color: T.text }}>
         <ScreenHeader title="Identity Flags" onBack={onBack} />
-        <div className="flex-1 flex flex-col items-center justify-center px-5 gap-4">
+        <div className="flex-1 flex flex-col items-center justify-center px-5 pb-8 gap-3">
           <p className="text-sm text-center mb-1" style={{ color: T.muted, maxWidth: 320 }}>
-            Pick a deck — Pride &amp; LGBTQ+ flags and civic/cultural movement flags are kept separate.
+            Pick a deck. Each one matches a section of the Codex.
           </p>
           {MODES.map(m => (
             <button key={m.id} onClick={() => startMode(m.id)}

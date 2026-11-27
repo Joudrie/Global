@@ -8,8 +8,8 @@ import {
   MapPinned, Waypoints, Gift, ScanSearch, VenetianMask,
   Building2, Signpost, FolderTree, Scale,
   ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Heart, TrendingUp, Pencil, Mail,
-  Pipette, Grid2x2, PenTool, Rainbow, Building, RotateCcw, Hourglass, Luggage, Plane, House, Combine, Binoculars,
-  Download, Pin, Link2, Lock, X, Plus, Share2, ChevronRight, PaintBucket,
+  Pipette, Grid2x2, PenTool, Rainbow, Building, RotateCcw, Hourglass, Luggage, Plane, House, Combine, Binoculars, IdCard,
+  Download, Pin, Link2, Lock, X, Plus, Share2, ChevronRight, PaintBucket, Feather,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -39,7 +39,7 @@ const MAP: Record<string, LucideIcon> = {
   capitalmatch: Building2, oddborder: Signpost, continentsort: FolderTree, statclash: Scale,
   worldcup: Trophy, connections: Grid2x2, mail: Mail,
   flagstudio: PenTool, prideroulette: Rainbow, uscityflags: Building, intro: RotateCcw, atlas: Hourglass,
-  citiesabroad: Luggage, countriesabroad: Plane, nativenames: House, flagfusion: Combine, flagidentifier: Binoculars,
+  citiesabroad: Luggage, countriesabroad: Plane, nativenames: House, demonyms: IdCard, flagfusion: Combine, flagidentifier: Binoculars,
   // semantic names for result headers, buttons and labels (instead of emoji)
   trophy: Trophy, award: Award, target: Target, compass: Compass, flame: Flame, crown: Crown,
   check: Check, moon: Moon, bucket: PaintBucket,
@@ -47,6 +47,7 @@ const MAP: Record<string, LucideIcon> = {
   flag: Flag, bot: Bot, skull: Skull, users: Users, heart: Heart, gift: Gift, palette: Palette,
   search: Search, swords: Swords, lightbulb: Lightbulb, tree: TreeDeciduous,
   dna: Dna, medal: Medal, scale: Scale, waypoints: Waypoints, layers: Layers,
+  vote: Vote, feather: Feather,
   // profiles
   download: Download, pushpin: Pin, link: Link2, lock: Lock, close: X, edit: Pencil,
   plus: Plus, share: Share2, history: History, chevronright: ChevronRight, chevrondown: ChevronDown,
