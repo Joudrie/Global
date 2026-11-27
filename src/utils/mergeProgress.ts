@@ -34,7 +34,7 @@ type Obj = { [key: string]: Json }
 
 export type RuleName =
   | "main" | "max" | "min" | "union" | "dated" | "gacha" | "flagStudio" | "gauntlet"
-  | "unionKeepLocal" | "latest" | "device"
+  | "unionKeepLocal" | "latest" | "device" | "patchNotes"
 
 interface Rule {
   /** A storage key, or a pattern for a family of keys. */
@@ -93,6 +93,9 @@ export const RULES: Rule[] = [
     note: "Flagle guesses: the later day; same day, the one with more guesses." },
   { key: "globalio_atlas_daily", rule: "dated", symmetric: true,
     note: "Atlas daily guess: the later day." },
+
+  { key: "globalio_patchnotes_seen", rule: "patchNotes", symmetric: true,
+    note: "Patch notes read ({ date, count }: every entry before date, count on it): the later date, then the higher count." },
 
   // Choices with no "better" one: keep everything, and this device's on a clash.
   { key: "globalio_atlas_played", rule: "unionKeepLocal", symmetric: false,
@@ -215,6 +218,17 @@ function mergeLatest(local: Json, incoming: Json): Json {
     if (on(x) !== on(y)) return on(x) ? x : y
     return pickStable(x, y)
   })
+}
+
+/** Patch notes read, { date, count } (utils/patchNotes.ts): whichever has read
+ *  further, the later date, then more entries on that date. */
+function mergePatchNotes(local: Json, incoming: Json): Json {
+  const ok = (v: Json): v is Obj => isObj(v) && isDate(v.date) && isNum(v.count)
+  if (!ok(local) || !ok(incoming)) return ok(local) ? local : ok(incoming) ? incoming : local
+  const d = later(local.date, incoming.date)
+  if (d !== 0) return d > 0 ? local : incoming
+  const c = (local.count as number) - (incoming.count as number)
+  return c > 0 ? local : c < 0 ? incoming : pickStable(local, incoming)
 }
 
 /** Every key from both; on a clash, this device's value. */
@@ -366,6 +380,7 @@ function mergeValue(rule: RuleName, local: Json, incoming: Json): Json {
     case "unionKeepLocal": return mergeUnionKeepLocal(local, incoming)
     case "latest": return mergeLatest(local, incoming)
     case "device": return local
+    case "patchNotes": return mergePatchNotes(local, incoming)
   }
 }
 

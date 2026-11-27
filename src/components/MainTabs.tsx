@@ -17,6 +17,7 @@ import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
 import { WordUpSlide, ReignSlide } from "./MakerSlides"
 import AdBox from "./AdBox"
+import PatchNotesStrip from "./PatchNotesStrip"
 import { AD_SLOTS } from "../ads"
 import Avatar, { avatarFor } from "./Avatar"
 import { PROFILE_EVENT, readProfile } from "../profile/local"
@@ -200,6 +201,8 @@ function TodayTab({ state, today, dailyDone, launch, onNavigate, onGoCodex, onGo
   return (
     <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {intro}
+
+      <PatchNotesStrip onOpen={() => onNavigate("patchnotes")} />
 
       {/* Hero deck opens the page (the streak chip lives in the header above).
           Flag Studio first (one of the best features, so it isn't hidden),

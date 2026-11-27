@@ -82,6 +82,7 @@ const AtlasScreen = lazy(() => import("./components/AtlasScreen"))
 const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
+const PatchNotesScreen = lazy(() => import("./components/PatchNotesScreen"))
 import { setSupporterHandler } from "./utils/supporterNav"
 import { countGameOpen } from "./utils/gameCounts"
 import { notePlay } from "./utils/favorites"
@@ -99,7 +100,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "abroad" | "nativenames" | "demonyms" | "flagfusion" | "player"
+type Screen = "splash" | "patchnotes" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "abroad" | "nativenames" | "demonyms" | "flagfusion" | "player"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -197,6 +198,7 @@ function readDeepLink(): string | null {
   const id = linkedId()
   if (!id) return null
   if (id === "daily" || id === "quickplay") return id
+  if (id === "patchnotes") return id // the patch notes: a screen, not a game
   // Any registry id, or an old one (atlaswhen, citiesabroad …; RENAMED in ui/registry.ts).
   return currentId(id)
 }
@@ -214,7 +216,8 @@ export default function App() {
   const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null)
   const [lastResult, setLastResult] = useState<{ score: number; total: number; answers: ("correct" | "wrong")[] } | null>(null)
   const [histRegion, setHistRegion] = useState<HistoricalRegion | undefined>(undefined)
-  // Historical and Identity open from Home or from Flag Sets; Back returns there.
+  // Historical and Identity open from Home or from Flag Sets, the patch notes
+  // from Home or Settings; Back returns there.
   const [deckBack, setDeckBack] = useState<Screen>("home")
   // Back from signing in: open You, where the account card shows it worked.
   const [tab, setTab] = useState<TabKey>(() => ((SIGN_IN_RETURN && accountsVisible()) || DEMO_AT_START ? "you" : "today"))
@@ -488,7 +491,8 @@ export default function App() {
       {screen === "geo" && <GeoQuizScreen onBack={() => setScreen("home")} />}
       {screen === "gauntlet" && <GauntletScreen onBack={() => setScreen("home")} />}
       {screen === "tierlist" && <TierListScreen onBack={() => setScreen("home")} />}
-      {screen === "settings"   && <SettingsScreen onBack={() => setScreen("home")} onFlagCheck={() => setScreen("flagdiag")} />}
+      {screen === "settings"   && <SettingsScreen onBack={() => setScreen("home")} onFlagCheck={() => setScreen("flagdiag")} onPatchNotes={() => { setDeckBack("settings"); setScreen("patchnotes") }} />}
+      {screen === "patchnotes" && <PatchNotesScreen onBack={() => setScreen(deckBack)} onPlay={id => { setDeckBack("home"); setScreen(id as Screen) }} />}
       {screen === "oddoneout"  && <OddOneOutScreen  onBack={() => setScreen("home")} />}
       {screen === "connections" && <ConnectionsScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "thecrop"    && <TheCropScreen    onBack={() => setScreen("home")} />}
