@@ -571,3 +571,360 @@ test('only the Creator badge (set by the owner in entitlements) gets the crown a
   const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261126100000_accounts.sql'), 'utf8')
   assert.ok(!/grant\s+(insert|update)[^;]*public\.entitlements[^;]*to\s+(anon|authenticated)/i.test(sql), 'players must never be able to write their own badge')
 })
+
+// ── Friends ─────────────────────────────────────────────────────────────────
+// The SQL (supabase/migrations/20261127200000_friends.sql), the client logic
+// in src/profile/friends.ts against a fake Supabase, and the switch that
+// hides every friends control until the SQL has been run.
+
+const FR = await src('profile/friends.ts')
+const FRIENDS_SQL = 'migrations/20261127200000_friends.sql'
+
+/** A fake Supabase: the friend functions with the database's rules, for the
+ *  player `uid`. Players share `db`. */
+function fakeFriends(db, uid, { missing = false, offline = false } = {}) {
+  const res = (data, error = null, status = 200) => Promise.resolve({ data, error, status })
+  const byName = name => [...db.profiles.values()].find(p => p.username.toLowerCase() === String(name).toLowerCase())
+  const pair = (a, b) => db.rows.find(r => (r.requester === a && r.addressee === b) || (r.requester === b && r.addressee === a))
+  const other = r => db.profiles.get(r.requester === uid ? r.addressee : r.requester)
+  const card = p => ({ username: p.username, picture: p.picture ?? null, badge: p.badge ?? null })
+  return {
+    rpc(name, args = {}) {
+      db.calls.push({ uid, name, args })
+      if (offline) return res(null, { message: 'TypeError: Failed to fetch' }, 0)
+      if (missing) return res(null, { code: 'PGRST202', message: `Could not find the function public.${name} in the schema cache` }, 404)
+      const raise = message => res(null, { code: 'P0001', message }, 400)
+      if (name === 'list_friends') {
+        return res(db.rows.filter(r => r.status === 'accepted' && [r.requester, r.addressee].includes(uid)).map(r => ({ ...card(other(r)), stats: other(r).stats ?? {}, friends_since: '2026-11-27T12:00:00Z' })))
+      }
+      if (name === 'friend_requests') {
+        return res(db.rows.filter(r => r.status === 'pending' && [r.requester, r.addressee].includes(uid)).map(r => {
+          const p = other(r), incoming = r.addressee === uid
+          return { ...card(p), picture: incoming || p.isPublic ? p.picture ?? null : null, direction: incoming ? 'incoming' : 'outgoing', sent_at: r.at }
+        }))
+      }
+      if (name === 'get_friend') {
+        const p = byName(args.player)
+        const r = p && pair(uid, p.id)
+        return res(r && r.status === 'accepted' ? [{ ...card(p), banner: 'waves', bio: p.bio ?? '', pinned: [], designs: [], stats: p.stats ?? {}, created_at: '2026-11-01T00:00:00Z' }] : [])
+      }
+      const them = byName(args.player)
+      if (name === 'send_friend_request') {
+        if (!db.profiles.has(uid)) return raise('friend_needs_username')
+        if (!them) return raise('friend_not_found')
+        if (them.id === uid) return raise('friend_self')
+        const r = pair(uid, them.id)
+        if (r?.status === 'accepted') return res('accepted')
+        if (r && r.requester === uid) return res('pending')
+        if (r) { r.status = 'accepted'; return res('accepted') }
+        if (db.rows.filter(x => x.requester === uid && x.status === 'pending').length >= 50) return raise('friend_limit: pending')
+        db.rows.push({ requester: uid, addressee: them.id, status: 'pending', at: `2026-11-27T12:0${db.rows.length}:00Z` })
+        return res('pending')
+      }
+      if (name === 'respond_friend_request') {
+        const r = them && db.rows.find(x => x.requester === them.id && x.addressee === uid)
+        if (!r) return res('none')
+        if (r.status === 'accepted' || args.accept) { r.status = 'accepted'; return res('accepted') }
+        db.rows.splice(db.rows.indexOf(r), 1)
+        return res('none')
+      }
+      if (name === 'remove_friend') {
+        const r = them && pair(uid, them.id)
+        if (r) db.rows.splice(db.rows.indexOf(r), 1)
+        return res('none')
+      }
+      return res(null, { code: 'PGRST202', message: 'no such function' }, 404)
+    },
+  }
+}
+
+function friendsDb() {
+  const db = { profiles: new Map(), rows: [], calls: [] }
+  const add = (id, username, extra = {}) => db.profiles.set(id, { id, username, isPublic: true, ...extra })
+  add('a', 'Map_Lover', { picture: { kind: 'flag', code: 'JP' }, stats: { flags: 40, bestStreak: 9, achievements: 12, bests: { higherlower: 20 } } })
+  add('b', 'Atlas_Amy', { isPublic: false, picture: { kind: 'flag', code: 'FR' }, badge: 'Founding player', bio: 'Private bio',
+    stats: { flags: 120, bestStreak: 14, achievements: 23, bests: { higherlower: 14, silhouette: 30 }, activity: [['daily-first', Date.parse('2026-11-26T10:00:00Z')]] } })
+  add('c', 'Stranger_C')
+  return db
+}
+
+test('friends: a request, an answer and a friend, the way the database does it', async () => {
+  FR.forgetFriendsMissing()
+  const db = friendsDb()
+  const a = FR.supabaseFriends(fakeFriends(db, 'a')), b = FR.supabaseFriends(fakeFriends(db, 'b'))
+  assert.equal(await a.send('@atlas_amy'), 'pending')
+  const sent = await a.requests()
+  assert.deepEqual(sent.map(r => [r.username, r.direction, r.picture]), [['Atlas_Amy', 'outgoing', null]], 'a private profile you asked shows its name only')
+  const got = await b.requests()
+  assert.deepEqual(got.map(r => [r.username, r.direction, r.picture?.code]), [['Map_Lover', 'incoming', 'JP']])
+  assert.equal(await a.profile('Atlas_Amy'), null, 'not friends yet: no profile')
+  assert.equal(await b.respond('map_lover', true), 'accepted')
+  const [amy] = await a.list()
+  assert.equal(amy.username, 'Atlas_Amy')
+  assert.equal(amy.stats.bestStreak, 14, 'a friend sees a private profile’s stats')
+  assert.equal(amy.badge, 'Founding player')
+  assert.equal((await a.profile('atlas_amy')).bio, 'Private bio')
+  assert.equal(await a.send('Atlas_Amy'), 'accepted', 'asking a friend again changes nothing')
+  await a.remove('Atlas_Amy')
+  assert.deepEqual(await b.list(), [])
+  const before = db.calls.length
+  await assert.rejects(a.send("x'; drop"), e => e.kind === 'not_found')
+  await assert.rejects(a.send('ab'), e => e.kind === 'not_found')
+  assert.equal(db.calls.length, before, 'not a username: no request')
+})
+
+test('friends: where you stand, and what the button on their profile says', () => {
+  const card = u => ({ username: u, picture: null, badge: null })
+  const s = {
+    friends: [{ ...card('Atlas_Amy'), stats: ST.EMPTY_STATS, since: null }],
+    incoming: [{ ...card('Map_Lover'), direction: 'incoming', at: null }],
+    outgoing: [{ ...card('Flag_Fan'), direction: 'outgoing', at: null }],
+  }
+  assert.equal(FR.relationOf(s, 'atlas_amy'), 'friends')
+  assert.equal(FR.relationOf(s, 'MAP_LOVER'), 'incoming')
+  assert.equal(FR.relationOf(s, '@flag_fan'), 'outgoing')
+  assert.equal(FR.relationOf(s, 'someone'), 'none')
+  assert.equal(FR.relationOf({ ...s, friends: null }, 'someone'), null, 'until the list loads, no guess (no "Add friend" on a friend)')
+  const c = rel => FR.friendControls(rel, 'Amy')
+  assert.deepEqual([c('none').primary, c('none').label, c('none').secondary], [{ label: 'Add friend', act: 'send' }, null, null])
+  assert.deepEqual([c('outgoing').primary, c('outgoing').label, c('outgoing').secondary], [null, 'Requested', { label: 'Cancel request', act: 'cancel' }])
+  assert.deepEqual([c('incoming').primary, c('incoming').secondary], [{ label: 'Accept request', act: 'accept' }, { label: 'Decline', act: 'decline' }])
+  assert.deepEqual([c('friends').label, c('friends').secondary], ['Friends', { label: 'Remove', act: 'remove' }])
+  assert.match(c('friends').confirm, /^Remove Amy from your friends\?/, 'removing a friend asks first')
+  for (const rel of ['none', 'outgoing', 'incoming']) assert.equal(c(rel).confirm, null)
+})
+
+test('friends: before the SQL is run, the calls say "unavailable" once, and nothing more is asked this page load', async () => {
+  FR.forgetFriendsMissing()
+  const db = friendsDb()
+  assert.equal(FR.isMissing({ code: 'PGRST202', message: 'Could not find the function public.list_friends' }, 404), true)
+  assert.equal(FR.isMissing({ code: '42883', message: 'function public.list_friends() does not exist' }, 404), true)
+  assert.equal(FR.isMissing(null, 404), true, 'a bare 404')
+  assert.equal(FR.isMissing({ code: 'P0001', message: 'friend_not_found' }, 400), false)
+  assert.equal(FR.isMissing({ code: '42501', message: 'permission denied' }, 403), false)
+  const b = FR.supabaseFriends(fakeFriends(db, 'a', { missing: true }))
+  await assert.rejects(b.requests(), e => e.kind === 'unavailable' && e.message === 'Friends aren’t available yet.')
+  assert.equal(FR.friendsMissing(), true)
+  const n = db.calls.length
+  await assert.rejects(b.list(), e => e.kind === 'unavailable')
+  await assert.rejects(FR.supabaseFriends(fakeFriends(db, 'a')).send('Atlas_Amy'), e => e.kind === 'unavailable', 'remembered for the page load')
+  assert.equal(db.calls.length, n, 'no more requests once known missing')
+  const store = new FR.FriendsStore(b, () => {})
+  assert.equal(store.state.status, 'unavailable', 'a store made later starts hidden')
+  await store.refresh()
+  assert.equal(store.state.status, 'unavailable')
+  FR.forgetFriendsMissing()
+  const src = fs.readFileSync(path.join(ROOT, 'src/profile/friends.ts'), 'utf8')
+  assert.ok(!/localStorage|sessionStorage|indexedDB/.test(src.replace(/\/\/.*$/gm, '')), 'remembered in memory only: no new storage keys')
+})
+
+test('friends: the database’s refusals read as plain words', () => {
+  const m = (message, status = 400, code = 'P0001') => FR.friendError({ code, message }, status)
+  assert.equal(m('friend_not_found').kind, 'not_found')
+  assert.equal(m('friend_self').kind, 'self')
+  assert.equal(m('friend_needs_username').kind, 'needs_username')
+  assert.equal(m('friend_not_allowed').kind, 'not_allowed')
+  assert.equal(m('friend_rate_limited').kind, 'rate_limited')
+  assert.match(m('friend_limit: pending').message, /50 requests waiting/)
+  assert.match(m('friend_limit: friends').message, /500 friends/)
+  assert.match(m('friend_limit: theirs').message, /too many requests/)
+  assert.equal(m('Not signed in', 403, '42501').kind, 'signed_out')
+  assert.equal(FR.friendError({ message: 'TypeError: Failed to fetch' }, 0).kind, 'offline')
+  assert.equal(m('boom', 500, 'XX000').kind, 'offline')
+  // Every refusal the SQL can raise has its own words.
+  const raised = [...sqlFile(FRIENDS_SQL).matchAll(/raise exception '(friend_[a-z_]+(?:: [a-z_]+)?)'/g)].map(x => x[1])
+  assert.ok(raised.length >= 8, raised.join())
+  for (const r of raised) {
+    const e = m(r)
+    assert.notEqual(e.kind, 'error', r)
+    assert.notEqual(e.message, FR.FRIEND_MESSAGE.limit, `${r} has a specific message`)
+  }
+})
+
+test('friends: changes show at once, and go back if the server refuses', async () => {
+  FR.forgetFriendsMissing()
+  const db = friendsDb()
+  db.rows.push({ requester: 'c', addressee: 'a', status: 'pending', at: '2026-11-27T09:00:00Z' })
+  const backend = FR.supabaseFriends(fakeFriends(db, 'a'))
+  const seen = []
+  const store = new FR.FriendsStore(backend, s => seen.push(s.status), () => Date.parse('2026-11-27T12:00:00Z'))
+  assert.equal(store.state.status, 'loading')
+  await store.refresh({ list: false })
+  assert.equal(store.state.status, 'ready')
+  assert.equal(store.state.friends, null, 'at start only the requests load')
+  assert.deepEqual(store.state.incoming.map(r => r.username), ['Stranger_C'])
+  await store.refresh()
+  assert.deepEqual(store.state.friends, [])
+
+  // Add friend: "Requested" straight away, then the server's row.
+  const p = store.send({ username: 'Atlas_Amy', picture: { kind: 'flag', code: 'FR' }, badge: null })
+  assert.equal(FR.relationOf(store.state, 'Atlas_Amy'), 'outgoing')
+  assert.equal(store.isBusy('atlas_amy'), true)
+  assert.equal(await p, null)
+  await settleAll()
+  assert.equal(store.isBusy('atlas_amy'), false)
+  assert.deepEqual(store.state.outgoing.map(r => [r.username, r.picture]), [['Atlas_Amy', null]], 'the server’s row (no picture for a private profile)')
+
+  // Accept: into the list at once, with stats after the reload.
+  const q = store.respond('stranger_c', true)
+  assert.equal(FR.relationOf(store.state, 'Stranger_C'), 'friends')
+  assert.equal(store.state.incoming.length, 0)
+  assert.equal(await q, null)
+  await settleAll()
+  assert.equal(store.state.friends.find(f => f.username === 'Stranger_C').since, '2026-11-27T12:00:00Z')
+
+  // A refusal puts things back and says why.
+  const failing = { ...backend, remove: async () => { throw FR.friendError({ message: 'TypeError: Failed to fetch' }, 0) } }
+  const s2 = new FR.FriendsStore(failing, () => {})
+  await s2.refresh()
+  const message = await s2.remove('Stranger_C')
+  assert.equal(message, FR.FRIEND_MESSAGE.offline)
+  assert.equal(FR.relationOf(s2.state, 'Stranger_C'), 'friends', 'put back')
+  assert.equal(s2.state.busy.length, 0)
+
+  // Cancel a request.
+  assert.equal(await store.remove('Atlas_Amy'), null)
+  assert.equal(FR.relationOf(store.state, 'Atlas_Amy'), 'none')
+  await settleAll()
+  assert.equal(db.rows.filter(r => r.addressee === 'b').length, 0)
+  assert.ok(seen.length > 0)
+})
+
+test('friends: the store goes quiet (hidden) when the SQL turns out to be missing, and never shows a dead control', async () => {
+  FR.forgetFriendsMissing()
+  const db = friendsDb()
+  const store = new FR.FriendsStore(FR.supabaseFriends(fakeFriends(db, 'a', { missing: true })), () => {})
+  await store.refresh()
+  assert.equal(store.state.status, 'unavailable')
+  assert.equal(await store.send({ username: 'Atlas_Amy', picture: null, badge: null }), null, 'nothing to do while hidden')
+  FR.forgetFriendsMissing()
+  const off = new FR.FriendsStore(FR.supabaseFriends(fakeFriends(db, 'a', { offline: true })), () => {})
+  await off.refresh()
+  assert.equal(off.state.status, 'offline', 'offline is not "missing": it can be tried again')
+  assert.equal(FR.friendsMissing(), false)
+  // The components draw nothing unless friends are there.
+  const ui = fs.readFileSync(path.join(ROOT, 'src/components/Friends.tsx'), 'utf8')
+  assert.equal((ui.match(/f\.status === "off" \|\| f\.status === "unavailable"/g) ?? []).length, 2, 'both the You tab section and the profile panel hide')
+  const dot = fs.readFileSync(path.join(ROOT, 'src/components/FriendDot.tsx'), 'utf8')
+  assert.match(dot, /view\.friends\.status === "ready"/)
+  assert.ok(!/^import (?!type).*(service|supabase|friends)/m.test(dot), 'the header count loads nothing big')
+})
+
+const settleAll = async () => { for (let i = 0; i < 20; i++) await new Promise(r => setImmediate(r)) }
+
+test('friends: the list line and You vs them', () => {
+  const s = ST.readStats({ flags: 120, bestStreak: 14, achievements: 23, bests: { higherlower: 14, silhouette: 30, frankenflag: 5, nosuchgame: 99 } })
+  assert.equal(FR.friendHeadline(s), 'Best streak 14 · 23 achievements')
+  assert.equal(FR.friendHeadline(ST.readStats({ flags: 1 })), '1 flag learned')
+  assert.equal(FR.friendHeadline(ST.EMPTY_STATS), 'Just getting started')
+  const now = Date.parse('2026-11-27T12:00:00Z')
+  const withNews = ST.readStats({ activity: [['daily-first', now - 86400000]] })
+  assert.equal(FR.friendNews(withNews, now)?.title, ACHIEVEMENTS.find(a => a.id === 'daily-first').title)
+  assert.equal(FR.friendNews(ST.readStats({ activity: [['daily-first', now - 9 * 86400000]] }), now), null, 'only this week')
+
+  const mine = ST.readStats({ flags: 98, bestStreak: 20, achievements: 23, bests: { higherlower: 12, frankenflag: 8, flagle: 3 } })
+  const vs = FR.versus(mine, s)
+  assert.deepEqual(vs.overall.map(r => [r.id, r.result]), [['flags', 'behind'], ['bestStreak', 'ahead'], ['achievements', 'tied'], ['dailies', 'tied']])
+  // Where you're behind first, then the rest; each in the order games are listed.
+  assert.deepEqual(vs.games.map(r => [r.id, r.result, r.beat]),
+    [['silhouette', 'behind', 30], ['higherlower', 'behind', 14], ['frankenflag', 'ahead', null], ['flagle', 'ahead', null]])
+  assert.equal(vs.games.find(r => r.id === 'higherlower').beat, 14, '"Beat 14"')
+  assert.equal(vs.games.find(r => r.id === 'silhouette').mine, 0, 'a game only they played')
+  assert.ok(!vs.games.some(r => r.id === 'nosuchgame'))
+  assert.deepEqual([vs.ahead, vs.behind], [2, 2])
+})
+
+test('supabase/friends-setup.sql is the friends migration, unchanged, plus a check', () => {
+  const setup = sqlFile('friends-setup.sql')
+  assert.ok(setup.includes(sqlFile(FRIENDS_SQL).trim()), 'paste the migration into friends-setup.sql again')
+  assert.match(setup, /' of 6 ready'/)
+  assert.match(sqlFile(FRIENDS_SQL), /to_regclass\('public\.profiles'\) is null/, 'says to run the profiles setup first')
+})
+
+test('friends SQL: row level security on, no table access, definer functions in private with thin wrappers', () => {
+  const m = sqlFile(FRIENDS_SQL)
+  const code = m.replace(/--.*$/gm, '')
+  assert.match(code, /alter table public\.friendships enable row level security;/)
+  assert.match(code, /create policy "Players read their own friendships"\s+on public\.friendships for select to authenticated\s+using \(\(select auth\.uid\(\)\) in \(requester, addressee\)\);/, 'only the two players')
+  assert.match(code, /revoke all on table public\.friendships from public, anon, authenticated;/)
+  assert.ok(!/grant [^;]* on table public\.friendships/i.test(code), 'nobody reads or writes the table through the API')
+  assert.match(code, /revoke all on table private\.friend_request_log from public, anon, authenticated;/)
+  assert.ok(!/grant [^;]* on table private\./i.test(code))
+
+  const fns = [...code.matchAll(/create or replace function (\w+)\.(\w+)\(([^)]*)\)\s*returns ([\s\S]*?)\nas \$\$/g)]
+  const priv = fns.filter(f => f[1] === 'private'), pub = fns.filter(f => f[1] === 'public')
+  assert.deepEqual(pub.map(f => f[2]).sort(), ['friend_requests', 'get_friend', 'list_friends', 'remove_friend', 'respond_friend_request', 'send_friend_request'])
+  for (const f of priv) {
+    assert.match(f[4], /security definer/, `private.${f[2]} is security definer`)
+    assert.match(f[4], /set search_path = ''/, `private.${f[2]} has a fixed, empty search_path`)
+  }
+  for (const f of pub) {
+    const name = f[2]
+    assert.match(f[4], /security invoker/, `public.${name} is a plain wrapper`)
+    assert.match(f[4], /set search_path = ''/, `public.${name} has a fixed search_path`)
+    assert.match(code, new RegExp(`function public\\.${name}\\([^)]*\\)[\\s\\S]*?as \\$\\$\\s*select (\\* from )?private\\.${name}\\(`), `public.${name} calls private.${name}`)
+    assert.ok(priv.some(p => p[2] === name), `private.${name} exists`)
+    assert.match(code, new RegExp(`grant execute on function public\\.${name}\\([^)]*\\) to authenticated;`))
+    assert.match(code, new RegExp(`grant execute on function private\\.${name}\\([^)]*\\) to authenticated;`))
+    assert.ok(!new RegExp(`grant execute on function (public|private)\\.${name}\\([^)]*\\) to [^;]*anon`).test(code), `visitors can't call ${name}`)
+    assert.match(code, new RegExp(`revoke all on function public\\.${name}\\([^)]*\\) from public, anon, authenticated;`))
+  }
+  for (const helper of ['player_id', 'check_friend_room', 'lock_friend_pair']) {
+    assert.match(code, new RegExp(`revoke all on function private\\.${helper}\\([^)]*\\) from public, anon, authenticated;`))
+    assert.ok(!new RegExp(`grant execute on function private\\.${helper}`).test(code), `${helper} isn't callable from the app`)
+  }
+  // What comes back never names an account.
+  for (const f of pub.filter(f => /returns table/.test(f[4]))) {
+    const cols = f[4].match(/returns table \(([^)]*)\)/)[1]
+    assert.ok(!/user_id|email|requester|addressee|is_public|hidden/.test(cols), `${f[2]} returns ${cols}`)
+  }
+})
+
+test('friends SQL: no befriending yourself, one row per pair, hidden profiles left out, limits, and accounts cascade', () => {
+  const code = sqlFile(FRIENDS_SQL).replace(/--.*$/gm, '')
+  assert.match(code, /constraint friendships_not_self check \(requester <> addressee\)/)
+  assert.match(code, /raise exception 'friend_self'/)
+  assert.match(code, /create unique index if not exists friendships_pair on public\.friendships \(least\(requester, addressee\), greatest\(requester, addressee\)\)/)
+  assert.match(code, /status in \('pending', 'accepted'\)/)
+  for (const table of ['public.friendships', 'private.friend_request_log']) {
+    const body = code.match(new RegExp(`create table if not exists ${table.replace('.', '\\.')} \\(([\\s\\S]*?)\\n\\);`))[1]
+    assert.equal((body.match(/references auth\.users \(id\) on delete cascade/g) ?? []).length, 2, `${table}: deleting either account deletes the row`)
+  }
+  for (const fn of ['list_friends', 'friend_requests', 'get_friend']) {
+    const body = code.match(new RegExp(`function private\\.${fn}\\([\\s\\S]*?\\$\\$([\\s\\S]*?)\\$\\$;`))[1]
+    assert.match(body, /not p\.hidden_by_owner/, `${fn} leaves hidden profiles out`)
+    assert.match(body, /\(select auth\.uid\(\)\)/, `${fn} only ever reads the caller's`)
+  }
+  assert.match(code, /\(include_hidden or not p\.hidden_by_owner\)/)
+  assert.match(code, /raise exception 'friend_not_allowed'/, 'a hidden profile can’t send requests')
+  assert.match(code, /f\.status = 'pending'\) >= 50 then\s+raise exception 'friend_limit: pending'/)
+  assert.match(code, /\) >= 500 then\s+raise exception 'friend_limit: friends'/)
+  assert.match(code, /\) >= 200 then\s+raise exception 'friend_limit: theirs'/)
+  assert.equal(FR.MAX_PENDING, 50)
+  assert.equal(FR.MAX_FRIENDS, 500)
+  assert.match(code, /limit 500;/, 'list_friends returns at most 500')
+  // A private profile is still only visible to friends: get_player is unchanged.
+  assert.ok(!/function (public|private)\.get_player/.test(code), 'the friends SQL leaves get_player alone')
+})
+
+test('supabase/friends-rls-check.sql runs in one transaction that is rolled back, and counts its checks', () => {
+  const text = sqlFile('friends-rls-check.sql')
+  const code = text.replace(/--.*$/gm, '').trim()
+  assert.match(code, /^begin;/)
+  assert.match(code, /rollback;$/)
+  assert.ok(!/\bcommit\b/i.test(code))
+  assert.match(code, /set local role authenticated/)
+  assert.match(code, /set local role anon/)
+  const numbers = new Set([...code.matchAll(/(?:refused\(|select )(\d+), '/g)].map(m => +m[1]))
+  assert.ok(text.includes(`"${numbers.size} of ${numbers.size} checks passed"`), `the header should expect ${numbers.size} checks`)
+  for (const must of ['get_player\\(\'rlscheck_bob\'\\)', 'delete_account\\(\\)', 'friend_rate_limited', 'friend_limit: pending', 'select 1 from public\\.friendships'])
+    assert.match(code, new RegExp(must), must)
+})
+
+test('the privacy policy says what friends can see, and who sees a friend list', () => {
+  const html = fs.readFileSync(path.join(ROOT, 'public/privacy.html'), 'utf8')
+  assert.match(html, /<h2 id="friends">Friends<\/h2>/)
+  assert.match(html, /even when your profile is private/)
+  assert.match(html, /visible only to the two players in it/)
+  assert.match(html, /keep that note for 30 days/)
+})

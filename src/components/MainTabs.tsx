@@ -18,6 +18,7 @@ import AdBox from "./AdBox"
 import { AD_SLOTS } from "../ads"
 import Avatar, { avatarFor } from "./Avatar"
 import { PROFILE_EVENT, readProfile } from "../profile/local"
+import { FriendDot, friendRequestsLabel, useFriendRequests } from "./FriendDot"
 import { gameSnapshot } from "../utils/backup"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
@@ -77,10 +78,12 @@ function HeaderAvatar({ onOpen, active }: { onOpen: () => void; active: boolean 
   }, [])
   const picture = readProfile().picture
   const source = picture ? avatarFor(picture, picture.kind === "design" ? gameSnapshot() : {}) : null
+  const requests = useFriendRequests()
   return (
-    <button onClick={onOpen} aria-label="Your profile" aria-current={active ? "page" : undefined} className="geo-tap"
-      style={{ width: 44, height: 44, borderRadius: 999, padding: 0, background: T.surface, border: `1px solid ${active ? tint(ACCENT.learn, 0.6) : T.line}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+    <button onClick={onOpen} aria-label={friendRequestsLabel(requests)} aria-current={active ? "page" : undefined} className="geo-tap"
+      style={{ position: "relative", width: 44, height: 44, borderRadius: 999, padding: 0, background: T.surface, border: `1px solid ${active ? tint(ACCENT.learn, 0.6) : T.line}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
       {source ? <Avatar source={source} size={34} /> : <LineIcon name="profile" size={18} color={T.muted} />}
+      <FriendDot count={requests} />
     </button>
   )
 }
