@@ -746,6 +746,8 @@ function OrgCodexSection() {
 const FLAG_BY_CODE = new Map(FLAGS.map(f => [f.code, f]))
 /** "Coat of arms of Albania" → "Coat of arms"; "State Emblem of India" → "State Emblem". */
 const armsTerm = (name: string) => name.replace(/ of (?!arms\b).*$/, '')
+// Pale emblems (Afghanistan's) on a slate tile; same tone as CodexHistory's PALE_BACKING.
+const PALE_THUMB = tint(T.text, 0.32)
 
 function ArmsCodexSection() {
   const color = T.gold
@@ -818,7 +820,7 @@ function ArmsRow({ arms: a, country, color, open, onToggle }: { arms: CountryArm
         className="geo-tap w-full flex items-center gap-3 px-1.5 py-2.5 rounded-lg transition-all active:scale-[0.99] text-left"
         style={{ background: open ? tint(color, 0.07) : 'transparent', borderBottom: `1px solid ${tint(T.line, 0.55)}` }}>
         <img src={a.thumb} alt={a.name} loading="lazy" width={46} height={40}
-          style={{ width: 46, height: 40, objectFit: 'contain', flexShrink: 0 }}
+          style={{ width: 46, height: 40, objectFit: 'contain', flexShrink: 0, ...(a.light ? { background: PALE_THUMB, borderRadius: 6, padding: 3, boxSizing: 'border-box' } : {}) }}
           onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }} />
         <div className="flex-1 min-w-0">
           <div className="font-semibold text-sm truncate" style={{ color: T.text }}>{country}</div>

@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Many more former coats of arms in the Codex",
+    items: [
+      "Coats of arms (beta): 86 countries now show the coats of arms that came before, up from 49, with small redesigns included: Hungary has nine, plus Cambodia, Laos, Chile, Austria, Lithuania, Mexico and more.",
+      "Pale emblems like Afghanistan's sit on a soft backing so they're easy to see, and image credits are shorter and clearer.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Flag DNA now plays like Wordle",
     items: [
       "Each guess lists only what its own flag has: colours, pattern and symbols. Green means the mystery flag has it too, yellow means its stripes or cross run the other way, grey means it doesn't. Nothing is said about things your guess doesn't have.",

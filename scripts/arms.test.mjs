@@ -66,25 +66,51 @@ test('nothing past M yet, and every entry is a country in the Codex', () => {
   }
 })
 
-test('former arms run newest first, each with its years, file and credit', () => {
-  let n = 0
+test('former arms run newest first (undated ones last), each with its file and credit', () => {
+  let n = 0, undated = 0
   for (const a of COATS_OF_ARMS) {
     let prev = Infinity
+    let seenUndated = false
     for (const x of a.former) {
-      const where = `${a.code} ${x.name} (${x.from}–${x.to})`
-      assert.ok(Number.isInteger(x.from) && Number.isInteger(x.to) && x.from <= x.to, `${where}: years`)
-      assert.ok(x.from <= prev, `${where}: out of order`)
-      assert.ok(x.to <= new Date().getFullYear(), `${where}: ends in the future`)
-      if (a.adopted) assert.ok(x.from <= a.adopted, `${where}: starts after the current one was adopted (${a.adopted})`)
-      prev = x.from
+      const where = `${a.code} ${x.name} (${x.from ?? '?'}–${x.to ?? '?'})`
+      if (x.from === undefined) {
+        // No source dates it: shown as "Date unknown", after the dated ones.
+        assert.equal(x.to, undefined, `${where}: an end year without a start`)
+        seenUndated = true
+        undated++
+      } else {
+        assert.ok(!seenUndated, `${where}: a dated one after an undated one`)
+        assert.ok(Number.isInteger(x.from) && Number.isInteger(x.to) && x.from <= x.to, `${where}: years`)
+        assert.ok(x.from <= prev, `${where}: out of order`)
+        assert.ok(x.to <= new Date().getFullYear(), `${where}: ends in the future`)
+        if (a.adopted) assert.ok(x.from <= a.adopted, `${where}: starts after the current one was adopted (${a.adopted})`)
+        prev = x.from
+      }
       assert.match(x.src, PNG, `${where}: src`)
       assert.ok(onDisk(x.src), `${where}: file missing`)
-      assert.ok(x.name.length > 3 && x.name.length <= 72, `${where}: name`)
+      assert.ok(x.name.length > 3 && x.name.length <= 90, `${where}: name`)
+      assert.doesNotMatch(x.name, /\d{4}|[,;:]$|\bthe the\b/i, `${where}: name carries dates or loose punctuation`)
+      if (x.light !== undefined) assert.equal(x.light, true)
       checkCredit(x, where)
       n++
     }
+    assert.ok(a.former.filter(x => x.from === undefined).length <= 4, `${a.code}: at most four undated`)
+    assert.equal(new Set(a.former.map(x => x.src)).size, a.former.length, `${a.code}: one file per version`)
   }
-  assert.ok(n > 0, 'some former arms')
+  assert.ok(n >= 250, `former arms: ${n}`)
+  assert.ok(undated < n / 5, 'mostly dated')
+})
+
+test('pale, colourless emblems are flagged for a backing (Afghanistan)', () => {
+  assert.equal(COATS_OF_ARMS.find(a => a.code === 'AF')?.light, true)
+  assert.equal(COATS_OF_ARMS.find(a => a.code === 'AL')?.light, undefined)
+})
+
+test('credits name a person or body, not Commons boilerplate', () => {
+  for (const c of COATS_OF_ARMS.flatMap(a => [a, ...a.former])) {
+    assert.ok(c.author.length <= 60, `${c.commons}: author too long`)
+    assert.doesNotMatch(c.author, /W3C|Legal disclaimer|see file history|\.svg|Unknown Unknown|^[,;:]/i, `${c.commons}: "${c.author}"`)
+  }
 })
 
 test('every file in public/arms belongs to an entry', () => {
