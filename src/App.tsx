@@ -82,6 +82,7 @@ const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
 import { setSupporterHandler } from "./utils/supporterNav"
+import { countGameOpen } from "./utils/gameCounts"
 import { startAccountSync, SIGN_IN_RETURN, accountsVisible } from "./accounts"
 import { FLAGS } from "./data/flags"
 import type { FlagRecord } from "./data/flags"
@@ -198,6 +199,18 @@ export default function App() {
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
   // A shared Flag Studio design opens once; after that the studio shows the player's own work.
   const sharedDesign = useRef(SHARED_DESIGN)
+
+  // Count which games people open (cookie-free, in GoatCounter; see utils/gameCounts).
+  useEffect(() => {
+    if (screen === "quiz" && activeQuiz) {
+      const id = activeQuiz.isDaily ? "daily" : activeQuiz.setId === "quickplay" ? "quickplay" : `set-${activeQuiz.setId}`
+      countGameOpen(id, activeQuiz.title)
+      return
+    }
+    if (screen === "reversequiz") { countGameOpen("reversequiz", "Reverse quiz"); return }
+    const game = REGISTRY.find(r => r.id === screen)
+    if (game) countGameOpen(game.id, game.title)
+  }, [screen, activeQuiz])
 
   // Phone and browser Back: any screen past home sits on one extra history
   // entry, so Back returns home instead of leaving the site. Coming home any
