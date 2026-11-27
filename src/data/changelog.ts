@@ -5,6 +5,13 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Patch notes in the app",
+    items: [
+      "A new line at the top of Today sums up the week's changes, with a dot when there's something you haven't read. Tap it (or Patch notes in Settings) to see every update grouped by day, newest first, with the ones you haven't read marked New.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Flag Identifier finds 662 flags, not just countries",
     items: [
       "Flag Identifier now finds US states and Canadian provinces, regions of Europe and Brazil, 104 US city flags, every pride flag, movements like the Catalan estelada, and organisations like the EU and the Olympics.",

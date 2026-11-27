@@ -216,6 +216,10 @@ body {
   .carto-card, .geo-tap, .codex-chev { transition: none; }
 }
 
+/* Patch notes (the Today line and the screen's cards): paper and a hairline,
+   set here rather than inline so .geo-row's hover colours below can apply. */
+.geo-note { background-color: #FFFCF4; border: 1px solid #DDCEAF; }
+
 /* Profiles: rows and choices change colour and border on hover, nothing else. */
 .geo-row { transition: border-color 0.15s ease, background-color 0.15s ease; }
 .geo-row:hover, .geo-row:focus-visible { border-color: #C8B58C; background-color: #FCF6E7; }
