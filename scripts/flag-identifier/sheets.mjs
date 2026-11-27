@@ -1,10 +1,12 @@
 // Contact sheets for checking the Flag Identifier's data by eye: one PNG per
 // layout, colour and detail, showing every flag tagged with it (small or
-// arguable ones, the "?" in checked.mjs, are marked "minor"), plus the flags
-// that have none of the details. Needs Playwright, which isn't a project
-// dependency:
+// arguable ones, the "?" in checked.mjs and more.mjs, are marked "minor"),
+// plus the flags that have none of the details. Needs Playwright, which isn't
+// a project dependency:
 //   PLAYWRIGHT=/path/to/playwright node --experimental-strip-types \
-//     --import ./scripts/ts-resolve.mjs scripts/flag-identifier/sheets.mjs <out-dir>
+//     --import ./scripts/ts-resolve.mjs scripts/flag-identifier/sheets.mjs <out-dir> [kind]
+// A kind (country, region, city, identity, movement, organization,
+// historical) limits the sheets to flags of that kind.
 import fs from 'node:fs'
 import path from 'node:path'
 import { createRequire } from 'node:module'
@@ -16,16 +18,23 @@ fs.mkdirSync(OUT, { recursive: true })
 const pwPath = process.env.PLAYWRIGHT || 'playwright'
 const pw = pwPath.startsWith('/') ? createRequire(import.meta.url)(pwPath) : await import(pwPath)
 const { chromium } = pw.chromium ? pw : pw.default
-const { IDENTIFY_FLAGS } = await import(path.join(ROOT, 'src/data/flagIdentify.ts'))
+const KIND = process.argv[3]
+const { IDENTIFY_FLAGS: ALL } = await import(path.join(ROOT, 'src/data/flagIdentify.ts'))
+const IDENTIFY_FLAGS = KIND ? ALL.filter(e => e.category === KIND) : ALL
 const { LAYOUTS, COLOURS, DETAILS, STRUCTURAL } = await import(path.join(ROOT, 'src/utils/flagIdentify.ts'))
 
 const esc = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;')
-const flagSrc = code => 'data:image/svg+xml;base64,' +
-  fs.readFileSync(path.join(ROOT, 'public/flags', `${code.toLowerCase()}.svg`)).toString('base64')
+const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', svg: 'image/svg+xml' }
+/** A flag's image as a data URL: countries from public/flags, the rest from the image their data names. */
+function flagSrc(e) {
+  if (e.img?.startsWith('http')) return e.img
+  const file = e.img ? path.join(ROOT, 'public', e.img) : path.join(ROOT, 'public/flags', `${e.code.toLowerCase()}.svg`)
+  return `data:${MIME[path.extname(file).slice(1).toLowerCase()] ?? 'image/svg+xml'};base64,` + fs.readFileSync(file).toString('base64')
+}
 
 function sheet(title, items) {
   const cells = items.map(({ e, minor }) => `<figure class="${minor ? 'minor' : ''}">
-    <img src="${flagSrc(e.code)}" /><figcaption>${esc(e.code)} ${esc(e.name)}${minor ? ' <b>minor</b>' : ''}</figcaption></figure>`).join('')
+    <img src="${flagSrc(e)}" /><figcaption>${esc(e.code)} ${esc(e.name)}${minor ? ' <b>minor</b>' : ''}</figcaption></figure>`).join('')
   return `<!doctype html><meta charset="utf-8"><style>
     body{margin:16px;font:13px system-ui;background:#f4f1ea;color:#222}
     h1{font-size:20px;margin:0 0 12px}

@@ -2,8 +2,8 @@
 import type { ReactNode } from "react"
 import Onboarding, { hasOnboarded, markOnboarded } from "./components/Onboarding"
 import MainTabs from "./components/MainTabs"
-import { REGISTRY } from "./ui/registry"
-import type { TabKey } from "./ui/registry"
+import { REGISTRY, ABROAD_LINK_KINDS, currentId } from "./ui/registry"
+import type { AbroadKind, TabKey } from "./ui/registry"
 import { T } from "./ui/tokens"
 import EarthLogo from "./components/EarthLogo"
 import type { HistoricalRegion } from "./data/historicalFlags"
@@ -17,8 +17,7 @@ const FlagsScreen = lazy(() => import("./components/FlagsScreen"))
 const QuizScreen = lazy(() => import("./components/QuizScreen"))
 const ReverseQuizScreen = lazy(() => import("./components/ReverseQuizScreen"))
 const CapitalQuizScreen = lazy(() => import("./components/CapitalQuizScreen"))
-const CitiesAbroadScreen = lazy(() => import("./components/CitiesAbroadScreen"))
-const CountriesAbroadScreen = lazy(() => import("./components/CountriesAbroadScreen"))
+const AbroadGameScreen = lazy(() => import("./components/AbroadGameScreen"))
 const NativeNamesScreen = lazy(() => import("./components/NativeNamesScreen"))
 const DemonymsScreen = lazy(() => import("./components/DemonymsScreen"))
 const ChallengeScreen = lazy(() => import("./components/ChallengeScreen"))
@@ -83,8 +82,10 @@ const AtlasScreen = lazy(() => import("./components/AtlasScreen"))
 const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
+const PatchNotesScreen = lazy(() => import("./components/PatchNotesScreen"))
 import { setSupporterHandler } from "./utils/supporterNav"
 import { countGameOpen } from "./utils/gameCounts"
+import { notePlay } from "./utils/favorites"
 import { startAccountSync, SIGN_IN_RETURN, accountsVisible, profilesVisible } from "./accounts"
 import AchievementToast from "./components/AchievementToast"
 import { gameSnapshot } from "./utils/backup"
@@ -99,7 +100,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "citiesabroad" | "countriesabroad" | "nativenames" | "demonyms" | "flagfusion" | "player"
+type Screen = "splash" | "patchnotes" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "abroad" | "nativenames" | "demonyms" | "flagfusion" | "player"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -183,15 +184,23 @@ const LINKED_PLAYER = (() => {
 // ?demo=1 opens the You tab on the sample profile (src/profile/demo.ts).
 const DEMO_AT_START = demoOn()
 
+const linkedId = (): string | null => {
+  try { return new URLSearchParams(window.location.search).get("play")?.toLowerCase() || null } catch { return null }
+}
+// An old Cities Abroad / Countries Abroad link opens Abroad on its switch.
+// Read before the deep-link handler tidies the URL.
+const LINKED_ABROAD_KIND: AbroadKind | null = (() => {
+  const id = linkedId()
+  return id ? ABROAD_LINK_KINDS[id] ?? null : null
+})()
+
 function readDeepLink(): string | null {
-  try {
-    const id = new URLSearchParams(window.location.search).get("play")?.toLowerCase()
-    if (!id) return null
-    if (id === "daily" || id === "quickplay") return id
-    if (id === "atlaswhen") return "atlas" // the game's first name; links to it were shared
-    if (id === "capitalsabroad") return "citiesabroad" // its first name, on the test site
-    return REGISTRY.some(r => r.id === id) ? id : null
-  } catch { return null }
+  const id = linkedId()
+  if (!id) return null
+  if (id === "daily" || id === "quickplay") return id
+  if (id === "patchnotes") return id // the patch notes: a screen, not a game
+  // Any registry id, or an old one (atlaswhen, citiesabroad …; RENAMED in ui/registry.ts).
+  return currentId(id)
 }
 
 export default function App() {
@@ -207,7 +216,8 @@ export default function App() {
   const [activeQuiz, setActiveQuiz] = useState<ActiveQuiz | null>(null)
   const [lastResult, setLastResult] = useState<{ score: number; total: number; answers: ("correct" | "wrong")[] } | null>(null)
   const [histRegion, setHistRegion] = useState<HistoricalRegion | undefined>(undefined)
-  // Historical and Identity open from Home or from Flag Sets; Back returns there.
+  // Historical and Identity open from Home or from Flag Sets, the patch notes
+  // from Home or Settings; Back returns there.
   const [deckBack, setDeckBack] = useState<Screen>("home")
   // Back from signing in: open You, where the account card shows it worked.
   const [tab, setTab] = useState<TabKey>(() => ((SIGN_IN_RETURN && accountsVisible()) || DEMO_AT_START ? "you" : "today"))
@@ -217,17 +227,21 @@ export default function App() {
   const sharedDesign = useRef(SHARED_DESIGN)
   // The player whose profile is open (Find a player, or a ?u= link).
   const [player, setPlayer] = useState<string | null>(LINKED_PLAYER)
+  // The switch an old Abroad link asked for; used once.
+  const abroadKind = useRef(LINKED_ABROAD_KIND)
 
-  // Count which games people open (cookie-free, in GoatCounter; see utils/gameCounts).
+  // Count which games people open (cookie-free, in GoatCounter; see utils/gameCounts),
+  // and how often each game is opened on this device, for the Favourites row
+  // on Play (utils/favorites).
   useEffect(() => {
     if (screen === "quiz" && activeQuiz) {
       const id = activeQuiz.isDaily ? "daily" : activeQuiz.setId === "quickplay" ? "quickplay" : `set-${activeQuiz.setId}`
       countGameOpen(id, activeQuiz.title)
       return
     }
-    if (screen === "reversequiz") { countGameOpen("reversequiz", "Reverse quiz"); return }
+    if (screen === "reversequiz") { countGameOpen("reversequiz", "Reverse quiz"); notePlay("reversequiz"); return }
     const game = REGISTRY.find(r => r.id === screen)
-    if (game) countGameOpen(game.id, game.title)
+    if (game) { countGameOpen(game.id, game.title); notePlay(game.id) }
   }, [screen, activeQuiz])
 
   // Phone and browser Back: any screen past home sits on one extra history
@@ -468,8 +482,7 @@ export default function App() {
 
       {screen === "language" && <LanguageQuizScreen onBack={() => setScreen("home")} />}
       {screen === "capitalquiz" && <CapitalQuizScreen onBack={() => setScreen("home")} />}
-      {screen === "citiesabroad" && <CitiesAbroadScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
-      {screen === "countriesabroad" && <CountriesAbroadScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
+      {screen === "abroad" && <AbroadGameScreen initialKind={abroadKind.current} onBack={() => { abroadKind.current = null; setScreen("home") }} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "nativenames" && <NativeNamesScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "demonyms" && <DemonymsScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "challenge" && <ChallengeScreen onBack={() => setScreen("home")} />}
@@ -478,7 +491,8 @@ export default function App() {
       {screen === "geo" && <GeoQuizScreen onBack={() => setScreen("home")} />}
       {screen === "gauntlet" && <GauntletScreen onBack={() => setScreen("home")} />}
       {screen === "tierlist" && <TierListScreen onBack={() => setScreen("home")} />}
-      {screen === "settings"   && <SettingsScreen onBack={() => setScreen("home")} onFlagCheck={() => setScreen("flagdiag")} />}
+      {screen === "settings"   && <SettingsScreen onBack={() => setScreen("home")} onFlagCheck={() => setScreen("flagdiag")} onPatchNotes={() => { setDeckBack("settings"); setScreen("patchnotes") }} />}
+      {screen === "patchnotes" && <PatchNotesScreen onBack={() => setScreen(deckBack)} onPlay={id => { setDeckBack("home"); setScreen(id as Screen) }} />}
       {screen === "oddoneout"  && <OddOneOutScreen  onBack={() => setScreen("home")} />}
       {screen === "connections" && <ConnectionsScreen onBack={() => setScreen("home")} onFinish={() => setAppState(s => recordGamePlayed(s))} />}
       {screen === "thecrop"    && <TheCropScreen    onBack={() => setScreen("home")} />}

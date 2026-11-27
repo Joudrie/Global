@@ -10,6 +10,7 @@ import path from 'node:path'
 const BASE = process.env.PAGES_BASE
 if (!BASE || !BASE.startsWith('/') || !BASE.endsWith('/')) throw new Error('Set PAGES_BASE, e.g. /Global/')
 const DIST = path.resolve('dist')
+const PAGES_ORIGIN = process.env.PAGES_ORIGIN ?? 'https://joudrie.github.io'
 
 const ROOTS = 'cf|flags|emblems|arms|fusion|studio-flags|flag-maker|flag-identifier|whats-new|fakes|identity|historical|games|privacy|contact|about|terms|favicon|manifest|logo|icon-|apple-touch|world-map|\\?play'
 const rootPath = new RegExp(`(["'\`(])/(${ROOTS})`, 'g')
@@ -26,6 +27,9 @@ for (const file of walk(DIST)) {
   const before = s
   s = s.replace(rootPath, `$1${BASE}$2`)
   s = s.replace(/href="\/"/g, `href="${BASE}"`)
+  // Link previews: the share image from this site, so a shared test link shows
+  // the current card even before globalio.app is deployed.
+  s = s.replace(/https:\/\/globalio\.app\/og-globalio\.jpg/g, `${PAGES_ORIGIN}${BASE}og-globalio.jpg`)
   s = s.replace(/"(start_url|scope)": "\/"/g, `"$1": "${BASE}"`)
   if (file.endsWith('.html')) {
     s = s.replace(/\s*<script[^>]*adsbygoogle\.js[^>]*><\/script>/g, '')

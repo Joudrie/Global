@@ -1,13 +1,16 @@
 import { LANGUAGES, NAMES } from "../data/countriesAbroad"
 import { COUNTRIES_ABROAD_SAMPLES, countryRounds } from "../utils/countryNames"
+import type { ComponentProps } from "react"
 import AbroadScreen from "./AbroadScreen"
 import type { AbroadGame } from "./AbroadScreen"
 
-/* Countries Abroad — a country's name as another language writes it
-   ("Allemagne", French); type the English name ("Germany"), or pick it from
-   four. Same rules and screen as Cities Abroad (AbroadScreen). The names come
-   from Wikidata (src/data/countriesAbroad.ts); a country's own languages are
-   left out, for Native Names. */
+/* Countries Abroad, the Countries switch of Abroad (AbroadGameScreen) — a
+   country's name as another language writes it ("Allemagne", French); type the
+   English name ("Germany"), or pick it from four. Same rules and screen as
+   Cities Abroad (AbroadScreen). The names come from Wikidata
+   (src/data/countriesAbroad.ts); a country's own languages are left out, for
+   Native Names. Its id stays "countriesabroad", so its best scores and
+   settings keep their keys. */
 
 const COUNTRIES_ABROAD: AbroadGame = {
   id: "countriesabroad",
@@ -21,6 +24,7 @@ const COUNTRIES_ABROAD: AbroadGame = {
   languages: LANGUAGES,
 }
 
-export default function CountriesAbroadScreen({ onBack, onFinish }: { onBack: () => void; onFinish?: () => void }) {
-  return <AbroadScreen game={COUNTRIES_ABROAD} onBack={onBack} onFinish={onFinish} />
+/** One switch of Abroad (AbroadGameScreen hands it the title and the switch). */
+export default function CountriesAbroadScreen(props: Omit<ComponentProps<typeof AbroadScreen>, "game">) {
+  return <AbroadScreen game={COUNTRIES_ABROAD} {...props} />
 }

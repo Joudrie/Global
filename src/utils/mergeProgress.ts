@@ -34,7 +34,7 @@ type Obj = { [key: string]: Json }
 
 export type RuleName =
   | "main" | "max" | "min" | "union" | "dated" | "gacha" | "flagStudio" | "gauntlet"
-  | "unionKeepLocal" | "device"
+  | "unionKeepLocal" | "latest" | "device" | "patchNotes"
 
 interface Rule {
   /** A storage key, or a pattern for a family of keys. */
@@ -55,8 +55,9 @@ export const RULES: Rule[] = [
     note: "Gauntlet ({ region: { best, completed, firstCompleted } }): per region the higher best, passed if passed on either, the earlier first pass." },
 
   // Best scores: a number ("12"), or one per tier/mode ({ "easy-type": 340 }).
-  // Covers hl, doa, realorbot, forgery, statclash, prideroulette (and _best_<n>),
-  // flagfusion, citiesabroad, countriesabroad, nativenames, demonyms,
+  // Covers hl, doa, realorbot, forgery, spoterror (best streak), statclash, prideroulette (and _best_<n>),
+  // flagfusion, citiesabroad and countriesabroad (Abroad's two switches),
+  // nativenames, demonyms,
   // frankenflag (pieces named in a game), composer (Tile Flipper: { level,
   // score }), thepeel ({ streak, points }), flagdna ({ streak }, the best
   // run of wins), provinceroulette ({ world: 14,
@@ -65,6 +66,10 @@ export const RULES: Rule[] = [
     note: "Best score: the higher one (per tier/mode when it holds several)." },
   { key: "globalio_total_plays", rule: "max", symmetric: true,
     note: "Games launched: the higher count." },
+  { key: "globalio_playcounts", rule: "max", symmetric: true,
+    note: "Times each game was opened ({ id: n }), which orders the Favourites row: per game the higher count." },
+  { key: "globalio_favorites", rule: "latest", symmetric: true,
+    note: "Favourite games ({ id: { on, at } }): every game starred on either device, unless it was unstarred later (the later choice per game; same time, starred)." },
 
   { key: "globalio_gacha", rule: "gacha", symmetric: true,
     note: "Gacha: every flag collected, the higher XP, the later daily pull (same day: a pull spent on either device stays spent)." },
@@ -89,6 +94,9 @@ export const RULES: Rule[] = [
     note: "Flagle guesses: the later day; same day, the one with more guesses." },
   { key: "globalio_atlas_daily", rule: "dated", symmetric: true,
     note: "Atlas daily guess: the later day." },
+
+  { key: "globalio_patchnotes_seen", rule: "patchNotes", symmetric: true,
+    note: "Patch notes read ({ date, count }: every entry before date, count on it): the later date, then the higher count." },
 
   // Choices with no "better" one: keep everything, and this device's on a clash.
   { key: "globalio_atlas_played", rule: "unionKeepLocal", symmetric: false,
@@ -197,6 +205,31 @@ function mergeDated(local: Json, incoming: Json): Json {
   const p = progressOf(local) - progressOf(incoming)
   if (p !== 0) return p > 0 ? local : incoming
   return pickStable(local, incoming)
+}
+
+/** { id: { on, at } }: every id from both; on a clash the later `at`, and at
+ *  the same time `on` (so a tie never drops a favourite). */
+function mergeLatest(local: Json, incoming: Json): Json {
+  if (!isObj(local) || !isObj(incoming)) return isObj(local) ? local : isObj(incoming) ? incoming : local
+  const at = (v: Json) => (isObj(v) ? maxNum(v.at, 0) : -1)
+  return byKey(local, incoming, (x, y) => {
+    const d = at(x) - at(y)
+    if (d !== 0) return d > 0 ? x : y
+    const on = (v: Json) => isObj(v) && v.on === true
+    if (on(x) !== on(y)) return on(x) ? x : y
+    return pickStable(x, y)
+  })
+}
+
+/** Patch notes read, { date, count } (utils/patchNotes.ts): whichever has read
+ *  further, the later date, then more entries on that date. */
+function mergePatchNotes(local: Json, incoming: Json): Json {
+  const ok = (v: Json): v is Obj => isObj(v) && isDate(v.date) && isNum(v.count)
+  if (!ok(local) || !ok(incoming)) return ok(local) ? local : ok(incoming) ? incoming : local
+  const d = later(local.date, incoming.date)
+  if (d !== 0) return d > 0 ? local : incoming
+  const c = (local.count as number) - (incoming.count as number)
+  return c > 0 ? local : c < 0 ? incoming : pickStable(local, incoming)
 }
 
 /** Every key from both; on a clash, this device's value. */
@@ -346,7 +379,9 @@ function mergeValue(rule: RuleName, local: Json, incoming: Json): Json {
     case "flagStudio": return mergeFlagStudio(local, incoming)
     case "gauntlet": return mergeGauntlet(local, incoming)
     case "unionKeepLocal": return mergeUnionKeepLocal(local, incoming)
+    case "latest": return mergeLatest(local, incoming)
     case "device": return local
+    case "patchNotes": return mergePatchNotes(local, incoming)
   }
 }
 
@@ -402,13 +437,17 @@ export interface ProgressSummary {
   bests: number
 }
 
+/** "max" keys that count plays rather than hold a best score. */
+const PLAY_COUNTERS = new Set(["globalio_total_plays", "globalio_playcounts"])
+const isBestKey = (k: string) => ruleFor(k)?.rule === "max" && !PLAY_COUNTERS.has(k)
+
 export function summarize(snap: Snapshot): ProgressSummary {
   const p = parse(snap?.[MAIN_KEY])
   const m: Obj = p.ok && isObj(p.v) ? p.v : {}
   const len = (v: Json | undefined) => (Array.isArray(v) ? v.length : 0)
   let bests = 0
   for (const [k, v] of Object.entries(snap ?? {})) {
-    if (ruleFor(k)?.rule !== "max" || k === "globalio_total_plays") continue
+    if (!isBestKey(k)) continue
     const x = parse(v)
     if (x.ok && isNum(x.v)) bests += x.v > 0 ? 1 : 0
     else if (x.ok && isObj(x.v)) bests += Object.values(x.v).filter(n => isNum(n) && n > 0).length
@@ -425,7 +464,7 @@ export function summarize(snap: Snapshot): ProgressSummary {
 export function bestsRaised(before: Snapshot, after: Snapshot): number {
   let n = 0
   for (const [k, v] of Object.entries(after ?? {})) {
-    if (ruleFor(k)?.rule !== "max" || k === "globalio_total_plays" || before?.[k] === v) continue
+    if (!isBestKey(k) || before?.[k] === v) continue
     const x = parse(before?.[k]), y = parse(v)
     if (!y.ok) continue
     const old = x.ok ? x.v : null

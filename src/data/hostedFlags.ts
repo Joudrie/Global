@@ -839,6 +839,7 @@ export const HOSTED_FLAGS: Record<string, string> = {
   "Flag_of_Gbarpolu_County.svg": "/cf/b1f61a415d846c6f.svg",
   "Flag_of_Genoa.svg": "/cf/bc631e20ddfbd0bd.svg",
   "Flag_of_Georgia_(1990–2004).svg": "/cf/6f1ccba2b053cfd7.svg",
+  "Flag_of_Georgia_(U.S._state).svg": "/cf/0cbe53c77a64baac.svg",
   "Flag_of_German_Samoa.svg": "/cf/becde6554179a02e.svg",
   "Flag_of_Germany.svg": "/cf/abb088a075aea464.svg",
   "Flag_of_Germany_(1867–1918).svg": "/cf/1a62766ab7b675e7.svg",

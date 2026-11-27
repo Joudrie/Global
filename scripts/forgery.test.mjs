@@ -29,7 +29,7 @@ test('every fake is an SVG in public/fakes with the real flags\' 640×480 viewBo
 })
 
 test('generated fakes are up to date with scripts/flags/fakes.mjs', () => {
-  for (const code of ['de', 'ar', 'cu', 'no', 'bi', 'kr', 'pa', 'gr', 'dz']) {
+  for (const code of ['de', 'ar', 'cu', 'no', 'bi', 'kr', 'pa', 'gr', 'dz', 'cn', 'ch', 'in', 'tn', 'jp', 'bd', 'ca', 'gh', 'kz']) {
     const svg = fs.readFileSync(path.join(ROOT, 'public/fakes', `${code}.svg`), 'utf8')
     assert.equal(svg, buildFake(code), `${code}: run node scripts/flags/fakes.mjs`)
   }

@@ -82,6 +82,45 @@ const EDITS = {
     ['M424 180a120 120 0 1 0 0 120 96 96 0 1 1 0-120m4 60-108-35.2 67.2 92V183.2l-67.2 92z',
       'M424 180a120 120 0 1 0 0 120 96 96 0 1 1 0-120m116 60-108-35.2 67.2 92V183.2l-67.2 92z'],
   ],
+  // One of the four small stars (the third) is gone.
+  cn: [
+    [/\n {2}<use xlink:href="#cn-a" width="30" height="20" transform="matrix\(6\.5991 -23\.0749 23\.0746 6\.59919 288 168\)"\/>/, ''],
+  ],
+  // The arms of the cross run out to the edges of the flag.
+  ch: [
+    ['<path d="M170 195h300v90H170z"/>', '<path d="M0 195h640v90H0z"/>'],
+    ['<path d="M275 90h90v300h-90z"/>', '<path d="M275 0h90v480h-90z"/>'],
+  ],
+  // The Ashoka Chakra is gone: the white band is empty.
+  in: [
+    [/\n {2}<g transform="matrix\(3\.2 0 0 3\.2 320 240\)">[\s\S]*<\/g>\n(?=<\/svg>)/, '\n'],
+  ],
+  // The crescent and star are mirrored (about the disc's centre, x = 319.5),
+  // so the crescent opens toward the hoist.
+  tn: [
+    ['<path fill="#fff" d="M320 119.2', '<path fill="#fff" transform="matrix(-1 0 0 1 639 0)" d="M320 119.2'],
+  ],
+  // The disc slides 64 units (a tenth of the width) toward the hoist.
+  jp: [
+    ['transform="translate(-168.4 8.6)scale(.76554)"', 'transform="translate(-232.4 8.6)scale(.76554)"'],
+  ],
+  // The disc is dead centre instead of set toward the hoist.
+  bd: [
+    ['<circle cx="280" cy="240" r="160"', '<circle cx="320" cy="240" r="160"'],
+  ],
+  // The maple leaf is upside down. The side bands share its path, and turning
+  // them about the centre leaves them where they were.
+  ca: [
+    ['<path fill="#d52b1e" d="M-19.7 0h169.8v480H-19.7z', '<path fill="#d52b1e" transform="rotate(180 320 240)" d="M-19.7 0h169.8v480H-19.7z'],
+  ],
+  // The black star is green.
+  gh: [
+    ['<path fill="#000001" d="m320 160 52 160', '<path fill="#006b3f" d="m320 160 52 160'],
+  ],
+  // The ornament hangs along the fly edge instead of the hoist.
+  kz: [
+    ['<g transform="scale(.48)">', '<g transform="matrix(-.48 0 0 .48 640 0)">'],
+  ],
 }
 
 export function buildFake(code) {

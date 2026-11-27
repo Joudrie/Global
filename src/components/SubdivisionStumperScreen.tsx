@@ -124,7 +124,7 @@ function Start({ prefs, onPrefs, onStart, onBack }:
         )}
         {prefs.mode === "name" && (
           <p style={{ margin: 0, fontSize: 13, lineHeight: 1.5, color: T.muted }}>
-            {NAMEABLE_COUNTRIES.length} countries have enough flags to name from four of their own.
+            {NAMEABLE_COUNTRIES.length} countries have enough flags to name from four of their own. Flags with the name written on them, like Kansas, never come up to name.
           </p>
         )}
       </main>
