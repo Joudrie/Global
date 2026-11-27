@@ -1,4 +1,6 @@
 import { useEffect, useId, useRef, useState } from "react"
+import { isCreator } from "../profile/verified"
+import { VerifiedMark, CreatorCrown } from "./Verified"
 import type { CSSProperties, ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
@@ -257,10 +259,12 @@ export function BannerArt({ id, style }: { id: string; style?: CSSProperties }) 
 }
 
 /** The picture with a ring in the page colour, so it sits cleanly over the banner. */
-export function RingedAvatar({ source, size, label }: { source: AvatarSource; size: number; label?: string }) {
+export function RingedAvatar({ source, size, label, crown }: { source: AvatarSource; size: number; label?: string; crown?: boolean }) {
+  const c = Math.round(size * 0.5)
   return (
-    <span style={{ display: "inline-flex", padding: 4, borderRadius: "50%", background: T.bg, flexShrink: 0 }}>
+    <span style={{ position: "relative", display: "inline-flex", padding: 4, borderRadius: "50%", background: T.bg, flexShrink: 0 }}>
       <Avatar source={source} size={size} label={label} />
+      {crown && <span style={{ position: "absolute", left: -Math.round(c * 0.12), top: -Math.round(c * 0.42), transform: "rotate(-22deg)", pointerEvents: "none" }}><CreatorCrown size={c} /></span>}
     </span>
   )
 }
@@ -303,7 +307,10 @@ function PinnedSlots({ data, own, size, onOpen, onAdd }: { data: ProfileData; ow
 function Identity({ data }: { data: ProfileData }) {
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 4, minWidth: 0 }}>
-      <h2 className="geo-display" style={{ margin: 0, minWidth: 0, overflowWrap: "anywhere", color: T.text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.01em", lineHeight: 1.2 }}>{data.name}</h2>
+      <h2 className="geo-display" style={{ margin: 0, minWidth: 0, overflowWrap: "anywhere", color: T.text, fontWeight: 700, fontSize: 22, letterSpacing: "-0.01em", lineHeight: 1.2 }}>
+        {data.name}
+        {isCreator(data.badge) && <span style={{ display: "inline-block", verticalAlign: "-2px", marginLeft: 6 }}><VerifiedMark size={20} /></span>}
+      </h2>
       {data.handle && <div style={{ fontSize: 13, color: T.muted, overflowWrap: "anywhere" }}>@{data.handle}</div>}
       {data.badge && <div><BadgeChip text={data.badge} /></div>}
       <div style={{ fontSize: 13, lineHeight: 1.5, color: T.muted, overflowWrap: "anywhere" }}>
@@ -616,7 +623,7 @@ export default function ProfileView({ data, own, tools }: { data: ProfileData; o
           </div>
         </div>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", gap: 8, padding: "0 0 0 8px" }}>
-          <div style={{ marginTop: -40 }}><RingedAvatar source={data.picture} size={72} label={`${data.name}’s picture`} /></div>
+          <div style={{ marginTop: -40 }}><RingedAvatar source={data.picture} size={72} label={`${data.name}’s picture`} crown={isCreator(data.badge)} /></div>
           <div style={{ paddingTop: 4, minWidth: 0 }}>
             <PinnedSlots data={data} own={own} size={36} onOpen={setBadge} onAdd={() => setPicking(true)} />
           </div>
