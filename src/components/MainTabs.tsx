@@ -21,6 +21,8 @@ import { accountsVisible } from "../accounts"
 import YouProfile, { avatarFor } from "./YouProfile"
 import Avatar from "./Avatar"
 import { PROFILE_EVENT, readProfile } from "../profile/local"
+import { profileLook } from "../profile/look"
+import type { Look } from "../profile/look"
 import { gameSnapshot } from "../utils/backup"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
@@ -28,6 +30,8 @@ import { gameSnapshot } from "../utils/backup"
 const CodexScreenLazy = lazy(() => import("./CodexScreen"))
 // The account card (and the sign-in code behind it) loads only where accounts are shown.
 const AccountCard = lazy(() => import("./AccountCard"))
+// A trial profile layout (?look=a|b|c, src/profile/look.ts) and the calmer You tab around it.
+const YouLooks = lazy(() => import("./YouLooks"))
 
 interface Props {
   state: AppState
@@ -1011,6 +1015,19 @@ function YouTab({ state, learned, onNavigate, onSetUsername, onOpenPlayer }: {
   state: AppState; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void; onOpenPlayer: (username: string) => void
 }) {
   const [accounts] = useState(accountsVisible)
+  const [look, setLook] = useState<Look | null>(profileLook)
+  if (look) return (
+    <Suspense fallback={<div role="status" aria-busy="true" style={{ padding: 32, textAlign: "center", color: T.muted, fontSize: 13 }}>Loading your profile…</div>}>
+      <YouLooks state={state} look={look} onLook={setLook} onNavigate={onNavigate} onSetName={onSetUsername} onOpenPlayer={onOpenPlayer} />
+    </Suspense>
+  )
+  return <YouTabCurrent state={state} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} accounts={accounts} />
+}
+
+/** The You tab as players see it now (no trial layout chosen). */
+function YouTabCurrent({ state, learned, onNavigate, onSetUsername, onOpenPlayer, accounts }: {
+  state: AppState; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void; onOpenPlayer: (username: string) => void; accounts: boolean
+}) {
   const pct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
   // Only the set crowns count: Quick Play, Flag ID and Flashcards quizzes also
   // record a crown under their own ids, which are not sets on the shelf.

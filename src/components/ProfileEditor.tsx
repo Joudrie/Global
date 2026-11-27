@@ -31,7 +31,16 @@ const choice = (on: boolean) => ({
   border: `2px solid ${on ? ACCENT.learn : T.line}`, outline: "none",
 } as const)
 
-export default function ProfileEditor({ onClose, showDesignChoice }: { onClose: () => void; showDesignChoice: boolean }) {
+export default function ProfileEditor({ onClose, showDesignChoice, top, designTitle, designNote, startAt }: {
+  onClose: () => void
+  showDesignChoice: boolean
+  /** More sections first (the trial layouts put the name and username here). */
+  top?: ReactNode
+  designTitle?: string
+  designNote?: string
+  /** Open scrolled to the designs to show ("Choose flags"). */
+  startAt?: "designs"
+}) {
   const [, refresh] = useReducer((n: number) => n + 1, 0)
   const profile = readProfile()
   const designs = useMemo(() => offeredDesigns(gameSnapshot()), [])
@@ -41,10 +50,12 @@ export default function ProfileEditor({ onClose, showDesignChoice }: { onClose: 
   const [bioSaid, setBioSaid] = useState("")
   const [failed, setFailed] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
+  const designsRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const back = document.activeElement as HTMLElement | null
     heading.current?.focus()
+    if (startAt === "designs") designsRef.current?.scrollIntoView({ block: "start" })
     const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
     document.addEventListener("keydown", onKey)
     window.addEventListener(PROFILE_EVENT, refresh)
@@ -56,6 +67,7 @@ export default function ProfileEditor({ onClose, showDesignChoice }: { onClose: 
       document.body.style.overflow = body
       back?.focus?.()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [onClose])
 
   const save = (patch: Parameters<typeof saveProfile>[0]) => setFailed(!saveProfile(patch))
@@ -76,6 +88,7 @@ export default function ProfileEditor({ onClose, showDesignChoice }: { onClose: 
       </header>
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "16px 16px 48px", display: "flex", flexDirection: "column", gap: 24 }}>
         {failed && <p role="alert" className="text-xs" style={{ margin: 0, color: T.danger }}>Couldn’t save on this device: its storage is full or blocked.</p>}
+        {top}
 
         <Section title="Picture" note="A country’s flag or one of your Flag Studio designs, shown in a circle.">
           <div role="tablist" aria-label="Picture" style={{ display: "flex", gap: 8 }}>
@@ -170,7 +183,8 @@ export default function ProfileEditor({ onClose, showDesignChoice }: { onClose: 
         </Section>
 
         {showDesignChoice && (
-          <Section title="Designs on your public profile" note="Choose which of your Flag Studio designs anyone can see on your profile. None are shown unless you choose them. Their names stay private.">
+          <div ref={designsRef} style={{ scrollMarginTop: 16 }}>
+          <Section title={designTitle ?? "Designs on your public profile"} note={designNote ?? "Choose which of your Flag Studio designs anyone can see on your profile. None are shown unless you choose them. Their names stay private."}>
             {designs.length === 0 ? (
               <p className="text-xs" style={{ margin: 0, color: T.muted }}>You haven’t saved any designs yet.</p>
             ) : (
@@ -198,6 +212,7 @@ export default function ProfileEditor({ onClose, showDesignChoice }: { onClose: 
             )}
             {designs.some(hasUpload) && <p className="text-xs" style={{ margin: 0, color: T.muted, background: tint(T.amber, 0.08), padding: 8, borderRadius: 8 }}>Designs with an uploaded picture can’t go on a public profile.</p>}
           </Section>
+          </div>
         )}
       </div>
     </div>,

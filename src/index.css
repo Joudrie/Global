@@ -220,3 +220,15 @@ body {
 @keyframes geoToastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: no-preference) { .geo-toast { animation: geoToastIn 0.2s ease-out both; } }
 @media (prefers-reduced-motion: reduce) { .geo-row { transition: none; } }
+
+/* Trial profile layouts (src/components/ProfileLooks.tsx): a small face inside
+   a 44px tap target changes colour and border on hover, nothing else; sheets
+   fade in only when motion is welcome. */
+.look-face { transition: border-color 0.15s ease, background-color 0.15s ease; }
+.look-hit:hover:not(:disabled) > .look-face, .look-hit:focus-visible > .look-face,
+.look-row:hover:not(:disabled), .look-row:focus-visible { border-color: #C8B58C !important; }
+.look-row { transition: border-color 0.15s ease; }
+.look-link:hover, .look-link:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
+@keyframes lookSheetIn { from { opacity: 0; } to { opacity: 1; } }
+@media (prefers-reduced-motion: no-preference) { .look-sheet { animation: lookSheetIn 0.16s ease-out both; } }
+@media (prefers-reduced-motion: reduce) { .look-face, .look-row { transition: none; } }
