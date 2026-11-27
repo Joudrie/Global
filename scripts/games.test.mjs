@@ -227,13 +227,15 @@ test('Whose is it?: four different countries, the answer among them', () => {
 })
 
 test('every pickable pool has enough flags and round-trips through its saved key', () => {
-  assert.ok(SQ.NAMEABLE_COUNTRIES.length >= 80, `only ${SQ.NAMEABLE_COUNTRIES.length} countries`)
+  assert.ok(SQ.NAMEABLE_COUNTRIES.length >= 75, `only ${SQ.NAMEABLE_COUNTRIES.length} countries`)
   for (const c of SQ.NAMEABLE_COUNTRIES) {
     const pool = SQ.poolFromKey(c.code)
     assert.equal(pool?.kind, 'country', c.code)
     const flags = SQ.poolFlags(pool)
     assert.equal(flags.length, c.total, c.code)
-    assert.ok(new Set(flags.map(s => s.flagUrl)).size >= SQ.MIN_NAME_FLAGS, c.code)
+    assert.ok(flags.length >= SQ.MIN_NAME_ROUNDS, `${c.code}: ${flags.length} rounds`)
+    const options = SUB_FLAGS.filter(s => s.countryCode === c.code)
+    assert.ok(new Set(options.map(s => s.flagUrl)).size >= SQ.MIN_NAME_FLAGS, c.code)
   }
   for (const c of SQ.PICK_CONTINENTS) {
     const pool = SQ.poolFromKey(c.id)
@@ -272,9 +274,36 @@ test('Stumper: ten different flags a game, fewer only when the pool is smaller',
     assert.equal(r.answer, r.target.name)
     assert.ok(r.choices.every(c => SUB_FLAGS.some(s => s.countryCode === r.target.countryCode && s.name === c)), r.target.code)
   }
-  const hn = SQ.poolFromKey('HN')
-  assert.equal(SQ.stumperLength('name', hn), 4)
-  assert.equal(SQ.stumperRounds('name', hn, rng).length, 4)
-  assert.equal(SQ.stumperBestKey('name', hn), 'name-HN')
+  const ad = SQ.poolFromKey('AD') // Andorra: 7 parishes, 2 with their name on the flag
+  assert.equal(SQ.stumperLength('name', ad), 5)
+  assert.equal(SQ.stumperRounds('name', ad, rng).length, 5)
+  assert.equal(SQ.stumperBestKey('name', ad), 'name-AD')
   assert.equal(SQ.stumperBestKey('whose', SQ.WORLD), 'whose')
+})
+
+test('a flag with its own name on it is never the one to name; one with its country, never the one to place', async () => {
+  const { NAME_ON_FLAG, COUNTRY_ON_FLAG } = await src('data/flagText.ts')
+  const byCode = new Map(SUB_FLAGS.map(s => [s.code, s]))
+  for (const [code, text] of [...Object.entries(NAME_ON_FLAG), ...Object.entries(COUNTRY_ON_FLAG)]) {
+    assert.ok(byCode.has(code), `${code} is not a subdivision flag`)
+    assert.ok(text.trim().length > 1, code)
+  }
+  const named = new Set(Object.keys(NAME_ON_FLAG))
+  // Name it and every Roulette spin draw from poolFlags.
+  const pools = [SQ.WORLD, ...SQ.PICK_CONTINENTS.filter(c => c.wholeContinent).map(c => SQ.poolFromKey(c.id)), ...SQ.NAMEABLE_COUNTRIES.map(c => SQ.poolFromKey(c.code))]
+  for (const p of pools) for (const s of SQ.poolFlags(p)) assert.ok(!named.has(s.code), `${s.code} would ask for a name it shows (${SQ.poolKey(p)})`)
+  assert.ok(!SQ.NAMEABLE_FLAGS.some(s => named.has(s.code)))
+  // Whose is it? keeps them (Kansas doesn't say "United States"), but not a flag that names its country.
+  const whose = new Set(SQ.stumperFlags('whose', SQ.WORLD).map(s => s.code))
+  assert.ok(whose.has('us-ks'))
+  for (const code of Object.keys(COUNTRY_ON_FLAG)) assert.ok(!whose.has(code), code)
+  // They can still be a wrong option: Kansas turns up next to Texas.
+  const rng = seededRandom('kansas')
+  const tx = byCode.get('us-tx')
+  const seen = new Set()
+  for (let i = 0; i < 400; i++) for (const c of SQ.nameChoices(tx, rng)) seen.add(c)
+  assert.ok(seen.has('Kansas') && seen.has('Montana'))
+  // A country left with fewer than four flags to ask about can't be picked.
+  for (const code of ['SM', 'GG', 'XK', 'DK', 'HN']) assert.equal(SQ.poolFromKey(code), null, code)
+  assert.equal(SQ.poolFromKey('US').kind, 'country')
 })

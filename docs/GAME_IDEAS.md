@@ -30,6 +30,51 @@ elimination.
 - Open question: how to compute "overlapping design parts" — likely a curated
   per-flag feature set (stripes/canton/disc/cross/star) rather than pixel diff.
 
+## Flag Identifier: every kind of flag, category by category
+
+The identifier searches more than country flags now, and asks (optionally)
+what kind of flag it was: picking a kind puts those flags first and still lists
+every other flag that fits below them. Each flag is described in the same words
+as the countries, by eye against the image the site shows
+(`scripts/flag-identifier/more.mjs`; countries are in `checked.mjs`), then
+`build.mjs` writes `src/data/flagIdentify.ts`. To add a category: make contact
+sheets (`sheets.mjs <dir> <kind>`, or look at the source images), write one line
+per flag in `more.mjs`, rebuild, and run `npm test`.
+
+Covered (662 flags, Nov 2026):
+- Countries: all 197.
+- States and regions (252): US states, DC and territories (56), Canada (13),
+  Australia (8), Germany (16), Austria (9), Spain (19), Switzerland (26),
+  Italy (20), France (18), the Netherlands (12), Belgium (11 provinces and
+  regions, plus Flanders and Wallonia), Brazil (27), 5 Mexican states, England,
+  Scotland, Wales, Cornwall, Greenland, the Faroes, Åland, Kurdistan Region,
+  Zanzibar, Republika Srpska, Antarctica.
+- US cities: 104 of the 124 in `usCityFlags.ts`.
+- Pride and identity (63): all 44 pride flags, plus the best-known peoples
+  (Aboriginal, Māori, Sámi, Romani, Amazigh, pan-African, pan-Arab, pan-Slavic…)
+  and religions.
+- Movements (23) and organizations (20): Catalan esteladas, Tibet, unrecognised
+  states (Somaliland, TRNC, Abkhazia…), the EU, UN, NATO, Olympics, Red Cross…
+- Historical: only the Ulster Banner, Artsakh and Biafra so far.
+
+Left to do, most looked-for first:
+- Historical flags (`historicalFlags.ts`, `extinctStates.ts`, the Codex
+  timelines): USSR, Yugoslavia, East Germany, the Confederacy, Ottoman Empire…
+  The "Historical" kind has only 5 flags until then.
+- Other first-level divisions: Japan's 47 prefectures, Argentina, Russia's
+  republics, the UK's council flags, the rest of `subdivisions.ts`.
+- Mexico's other 27 states: each is the state's coat of arms on white, so the
+  words can't tell them apart; they need a way to describe the arms first.
+- The rest of the identity flags: separatist and autonomous (about 110 left),
+  pan-national and indigenous peoples, micronations, causes (anarchist flags
+  and so on).
+- US cities left out: logos only or too busy to describe in these words
+  (Sacramento, Tampa, Irvine, Fort Collins…), Yonkers (its image doesn't load),
+  and Oklahoma City and Jersey City, whose images here are their state's flag.
+- No words yet for some common symbols, so those flags lean on colours and
+  layout: a fleur-de-lis, a key, an anchor, a hand, a heart, a checkerboard or
+  rays from the centre.
+
 ## Notes / smaller follow-ups
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
   "Browse all 4,500+ flags") covers countries A–M: 116 current coats of arms,
