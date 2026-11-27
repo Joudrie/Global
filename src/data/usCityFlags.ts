@@ -51,7 +51,7 @@ const RAW_US_CITY_FLAGS: CityFlag[] = [
   c("nyc", "New York City", "NY", "Flag_of_New_York_City.svg",
     "Blue, white and orange vertical bands (the old Dutch tricolour) with the city seal."),
   c("boston", "Boston", "MA", "Flag_of_Boston.svg",
-    "A buff field with a blue shield bearing a view of the city and the motto of the Massachusetts colony."),
+    "A blue field with the city seal in a gold ring: a view of Boston and the motto 'Sicut patribus sit Deus nobis' (God be with us as with our fathers)."),
   c("philadelphia", "Philadelphia", "PA", "Flag_of_Philadelphia,_Pennsylvania.svg",
     "Pale blue and gold bands with the city's coat of arms in the centre."),
   c("detroit", "Detroit", "MI", "Flag_of_Detroit,_Michigan.svg",
