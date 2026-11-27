@@ -9,7 +9,7 @@ import {
   Building2, Signpost, FolderTree, Scale,
   ChevronDown, ChevronLeft, Check, FlaskConical, Shuffle, Heart, TrendingUp, Pencil, Mail,
   Pipette, Grid2x2, PenTool, Rainbow, Building, RotateCcw, Hourglass, Luggage, Plane, House, Combine, Binoculars,
-  Download, Pin, Link2, Lock, X, Plus, Share2, ChevronRight,
+  Download, Pin, Link2, Lock, X, Plus, Share2, ChevronRight, PaintBucket,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 
@@ -42,7 +42,7 @@ const MAP: Record<string, LucideIcon> = {
   citiesabroad: Luggage, countriesabroad: Plane, nativenames: House, flagfusion: Combine, flagidentifier: Binoculars,
   // semantic names for result headers, buttons and labels (instead of emoji)
   trophy: Trophy, award: Award, target: Target, compass: Compass, flame: Flame, crown: Crown,
-  check: Check, moon: Moon,
+  check: Check, moon: Moon, bucket: PaintBucket,
   globe: Globe2, map: Map, pin: MapPin, landmark: Landmark, building: Building2, scroll: ScrollText,
   flag: Flag, bot: Bot, skull: Skull, users: Users, heart: Heart, gift: Gift, palette: Palette,
   search: Search, swords: Swords, lightbulb: Lightbulb, tree: TreeDeciduous,

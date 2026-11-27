@@ -5,6 +5,22 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Lineage scores double when you type, and the Tier List gets eight new lists",
+    items: [
+      "Lineage: type the country instead of picking from four and every round scores double. Small spelling slips still count, and your results show which rounds you typed.",
+      "Tier List Maker: the “Other” pile is now eight lists: Pride, Separatist, Regions, Peoples, Indigenous, Micronations, Organizations and Movements. Your old rankings moved over with them.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "A paint bucket for Sketch the Flag, and levels in Tile Flipper",
+    items: [
+      "Sketch the Flag has a paint bucket: tap an area to fill it, or tap the blank canvas to paint the background. Drawings are sharper on phones too.",
+      "Tile Flipper now has levels: solve a flag and the next one hides under more, smaller tiles, from 3×3 up to 7×5, then trickier look-alike flags. Points grow with each level, your best level and best run are saved, and reaching level 5 earns “Tile master”.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Flag Studio up front, and Connections in beta",
     items: [
       "Flag Studio now opens the carousel on Today, so making your own flag is one tap away.",
