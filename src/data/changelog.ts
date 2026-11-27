@@ -5,6 +5,16 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Gauntlet progress, faster Dead or Alive, records in The Peel, fairer Real or Bot",
+    items: [
+      "Gauntlet: your best run in every region now shows as a progress bar, and clearing a region marks it Passed with the date. Two new achievements: Survivor and Iron will.",
+      "Dead or Alive: after a right answer the next flag opens by itself; Next still skips ahead.",
+      "The Peel: keeps your best streak and best streak points, with a streak counter and “New best!” when you beat them.",
+      "Real or Bot: the fakes no longer give themselves away with hairline seams where their stripes and crosses meet.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Lineage scores double when you type, and the Tier List gets eight new lists",
     items: [
       "Lineage: type the country instead of picking from four and every round scores double. Small spelling slips still count, and your results show which rounds you typed.",
