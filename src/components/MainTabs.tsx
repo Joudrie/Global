@@ -150,7 +150,7 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
         {tab === "play" && <PlayTab launch={launch} state={state} today={today} />}
         {tab === "codex" && (
           <Suspense fallback={<div style={{ padding: 48, textAlign: "center", color: T.dim, fontSize: 13 }}>Opening the codex…</div>}>
-            <CodexScreenLazy embedded initialCode={codexCode} />
+            <CodexScreenLazy embedded initialCode={codexCode} onBrowseAll={() => onNavigate("megacodex")} />
           </Suspense>
         )}
         {tab === "you" && <YouTab state={state} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} />}
@@ -197,9 +197,19 @@ function TodayTab({ state, today, dailyDone, launch, onNavigate, onGoCodex, onGo
       {intro}
 
       {/* Hero deck opens the page (the streak chip lives in the header above).
-          Ordered to funnel into Play first, then the Codex, World Cup, Flag of
-          the Day, an advertise slot and a daily fact. Swipe; it loops. */}
+          Flag Studio first (one of the best features, so it isn't hidden),
+          then Play, the Codex, World Cup, Flag of the Day and a daily fact.
+          Swipe; it loops. */}
       <HeroDeck slides={[
+        { accent: ACCENT.play, eyebrow: "Flag Studio", title: "Make your own flag",
+          body: "Start from any real flag or a blank one, add stars and emblems, then share it.",
+          cta: "Open Flag Studio", onClick: () => onNavigate("flagstudio"),
+          art: (
+            <div aria-hidden style={{ position: "relative", width: 112, aspectRatio: "3 / 2", flexShrink: 0, borderRadius: 8, overflow: "hidden",
+              border: `1.5px solid ${T.surface}`, boxShadow: `0 3px 8px -4px ${tint(T.text, 0.6)}` }}>
+              <GamePoster id="flagstudio" accent={ACCENT.play} />
+            </div>
+          ) },
         { accent: ACCENT.challenge, eyebrow: "The Arcade", title: `${gameCount} games await`,
           body: "A swipeable trending deck, fresh picks daily, every shelf one tap from play.",
           cta: "Open the Arcade", onClick: onGoPlay, art: flagFan },
@@ -316,10 +326,14 @@ function TodayTab({ state, today, dailyDone, launch, onNavigate, onGoCodex, onGo
               <GamePoster id="connections" accent={ACCENT.today} />
             </span>
             <span style={{ flex: 1, minWidth: 0 }}>
-              <span className="geo-display" style={{ display: "block", fontWeight: 800, fontSize: 15, color: T.text, letterSpacing: "-0.01em" }}>{connections.title}</span>
-              <span style={{ display: "block", color: T.muted, fontSize: 11, marginTop: 2, lineHeight: 1.35 }}>Sort 16 countries into four groups</span>
+              <span style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <span className="geo-display" style={{ fontWeight: 800, fontSize: 15, color: T.text, letterSpacing: "-0.01em" }}>{connections.title}</span>
+                <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: "0.08em", lineHeight: 1, padding: "3px 6px", borderRadius: 999,
+                  color: T.amber, background: tint(T.amber, 0.1), border: `1px solid ${tint(T.amber, 0.35)}` }}>BETA</span>
+              </span>
+              <span style={{ display: "block", color: T.muted, fontSize: 11, marginTop: 2, lineHeight: 1.35 }}>Sort 16 countries into four groups · new puzzle every two weeks</span>
               <span style={{ display: "inline-flex", gap: 4, marginTop: 6, fontFamily: FONT.display, fontWeight: 700, fontSize: 11.5, color: ACCENT.today }}>
-                Today's puzzle <span>→</span>
+                Play the puzzle <span>→</span>
               </span>
             </span>
           </button>
@@ -344,13 +358,13 @@ function AboutGlobalio() {
   const p = { color: T.muted, fontSize: 12.5, lineHeight: 1.6, margin: "8px 0 0" } as const
   return (
     <details style={{ marginTop: 24, paddingTop: 14, borderTop: `1px solid ${T.line}` }}>
-      <summary style={{ cursor: "pointer", listStyle: "revert", color: T.text, fontSize: 13, fontWeight: 700 }}>
-        <h2 style={{ display: "inline", fontSize: 13, fontWeight: 700, margin: 0 }}>About Globalio</h2>
-        <span style={{ fontWeight: 400, color: T.muted }}> · free flag games and a hand-researched flag archive</span>
+      <summary style={{ cursor: "pointer", listStyle: "revert", color: T.dim, fontSize: 11.5, fontWeight: 600 }}>
+        <h2 style={{ display: "inline", fontSize: 11.5, fontWeight: 600, margin: 0, color: T.dim }}>About Globalio</h2>
+        <span style={{ fontWeight: 400, color: T.dim }}> · free flag games and a hand-researched flag archive</span>
       </summary>
       <p style={p}>
         Globalio is a free flag and geography game made by one person who loves flags. Learn the flags of all
-        197 countries through quick daily games: quizzes, a daily Connections puzzle, drawing and colouring
+        197 countries through quick daily games: quizzes, a Connections puzzle, drawing and colouring
         games, lookalike spotting, map and border puzzles, and Real or Bot, where you tell real flags from
         computer-made ones.
       </p>

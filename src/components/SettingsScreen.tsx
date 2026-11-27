@@ -11,7 +11,7 @@ import { accountsVisible } from "../accounts"
 
 const AccountCard = lazy(() => import("./AccountCard"))
 
-interface Props { onBack: () => void; onMegaCodex: () => void; onFlagCheck: () => void }
+interface Props { onBack: () => void; onFlagCheck: () => void }
 
 // The creator's own tools (the ad-free unlock and the flag QA list) stay out of
 // sight for players: they show in dev builds, or after opening the site once
@@ -92,7 +92,7 @@ async function backUpProgress() {
   alert(`${what}\n\n${keep}`)
 }
 
-export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Props) {
+export default function SettingsScreen({ onBack, onFlagCheck }: Props) {
   const [creator] = useState(creatorTools)
   const [accounts] = useState(accountsVisible)
   const [restoring, setRestoring] = useState(false)
@@ -164,12 +164,6 @@ export default function SettingsScreen({ onBack, onMegaCodex, onFlagCheck }: Pro
           </p>
         </div>
 
-        {/* Mega Codex: every flag on one scrolling wall */}
-        <button onClick={onMegaCodex}
-          className="w-full mt-8 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
-          style={{ background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="codex" size={14} color={T.muted} /> Browse all 4,500+ flags</span>
-        </button>
 
         {/* temporary flag-QA list */}
         {creator && <button onClick={onFlagCheck}

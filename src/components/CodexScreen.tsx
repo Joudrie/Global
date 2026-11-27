@@ -61,6 +61,8 @@ interface Props {
   /** Rendered inside the dashboard's Codex tab: no back button on the list
    *  view (the bottom tab bar is the navigation). */
   embedded?: boolean
+  /** "Browse all 4,500+ flags" at the bottom: every flag on one scrolling wall. */
+  onBrowseAll?: () => void
 }
 
 const CAPITAL_BY_CODE = new Map(CAPITALS.map(c => [c.code, c.capital]))
@@ -90,7 +92,7 @@ function scrollParent(el: HTMLElement | null): HTMLElement | null {
 }
 const rowId = (code: string) => `codex-${code}`
 
-export default function CodexScreen({ onBack, initialCode, embedded = false }: Props) {
+export default function CodexScreen({ onBack, initialCode, embedded = false, onBrowseAll }: Props) {
   // A deep link (Flag of the Day → its entry) opens on that country; otherwise
   // the embedded Codex restores the reader's last view.
   const [saved] = useState(() => (embedded && initialCode == null ? loadView() : null))
@@ -300,6 +302,15 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
         {!isSearching && <OrgCodexSection />}
         {/* Maritime / signal alphabet — last of the themed sections */}
         {!isSearching && <SignalCodexSection />}
+        {/* Every flag on one wall (the Mega Codex) */}
+        {!isSearching && onBrowseAll && (
+          <button type="button" onClick={onBrowseAll} className="geo-tap"
+            style={{ width: "100%", minHeight: 48, marginTop: 24, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600,
+              display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
+              background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
+            <LineIcon name="codex" size={14} color={T.muted} /> Browse all 4,500+ flags
+          </button>
+        )}
         {/* Ad box — dormant until a publisher ID is set in src/ads.ts */}
         {!isSearching && <AdBox slot={AD_SLOTS.codexFooter} style={{ marginTop: 24 }} />}
       </div>

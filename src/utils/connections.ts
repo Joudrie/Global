@@ -191,7 +191,34 @@ export function daysSinceEpoch(date: string): number {
   return Math.round((utc(date) - utc(EPOCH)) / DAY)
 }
 
+// From SLOW_FROM on, Connections is in beta: one puzzle runs for PERIOD_DAYS
+// (two weeks) instead of one day while the categories are tuned. The running
+// number carries on, so the puzzle that was on that day simply stays on.
+export const SLOW_FROM = "2026-11-27"
+export const PERIOD_DAYS = 14
+const fromDays = (days: number) => new Date(utc(EPOCH) + days * DAY).toISOString().slice(0, 10)
+
+/** The running puzzle number (0-based, before wrapping) for `date`. */
+export function puzzleNumber(date: string): number {
+  const d = daysSinceEpoch(date), s = daysSinceEpoch(SLOW_FROM)
+  return d < s ? d : s + Math.floor((d - s) / PERIOD_DAYS)
+}
+
+/** The first day of the puzzle that is on at `date`. Saved progress and the
+ *  tile order are keyed by it, so they last the whole two weeks. */
+export function puzzleStart(date: string): string {
+  const d = daysSinceEpoch(date), s = daysSinceEpoch(SLOW_FROM)
+  return fromDays(d < s ? d : s + Math.floor((d - s) / PERIOD_DAYS) * PERIOD_DAYS)
+}
+
+/** The day the next puzzle arrives. */
+export function nextPuzzleDate(date: string): string {
+  const d = daysSinceEpoch(date), s = daysSinceEpoch(SLOW_FROM)
+  return fromDays(d < s ? d + 1 : s + (Math.floor((d - s) / PERIOD_DAYS) + 1) * PERIOD_DAYS)
+}
+
 /** Index (0-based) of the puzzle for `date` among `count` puzzles. */
 export function puzzleIndex(date: string, count: number): number {
-  return ((daysSinceEpoch(date) % count) + count) % count
+  const n = puzzleNumber(date)
+  return ((n % count) + count) % count
 }

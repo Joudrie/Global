@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flag Studio up front, and Connections in beta",
+    items: [
+      "Flag Studio now opens the carousel on Today, so making your own flag is one tap away.",
+      "Connections is in beta while its categories are tuned: each puzzle now runs for two weeks instead of one day. Today's puzzle stays on until 11 December.",
+      "Browse all 4,500+ flags moved from Settings to the bottom of the Codex.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Sign in with an email link",
     items: [
       "No Google account? On the You tab or in Settings, enter your email and we'll send you a sign-in link from noreply@globalio.app. Open it and your progress syncs across your devices, just like with Google.",

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } fr
 import type { CSSProperties } from "react"
 import { flushSync } from "react-dom"
 import { PUZZLES, PUZZLE_COUNT } from "../data/connectionsPuzzles"
-import { SIZE, MISTAKES, HINTS, check, state, rows, shareText, groupOf, puzzleIndex, shuffle, nextHint, validHints, validHistory, ids, tileById } from "../utils/connections"
+import { SIZE, MISTAKES, HINTS, check, state, rows, shareText, groupOf, puzzleIndex, puzzleStart, nextPuzzleDate, shuffle, nextHint, validHints, validHistory, ids, tileById } from "../utils/connections"
 import type { Hint, Puzzle, Tile } from "../utils/connections"
 import { tileText, tileAnswer, tileLabel, endonymOf } from "../utils/connectionsTiles"
 import { todayString, shuffleWithSeed } from "../utils/prng"
@@ -78,12 +78,21 @@ function fitTiles(words: Iterable<HTMLElement>) {
   }
 }
 
-function untilMidnight(): string {
-  const now = new Date()
-  const next = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1)
-  const mins = Math.max(1, Math.ceil((next.getTime() - now.getTime()) / 60000))
+/** How long until local midnight starting `day` ("YYYY-MM-DD"): "3 days", "5h 12m". */
+function untilDay(day: string): string {
+  const [y, mo, d] = day.split("-").map(Number)
+  const mins = Math.max(1, Math.ceil((new Date(y, mo - 1, d).getTime() - Date.now()) / 60000))
+  if (mins >= 48 * 60) return `${Math.round(mins / 1440)} days`
   const h = Math.floor(mins / 60), m = mins % 60
   return h ? `${h}h ${m}m` : `${m}m`
+}
+
+/** "tomorrow" or "on Fri 11 Dec". */
+function whenDay(day: string, today: string): string {
+  const [y, mo, d] = day.split("-").map(Number)
+  const t = new Date(y, mo - 1, d), now = new Date(today + "T12:00:00")
+  if (Math.round((t.getTime() - now.getTime()) / 86_400_000) <= 1) return "tomorrow"
+  return "on " + t.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
 }
 
 // The small line under a capital or local-name tile, so the four kinds read
@@ -105,19 +114,22 @@ function Caption({ tile, on }: { tile: Tile; on: boolean }) {
 function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNewDay: () => void }) {
   const idx = puzzleIndex(date, PUZZLE_COUNT)
   const n = idx + 1
+  // A puzzle runs for two weeks (beta): progress and tile order follow its first day.
+  const start = puzzleStart(date)
+  const next = nextPuzzleDate(date)
   const P = PUZZLES[idx]
 
-  const [saved] = useState(() => load(date, n, P))
+  const [saved] = useState(() => load(start, n, P))
   const [history, setHistory] = useState<string[][]>(saved.history)
   const [hints, setHints] = useState<Hint[]>(saved.hints)
   const s = useMemo(() => state(P, history), [P, history])
-  const [order, setOrder] = useState<string[]>(() => shuffleWithSeed(ids(P), `connections-${date}`))
+  const [order, setOrder] = useState<string[]>(() => shuffleWithSeed(ids(P), `connections-${start}`))
   const [picked, setPicked] = useState<string[]>([])
   const [busy, setBusy] = useState(false)
   const [toast, setToast] = useState("")
   const [fresh, setFresh] = useState<number[]>([])
   const [shareMsg, setShareMsg] = useState("")
-  const [countdown, setCountdown] = useState(untilMidnight)
+  const [countdown, setCountdown] = useState(() => untilDay(next))
   const tileRefs = useRef(new Map<string, HTMLButtonElement>())
   const wordRefs = useRef(new Map<string, HTMLSpanElement>())
   const toastTimer = useRef(0)
@@ -148,15 +160,15 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     return () => window.removeEventListener("resize", onResize)
   }, [])
 
-  // The countdown only matters once the day's puzzle is done.
+  // The countdown only matters once the puzzle is done.
   useEffect(() => {
     if (!s.over) return
     const id = window.setInterval(() => {
-      setCountdown(untilMidnight())
+      setCountdown(untilDay(next))
       if (todayString() !== date) onNewDay()
     }, 30_000)
     return () => window.clearInterval(id)
-  }, [s.over, date, onNewDay])
+  }, [s.over, date, next, onNewDay])
 
   const els = (words: string[]) => words.map(w => tileRefs.current.get(w)).filter((e): e is HTMLButtonElement => !!e)
 
@@ -216,7 +228,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     if (r.result === "repeat") { say("Already guessed."); return }
     const nextHistory = [...history, pick]
     const after = state(P, nextHistory)
-    save({ date, n, history: nextHistory, hints })
+    save({ date: start, n, history: nextHistory, hints })
     if (after.won) unlockAchievement("connections-win", ...(after.mistakes === 0 && hints.length === 0 ? ["connections-perfect"] : []))
     say("")
     setBusy(true)
@@ -245,7 +257,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     if (busy || !hint) return
     const next = [...hints, hint]
     setHints(next)
-    save({ date, n, history, hints: next })
+    save({ date: start, n, history, hints: next })
     const t = hint.word ? tileById(P, hint.word) : undefined
     say(!t ? "" : t.kind === "flag" ? "The marked flag is in that group." : `${tileText(t)} is in that group.`)
   }
@@ -282,10 +294,15 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
         }
       `}</style>
 
-      <ScreenHeader title="Connections" subtitle="A new puzzle every day" onBack={onBack}
+      <ScreenHeader title="Connections" subtitle="Beta · a new puzzle every two weeks" onBack={onBack}
         right={<HeaderStat label="No.">{n}</HeaderStat>} />
 
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 480, padding: "4px 16px 32px", gap: 12 }}>
+        <p role="note" style={{ margin: 0, padding: "8px 12px", borderRadius: 10, fontSize: 13, lineHeight: 1.5, color: T.muted,
+          background: tint(T.amber, 0.08), border: `1px solid ${tint(T.amber, 0.3)}` }}>
+          <strong style={{ color: T.amber, letterSpacing: "0.06em" }}>BETA</strong> · Connections is still being tuned, so for now a new puzzle comes every two weeks. A group that doesn’t fit?{" "}
+          <a href="mailto:sjoudrie@gmail.com?subject=Globalio%20Connections%20feedback" style={{ color: T.amber, fontWeight: 600 }}>Tell us</a>.
+        </p>
         <p style={{ margin: 0, fontSize: 14, color: T.muted, textAlign: "center", lineHeight: 1.4 }}>
           Find four groups of four. A tile shows a country, its capital, its flag or its own name for itself, and each group is all one kind.
         </p>
@@ -434,7 +451,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
             <PrimaryButton onClick={share}>Share result</PrimaryButton>
             <div role="status" aria-live="polite" style={{ minHeight: 20, fontSize: 13, color: T.muted }}>{shareMsg}</div>
             <p style={{ margin: 0, fontSize: 14 }}>
-              Puzzle #{n + 1 > PUZZLE_COUNT ? 1 : n + 1} arrives tomorrow, in {countdown}.
+              Puzzle #{n + 1 > PUZZLE_COUNT ? 1 : n + 1} arrives {whenDay(next, date)}, in {countdown}.
             </p>
             </ResultCard>
           </section>
