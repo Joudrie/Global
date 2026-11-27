@@ -11,3 +11,5 @@ export const commonsSource = (url: string): string | null => {
 // raster of the same image. Self-hosted copies (/cf/, /flags/) pass through.
 export const commonsThumb = (url: string, width = 240): string =>
   url.includes('Special:FilePath') && !url.includes('?') ? `${url}?width=${width}` : url
+/** A small version of a flag image for lists (alias of commonsThumb). */
+export const galleryThumb = (u: string): string => commonsThumb(u)

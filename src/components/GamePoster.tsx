@@ -184,8 +184,11 @@ const ABROAD_STAMPS: Record<string, { rect: StampText; circle: StampText; pill: 
     pill: { label: "YOU ARE A", name: "NEAPOLITAN", lang: "en", size: 9.6, width: 52 },
   },
 }
+// Abroad's poster is Countries Abroad's (Germany three ways: the cover people
+// recognise) with one more small stamp in the corner saying cities are in it too.
 function AbroadStamps({ id }: { id: string }) {
-  const { rect, circle, pill } = ABROAD_STAMPS[id] ?? ABROAD_STAMPS.citiesabroad
+  const both = id === "abroad"
+  const { rect, circle, pill } = ABROAD_STAMPS[both ? "countriesabroad" : id] ?? ABROAD_STAMPS.citiesabroad
   const sans = "'Inter', system-ui, sans-serif"
   const ink = { fill: "none", strokeWidth: 1.4 } as const
   const label = (y: number, text: string, color: string, size = 3.4) => (
@@ -218,6 +221,13 @@ function AbroadStamps({ id }: { id: string }) {
         {label(-5.2, pill.label, T.text)}
         {name(5.4, pill.name, T.text, pill.size, pill.width, pill.lang)}
       </g>
+      {both && (
+        <g transform="translate(122 60) rotate(7)" style={stamp}>
+          <rect x={-15} y={-8} width={30} height={16} rx={2} stroke={T.green} fill="none" strokeWidth={1.1} />
+          {label(-2.4, "+ CITIES", T.green, 3)}
+          {name(4.4, "VENICE", T.green, 6.4, 22, "en")}
+        </g>
+      )}
     </svg>
   )
 }
@@ -573,6 +583,7 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
           </svg>
         </div>
       ) }
+    case "abroad":
     case "citiesabroad":
     case "countriesabroad":
     case "nativenames":

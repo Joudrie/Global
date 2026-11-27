@@ -11,7 +11,7 @@ import { accountsVisible } from "../accounts"
 
 const AccountCard = lazy(() => import("./AccountCard"))
 
-interface Props { onBack: () => void; onFlagCheck: () => void }
+interface Props { onBack: () => void; onFlagCheck: () => void; onPatchNotes: () => void }
 
 // The creator's own tools (the ad-free unlock and the flag QA list) stay out of
 // sight for players: they show in dev builds, or after opening the site once
@@ -92,7 +92,7 @@ async function backUpProgress() {
   alert(`${what}\n\n${keep}`)
 }
 
-export default function SettingsScreen({ onBack, onFlagCheck }: Props) {
+export default function SettingsScreen({ onBack, onFlagCheck, onPatchNotes }: Props) {
   const [creator] = useState(creatorTools)
   const [accounts] = useState(accountsVisible)
   const [restoring, setRestoring] = useState(false)
@@ -147,6 +147,13 @@ export default function SettingsScreen({ onBack, onFlagCheck }: Props) {
         <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
           Globalio is made by one person, and I read every message. Thanks for playing.
         </div>
+
+        {/* Patch notes — every change, newest first (also on the Today tab) */}
+        <button onClick={onPatchNotes}
+          className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+          style={{ background: 'transparent', border: `1px solid ${T.line}`, color: T.muted }}>
+          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="scroll" size={14} color={T.muted} /> Patch notes: what changed lately</span>
+        </button>
 
         {/* Legal — required for ad networks & app stores */}
         <div className="text-xs mt-5 text-center" style={{ color: T.dim }}>

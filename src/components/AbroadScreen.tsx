@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react"
-import type { CSSProperties, FormEvent } from "react"
+import type { CSSProperties, FormEvent, ReactNode } from "react"
 import { flushSync } from "react-dom"
 import { Check, Lightbulb, X } from "lucide-react"
 import { STRIKES, TARGET, TIERS, gameState, listLanguages, roundPoints } from "../utils/abroad"
@@ -10,8 +10,8 @@ import { PrimaryButton, ResultCard, ResultDots, ResultHeader, SecondaryButton } 
 import { GamePoster } from "./GamePoster"
 import { unlockAchievement } from "../profile/achievements"
 
-/* The screen of the three Abroad games: Cities Abroad, Countries Abroad and
-   Native Names, and Demonyms. A place's name as some language writes it
+/* The screen of the Abroad games: Abroad (its Countries and Cities switches,
+   see AbroadGameScreen), Native Names and Demonyms. A place's name as some language writes it
    ("Benetke", Slovenian; "Suomi", Finnish); type the English name ("Venice",
    "Finland"), or pick it from four. Demonyms turns it around (a place, and the
    word for its people) through the optional fields on AbroadRound. Ten right before three strikes wins; the further a
@@ -39,7 +39,13 @@ export interface AbroadGame {
 }
 export type { AbroadRound }
 
-interface Props { game: AbroadGame; onBack: () => void; onFinish?: () => void }
+interface Props {
+  game: AbroadGame; onBack: () => void; onFinish?: () => void
+  /** The header's title, when it isn't the game's own (Abroad shows "Abroad" on both switches). */
+  title?: string
+  /** Shown first on the start screen: Abroad's Countries / Cities switch. */
+  switcher?: ReactNode
+}
 
 const ACC = ACCENT.drill
 const PRESS_MS = 240 // how long a tapped difficulty shows its fill before round 1
@@ -104,14 +110,15 @@ const STYLES = `
   }
 `
 
-export default function AbroadScreen({ game: abroad, onBack, onFinish }: Props) {
+export default function AbroadScreen({ game, onBack, onFinish, title, switcher }: Props) {
+  const abroad = title ? { ...game, title } : game
   const [prefs, setPrefs] = useState(() => loadPrefs(abroad))
-  const [game, setGame] = useState<Game | null>(null)
+  const [run, setRun] = useState<Game | null>(null)
   const [outcome, setOutcome] = useState<Outcome | null>(null)
 
   const begin = (tier: Tier, mode: AnswerMode) => {
     setOutcome(null)
-    setGame(g => ({ id: (g?.id ?? 0) + 1, tier, mode, rounds: abroad.rounds(tier, Math.random) }))
+    setRun(g => ({ id: (g?.id ?? 0) + 1, tier, mode, rounds: abroad.rounds(tier, Math.random) }))
     window.scrollTo({ top: 0 })
   }
   const choose = (next: Partial<Prefs>) => {
@@ -136,18 +143,18 @@ export default function AbroadScreen({ game: abroad, onBack, onFinish }: Props) 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
       <style>{STYLES}</style>
-      {!game && <Start abroad={abroad} prefs={prefs} onMode={mode => choose({ mode })} onBack={onBack}
+      {!run && <Start abroad={abroad} prefs={prefs} onMode={mode => choose({ mode })} onBack={onBack} switcher={switcher}
         onStart={tier => { choose({ tier }); begin(tier, prefs.mode) }} />}
-      {game && !outcome && <Play key={game.id} abroad={abroad} game={game} onBack={onBack} onDone={a => finish(game, a)} />}
-      {game && outcome && <Result abroad={abroad} game={game} outcome={outcome} onBack={onBack}
-        onAgain={() => begin(game.tier, game.mode)} onChange={() => { setGame(null); setOutcome(null) }} />}
+      {run && !outcome && <Play key={run.id} abroad={abroad} game={run} onBack={onBack} onDone={a => finish(run, a)} />}
+      {run && outcome && <Result abroad={abroad} game={run} outcome={outcome} onBack={onBack}
+        onAgain={() => begin(run.tier, run.mode)} onChange={() => { setRun(null); setOutcome(null) }} />}
     </div>
   )
 }
 
 /* ── Start: how to answer, then one tap on a difficulty starts the game. ── */
-function Start({ abroad, prefs, onMode, onStart, onBack }:
-  { abroad: AbroadGame; prefs: Prefs; onMode: (m: AnswerMode) => void; onStart: (t: Tier) => void; onBack: () => void }) {
+function Start({ abroad, prefs, onMode, onStart, onBack, switcher }:
+  { abroad: AbroadGame; prefs: Prefs; onMode: (m: AnswerMode) => void; onStart: (t: Tier) => void; onBack: () => void; switcher?: ReactNode }) {
   const [pressed, setPressed] = useState<Tier | null>(null)
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
   // iOS opens the keyboard only for a focus inside the tap itself, and round 1
@@ -170,6 +177,7 @@ function Start({ abroad, prefs, onMode, onStart, onBack }:
     <>
       <ScreenHeader title={abroad.title} onBack={onBack} />
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "4px 16px 32px", gap: 20 }}>
+        {switcher}
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div aria-hidden style={{ position: "relative", height: 112, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}` }}>
             <GamePoster id={abroad.id} accent={ACC} />
@@ -181,21 +189,8 @@ function Start({ abroad, prefs, onMode, onStart, onBack }:
         </section>
 
         <section style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-          <div id="ca-mode" className="geo-micro" style={{ fontSize: 11, color: T.muted }}>Answer</div>
-          <div role="radiogroup" aria-labelledby="ca-mode" style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: T.surfaceHi, border: `1px solid ${T.line}` }}>
-            {(["type", "choice"] as AnswerMode[]).map(m => {
-              const on = prefs.mode === m
-              return (
-                <button key={m} type="button" role="radio" aria-checked={on} onClick={() => onMode(m)} disabled={!!pressed}
-                  className="ca-tap ca-seg"
-                  style={{ flex: 1, height: 40, borderRadius: 8, border: "none", fontSize: 15, fontWeight: 700, cursor: pressed ? "default" : "pointer",
-                    background: on ? T.surface : "transparent", color: on ? T.text : T.muted,
-                    boxShadow: on ? `0 1px 4px -2px ${tint(T.text, 0.5)}` : "none" }}>
-                  {MODE_LABEL[m]}
-                </button>
-              )
-            })}
-          </div>
+          <Segmented id="ca-mode" label="Answer" value={prefs.mode} onChange={m => onMode(m as AnswerMode)} disabled={!!pressed}
+            options={(["type", "choice"] as AnswerMode[]).map(m => ({ id: m, label: MODE_LABEL[m] }))} />
           <p style={{ margin: 0, fontSize: 13, color: T.muted }}>{abroad.typingNote ?? "Typing scores double. Small slips in spelling still count."}</p>
         </section>
 
@@ -235,6 +230,34 @@ function Start({ abroad, prefs, onMode, onStart, onBack }:
     </>
   )
 }
+
+/* ── A labelled two-way switch (radio group): the answer mode, and Abroad's
+   Countries / Cities. Its hover style comes from STYLES (.ca-seg). ──────── */
+export function Segmented({ id, label, options, value, onChange, disabled = false }:
+  { id: string; label: string; options: { id: string; label: string }[]; value: string; onChange: (id: string) => void; disabled?: boolean }) {
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+      <div id={id} className="geo-micro" style={{ fontSize: 11, color: T.muted }}>{label}</div>
+      <div role="radiogroup" aria-labelledby={id} style={{ display: "flex", gap: 4, padding: 4, borderRadius: 12, background: T.surfaceHi, border: `1px solid ${T.line}` }}>
+        {options.map(o => {
+          const on = value === o.id
+          return (
+            <button key={o.id} type="button" role="radio" aria-checked={on} onClick={() => { if (!on) onChange(o.id) }} disabled={disabled}
+              className="ca-tap ca-seg"
+              style={{ flex: 1, height: 40, borderRadius: 8, border: "none", fontSize: 15, fontWeight: 700, cursor: disabled ? "default" : "pointer",
+                background: on ? T.surface : "transparent", color: on ? T.text : T.muted,
+                boxShadow: on ? `0 1px 4px -2px ${tint(T.text, 0.5)}` : "none" }}>
+              {o.label}
+            </button>
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+/** The screen's styles, for a screen that shows a Segmented before AbroadScreen mounts. */
+export const ABROAD_STYLES = STYLES
 
 /* ── Three strikes in the header: hollow until used. ────────────────────── */
 function Strikes({ used }: { used: number }) {
