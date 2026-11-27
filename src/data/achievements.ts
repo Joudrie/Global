@@ -89,6 +89,7 @@ export const ACHIEVEMENTS: Achievement[] = [
 
   // Other games
   { id: "forgery-20", title: "Forgery Expert", how: "Score 20 in Flag Forgery.", icon: "forgery", game: "forgery", group: "More games", check: f => f.best("forgery") >= 20 },
+  { id: "composer-5", title: "Tile master", how: "Reach level 5 in Tile Flipper.", icon: "composer", game: "composer", group: "More games", check: f => f.best("composer", "level") >= 5 },
   { id: "gacha-25", title: "Collector", how: "Collect 25 flags in Flag Gacha.", icon: "gacha", game: "gacha", group: "More games", check: f => f.collected >= 25 },
   { id: "studio-first", title: "Flag designer", how: "Save a design in Flag Studio.", icon: "flagstudio", game: "flagstudio", group: "More games", check: f => f.designs >= 1 },
   { id: "games-50", title: "Seasoned player", how: "Play 50 games.", icon: "quickplay", game: null, group: "More games", check: f => f.games >= 50 },
