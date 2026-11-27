@@ -172,7 +172,8 @@ create table if not exists public.profiles (
     jsonb_typeof(picture) = 'object' and octet_length(picture::text) <= 8500 and (
       (picture->>'kind' = 'flag' and coalesce(picture->>'code', '') ~ '^[A-Z]{2}$') or
       (picture->>'kind' = 'design' and coalesce(picture->>'design', '') ~ '^[A-Za-z0-9_-]+$' and char_length(picture->>'design') <= 8000)))),
-  constraint profiles_banner_shape check (banner is null or banner ~ '^[a-z0-9-]{1,24}$'),
+  -- A preset ("nordic") or a country's flag ("flag:JP"), see src/profile/banners.ts.
+  constraint profiles_banner_shape check (banner is null or banner ~ '^([a-z0-9-]{1,24}|flag:[A-Z]{2})$'),
   constraint profiles_bio_shape check (bio is null or (char_length(bio) <= 120 and bio !~* '(https?:|www\.|://)')),
   constraint profiles_pinned_shape check (cardinality(pinned) <= 3 and array_position(pinned, null) is null
     and array_to_string(pinned, ',') ~ '^([a-z0-9-]{1,40}(,|$))*$'),
@@ -181,6 +182,12 @@ create table if not exists public.profiles (
     and not jsonb_path_exists(designs, '$[*] ? (@.type() != "string" || !(@ like_regex "^[A-Za-z0-9_-]+$"))')),
   constraint profiles_stats_shape check (jsonb_typeof(stats) = 'object' and octet_length(stats::text) <= 8192)
 );
+
+-- Flag banners came after the first version of this table: give a table made
+-- before them the same banner check (dropped and added again, so running this
+-- twice is harmless; every banner already stored still passes).
+alter table public.profiles drop constraint if exists profiles_banner_shape;
+alter table public.profiles add constraint profiles_banner_shape check (banner is null or banner ~ '^([a-z0-9-]{1,24}|flag:[A-Z]{2})$');
 
 comment on table public.profiles is
   'Each player''s profile: username, look and stats. Owner-only (RLS); others read public ones through find_players() and get_player().';

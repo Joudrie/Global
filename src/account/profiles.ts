@@ -17,7 +17,7 @@ import { readStats } from "../profile/stats"
 import type { ProfileStats } from "../profile/stats"
 import { readPicture, DESIGN_CODE_MAX } from "../profile/public"
 import type { PublicPicture, PublicRow } from "../profile/public"
-import { BANNERS } from "../profile/banners"
+import { bannerOf } from "../profile/banners"
 import { achievementById } from "../data/achievements"
 import { MAX_PINNED, MAX_DESIGNS } from "../profile/local"
 
@@ -119,7 +119,7 @@ function asPlayer(row: unknown): PlayerProfile | null {
     Array.isArray(v) ? v.filter((x): x is string => typeof x === "string" && ok(x)).slice(0, max) : []
   return {
     ...card,
-    banner: typeof r.banner === "string" && BANNERS.some(b => b.id === r.banner) ? r.banner : BANNERS[0].id,
+    banner: bannerOf(r.banner),
     bio: text(r.bio, 200),
     pinned: list(r.pinned, MAX_PINNED, id => !!achievementById(id)),
     designs: list(r.designs, MAX_DESIGNS, c => c.length <= DESIGN_CODE_MAX && /^[A-Za-z0-9_-]+$/.test(c)),

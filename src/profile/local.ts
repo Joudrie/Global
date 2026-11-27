@@ -10,7 +10,7 @@
 // earlier of two devices wins (the "min" rule).
 import { FLAGS } from "../data/flags"
 import type { Snapshot } from "../utils/mergeProgress"
-import { BANNERS } from "./banners"
+import { DEFAULT_BANNER, bannerOf } from "./banners"
 import { BIO_MAX, cleanBio } from "./text"
 import { achievementById } from "../data/achievements"
 import { mainOf } from "./save"
@@ -26,6 +26,7 @@ export type Picture = { kind: "flag"; code: string } | { kind: "design"; id: str
 
 export interface LocalProfile {
   picture: Picture | null
+  /** A preset id or "flag:<code>" (src/profile/banners.ts). */
   banner: string
   bio: string
   pinned: string[]
@@ -34,7 +35,7 @@ export interface LocalProfile {
   date: string
 }
 
-export const EMPTY_PROFILE: LocalProfile = { picture: null, banner: BANNERS[0].id, bio: "", pinned: [], designs: [], date: "" }
+export const EMPTY_PROFILE: LocalProfile = { picture: null, banner: DEFAULT_BANNER, bio: "", pinned: [], designs: [], date: "" }
 
 const isObj = (v: unknown): v is Record<string, unknown> => typeof v === "object" && v !== null && !Array.isArray(v)
 const ids = (v: unknown, max: number, ok: (s: string) => boolean) =>
@@ -55,7 +56,7 @@ export function profileOf(snap: Snapshot): LocalProfile {
   const bio = cleanBio(typeof raw.bio === "string" ? raw.bio : "")
   return {
     picture: pictureOf(raw.picture),
-    banner: typeof raw.banner === "string" && BANNERS.some(b => b.id === raw.banner) ? raw.banner : EMPTY_PROFILE.banner,
+    banner: bannerOf(raw.banner),
     bio: Array.from(bio).slice(0, BIO_MAX).join(""),
     pinned: ids(raw.pinned, MAX_PINNED, id => !!achievementById(id)),
     designs: ids(raw.designs, MAX_DESIGNS, id => /^[A-Za-z0-9_-]{1,40}$/.test(id)),

@@ -3,6 +3,9 @@ import type { CSSProperties } from "react"
 import { T } from "../ui/tokens"
 import { LineIcon } from "./icons"
 import FlagImage from "./FlagImage"
+import type { Picture } from "../profile/local"
+import type { Snapshot } from "../utils/mergeProgress"
+import { studioDesigns } from "../profile/save"
 
 /* A profile picture in a circle: a country flag, a Flag Studio design (drawn
    by src/profile/designs.ts, which loads only when a design is shown), or a
@@ -12,6 +15,14 @@ export type AvatarSource =
   | { kind: "flag"; code: string }
   | { kind: "design"; design: string | Record<string, unknown> }
   | null
+
+/** A saved picture as the avatar draws it (a design is looked up among the saved ones). */
+export function avatarFor(p: Picture | null, snap: Snapshot): AvatarSource {
+  if (!p) return null
+  if (p.kind === "flag") return p
+  const d = studioDesigns(snap).find(x => x.id === p.id)
+  return d ? { kind: "design", design: d } : null
+}
 
 export function DesignImage({ design, style, alt = "" }: { design: string | Record<string, unknown>; style?: CSSProperties; alt?: string }) {
   const [uri, setUri] = useState<string | null>(null)

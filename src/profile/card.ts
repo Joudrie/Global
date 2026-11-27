@@ -1,5 +1,6 @@
 // "Save my card": the profile as one 1080×1350 picture (the size phones use
-// for posts and stories), drawn on a canvas in the site's look: the banner,
+// for posts and stories), drawn on a canvas in the site's look: the banner
+// (a preset, or a flag under its light tan wash),
 // the round picture, pinned badges, the name, badge, bio and key stats, and
 // globalio.app. drawProfileCard is plain drawing on any 2D context, so tests
 // run it with a fake one; renderProfileCard loads the fonts and images first.
@@ -26,6 +27,10 @@ export interface CardData {
 
 export interface CardImages {
   banner?: CanvasImageSource | null
+  /** The banner image's size (a preset is 1200×400; a flag, its own). */
+  bannerSize?: { w: number; h: number } | null
+  /** A colour laid over the banner (the light tan over a flag banner). */
+  bannerWash?: string | null
   picture?: { img: CanvasImageSource; w: number; h: number } | null
   /** One per pinned badge (its icon), in order. */
   pins?: (CanvasImageSource | null)[]
@@ -107,8 +112,10 @@ export function drawProfileCard(ctx: Ctx, d: CardData, im: CardImages = {}): voi
   const BH = 300
   ctx.save()
   ctx.beginPath(); ctx.rect(0, 0, CARD_W, BH); ctx.clip()
-  if (im.banner) cover(ctx, im.banner, 1200, 400, 0, 0, CARD_W, BH)
-  else { ctx.fillStyle = T.void; ctx.fillRect(0, 0, CARD_W, BH) }
+  ctx.fillStyle = T.void
+  ctx.fillRect(0, 0, CARD_W, BH)
+  if (im.banner) cover(ctx, im.banner, im.bannerSize?.w ?? 1200, im.bannerSize?.h ?? 400, 0, 0, CARD_W, BH)
+  if (im.bannerWash) { ctx.fillStyle = im.bannerWash; ctx.fillRect(0, 0, CARD_W, BH) }
   ctx.restore()
   ctx.fillStyle = T.line
   ctx.fillRect(0, BH, CARD_W, 2)
@@ -260,7 +267,7 @@ export function sizedSvg(text: string, w: number, h: number): string {
 
 export const svgUri = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
-export interface CardSources { banner: string; picture: string | null; pins: string[] }
+export interface CardSources { banner: string | null; bannerWash?: string | null; picture: string | null; pins: string[] }
 
 /** The finished card as a canvas. Images that can't load are left out. */
 export async function renderProfileCard(d: CardData, src: CardSources): Promise<HTMLCanvasElement> {
@@ -270,7 +277,7 @@ export async function renderProfileCard(d: CardData, src: CardSources): Promise<
       document.fonts.load(`500 30px ${body}`), document.fonts.load(`600 20px ${body}`),
     ])
   } catch { /* system fonts */ }
-  const [banner, picture, ...pins] = await Promise.all([loadImage(src.banner), src.picture ? loadImage(src.picture) : null, ...src.pins.map(loadImage)])
+  const [banner, picture, ...pins] = await Promise.all([src.banner ? loadImage(src.banner) : null, src.picture ? loadImage(src.picture) : null, ...src.pins.map(loadImage)])
   const canvas = document.createElement("canvas")
   canvas.width = CARD_W
   canvas.height = CARD_H
@@ -278,6 +285,8 @@ export async function renderProfileCard(d: CardData, src: CardSources): Promise<
   if (!ctx) throw new Error("no canvas")
   drawProfileCard(ctx, d, {
     banner,
+    bannerSize: banner ? { w: banner.naturalWidth || 1200, h: banner.naturalHeight || 400 } : null,
+    bannerWash: src.bannerWash ?? null,
     picture: picture ? { img: picture, w: picture.naturalWidth || 300, h: picture.naturalHeight || 200 } : null,
     pins,
   })

@@ -1,20 +1,10 @@
-import { lazy, Suspense, useEffect, useState } from "react"
+import { useEffect, useMemo, useState } from "react"
 import { T } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { SecondaryButton } from "./gameUi"
-import { LineIcon } from "./icons"
-import ProfileView, { cardLink, rankFor, SaveCardButton } from "./ProfileView"
-import type { ProfileViewData } from "./ProfileView"
+import ProfileView, { CardTool, ShareTool, cardLink, playerData } from "./ProfileView"
 import { loadAccountService, loadedAccountService } from "../accounts"
 import type { PlayerProfile } from "../account/profiles"
-import { monthName } from "../profile/local"
-import { shownStreak } from "../profile/stats"
-import { profileLink } from "../profile/link"
-import { todayString } from "../utils/prng"
-import { profileLook } from "../profile/look"
-
-// Loaded only with a trial layout chosen (?look=a|b|c).
-const PlayerLook = lazy(() => import("./ProfileLooks").then(m => ({ default: m.PlayerLook })))
 
 /* Someone else's profile, read-only: the same layout as your own, with no
    edit controls. Opened from "Find a player" or a link (?u=username). No
@@ -26,29 +16,9 @@ type State =
   | { kind: "missing"; mine: boolean }
   | { kind: "error"; message: string; unavailable: boolean }
 
-export function viewData(p: PlayerProfile): ProfileViewData {
-  return {
-    name: p.username,
-    badge: p.badge,
-    rank: rankFor(p.stats.flags),
-    since: monthName(p.stats.since) ?? monthName(p.createdAt?.slice(0, 7)),
-    bio: p.bio,
-    banner: p.banner,
-    picture: p.picture,
-    pinned: p.pinned,
-    stats: p.stats,
-    streak: shownStreak(p.stats, todayString()),
-    activity: p.stats.activity,
-    designs: p.designs,
-  }
-}
-
 export default function PlayerScreen({ username, onBack }: { username: string; onBack: () => void }) {
   const [state, setState] = useState<State>({ kind: "loading" })
   const [attempt, setAttempt] = useState(0)
-  const [copied, setCopied] = useState("")
-  // A trial layout (?look=a|b|c) shows their profile the same way as your own.
-  const [look] = useState(profileLook)
 
   useEffect(() => {
     let live = true
@@ -65,16 +35,8 @@ export default function PlayerScreen({ username, onBack }: { username: string; o
     return () => { live = false }
   }, [username, attempt])
 
-  const shareLink = async (name: string) => {
-    const link = profileLink(name, window.location.origin, window.location.pathname)
-    try {
-      const nav = navigator as Navigator & { share?: (d: ShareData) => Promise<void> }
-      if (typeof nav.share === "function" && window.matchMedia?.("(pointer: coarse)").matches) await nav.share({ url: link, title: `${name} on Globalio` })
-      else { await navigator.clipboard.writeText(link); setCopied("Link copied.") }
-    } catch { /* cancelled */ }
-  }
-
   const found = state.kind === "found" ? state.player : null
+  const data = useMemo(() => (found ? playerData(found) : null), [found])
   return (
     <div className="min-h-screen" style={{ background: T.bg, color: T.text, maxWidth: 720, margin: "0 auto" }}>
       <ScreenHeader title={found?.username ?? username} subtitle="Player profile" onBack={onBack} />
@@ -98,22 +60,8 @@ export default function PlayerScreen({ username, onBack }: { username: string; o
             </p>
           </div>
         )}
-        {found && look && (
-          <Suspense fallback={<div role="status" aria-busy="true" style={{ padding: 32, textAlign: "center", color: T.muted, fontSize: 14 }}>Opening {found.username}’s profile…</div>}>
-            <PlayerLook look={look} view={viewData(found)} username={found.username} link={cardLink(found.username)} />
-          </Suspense>
-        )}
-        {found && !look && (
-          <ProfileView data={viewData(found)} who={found.username}
-            actions={
-              <div style={{ display: "flex", flexWrap: "wrap", gap: 8, alignItems: "flex-start" }}>
-                <div style={{ flex: "1 1 140px", minWidth: 0, display: "flex" }}><SaveCardButton data={viewData(found)} link={cardLink(found.username)} label="Save card" /></div>
-                <div style={{ flex: "1 1 140px", minWidth: 0, display: "flex", flexDirection: "column", gap: 4 }}>
-                  <SecondaryButton onClick={() => void shareLink(found.username)}><LineIcon name="link" size={16} color={T.muted} />Share link</SecondaryButton>
-                  <div role="status" aria-live="polite" className="text-xs" style={{ color: T.muted }}>{copied}</div>
-                </div>
-              </div>
-            } />
+        {found && data && (
+          <ProfileView data={data} tools={<><ShareTool username={found.username} /><CardTool data={data} link={cardLink(found.username)} /></>} />
         )}
       </main>
     </div>

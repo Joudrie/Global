@@ -1,7 +1,8 @@
-// The sample profile for judging the trial layouts (?look=a|b|c&demo=1, see
-// ./look.ts): "Bob", a made-up player with a banner, a flag picture, a bio,
-// three pinned badges, seven published Flag Studio designs (real share codes,
-// drawn the way a public profile's are), twelve achievements and some stats.
+// The sample profile (?demo=1, see ./link.ts): "Bob", a made-up player shown
+// at the top of the You tab so the profile can be judged full: a banner, a
+// flag picture, a bio, three pinned badges, seven published Flag Studio
+// designs (real share codes, drawn the way a public profile's are), twelve
+// achievements and some stats.
 //
 // It is built fresh each time and shown read-only, like another player's
 // profile. Nothing here reads or writes storage, and it imports nothing at
@@ -59,7 +60,7 @@ export function demoProfile(now = Date.now()): DemoProfile {
       username: "bob_maps",
       picture: { kind: "flag", code: "NO" },
       badge: null,
-      banner: "compass",
+      banner: "waves",
       bio: "Weekend cartographer. Learning every flag in Africa this year, one Daily Game at a time.",
       pinned: ["streak-30", "crown-first", "flagle-3"],
       designs: [...DEMO_DESIGNS],

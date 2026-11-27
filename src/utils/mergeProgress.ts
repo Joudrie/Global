@@ -96,8 +96,6 @@ export const RULES: Rule[] = [
   { key: "globalio_onboarded", rule: "device", symmetric: false, note: "Intro seen." },
   { key: "globalio_fs_shuffle_hint", rule: "device", symmetric: false, note: "Flag Studio hint seen." },
   { key: "globalio_creator", rule: "device", symmetric: false, note: "Creator tools shown." },
-  { key: "globalio_profile_look", rule: "device", symmetric: false,
-    note: "Which profile layout this device tries (?look=a|b|c; ?look=0 forgets). See src/profile/look.ts." },
   { key: /^globalio_account/, rule: "device", symmetric: false,
     note: "The account on this device (sign-in session, sync status, ?accounts=1). Never in a backup or synced (src/accounts.ts), so this rule never runs." },
 ]

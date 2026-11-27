@@ -9,12 +9,12 @@
 -- signed-out visitor, the way the app does (the `authenticated` or `anon`
 -- role, with the player's id in request.jwt.claims). It checks that a player
 -- can only write their own profile and only the fields the app uses, that the
--- username and bio rules hold in the database, that a visitor can read public
+-- username, bio and banner rules hold in the database, that a visitor can read public
 -- profiles only through find_players() and get_player() and never sees a
 -- private or hidden profile, an account id or an email, and that deleting an
 -- account deletes its profile. The ROLLBACK at the end undoes all of it.
 --
--- Expected: every row says PASS, and the last row says "34 of 34 checks passed".
+-- Expected: every row says PASS, and the last row says "36 of 36 checks passed".
 
 begin;
 
@@ -91,10 +91,17 @@ select pg_temp.refused(18, 'A picture that isn''t a flag or a design is refused'
 select pg_temp.refused(19, 'More than 32 designs are refused',
   $q$update public.profiles set designs = (select jsonb_agg('abc'::text) from generate_series(1, 33)) where user_id = '00000000-0000-4000-8000-0000000000a1'$q$, '{23514}');
 
+select pg_temp.refused(35, 'A banner that isn''t a preset or a country''s flag is refused',
+  $q$update public.profiles set banner = 'flag:jp' where user_id = '00000000-0000-4000-8000-0000000000a1'$q$, '{23514}');
+
 with u as (
   update public.profiles set bio = 'Flags and maps.', stats = '{"v": 1, "flags": 40}', designs = '["eyJiIjoic3RyaXBlcyJ9"]'
    where user_id = '00000000-0000-4000-8000-0000000000a1' returning 1)
 insert into rls_check select 20, 'A can update their own bio, stats and designs', count(*) = 1 from u;
+
+with u as (
+  update public.profiles set banner = 'flag:JP' where user_id = '00000000-0000-4000-8000-0000000000a1' returning 1)
+insert into rls_check select 36, 'A can choose a country''s flag as their banner', count(*) = 1 from u;
 
 -- ── As player B: a private profile ──────────────────────────────────────────
 select set_config('request.jwt.claims', '{"sub": "00000000-0000-4000-8000-0000000000b2", "role": "authenticated"}', true);
@@ -137,7 +144,7 @@ insert into rls_check select 29, 'find_players never returns a private or hidden
 insert into rls_check select 30, 'In a search, _ is a letter, not a wildcard', count(*) = 0 from public.find_players('rlscheck_alic_');
 
 insert into rls_check select 31, 'get_player opens a public profile with its badge and bio',
-  count(*) = 1 and coalesce(bool_and(bio = 'Flags and maps.' and badge = 'Founding player' and stats ->> 'flags' = '40' and banner = 'waves'), false)
+  count(*) = 1 and coalesce(bool_and(bio = 'Flags and maps.' and badge = 'Founding player' and stats ->> 'flags' = '40' and banner = 'flag:JP'), false)
   from public.get_player('RLSCHECK_ALICE');
 
 insert into rls_check select 32, 'get_player shows nothing for a private or a hidden profile',

@@ -5,6 +5,16 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "A cleaner profile",
+    items: [
+      "Your profile is calmer and more compact: a slim banner with your picture over its edge, your three pinned badges beside it (tap a dashed + to pin one), and three small counts under your name for flags learned, achievements and published flags. Tap a count to jump to it.",
+      "Your published Flag Studio designs sit in a strip you can swipe, with See all, and achievements show as small badges. Tap one to see how to unlock it, or to pin it.",
+      "New banners on the site's tan paper, each with a single colour and drawn after a flag: waves, a Nordic cross, a disc, a hoist triangle, a diagonal band, a saltire, a sun, a crescent and star, stripes or a star field. Or make any country's flag your banner. Your saved card shows it too.",
+      "The rest of the You tab is shorter: World mastery, your crowns, the Daily log, best scores and the collection tools are now one list of rows that open in place.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Profiles: your stats in one place, and 25 achievements",
     items: [
       "The You tab now opens on your profile. Pick any country's flag or one of your own Flag Studio designs as your picture, choose a banner and write a short bio. Underneath are your flags learned, crowns, streaks, Daily Games, games played, Gacha flags and your best score in every game you've played. The new button at the top right of the app opens it from anywhere.",
