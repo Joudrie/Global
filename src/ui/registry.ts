@@ -87,7 +87,7 @@ export const REGISTRY: Entry[] = [
   { id: "flagdna", title: "Flag DNA", subtitle: "Guess by attributes", icon: "🧬", tab: "play", group: "Spot It", size: "tile", accent: "play" },
   { id: "symbolhunt", title: "Symbol Hunt", subtitle: "Find every flag with a symbol", icon: "🔎", tab: "play", group: "Spot It", size: "tile", accent: "play" },
   { id: "flagfamilies", title: "Flag Families", subtitle: "Sort into families", icon: "👪", tab: "play", group: "Spot It", size: "tile", accent: "play" },
-  { id: "spoterror", title: "Spot the Error", subtitle: "Find the wrong colour", icon: "🔺", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
+  { id: "spoterror", title: "Spot the Error", subtitle: "Tap where the flag is wrong", icon: "🔺", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
   { id: "forgery", title: "Flag Forgery", subtitle: "Swipe: correct or doctored?", icon: "🔍", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
 
   // Cartographer — maps, borders & shapes

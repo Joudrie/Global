@@ -55,7 +55,7 @@ export const RULES: Rule[] = [
     note: "Gauntlet ({ region: { best, completed, firstCompleted } }): per region the higher best, passed if passed on either, the earlier first pass." },
 
   // Best scores: a number ("12"), or one per tier/mode ({ "easy-type": 340 }).
-  // Covers hl, doa, realorbot, forgery, statclash, prideroulette (and _best_<n>),
+  // Covers hl, doa, realorbot, forgery, spoterror (best streak), statclash, prideroulette (and _best_<n>),
   // flagfusion, citiesabroad and countriesabroad (Abroad's two switches),
   // nativenames, demonyms,
   // frankenflag (pieces named in a game), composer (Tile Flipper: { level,
