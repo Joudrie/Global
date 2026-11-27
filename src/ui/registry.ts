@@ -101,6 +101,7 @@ export const REGISTRY: Entry[] = [
   { id: "citiesabroad", title: "Cities Abroad", subtitle: "Benetke → Venice", icon: "🧳", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "countriesabroad", title: "Countries Abroad", subtitle: "Allemagne → Germany", icon: "✈️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "nativenames", title: "Native Names", subtitle: "Suomi → Finland", icon: "🏠", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
+  { id: "demonyms", title: "Demonyms", subtitle: "Neapolitan or Nepalese?", icon: "🪪", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
   { id: "statclash", title: "Stat Clash", subtitle: "Bigger population or area?", icon: "⚖️", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill", featured: true },
   { id: "prideroulette", title: "Pride Roulette", subtitle: "Name the pride flag · survival", icon: "🏳️‍🌈", tab: "play", group: "Sharp Recall", size: "tile", accent: "drill" },
 

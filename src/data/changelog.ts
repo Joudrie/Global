@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "New game: Demonyms",
+    items: [
+      "What do you call someone from Naples? Neapolitan, not Nepalese. Name the people of 195 cities, regions and countries, from Venetian and Mancunian to Haligonian, Porteño and I-Kiribati.",
+      "Pick from four believable answers (some are real words for somewhere else, and the game tells you whose) or type it for double points. Every answer is checked against Wikidata, Wikipedia and Wiktionary.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Gauntlet progress, faster Dead or Alive, records in The Peel, fairer Real or Bot",
     items: [
       "Gauntlet: your best run in every region now shows as a progress bar, and clearing a region marks it Passed with the date. Two new achievements: Survivor and Iron will.",
