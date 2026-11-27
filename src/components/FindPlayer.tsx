@@ -1,4 +1,6 @@
 import { useEffect, useRef, useState } from "react"
+import { isCreator } from "../profile/verified"
+import { VerifiedMark } from "./Verified"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { LineIcon, SearchIcon } from "./icons"
 import Avatar from "./Avatar"
@@ -70,6 +72,7 @@ export default function FindPlayer({ onOpen }: { onOpen: (username: string) => v
                 <Avatar source={p.picture} size={36} />
                 <span style={{ flex: 1, minWidth: 0, display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
                   <span className="geo-display" style={{ fontWeight: 700, fontSize: 15, color: T.text, overflowWrap: "anywhere" }}>{p.username}</span>
+                  {isCreator(p.badge) && <VerifiedMark size={16} />}
                   {p.badge && <BadgeChip text={p.badge} />}
                 </span>
                 <span aria-hidden style={{ color: tint(ACCENT.learn, 0.9), display: "flex" }}><LineIcon name="profile" size={16} color={ACCENT.learn} /></span>

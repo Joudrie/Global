@@ -4,7 +4,8 @@
 // the round picture, pinned badges, the name, badge, bio and key stats, and
 // globalio.app. drawProfileCard is plain drawing on any 2D context, so tests
 // run it with a fake one; renderProfileCard loads the fonts and images first.
-import { T, FONT, tint } from "../ui/tokens"
+import { T, ACCENT, FONT, tint } from "../ui/tokens"
+import { isCreator } from "./verified"
 
 export const CARD_W = 1080
 export const CARD_H = 1350
@@ -130,6 +131,7 @@ export function drawProfileCard(ctx: Ctx, d: CardData, im: CardImages = {}): voi
   if (im.picture) cover(ctx, im.picture.img, im.picture.w, im.picture.h, cx - R, cy - R, R * 2, R * 2)
   ctx.restore()
   ctx.beginPath(); ctx.arc(cx, cy, R, 0, Math.PI * 2); ctx.strokeStyle = T.lineHi; ctx.lineWidth = 3; ctx.stroke()
+  if (isCreator(d.badge)) drawCrown(ctx, cx - R * 0.62, cy - R * 0.88, R * 1.05)
 
   // Pinned badges: right, under the banner.
   const pins = d.pinned.slice(0, 3)
@@ -148,6 +150,7 @@ export function drawProfileCard(ctx: Ctx, d: CardData, im: CardImages = {}): voi
   ctx.font = `700 ${name.size}px ${display}`
   ctx.fillStyle = T.text
   ctx.fillText(name.text, PAD, y)
+  if (isCreator(d.badge)) drawVerified(ctx, PAD + ctx.measureText(name.text).width + name.size * 0.42, y - name.size * 0.34, name.size * 0.3)
 
   y += 30
   if (d.badge) {
@@ -319,4 +322,32 @@ export async function shareOrSave(blob: Blob, filename: string, title: string): 
   a.remove()
   window.setTimeout(() => URL.revokeObjectURL(url), 2000)
   return "saved"
+}
+
+// ── The creator's crown and verified check (see profile/verified.ts) ─────────
+
+/** The crown tilted on the picture's top-left, like a hat. `w` is its width. */
+function drawCrown(ctx: Ctx, x: number, y: number, w: number): void {
+  const pts: [number, number][] = [[3, 21.5], [1.5, 6.5], [9.5, 12.5], [16, 2], [22.5, 12.5], [30.5, 6.5], [29, 21.5]]
+  const k = w / 32, a = -22 * Math.PI / 180, cos = Math.cos(a), sin = Math.sin(a)
+  const at = ([px, py]: [number, number]): [number, number] => {
+    const dx = (px - 16) * k, dy = (py - 12) * k
+    return [x + dx * cos - dy * sin, y + dx * sin + dy * cos]
+  }
+  ctx.beginPath()
+  pts.map(at).forEach(([px, py], i) => (i ? ctx.lineTo(px, py) : ctx.moveTo(px, py)))
+  ctx.closePath()
+  ctx.fillStyle = T.amber; ctx.fill()
+  ctx.strokeStyle = T.bg; ctx.lineWidth = Math.max(4, w * 0.06); ctx.stroke()
+}
+
+/** A filled disc with a check, after the name. */
+function drawVerified(ctx: Ctx, x: number, y: number, r: number): void {
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2)
+  ctx.fillStyle = ACCENT.learn; ctx.fill()
+  ctx.beginPath()
+  ctx.moveTo(x - r * 0.42, y + r * 0.02)
+  ctx.lineTo(x - r * 0.1, y + r * 0.34)
+  ctx.lineTo(x + r * 0.46, y - r * 0.3)
+  ctx.strokeStyle = T.surface; ctx.lineWidth = Math.max(3, r * 0.2); ctx.stroke()
 }

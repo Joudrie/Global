@@ -560,3 +560,14 @@ test('the sample profile never touches storage, and is a valid public profile', 
   const demoUse = you.match(/<ProfileView data=\{demoView\}[^>]*>/)?.[0]
   assert.ok(demoUse && !/\bown=/.test(demoUse), 'the sample profile is drawn without edit controls')
 })
+
+// ── The creator's crown and check ───────────────────────────────────────────
+
+test('only the Creator badge (set by the owner in entitlements) gets the crown and check', async () => {
+  const V = await src('profile/verified.ts')
+  assert.equal(V.isCreator('Creator'), true)
+  assert.equal(V.isCreator(' creator '), true)
+  for (const b of [null, undefined, '', 'Founding player', 'Creator!', 'Co-creator']) assert.equal(V.isCreator(b), false, String(b))
+  const sql = fs.readFileSync(path.join(ROOT, 'supabase/migrations/20261126100000_accounts.sql'), 'utf8')
+  assert.ok(!/grant\s+(insert|update)[^;]*public\.entitlements[^;]*to\s+(anon|authenticated)/i.test(sql), 'players must never be able to write their own badge')
+})
