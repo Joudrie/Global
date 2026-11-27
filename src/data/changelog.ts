@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Fixes",
+    items: [
+      "Edit profile stays where you are: picking a picture, banner or design no longer jumps you back to your designs, and the keyboard no longer closes while you type.",
+      "On small phones, Flag Outline's Guess button fits on the screen, and Flag Fusion's header keeps to one line, with bigger help and clear buttons.",
+      "The Daily log on the You tab shows dates as 24 Nov, like the rest of your profile, and the text boxes there show a clear outline while you type.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "A cleaner profile",
     items: [
       "Your profile is calmer and more compact: a slim banner with your picture over its edge, your three pinned badges beside it (tap a dashed + to pin one), and three small counts under your name for flags learned, achievements and published flags. Tap a count to jump to it.",

@@ -58,6 +58,9 @@ const STYLES = `
     .ff-tier:not([data-on]):not(:disabled):hover, .ff-option:hover, .ff-clear:hover, .ff-help:hover { border-color: ${T.lineHi}; background: ${T.surfaceHi}; }
   }
   .ff-input { outline: none; }
+  /* The header's help pill: icon only on a narrow phone, so the title and score keep one line each. */
+  .ff-help { padding: 0 12px; }
+  @media (max-width: 389px) { .ff-help { padding: 0; } .ff-help-label { display: none; } }
   .ff-box { transition: border-color 200ms ease-out, background-color 200ms ease-out; }
   .ff-dot { transition: background-color 200ms ease-out, border-color 200ms ease-out; }
   @keyframes ffIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
@@ -114,10 +117,10 @@ export default function FlagFusionScreen({ onBack, onFinish }: { onBack: () => v
 
 function HelpButton({ onClick }: { onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} className="ff-tap ff-help"
-      style={{ height: 36, padding: "0 12px", borderRadius: 999, flexShrink: 0, display: "inline-flex", alignItems: "center", gap: 6,
+    <button type="button" onClick={onClick} aria-label="How it works" className="ff-tap ff-help"
+      style={{ height: 44, minWidth: 44, borderRadius: 999, flexShrink: 0, display: "inline-flex", alignItems: "center", justifyContent: "center", gap: 6,
         background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 13, fontWeight: 600, cursor: "pointer" }}>
-      <CircleHelp size={16} strokeWidth={1.8} aria-hidden color={ACC} /> How it works
+      <CircleHelp size={16} strokeWidth={1.8} aria-hidden color={ACC} /><span className="ff-help-label" aria-hidden>How it works</span>
     </button>
   )
 }
@@ -425,7 +428,7 @@ function PartBox({ part, box, fusion, over, onPick, onSubmit }:
               <span style={{ flex: 1, minWidth: 0, fontSize: 15, fontWeight: 700, color: T.text, overflowWrap: "anywhere" }}>{countryName(box.pick.code)}</span>
               <button type="button" onClick={() => { onPick(null); requestAnimationFrame(() => inputRef.current?.focus()) }}
                 aria-label={`Clear ${PART_LABEL[part]}`} className="ff-tap ff-clear"
-                style={{ width: 36, height: 36, borderRadius: 999, flexShrink: 0, display: "grid", placeItems: "center", cursor: "pointer",
+                style={{ width: 44, height: 44, borderRadius: 999, flexShrink: 0, display: "grid", placeItems: "center", cursor: "pointer",
                   background: T.surface, border: `1px solid ${T.line}`, color: T.muted }}>
                 <X size={16} strokeWidth={2} aria-hidden />
               </button>

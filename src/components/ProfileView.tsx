@@ -106,7 +106,7 @@ export function statTiles(s: ProfileStats, streak: number) {
     { label: "Crowns", value: s.crowns, of: CROWN_COUNT },
     { label: "Day streak", value: streak },
     { label: "Best streak", value: s.bestStreak },
-    { label: "Daily games", value: s.dailies },
+    { label: "Daily Games", value: s.dailies },
     { label: "Games played", value: s.games },
     { label: "Gacha flags", value: s.collection },
   ]
@@ -183,7 +183,7 @@ function IconPill({ icon, label, onClick, busy }: { icon: string; label: string;
 function Said({ text, error }: { text: string; error?: boolean }) {
   return createPortal(
     <div role="status" aria-live="polite" style={{ position: "fixed", left: 0, right: 0, bottom: 96, zIndex: 70, display: "flex", justifyContent: "center", padding: "0 16px", pointerEvents: "none" }}>
-      {text && <span className="pf-sheet" style={{ maxWidth: 360, padding: "8px 12px", borderRadius: 12, fontSize: 13, lineHeight: 1.4, background: T.surface, color: error ? T.danger : T.text, border: `1px solid ${T.line}`, boxShadow: "0 8px 20px -14px rgba(31,58,60,0.25)" }}>{text}</span>}
+      {text && <span className="pf-sheet" style={{ maxWidth: 360, padding: "8px 12px", borderRadius: 12, fontSize: 13, lineHeight: 1.4, background: T.surface, color: error ? T.danger : T.text, border: `1px solid ${T.line}`, boxShadow: `0 8px 20px -14px ${tint(T.text, 0.25)}` }}>{text}</span>}
     </div>,
     document.body,
   )

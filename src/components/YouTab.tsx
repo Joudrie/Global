@@ -101,6 +101,12 @@ const H = ({ children }: { children: ReactNode }) => (
 )
 
 const when = (ms: number) => new Date(ms).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+/** "24 Nov" for a "2026-11-24" Daily Game, read as that local day (not UTC
+ *  midnight, which is the day before west of London). */
+const dayText = (ymd: string) => {
+  const [y, m, d] = ymd.split("-").map(Number)
+  return new Date(y, m - 1, d).toLocaleDateString("en-GB", { day: "numeric", month: "short" })
+}
 
 // ── "Your progress" ─────────────────────────────────────────────────────────
 
@@ -167,7 +173,7 @@ function Progress({ state, onNavigate, stats, unlocks }: {
                   return (
                     <li key={day} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 4 }}>
                       <span style={{ minWidth: 44, padding: "4px 8px", borderRadius: 8, textAlign: "center", fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontSize: 12, fontWeight: 600, color: c, border: `1px solid ${tint(c, 0.4)}` }}>{r.score}/{r.total}</span>
-                      <span style={{ fontSize: 11, color: T.muted, fontFamily: FONT.mono }}>{day.slice(5)}</span>
+                      <span style={{ fontSize: 11, color: T.muted, fontFamily: FONT.mono }}>{dayText(day)}</span>
                     </li>
                   )
                 })}

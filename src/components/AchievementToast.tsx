@@ -32,12 +32,12 @@ export default function AchievementToast() {
       {first && (
         <button type="button" onClick={() => setIds([])} className="geo-toast" aria-label={`Achievement unlocked: ${ids.length > 1 ? `${ids.length} achievements` : first.title}. Close`}
           style={{ pointerEvents: "auto", maxWidth: 360, width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "8px 12px", borderRadius: 12, textAlign: "left", cursor: "pointer",
-            background: T.surface, border: `1px solid ${tint(T.gold, 0.5)}`, boxShadow: "0 1px 2px rgba(31,58,60,0.05), 0 8px 20px -14px rgba(31,58,60,0.25)" }}>
+            background: T.surface, border: `1px solid ${tint(T.gold, 0.5)}`, boxShadow: `0 1px 2px ${tint(T.text, 0.05)}, 0 8px 20px -14px ${tint(T.text, 0.25)}` }}>
           <span aria-hidden style={{ width: 32, height: 32, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center", background: tint(T.gold, 0.14), border: `1px solid ${tint(T.gold, 0.45)}` }}>
             <LineIcon name={first.icon} size={16} color={T.gold} />
           </span>
           <span style={{ flex: 1, minWidth: 0 }}>
-            <span className="geo-micro" style={{ display: "block", fontSize: 9, color: T.gold }}>Achievement unlocked</span>
+            <span className="geo-micro" style={{ display: "block", fontSize: 11, color: T.gold }}>Achievement unlocked</span>
             <span style={{ display: "block", fontSize: 14, fontWeight: 700, color: T.text, overflowWrap: "anywhere" }}>
               {ids.length > 1 ? `${first.title} and ${ids.length - 1} more` : first.title}
             </span>

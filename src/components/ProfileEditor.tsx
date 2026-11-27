@@ -35,7 +35,7 @@ const Section = ({ title, children, note, action }: { title: string; children: R
 
 const choice = (on: boolean) => ({
   borderRadius: 8, padding: 0, overflow: "hidden", cursor: "pointer", background: T.surfaceHi,
-  border: `2px solid ${on ? ACCENT.learn : T.line}`, outline: "none",
+  border: `2px solid ${on ? ACCENT.learn : T.line}`,
 } as const)
 
 const SmallLink = ({ children, onClick, color = ACCENT.learn }: { children: ReactNode; onClick: () => void; color?: string }) => (
@@ -54,15 +54,15 @@ function FlagPicker({ chosen, onPick, label }: { chosen: string | null; onPick: 
     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
       <div style={{ position: "relative" }}>
         <span aria-hidden style={{ position: "absolute", left: 12, top: 13, display: "flex" }}><SearchIcon size={18} color={T.muted} strokeWidth={1.7} /></span>
-        <input type="search" value={q} onChange={e => setQ(e.target.value)} aria-label={`Search countries for your ${label}`} placeholder="Search countries"
+        <input type="search" className="pf-input" value={q} onChange={e => setQ(e.target.value)} aria-label={`Search countries for your ${label}`} placeholder="Search countries"
           autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false}
-          style={{ width: "100%", height: 44, padding: "0 12px 0 40px", borderRadius: 10, fontSize: 16, background: T.surface, border: `1px solid ${T.line}`, color: T.text, outline: "none" }} />
+          style={{ width: "100%", height: 44, padding: "0 12px 0 40px", borderRadius: 10, fontSize: 16, background: T.surface, border: `1px solid ${T.line}`, color: T.text }} />
       </div>
       {flags.length === 0
         ? <p className="text-xs" style={{ margin: 0, color: T.muted, overflowWrap: "anywhere" }}>No country matches “{q.trim()}”.</p>
         : (
           <div style={{ maxHeight: 196, overflowY: "auto", padding: 8, borderRadius: 10, background: T.surface, border: `1px solid ${T.line}` }}>
-            <div role="group" aria-label={`Flags for your ${label}`} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(52px, 1fr))", gap: 8 }}>
+            <div role="group" aria-label={`Flags for your ${label}`} style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(66px, 1fr))", gap: 8 }}>
               {flags.map(f => {
                 const on = chosen === f.code
                 return (
@@ -100,12 +100,18 @@ export default function ProfileEditor({ onClose, publicOn, top, startAt }: {
   const [failed, setFailed] = useState(false)
   const heading = useRef<HTMLHeadingElement>(null)
   const designsRef = useRef<HTMLDivElement>(null)
+  // The parent hands a new onClose on every render (a saved choice, a name, a
+  // sync re-renders it). Read it through a ref so this setup runs once: re-running
+  // it moved the focus to the heading (and scrolled back to the designs) after
+  // every pick and while typing.
+  const close = useRef(onClose)
+  close.current = onClose
 
   useEffect(() => {
     const back = document.activeElement as HTMLElement | null
     heading.current?.focus()
     if (startAt === "designs") designsRef.current?.scrollIntoView({ block: "start" })
-    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") onClose() }
+    const onKey = (e: KeyboardEvent) => { if (e.key === "Escape") close.current() }
     document.addEventListener("keydown", onKey)
     window.addEventListener(PROFILE_EVENT, refresh)
     const body = document.body.style.overflow
@@ -117,7 +123,7 @@ export default function ProfileEditor({ onClose, publicOn, top, startAt }: {
       back?.focus?.()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [onClose])
+  }, [])
 
   const save = (patch: Parameters<typeof saveProfile>[0]) => setFailed(!saveProfile(patch))
   const bioClean = cleanBio(bio)
@@ -132,7 +138,7 @@ export default function ProfileEditor({ onClose, publicOn, top, startAt }: {
       <header style={{ display: "flex", alignItems: "center", gap: 12, padding: "12px 16px", borderBottom: `1px solid ${T.line}`, background: T.bg }}>
         <h2 id="profile-editor-title" ref={heading} tabIndex={-1} className="geo-display"
           style={{ flex: 1, margin: 0, fontSize: 20, fontWeight: 700, color: T.text, outline: "none" }}>Edit profile</h2>
-        <PrimaryButton accent={ACCENT.learn} onClick={onClose} style={{ width: "auto", height: 44 }}>Done</PrimaryButton>
+        <PrimaryButton accent={ACCENT.learn} onClick={() => close.current()} style={{ width: "auto", height: 44 }}>Done</PrimaryButton>
       </header>
       <div style={{ flex: 1, minHeight: 0, overflowY: "auto", padding: "16px 16px 48px", display: "flex", flexDirection: "column", gap: 24 }}>
         {failed && <p role="alert" className="text-xs" style={{ margin: 0, color: T.danger }}>Couldn’t save on this device: its storage is full or blocked.</p>}
@@ -151,7 +157,7 @@ export default function ProfileEditor({ onClose, publicOn, top, startAt }: {
               const on = tab === id
               return (
                 <button key={id} role="tab" type="button" aria-selected={on} onClick={() => setTab(id)} className={on ? undefined : "pf-row"}
-                  style={{ flex: 1, minWidth: 0, minHeight: 36, borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer",
+                  style={{ flex: 1, minWidth: 0, minHeight: 44, borderRadius: 8, fontSize: 13, fontWeight: 600, cursor: "pointer",
                     color: on ? T.text : T.muted, background: on ? T.surface : "transparent", border: `1px solid ${on ? T.lineHi : "transparent"}` }}>
                   {label}
                 </button>
@@ -215,10 +221,10 @@ export default function ProfileEditor({ onClose, publicOn, top, startAt }: {
 
         <Section title="Bio" note={`A line about you, up to ${BIO_MAX} characters. No links.`}>
           <label htmlFor="profile-bio" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Bio</label>
-          <textarea id="profile-bio" value={bio} onChange={e => { setBio(e.target.value); setBioSaid("") }} rows={3}
+          <textarea id="profile-bio" className="pf-input" value={bio} onChange={e => { setBio(e.target.value); setBioSaid("") }} rows={3}
             autoComplete="off" spellCheck placeholder="e.g. Learning every flag in Africa this year"
             aria-invalid={!!bioBad} aria-describedby="profile-bio-help"
-            style={{ width: "100%", padding: 12, borderRadius: 10, fontSize: 16, lineHeight: 1.5, resize: "vertical", background: T.surface, border: `1px solid ${bioBad ? T.danger : T.line}`, color: T.text, outline: "none", fontFamily: "inherit" }} />
+            style={{ width: "100%", padding: 12, borderRadius: 10, fontSize: 16, lineHeight: 1.5, resize: "vertical", background: T.surface, border: `1px solid ${bioBad ? T.danger : T.line}`, color: T.text, fontFamily: "inherit" }} />
           <div id="profile-bio-help" style={{ display: "flex", justifyContent: "space-between", gap: 12 }}>
             <span role="alert" className="text-xs" style={{ color: bioBad ? T.danger : T.green }}>{bioBad ? BIO_MESSAGE[bioBad] : bioSaid}</span>
             <span className="text-xs" style={{ flexShrink: 0, color: bioLength(bioClean) > BIO_MAX ? T.danger : T.dim, fontVariantNumeric: "tabular-nums" }}>{bioLength(bioClean)}/{BIO_MAX}</span>

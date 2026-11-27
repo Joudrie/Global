@@ -75,7 +75,7 @@ function changes(r: RestoreResult): string[] {
   line("Crowns", a.crowns, b.crowns)
   line("Best streak", a.bestStreak, b.bestStreak)
   line("Current streak", a.streak, b.streak)
-  line("Daily puzzles played", a.dailies, b.dailies)
+  line("Daily Games played", a.dailies, b.dailies)
   const raised = bestsRaised(r.before, r.after)
   if (raised) lines.push(`${plural(raised, "best score")} raised`)
   return lines
@@ -132,12 +132,12 @@ export default function RestoreBackup({ onClose }: { onClose: () => void }) {
     <Card label="Restore a backup">
       <Title>{combined ? "Combine another backup" : "Restore a backup"}</Title>
       <Note>Paste the code you copied when you backed up, or choose the backup file you downloaded (globalio-backup-….txt).</Note>
-      <textarea value={code} onChange={e => { setCode(e.target.value); setError("") }}
+      <textarea className="pf-input" value={code} onChange={e => { setCode(e.target.value); setError("") }}
         aria-label="Backup code" placeholder="GLOBALIO1:…" rows={3} spellCheck={false} autoCapitalize="off" autoCorrect="off" autoComplete="off"
         style={{
           width: "100%", resize: "vertical", padding: "8px 12px", borderRadius: 10, fontSize: 16, lineHeight: 1.4,
           fontFamily: "ui-monospace, SFMono-Regular, Menlo, monospace", wordBreak: "break-all",
-          background: T.surfaceHi, border: `1px solid ${error ? T.danger : T.line}`, color: T.text, outline: "none",
+          background: T.surfaceHi, border: `1px solid ${error ? T.danger : T.line}`, color: T.text,
         }} />
       {errorLine}
       <PrimaryButton accent={ACC} disabled={!code.trim()} onClick={fromPaste}>Continue</PrimaryButton>
@@ -146,7 +146,7 @@ export default function RestoreBackup({ onClose }: { onClose: () => void }) {
         <FileText size={16} strokeWidth={1.7} color={reading ? T.dim : T.muted} absoluteStrokeWidth aria-hidden />
         {reading ? "Reading file…" : "Choose a backup file"}
       </SecondaryButton>
-      <button onClick={onClose} className="text-xs font-semibold" style={{ alignSelf: "center", padding: "8px 16px", color: T.muted, background: "transparent", border: "none" }}>
+      <button onClick={onClose} className="text-xs font-semibold" style={{ alignSelf: "center", padding: "8px 16px", minHeight: 44, color: T.muted, background: "transparent", border: "none" }}>
         {combined ? "Close" : "Cancel"}
       </button>
     </Card>
@@ -158,7 +158,7 @@ export default function RestoreBackup({ onClose }: { onClose: () => void }) {
       <Card label="Combine or replace">
         <Title>Backup found</Title>
         <Note>
-          From {step.from}: {plural(s.flags, "flag")} learned · best streak {n(s.bestStreak)} · {plural(s.dailies, "daily puzzle")}
+          From {step.from}: {plural(s.flags, "flag")} learned · best streak {n(s.bestStreak)} · {plural(s.dailies, "Daily Game")}
         </Note>
         <div role="radiogroup" aria-label="What to do with this backup" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
           <Option value="combine" mode={mode} onPick={setMode} title="Combine with this device" badge="Recommended">

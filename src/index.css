@@ -231,6 +231,10 @@ body {
 .pf-row { transition: border-color 0.15s ease; }
 .pf-link:hover, .pf-link:focus-visible { text-decoration: underline; text-underline-offset: 3px; }
 .pf-count:hover .pf-count-label, .pf-count:focus-visible .pf-count-label { color: #1F3A3C !important; text-decoration: underline; text-underline-offset: 3px; }
+/* Text boxes on the profile, account and restore cards: a cyan ring while
+   focused (inline styles can't say :focus-visible, so this class does). */
+.pf-input { outline: none; }
+.pf-input:focus-visible { outline: 2px solid #5C8CA8; outline-offset: 2px; }
 .pf-narrow { display: none; }
 @media (max-width: 359px) { .pf-wide { display: none; } .pf-narrow { display: inline; } }
 @keyframes pfSheetIn { from { opacity: 0; } to { opacity: 1; } }

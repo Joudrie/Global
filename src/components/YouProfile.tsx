@@ -125,11 +125,11 @@ function UsernameSection({ svc, signedIn, ready, onSignIn }: { svc: Svc | null; 
         <label htmlFor="profile-tag" className="text-xs" style={{ color: T.muted, lineHeight: 1.5 }}>
           3–{USERNAME_MAX} letters, numbers or _. Friends find you by it.
         </label>
-        <input id="profile-tag" value={draft} maxLength={USERNAME_MAX}
+        <input id="profile-tag" className="pf-input" value={draft} maxLength={USERNAME_MAX}
           onChange={e => { setDraft(e.target.value.replace(/\s/g, "")); setError("") }} onBlur={() => setTouched(true)}
           autoComplete="off" autoCapitalize="off" autoCorrect="off" spellCheck={false} inputMode="text" enterKeyHint="done"
           placeholder="e.g. map_lover" aria-invalid={!!(shownProblem || error)} aria-describedby="profile-tag-help"
-          style={{ width: "100%", height: 48, padding: "0 12px", borderRadius: 10, fontSize: 16, background: T.surface, border: `1px solid ${shownProblem || error ? T.danger : T.line}`, color: T.text, outline: "none" }} />
+          style={{ width: "100%", height: 48, padding: "0 12px", borderRadius: 10, fontSize: 16, background: T.surface, border: `1px solid ${shownProblem || error ? T.danger : T.line}`, color: T.text }} />
         <div id="profile-tag-help" role="alert">{(error || shownProblem) && <Note color={T.danger}>{error || shownProblem}</Note>}</div>
         {!mine && <Note>Your profile is public once you claim one: anyone can find it by your username. Only your username, picture, banner, bio, badges, stats and the designs you choose are shown. Never your email. You can make it private at any time.</Note>}
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
@@ -189,8 +189,8 @@ function NameField({ name, onSave }: { name: string; onSave: (n: string) => void
       <h3 className="geo-display" style={{ margin: 0, fontSize: 16, fontWeight: 700, color: T.text }}>Name</h3>
       <form onSubmit={e => { e.preventDefault(); onSave(clean); setDraft(clean); setSaid(clean ? "Name saved." : "Name removed.") }} style={{ display: "flex", gap: 8, alignItems: "center" }}>
         <label htmlFor="pf-name" style={{ position: "absolute", width: 1, height: 1, overflow: "hidden", clip: "rect(0 0 0 0)" }}>Your name</label>
-        <input id="pf-name" value={draft} placeholder="Explorer" autoComplete="nickname" onChange={e => { setDraft(clampName(e.target.value)); setSaid("") }}
-          style={{ flex: 1, minWidth: 0, height: 44, padding: "0 12px", borderRadius: 10, fontSize: 16, background: T.surface, border: `1px solid ${T.line}`, color: T.text, outline: "none" }} />
+        <input id="pf-name" className="pf-input" value={draft} placeholder="Explorer" autoComplete="nickname" onChange={e => { setDraft(clampName(e.target.value)); setSaid("") }}
+          style={{ flex: 1, minWidth: 0, height: 44, padding: "0 12px", borderRadius: 10, fontSize: 16, background: T.surface, border: `1px solid ${T.line}`, color: T.text }} />
         <button type="submit" disabled={clean === name.trim()} className="pf-row"
           style={{ flexShrink: 0, height: 44, padding: "0 16px", borderRadius: 10, fontSize: 14, fontWeight: 600, cursor: clean === name.trim() ? "not-allowed" : "pointer",
             color: clean === name.trim() ? T.dim : T.text, background: T.surface, border: `1px solid ${T.line}` }}>Save</button>
