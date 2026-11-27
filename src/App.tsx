@@ -24,6 +24,7 @@ const ChallengeScreen = lazy(() => import("./components/ChallengeScreen"))
 const ResultScreen = lazy(() => import("./components/ResultScreen"))
 const AchievementsScreen = lazy(() => import("./components/AchievementsScreen"))
 const ProfileScreen = lazy(() => import("./components/ProfileScreen"))
+const PlayerScreen = lazy(() => import("./components/PlayerScreen"))
 const FlashcardsScreen = lazy(() => import("./components/FlashcardsScreen"))
 const LanguageQuizScreen = lazy(() => import("./components/LanguageQuizScreen"))
 const CodexScreen = lazy(() => import("./components/CodexScreen"))
@@ -82,7 +83,12 @@ const USCityFlagScreen = lazy(() => import("./components/USCityFlagScreen"))
 const WorldCupScreen = lazy(() => import("./components/WorldCupScreen"))
 const SupporterScreen = lazy(() => import("./components/SupporterScreen"))
 import { setSupporterHandler } from "./utils/supporterNav"
-import { startAccountSync, SIGN_IN_RETURN, accountsVisible } from "./accounts"
+import { startAccountSync, SIGN_IN_RETURN, accountsVisible, profilesVisible } from "./accounts"
+import AchievementToast from "./components/AchievementToast"
+import { gameSnapshot } from "./utils/backup"
+import { noteFirstSeen } from "./profile/local"
+import { checkAchievements } from "./profile/achievements"
+import { profileLinkUser } from "./profile/link"
 import { FLAGS } from "./data/flags"
 import type { FlagRecord } from "./data/flags"
 import { loadState, saveState, markFlagLearned, markSubLearned, recordDailyResult, awardCrown, saveShareResult, setPremium, recordGamePlayed } from "./utils/storage"
@@ -91,7 +97,7 @@ import { buildDailyQuiz, buildSetQuiz } from "./utils/quiz"
 import type { Question } from "./utils/quiz"
 import { todayString } from "./utils/prng"
 
-type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "citiesabroad" | "countriesabroad" | "nativenames" | "flagfusion"
+type Screen = "splash" | "home" | "flags" | "quiz" | "reversequiz" | "result" | "achievements" | "profile" | "flashcards" | "language" | "capitalquiz" | "challenge" | "codex" | "geo" | "gauntlet" | "tierlist" | "settings" | "oddoneout" | "thecrop" | "flagdna" | "buildflag" | "geopaint" | "sketchflag" | "spoterror" | "flagoutline" | "thepeel" | "lookalikes" | "composer" | "silhouette" | "flagfamilies" | "funfact" | "progressmap" | "historical" | "identity" | "provinceroulette" | "substumper" | "lineage" | "substats" | "megacodex" | "flagle" | "higherlower" | "deadoralive" | "frankenflag" | "describeit" | "flagbracket" | "realorbot" | "forgery" | "timeline" | "bordermap" | "borderchain" | "gacha" | "symbolhunt" | "twotruths" | "capitalmatch" | "oddborder" | "continentsort" | "statclash" | "atlas" | "uscityflags" | "prideroulette" | "flagdiag" | "worldcup" | "supporter" | "connections" | "flagstudio" | "flagidentifier" | "citiesabroad" | "countriesabroad" | "nativenames" | "flagfusion" | "player"
 
 // The daily's answers so far, so leaving mid-round and coming back resumes it
 // instead of dealing the same questions again for a second try.
@@ -166,6 +172,12 @@ const SHARED_DESIGN = (() => {
   try { return new URLSearchParams(window.location.search).get("design") } catch { return null }
 })()
 
+// A profile link: globalio.app/?u=username opens that player's profile (only
+// while profiles are shown, see src/accounts.ts). Read before the address is tidied.
+const LINKED_PLAYER = (() => {
+  try { return profilesVisible() ? profileLinkUser(window.location.search) : null } catch { return null }
+})()
+
 function readDeepLink(): string | null {
   try {
     const id = new URLSearchParams(window.location.search).get("play")?.toLowerCase()
@@ -198,6 +210,8 @@ export default function App() {
   const [codexInitial, setCodexInitial] = useState<string | null>(null)
   // A shared Flag Studio design opens once; after that the studio shows the player's own work.
   const sharedDesign = useRef(SHARED_DESIGN)
+  // The player whose profile is open (Find a player, or a ?u= link).
+  const [player, setPlayer] = useState<string | null>(LINKED_PLAYER)
 
   // Phone and browser Back: any screen past home sits on one extra history
   // entry, so Back returns home instead of leaving the site. Coming home any
@@ -245,6 +259,17 @@ export default function App() {
     window.addEventListener("storage", onStorage)
     return () => { document.removeEventListener("visibilitychange", resync); window.removeEventListener("storage", onStorage) }
   }, [])
+
+  // "Playing since": remember when this player first opened Globalio.
+  useEffect(() => { noteFirstSeen(gameSnapshot()) }, [])
+
+  // Achievements: check what the save has earned at start and whenever the
+  // save changes or the player comes back from a game (after it's been saved).
+  useEffect(() => {
+    if (screen !== "home" && screen !== "result") return
+    const t = window.setTimeout(() => checkAchievements(gameSnapshot()), 400)
+    return () => window.clearTimeout(t)
+  }, [appState, screen])
 
   // A signed-in player's progress syncs with their account in the background.
   // Loads nothing unless this device is signed in (see src/accounts.ts).
@@ -341,7 +366,8 @@ export default function App() {
   const finishSplash = useCallback(() => {
     const link = readDeepLink()
     // Drop the param so a later refresh lands on the dashboard, not the game again.
-    if (link) try { window.history.replaceState(null, "", window.location.pathname) } catch { /* ignore */ }
+    if (link || LINKED_PLAYER) try { window.history.replaceState(null, "", window.location.pathname) } catch { /* ignore */ }
+    if (LINKED_PLAYER && !link) { setTab("you"); setScreen("player"); return }
     if (link === "daily") startDaily()
     else if (link === "quickplay") startQuickPlay()
     else if (link === "reversequiz") startReverseQuiz()
@@ -409,7 +435,8 @@ export default function App() {
           intro={showIntro ? <Onboarding onDone={() => setShowIntro(false)} /> : null}
           onNavigate={(s) => { setDeckBack("home"); setHistRegion(undefined); setScreen(s as Screen) }}
           onQuickPlay={startQuickPlay} onStartDaily={startDaily} onReverseQuiz={startReverseQuiz}
-          onSetUsername={name => setAppState(s => ({ ...s, username: name }))} />
+          onSetUsername={name => setAppState(s => ({ ...s, username: name }))}
+          onOpenPlayer={u => { setPlayer(u); setScreen("player") }} />
       )}
 
       {screen === "flags" && (
@@ -459,6 +486,7 @@ export default function App() {
           onSetUsername={name => setAppState(s => ({ ...s, username: name }))} />
       )}
       {screen === "achievements" && <AchievementsScreen state={appState} onBack={() => setScreen("home")} />}
+      {screen === "player" && player && <PlayerScreen key={player} username={player} onBack={() => { setTab("you"); setScreen("home") }} />}
       {screen === "progressmap" && <ProgressMapScreen state={appState} onBack={() => setScreen("home")} />}
       {screen === "historical" && <HistoricalFlagScreen onBack={() => setScreen(deckBack)} region={histRegion} />}
       {screen === "identity" && <IdentityFlagScreen onBack={() => setScreen(deckBack)} />}
@@ -524,6 +552,9 @@ export default function App() {
       )}
       </Suspense>
       </ScreenErrorBoundary>
+
+      {/* "Achievement unlocked" note (no ads in it, over nothing you need) */}
+      <AchievementToast />
 
       {/* Boxed ad break over the result screen (dormant until ads are live) */}
     </div>

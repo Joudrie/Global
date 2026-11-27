@@ -8,6 +8,7 @@ import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { PrimaryButton, ResultCard, ResultDots, ResultHeader, SecondaryButton } from "./gameUi"
 import { GamePoster } from "./GamePoster"
+import { unlockAchievement } from "../profile/achievements"
 
 /* The screen of the three Abroad games: Cities Abroad, Countries Abroad and
    Native Names. A place's name as some language writes it ("Benetke",
@@ -120,7 +121,10 @@ export default function AbroadScreen({ game: abroad, onBack, onFinish }: Props) 
     const prev = all[key]
     const score = scoreOf(answers)
     if (prev === undefined || score > prev) write(bestsKey(abroad), { ...all, [key]: score })
-    setOutcome({ answers, state: gameState(answers), best: Math.max(prev ?? 0, score), beat: prev !== undefined && score > prev })
+    const result = gameState(answers)
+    setOutcome({ answers, state: result, best: Math.max(prev ?? 0, score), beat: prev !== undefined && score > prev })
+    // Achievements for Cities Abroad (see src/data/achievements.ts).
+    if (result === "won" && abroad.id === "citiesabroad") unlockAchievement("citiesabroad-win", ...(g.tier === "hard" ? ["citiesabroad-hard"] : []))
     onFinish?.()
     window.scrollTo({ top: 0 })
   }

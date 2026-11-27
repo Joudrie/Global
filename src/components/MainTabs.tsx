@@ -9,8 +9,8 @@ import { openSupporter } from "../utils/supporterNav"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, recommendFor, discoverGames, trendingGames, topGames } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
-import { TabBar, ModuleCard, FlagTile, StatPill, SectionHeader, ProgressRing } from "./ui"
-import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon, CrownIcon, PencilIcon, MailIcon, HeartIcon } from "./icons"
+import { TabBar, ModuleCard, FlagTile, SectionHeader, ProgressRing } from "./ui"
+import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon, CrownIcon, MailIcon, HeartIcon } from "./icons"
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
@@ -18,6 +18,10 @@ import { WordUpSlide, ReignSlide } from "./MakerSlides"
 import AdBox from "./AdBox"
 import { AD_SLOTS, SUPPORTER_LIVE } from "../ads"
 import { accountsVisible } from "../accounts"
+import YouProfile, { avatarFor } from "./YouProfile"
+import Avatar from "./Avatar"
+import { PROFILE_EVENT, readProfile } from "../profile/local"
+import { gameSnapshot } from "../utils/backup"
 
 // The Codex tab renders the real Codex directly (no launcher page between).
 // Lazy so the dashboard bundle stays lean — same chunk App.tsx already splits.
@@ -34,6 +38,8 @@ interface Props {
   onStartDaily: () => void
   onReverseQuiz: () => void
   onSetUsername: (name: string) => void
+  /** Open another player's profile (Find a player). */
+  onOpenPlayer: (username: string) => void
   /** First-run welcome card, shown at the top of Today until dismissed. */
   intro?: ReactNode
 }
@@ -64,7 +70,25 @@ function pushRecent(id: string) {
   } catch { /* ignore */ }
 }
 
-export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, onStartDaily, onReverseQuiz, onSetUsername, intro }: Props) {
+/** The header's profile button: the player's picture, or a person icon. */
+function HeaderAvatar({ onOpen, active }: { onOpen: () => void; active: boolean }) {
+  const [, bump] = useReducer((n: number) => n + 1, 0)
+  useEffect(() => {
+    window.addEventListener(PROFILE_EVENT, bump)
+    window.addEventListener("storage", bump)
+    return () => { window.removeEventListener(PROFILE_EVENT, bump); window.removeEventListener("storage", bump) }
+  }, [])
+  const picture = readProfile().picture
+  const source = picture ? avatarFor(picture, picture.kind === "design" ? gameSnapshot() : {}) : null
+  return (
+    <button onClick={onOpen} aria-label="Your profile" aria-current={active ? "page" : undefined} className="geo-tap"
+      style={{ width: 44, height: 44, borderRadius: 999, padding: 0, background: T.surface, border: `1px solid ${active ? tint(ACCENT.learn, 0.6) : T.line}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+      {source ? <Avatar source={source} size={34} /> : <LineIcon name="profile" size={18} color={T.muted} />}
+    </button>
+  )
+}
+
+export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, onStartDaily, onReverseQuiz, onSetUsername, onOpenPlayer, intro }: Props) {
   // Re-render when the app comes back into view, so the date-driven parts
   // (daily picks, Flag of the Day, streak) catch up after midnight.
   const [, wake] = useReducer((n: number) => n + 1, 0)
@@ -114,6 +138,7 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
             <FlameIcon size={13} color={T.amber} strokeWidth={1.7} />
             <span style={{ fontFamily: FONT.mono, fontWeight: 600, fontSize: 14, color: T.amber, letterSpacing: "-0.02em" }}>{streak}</span>
           </div>
+          <HeaderAvatar onOpen={() => handleTab("you")} active={tab === "you"} />
           <button onClick={() => onNavigate("settings")} aria-label="Settings" className="geo-tap"
             style={{ width: 44, height: 44, borderRadius: 999, background: T.surface, border: `1px solid ${T.line}`, color: T.muted, display: "flex", alignItems: "center", justifyContent: "center" }}>
             <LineIcon name="settings" size={18} color={T.muted} />
@@ -133,7 +158,7 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
             <CodexScreenLazy embedded initialCode={codexCode} />
           </Suspense>
         )}
-        {tab === "you" && <YouTab state={state} streak={streak} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} />}
+        {tab === "you" && <YouTab state={state} learned={learned} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} />}
       </main>
 
       <TabBar active={tab} onChange={handleTab} />
@@ -982,38 +1007,11 @@ const CROWN_SETS = [
 ]
 const REGIONS = ["Europe", "Africa", "Asia", "Americas", "Middle East", "Oceania"] as const
 
-// Explorer titles — purely for funsies, earned by flags learned. Chill, not
-// gamified: no nags, no locks, just a nicer word under your name as you grow.
-const RANKS: { min: number; title: string }[] = [
-  { min: 195, title: "Atlas Incarnate" },
-  { min: 130, title: "Master Cartographer" },
-  { min: 80, title: "Seasoned Navigator" },
-  { min: 40, title: "Wayfinder" },
-  { min: 10, title: "Apprentice Cartographer" },
-  { min: 0, title: "Armchair Traveller" },
-]
-const rankFor = (learned: number) => RANKS.find(r => learned >= r.min)!.title
-
-// Names are capped by what a reader sees as characters, so an emoji or an
-// accented letter counts once and is never cut in half (maxLength and
-// String.slice count UTF-16 units). Code points where Intl.Segmenter is missing.
-const NAME_MAX = 24
-function clampName(s: string): string {
-  const chars = typeof Intl !== "undefined" && Intl.Segmenter
-    ? Array.from(new Intl.Segmenter(undefined, { granularity: "grapheme" }).segment(s), g => g.segment)
-    : Array.from(s)
-  return chars.length > NAME_MAX ? chars.slice(0, NAME_MAX).join("") : s
-}
-
-function YouTab({ state, streak, learned, onNavigate, onSetUsername }: {
-  state: AppState; streak: number; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void
+function YouTab({ state, learned, onNavigate, onSetUsername, onOpenPlayer }: {
+  state: AppState; learned: number; onNavigate: (s: string) => void; onSetUsername: (name: string) => void; onOpenPlayer: (username: string) => void
 }) {
-  const [editing, setEditing] = useState(false)
-  const [draft, setDraft] = useState(state.username)
   const [accounts] = useState(accountsVisible)
-  const name = state.username.trim() || "Explorer"
   const pct = FLAGS.length ? Math.round((learned / FLAGS.length) * 100) : 0
-  const saveName = () => { onSetUsername(clampName(draft.trim())); setEditing(false) }
   // Only the set crowns count: Quick Play, Flag ID and Flashcards quizzes also
   // record a crown under their own ids, which are not sets on the shelf.
   const crowns = state.crowns.filter(id => CROWN_SETS.some(c => c.id === id)).length
@@ -1027,46 +1025,9 @@ function YouTab({ state, streak, learned, onNavigate, onSetUsername }: {
 
   return (
     <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-      {/* Identity — tap the name to edit it (saved locally) */}
-      <div style={{ display: "flex", alignItems: "center", gap: 14, padding: "4px 2px" }}>
-        <div style={{ width: 56, height: 56, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-          background: tint(ACCENT.learn, 0.13), border: `1px solid ${tint(ACCENT.learn, 0.32)}` }}>
-          <LineIcon name="geo" size={26} color={ACCENT.learn} />
-        </div>
-        <div style={{ flex: 1, minWidth: 0 }}>
-          {editing ? (
-            // The buttons wrap under the input on narrow phones rather than
-            // squeezing it.
-            <div style={{ display: "flex", flexWrap: "wrap", alignItems: "center", gap: 8 }}>
-              <input autoFocus value={draft} placeholder="Your name" aria-label="Your name"
-                onChange={e => setDraft(clampName(e.target.value))}
-                onKeyDown={e => { if (e.key === "Enter") saveName(); if (e.key === "Escape") setEditing(false) }}
-                style={{ flex: "1 1 150px", minWidth: 0, padding: "7px 10px", borderRadius: 10, fontSize: 17, fontWeight: 700,
-                  fontFamily: FONT.display, background: T.surfaceHi, border: `1px solid ${tint(ACCENT.learn, 0.4)}`, color: T.text, outline: "none" }} />
-              <div style={{ display: "flex", gap: 8, flexShrink: 0 }}>
-                <button onClick={saveName} className="geo-tap"
-                  style={{ padding: "9px 16px", minHeight: 44, borderRadius: 999, background: ACCENT.learn, color: T.onAccent, fontFamily: FONT.display, fontWeight: 700, fontSize: 13 }}>
-                  Save
-                </button>
-                <button onClick={() => setEditing(false)} className="geo-tap"
-                  style={{ padding: "9px 14px", minHeight: 44, borderRadius: 999, background: "transparent", border: `1px solid ${T.line}`, color: T.muted, fontFamily: FONT.display, fontWeight: 600, fontSize: 13 }}>
-                  Cancel
-                </button>
-              </div>
-            </div>
-          ) : (
-            <button onClick={() => { setDraft(state.username); setEditing(true) }} aria-label={`Edit your name: ${name}`}
-              style={{ display: "flex", alignItems: "center", gap: 8, maxWidth: "100%", background: "transparent", padding: 0, textAlign: "left" }}>
-              <span className="geo-display" style={{ minWidth: 0, overflowWrap: "anywhere", color: T.text, fontWeight: 800, fontSize: 24, letterSpacing: "-0.02em", lineHeight: 1.05 }}>{name}</span>
-              <span style={{ display: "flex", flexShrink: 0 }}><PencilIcon size={14} color={ACCENT.learn} strokeWidth={1.6} /></span>
-            </button>
-          )}
-          <div style={{ color: T.muted, fontSize: 12, marginTop: 3 }}>
-            <span style={{ color: ACCENT.learn, fontWeight: 600 }}>{rankFor(learned)}</span>
-            {" "}· {learned} flags · {crowns} {crowns === 1 ? "crown" : "crowns"}
-          </div>
-        </div>
-      </div>
+      {/* The profile: picture, banner, name, stats, achievements, the card
+          (and, while profiles are public, the username and Find a player) */}
+      <YouProfile state={state} onSetName={onSetUsername} onOpenPlayer={onOpenPlayer} />
 
       {/* World mastery — the ring plus the regional breakdown, one card */}
       <div className="carto-card" style={{ padding: 18, borderRadius: 16, ["--wash" as string]: tint(ACCENT.learn, 0.35) }}>
@@ -1096,16 +1057,6 @@ function YouTab({ state, streak, learned, onNavigate, onSetUsername }: {
               </span>
             </div>
           ))}
-        </div>
-      </div>
-
-      {/* Field record */}
-      <div>
-        <SectionHeader title="Field Record" accent={T.amber} />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
-          <StatPill icon={<FlameIcon size={15} color={T.amber} strokeWidth={1.7} />} value={streak} label="Day streak" accent={T.amber} big />
-          <StatPill icon={<LineIcon name="quickplay" size={15} color={T.chartreuse} />} value={state.longestStreak} label="Best streak" accent={T.chartreuse} big />
-          <StatPill icon={<CrownIcon size={15} color={T.gold} strokeWidth={1.7} />} value={crowns} label="Crowns" accent={T.gold} big />
         </div>
       </div>
 

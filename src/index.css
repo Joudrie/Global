@@ -212,3 +212,11 @@ body {
   .animate-spin-slow { animation: none; }
   .carto-card, .geo-tap { transition: none; }
 }
+
+/* Profiles: rows and choices change colour and border on hover, nothing else. */
+.geo-row { transition: border-color 0.15s ease, background-color 0.15s ease; }
+.geo-row:hover, .geo-row:focus-visible { border-color: #C8B58C; background-color: #FCF6E7; }
+/* "Achievement unlocked": fades in when it appears, only if motion is welcome. */
+@keyframes geoToastIn { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: no-preference) { .geo-toast { animation: geoToastIn 0.2s ease-out both; } }
+@media (prefers-reduced-motion: reduce) { .geo-row { transition: none; } }

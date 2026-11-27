@@ -10,6 +10,7 @@ import { HeaderStat, ResultCard, ResultHeader, PrimaryButton, SecondaryButton, G
 
 import { Share2 } from "lucide-react"
 import { matchNames, pickOnEnter } from "../utils/pickOnEnter"
+import { unlockAchievement } from "../profile/achievements"
 
 interface Props { onBack: () => void }
 
@@ -98,6 +99,7 @@ export default function FlagleScreen({ onBack }: Props) {
     if (!FLAG_ATTRIBS[f.code]) return
     const next = [...guesses, { flag: f, tiles: compare(f, target) }]
     setGuesses(next); saveGuesses(today, next)
+    if (f.code === target.code) unlockAchievement("flagle-win", ...(next.length <= 3 ? ["flagle-3"] : []), ...(next.length <= 2 ? ["flagle-2"] : []))
     setInput(""); setShowDrop(false)
   }
 

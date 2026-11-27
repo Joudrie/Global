@@ -12,6 +12,7 @@ import { ScreenHeader } from "./ui"
 import { ResultCard, ResultHeader, PrimaryButton, HeaderStat } from "./gameUi"
 import { LineIcon } from "./icons"
 import FlagImage from "./FlagImage"
+import { unlockAchievement } from "../profile/achievements"
 
 interface Props { onBack: () => void; onFinish?: () => void }
 
@@ -216,6 +217,7 @@ function Game({ date, onBack, onFinish, onNewDay }: Props & { date: string; onNe
     const nextHistory = [...history, pick]
     const after = state(P, nextHistory)
     save({ date, n, history: nextHistory, hints })
+    if (after.won) unlockAchievement("connections-win", ...(after.mistakes === 0 && hints.length === 0 ? ["connections-perfect"] : []))
     say("")
     setBusy(true)
     await hop(pick)
