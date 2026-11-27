@@ -74,16 +74,20 @@ export function PinnedBadge({ id, size = 40 }: { id: string; size?: number }) {
   )
 }
 
+const compact = new Intl.NumberFormat("en-US", { notation: "compact", maximumFractionDigits: 1 })
+/** A tile's number: in full up to 99,999, then short (123.4K, 9.9M) so it fits. */
+export const tileNumber = (n: number) => (n >= 100_000 ? compact.format(n) : fmt(n))
+
 function Tile({ label, value, accent = T.text, icon }: { label: string; value: string; accent?: string; icon?: ReactNode }) {
-  // Long numbers step the type down so they never spill out of the tile.
-  const size = value.length > 7 ? 16 : value.length > 5 ? 19 : 22
+  // Longer numbers step the type down so they never spill out of the tile.
+  const size = value.length > 6 ? 16 : value.length > 4 ? 19 : 22
   return (
     <div style={{ minWidth: 0, padding: "12px 12px 10px", borderRadius: 12, background: T.surfaceHi, border: `1px solid ${T.line}` }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 4, minWidth: 0 }}>
-        {icon}
-        <span style={{ fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontWeight: 800, fontSize: size, lineHeight: 1.1, color: accent, letterSpacing: "-0.02em", overflowWrap: "anywhere" }}>{value}</span>
+      <div style={{ fontFamily: FONT.mono, fontVariantNumeric: "tabular-nums", fontWeight: 800, fontSize: size, lineHeight: "26px", height: 26, color: accent, letterSpacing: "-0.02em", whiteSpace: "nowrap" }}>{value}</div>
+      <div className="geo-micro" style={{ display: "flex", alignItems: "center", gap: 4, fontSize: 9, color: T.muted, marginTop: 4, lineHeight: 1.3 }}>
+        {icon && <span aria-hidden style={{ display: "flex", flexShrink: 0 }}>{icon}</span>}
+        <span style={{ minWidth: 0 }}>{label}</span>
       </div>
-      <div className="geo-micro" style={{ fontSize: 9, color: T.muted, marginTop: 4, lineHeight: 1.3 }}>{label}</div>
     </div>
   )
 }
@@ -219,9 +223,9 @@ export default function ProfileView({ data, who, nameSlot, headerAction, actions
           </div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 8 }}>
             {statTiles(s, data.streak).map(t => (
-              <Tile key={t.label} label={t.label} value={t.of ? `${t.value}/${t.of}` : fmt(t.value)}
+              <Tile key={t.label} label={t.label} value={t.of ? `${t.value}/${t.of}` : tileNumber(t.value)}
                 accent={t.label === "Crowns" ? T.gold : t.label === "Day streak" ? T.amber : T.text}
-                icon={t.label === "Crowns" ? <CrownIcon size={13} color={T.gold} strokeWidth={1.7} /> : t.label === "Day streak" ? <FlameIcon size={13} color={T.amber} strokeWidth={1.7} /> : undefined} />
+                icon={t.label === "Crowns" ? <CrownIcon size={11} color={T.gold} strokeWidth={1.8} /> : t.label === "Day streak" ? <FlameIcon size={11} color={T.amber} strokeWidth={1.8} /> : undefined} />
             ))}
           </div>
         </div>

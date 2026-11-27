@@ -268,9 +268,17 @@ async function pushProfile(): Promise<void> {
       if (uid === id) { lastPushed = text; setProfile({ note: null }) }
     } catch (e) {
       if (uid !== id) return
-      const err = e instanceof ProfileError ? e : new ProfileError("offline", PROFILE_MESSAGE.offline)
+      let err = e instanceof ProfileError ? e : new ProfileError("offline", PROFILE_MESSAGE.offline)
+      if (err.reason === "bio") {
+        // Keep the rest of the profile up to date without the bio.
+        try {
+          await backend().update({ ...row, bio: null })
+          if (uid === id) { lastPushed = text; setProfile({ note: "Your bio isn’t on your public profile: a word in it isn’t allowed." }) }
+          return
+        } catch (e2) { err = e2 instanceof ProfileError ? e2 : err }
+      }
       if (err.kind === "unavailable") setProfile({ status: "unavailable" })
-      else if (err.kind !== "offline") setProfile({ note: err.reason === "bio" ? "Your bio wasn’t saved to your public profile: a word in it isn’t allowed." : err.message })
+      else if (err.kind !== "offline") setProfile({ note: err.message })
     }
   })().finally(() => { pushing = null })
   return pushing

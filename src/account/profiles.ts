@@ -195,6 +195,8 @@ export async function claimUsername(b: ProfileBackend, name: string, row: Public
       const mine = await b.update({ username: name })
       if (mine) return mine
     }
+    // The database refused the bio (a word only it knows): claim without it.
+    if (e instanceof ProfileError && e.reason === "bio") return b.create(name, { ...safe, bio: null })
     throw e
   }
 }

@@ -363,6 +363,20 @@ test('the database’s refusal reads the same as the app’s', () => {
   assert.equal(P.profileError({ code: '42501', message: 'permission denied' }, 403).kind, 'signed_out')
 })
 
+test('a bio the database refuses doesn’t stop the claim', async () => {
+  const calls = []
+  const b = {
+    async create(username, row) {
+      calls.push(row.bio)
+      if (row.bio) throw P.profileError({ code: '23514', message: 'bio_not_allowed' }, 400)
+      return { username, isPublic: true, hidden: false, createdAt: null }
+    },
+  }
+  const mine = await P.claimUsername(b, 'Map_Lover', { ...ROW(), bio: 'a word only the database blocks' }, null)
+  assert.equal(mine.username, 'Map_Lover')
+  assert.deepEqual(calls, ['a word only the database blocks', null])
+})
+
 test('another device made the row first: the claim becomes a change', async () => {
   const { db, client } = fakeSupabase()
   db.rows.set('u1', { user_id: 'u1', username: 'Old_Name', is_public: true, hidden_by_owner: false, created_at: 'x' })
