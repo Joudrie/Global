@@ -4,11 +4,18 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
+    date: "2026-11-28",
+    title: "Tidier patch notes, and a Mega Codex button",
+    items: [
+      "Patch notes now start closed: tap a day to see its list of updates, then tap an update to read what changed.",
+      "The button at the bottom of the Codex is now Mega Codex: it opens the Mega Codex with every flag, sorted A–Z, Z–A or shuffled, and you can tap any flag for its description.",
+    ],
+  },
+  {
     date: "2026-11-27",
     title: "Flag Identifier finds city flags",
     items: [
       "Flag Identifier now searches 3,619 flags, up from 3,230: 389 city flags of Europe joined, so describing red-black-red with three white crosses finds Amsterdam. Pick City as the kind to search city flags first.",
-      "The button at the bottom of the Codex is now Mega Codex: it opens the Mega Codex with every flag, sorted A–Z, Z–A or shuffled, and you can tap any flag for its description.",
       "Brest in France is back in the Mega Codex, beside Brest in Belarus.",
     ],
   },

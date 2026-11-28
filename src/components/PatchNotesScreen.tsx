@@ -4,7 +4,7 @@ import { REGISTRY } from "../ui/registry"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon } from "./icons"
-import { gameFor, groupPatches, itemGame, loadSeen, markAllSeen, openByDefault, plural, shortDate, unseenFlags, weekStart } from "../utils/patchNotes"
+import { gameFor, groupPatches, itemGame, loadSeen, markAllSeen, plural, shortDate, unseenFlags } from "../utils/patchNotes"
 
 // Screens an entry can link to: everything opened by its id (not the quiz launches).
 const LINKABLE = REGISTRY.filter(r => !r.action)
@@ -26,21 +26,17 @@ function Chevron({ open }: { open: boolean }) {
   )
 }
 
-/* ── Patch notes: the changelog grouped by day, newest first. The newest week
-   (and any day with something unread) is open with every entry's details
-   showing, so each game's changes can be read without tapping; older days
-   fold. Entries the player hadn't read when the screen opened say New, and
-   opening it counts as reading them all. A bullet that starts with a game's
-   name ("Flag Bracket: …") links to that game. ───────────────────────────── */
+/* ── Patch notes: the changelog grouped by day, newest first. Everything
+   starts closed: tap a day to see its list of updates, tap an update to read
+   what changed. Days and updates the player hadn't read when the screen
+   opened say New, and opening it counts as reading them all. A bullet that
+   starts with a game's name ("Flag Bracket: …") links to that game. ───── */
 export default function PatchNotesScreen({ onBack, onPlay }: { onBack: () => void; onPlay: (id: string) => void }) {
   const [unseen] = useState(() => unseenFlags(CHANGELOG, loadSeen()))
   useEffect(() => { markAllSeen(CHANGELOG) }, [])
   const patches = groupPatches(CHANGELOG)
-  const [openDays, setOpenDays] = useState<Set<string>>(() => openByDefault(CHANGELOG, unseen))
-  const [openEntries, setOpenEntries] = useState<Set<number>>(() => {
-    const from = weekStart(CHANGELOG)
-    return new Set(CHANGELOG.flatMap((e, i) => (e.date >= from || unseen[i] ? [i] : [])))
-  })
+  const [openDays, setOpenDays] = useState<Set<string>>(() => new Set())
+  const [openEntries, setOpenEntries] = useState<Set<number>>(() => new Set())
   const flip = <K,>(set: Set<K>, k: K) => { const next = new Set(set); if (!next.delete(k)) next.add(k); return next }
   const fresh = unseen.filter(Boolean).length
 

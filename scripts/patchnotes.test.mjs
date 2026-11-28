@@ -150,17 +150,11 @@ test('patch notes open from Today, Settings and ?play=patchnotes, and are not a 
   assert.match(read('src/components/PatchNotesScreen.tsx'), /href="\/whats-new\/"/)
 })
 
-test('the newest week opens, and a bullet that starts with a game links to it', () => {
-  const entries = [
-    { date: '2026-11-28', title: 'B', items: ['x'] },
-    { date: '2026-11-27', title: 'A', items: ['y'] },
-    { date: '2026-11-10', title: 'Old', items: ['z'] },
-    { date: '2026-10-01', title: 'Older', items: ['w'] },
-  ]
-  const days = P.openByDefault(entries, [false, false, false, true])
-  assert.ok(days.has('2026-11-28') && days.has('2026-11-27'), 'every day of the newest week opens')
-  assert.ok(!days.has('2026-11-10'), 'an older, read day stays folded')
-  assert.ok(days.has('2026-10-01'), 'an older day with something unread opens')
+test('every day and update starts closed, and a bullet that starts with a game links to it', () => {
+  // Tap a day for its list of updates, tap an update for its details.
+  const screen = read('src/components/PatchNotesScreen.tsx')
+  assert.match(screen, /const \[openDays, setOpenDays\] = useState<Set<string>>\(\(\) => new Set\(\)\)/)
+  assert.match(screen, /const \[openEntries, setOpenEntries\] = useState<Set<number>>\(\(\) => new Set\(\)\)/)
   const games = [{ title: 'Flag Bracket', id: 'flagbracket' }, { title: 'Frankenflag', id: 'frankenflag' }]
   const hit = P.itemGame('Flag Bracket: pick any mix of continents.', games)
   assert.equal(hit.game.id, 'flagbracket')

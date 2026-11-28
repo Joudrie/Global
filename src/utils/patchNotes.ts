@@ -196,11 +196,4 @@ export function itemGame<G extends { title: string }>(item: string, games: G[]):
   return { game, name: m[1], rest: m[2] }
 }
 
-/** The days a reader sees open: the newest week, and any day with an unread entry. */
-export function openByDefault(entries: ChangelogEntry[], unseen: boolean[]): Set<string> {
-  const from = weekStart(entries)
-  const days = new Set<string>()
-  entries.forEach((e, i) => { if (e.date >= from || unseen[i]) days.add(e.date) })
-  return days
-}
 
