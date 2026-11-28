@@ -14,6 +14,9 @@ export const CHANGELOG: ChangelogEntry[] = [
       "The Crop's zoom bar ends on the last step, and Flag Identifier's counts have thousands commas.",
       "Historical Flags and Identity Flags scroll the note and Next button into view after you answer. Silhouette's guess box no longer zooms the page on iPhones.",
       "Subdivision Stumper's \"Other way to play\" switches to the other mode, and Province Roulette's banner shows the flag on wide screens instead of an empty white box.",
+      "Lineage shows each country's flags oldest to newest, ending on today's flag (Turkey and South Korea were out of order), and skips missing images.",
+      "Challenge Mode and Higher / Lower no longer move the answer buttons between questions, Capital Match no longer jumps on the first mistake, and Odd Border Out marks the right answer green and a wrong pick red.",
+      "Describe-It's last tip no longer names the country, Flag Timeline's ticks show on every flag, Atlas keeps its zoom button on screen, and Guess the Language says Japanese uses kanji and kana.",
     ],
   },
   {
