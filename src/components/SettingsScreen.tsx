@@ -1,4 +1,5 @@
 import { useState, lazy, Suspense } from "react"
+import type { CSSProperties, ReactNode } from "react"
 import { T, ACCENT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon, HeartIcon } from "./icons"
@@ -108,13 +109,40 @@ async function backUpProgress() {
   alert(`${what}\n\n${keep}`)
 }
 
+// ── Layout pieces: a section title, a grouped list of rows, a footnote ──────
+function SectionTitle({ children }: { children: ReactNode }) {
+  return <h2 className="text-xs font-semibold uppercase tracking-widest" style={{ color: T.muted, margin: "28px 4px 10px" }}>{children}</h2>
+}
+function Group({ children }: { children: ReactNode }) {
+  return <div style={{ borderRadius: 14, overflow: "hidden", background: T.surface, border: `1px solid ${T.line}` }}>{children}</div>
+}
+function Footnote({ children }: { children: ReactNode }) {
+  return <p className="text-xs" style={{ color: T.dim, lineHeight: 1.5, margin: "8px 4px 0" }}>{children}</p>
+}
+function Row({ icon, label, hint, onClick, href, external = false, last = false }:
+  { icon: Parameters<typeof LineIcon>[0]["name"]; label: string; hint?: string; onClick?: () => void; href?: string; external?: boolean; last?: boolean }) {
+  const style: CSSProperties = { width: "100%", minHeight: 52, display: "flex", alignItems: "center", gap: 12, padding: "0 14px",
+    background: "transparent", border: "none", borderBottom: last ? "none" : `1px solid ${T.line}`, color: T.text, textAlign: "left", textDecoration: "none", cursor: "pointer" }
+  const inner = (
+    <>
+      <LineIcon name={icon} size={16} color={T.muted} />
+      <span style={{ flex: 1, minWidth: 0, fontSize: 14, fontWeight: 600 }}>{label}</span>
+      {hint && <span style={{ fontSize: 12, color: T.dim, flexShrink: 0 }}>{hint}</span>}
+      <LineIcon name="chevronright" size={16} color={T.dim} />
+    </>
+  )
+  return href
+    ? <a href={href} {...(external ? { target: "_blank", rel: "noopener" } : {})} className="geo-row" style={style}>{inner}</a>
+    : <button type="button" onClick={onClick} className="geo-row" style={style}>{inner}</button>
+}
+
 export default function SettingsScreen({ onBack, onFlagCheck, onPatchNotes }: Props) {
   const [creator] = useState(creatorTools)
   const [accounts] = useState(accountsVisible)
   const [restoring, setRestoring] = useState(false)
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text, position: 'relative', zIndex: 1 }}>
-      <ScreenHeader title="Settings" subtitle="Progress, support & feedback" onBack={onBack} />
+      <ScreenHeader title="Settings" subtitle="Account, progress and help" onBack={onBack} />
 
       <div className="px-5 pb-10">
         {/* Support Globalio — opens the Supporter screen (hidden until checkout is live) */}
@@ -124,9 +152,16 @@ export default function SettingsScreen({ onBack, onFlagCheck, onPatchNotes }: Pr
           <span className="inline-flex items-center justify-center gap-2"><HeartIcon size={15} color={T.gold} strokeWidth={1.7} /> Support Globalio</span>
         </button>}
 
-        {/* Your data — back up / restore progress (no account needed) */}
-        <h2 className="text-xs font-semibold uppercase tracking-widest mt-8 mb-3" style={{ color: T.muted }}>Your Progress</h2>
-        {accounts && <div className="mb-3"><Suspense fallback={null}><AccountCard inSettings /></Suspense></div>}
+        {/* Account (when accounts are on) */}
+        {accounts && (
+          <>
+            <SectionTitle>Account</SectionTitle>
+            <Suspense fallback={null}><AccountCard inSettings /></Suspense>
+          </>
+        )}
+
+        {/* Your progress — back up / restore (no account needed) */}
+        <SectionTitle>Your progress</SectionTitle>
         <div className="grid grid-cols-2 gap-3">
           <button onClick={backUpProgress}
             className="py-3 rounded-xl text-sm font-semibold transition-all active:scale-95"
@@ -140,61 +175,43 @@ export default function SettingsScreen({ onBack, onFlagCheck, onPatchNotes }: Pr
           </button>
         </div>
         {restoring && <RestoreBackup onClose={() => setRestoring(false)} />}
-        <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
-          Signed in, your progress syncs on its own. Without an account it lives on this device: back up to keep a copy, and restore to combine progress from your phone and computer.
-        </div>
+        <Footnote>Keep a copy of your progress, or move it to another device.</Footnote>
 
-        {/* Creator unlock — enter the passcode to turn ads off on this device */}
-        {creator && <CreatorUnlock />}
-        {creator && <PreviewAllToggle />}
+        {/* Help — feedback, patch notes, the intro */}
+        <SectionTitle>Help</SectionTitle>
+        <Group>
+          <Row icon="mail" label="Send feedback or ideas"
+            href={"mailto:sjoudrie@gmail.com?subject=" + encodeURIComponent("Globalio feedback") + "&body=" + encodeURIComponent("What I love / what I'd change / an idea:\n\n")} />
+          <Row icon="scroll" label="Patch notes" hint="What changed lately" onClick={onPatchNotes} />
+          {/* Replay the first-run intro (clears the flag and reloads) */}
+          <Row icon="intro" label="Replay intro" last
+            onClick={() => { try { localStorage.removeItem("globalio_onboarded") } catch { /* ignore */ } window.location.reload() }} />
+        </Group>
+        <Footnote>Globalio is made by one person, and I read every message.</Footnote>
 
-        {/* Replay the first-run intro (clears the flag and reloads) */}
-        <button onClick={() => { try { localStorage.removeItem("globalio_onboarded") } catch { /* ignore */ } window.location.reload() }}
-          className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
-          style={{ background: 'transparent', border: `1px solid ${T.line}`, color: T.muted }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="intro" size={14} color={T.muted} /> Replay intro</span>
-        </button>
+        {/* About — legal (required for ad networks & app stores) and accuracy */}
+        <SectionTitle>About</SectionTitle>
+        <Group>
+          <Row icon="lock" label="Privacy Policy" href="/privacy.html" external />
+          <Row icon="scroll" label="Terms of Use" href="/terms.html" external />
+          <Row icon="flags" label="Report a flag mistake" last href="mailto:sjoudrie@gmail.com?subject=Globalio%20flag%20correction" />
+        </Group>
+        <Footnote>Flags, names and dates come from Wikipedia and Wikimedia Commons. Small mistakes can slip through; tell us and we'll fix them fast.</Footnote>
 
-        {/* Feedback — opens the user's mail app, pre-addressed to the dev */}
-        <a href={"mailto:sjoudrie@gmail.com?subject=" + encodeURIComponent("Globalio feedback") + "&body=" + encodeURIComponent("What I love / what I'd change / an idea:\n\n")}
-          className="w-full mt-3 py-3 rounded-xl text-sm font-semibold transition-all active:scale-95 block text-center"
-          style={{ textDecoration: 'none', background: tint(ACCENT.learn, 0.12), border: `1px solid ${tint(ACCENT.learn, 0.4)}`, color: ACCENT.learn }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="mail" size={15} color={ACCENT.learn} /> Send feedback or ideas</span>
-        </a>
-        <div className="text-xs mt-2 text-center" style={{ color: T.muted }}>
-          Globalio is made by one person, and I read every message. Thanks for playing.
-        </div>
-
-        {/* Patch notes — every change, newest first (also on the Today tab) */}
-        <button onClick={onPatchNotes}
-          className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
-          style={{ background: 'transparent', border: `1px solid ${T.line}`, color: T.muted }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="scroll" size={14} color={T.muted} /> Patch notes: what changed lately</span>
-        </button>
-
-        {/* Legal — required for ad networks & app stores */}
-        <div className="text-xs mt-5 text-center" style={{ color: T.dim }}>
-          <a href="/privacy.html" target="_blank" rel="noopener" style={{ color: T.muted, textDecoration: 'underline' }}>Privacy Policy</a>
-          <span style={{ margin: '0 8px' }}>·</span>
-          <a href="/terms.html" target="_blank" rel="noopener" style={{ color: T.muted, textDecoration: 'underline' }}>Terms of Use</a>
-        </div>
-
-        {/* Accuracy disclaimer — moved here from the Codex so it doesn't crowd
-            the galleries; the Codex leans on Wikipedia / Wikimedia Commons. */}
-        <div className="mt-5" style={{ padding: '10px 12px', borderRadius: 10, background: tint(T.amber, 0.07), border: `1px solid ${tint(T.amber, 0.28)}` }}>
-          <p className="text-xs" style={{ color: T.muted, lineHeight: 1.6, margin: 0 }}>
-            <strong style={{ color: T.text }}>A note on accuracy.</strong> Flags, names and dates in the Codex are sourced from Wikipedia and Wikimedia Commons. We do our best to get them right, but we're not an authoritative reference and small mistakes may slip through. Spot something off?{' '}
-            <a href="mailto:sjoudrie@gmail.com?subject=Globalio%20flag%20correction" style={{ color: T.amber, fontWeight: 600 }}>Tell us</a>{' '}and we'll fix it fast.
-          </p>
-        </div>
-
-
-        {/* temporary flag-QA list */}
-        {creator && <button onClick={onFlagCheck}
-          className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
-          style={{ background: 'transparent', border: `1px dashed ${T.line}`, color: T.dim }}>
-          <span className="inline-flex items-center justify-center gap-2"><LineIcon name="flags" size={14} color={T.dim} /> Flag Check (QA)</span>
-        </button>}
+        {/* Creator tools (only with ?creator): the ad-free unlock, the
+            achievements preview and the flag-QA list */}
+        {creator && (
+          <>
+            <SectionTitle>Creator tools</SectionTitle>
+            <CreatorUnlock />
+            <PreviewAllToggle />
+            <button onClick={onFlagCheck}
+              className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+              style={{ background: 'transparent', border: `1px dashed ${T.line}`, color: T.dim }}>
+              <span className="inline-flex items-center justify-center gap-2"><LineIcon name="flags" size={14} color={T.dim} /> Flag Check (QA)</span>
+            </button>
+          </>
+        )}
       </div>
     </div>
   )

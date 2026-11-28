@@ -31,6 +31,9 @@ function Chevron({ open }: { open: boolean }) {
    what changed. Days and updates the player hadn't read when the screen
    opened say New, and opening it counts as reading them all. A bullet that
    starts with a game's name ("Flag Bracket: …") links to that game. ───── */
+const SUPPORT_HREF = "mailto:sjoudrie@gmail.com?subject=" + encodeURIComponent("Globalio: support or feature request") +
+  "&body=" + encodeURIComponent("Something's not working, or a feature I'd like:\n\n")
+
 export default function PatchNotesScreen({ onBack, onPlay }: { onBack: () => void; onPlay: (id: string) => void }) {
   const [unseen] = useState(() => unseenFlags(CHANGELOG, loadSeen()))
   useEffect(() => { markAllSeen(CHANGELOG) }, [])
@@ -46,6 +49,12 @@ export default function PatchNotesScreen({ onBack, onPlay }: { onBack: () => voi
         subtitle={fresh ? `${plural(fresh, "update")} you haven't read` : "Every change to Globalio, newest first"} />
 
       <div style={{ display: "flex", flexDirection: "column", gap: 12, padding: "4px 16px 40px" }}>
+        {/* Contact support or ask for a feature — opens the mail app */}
+        <a href={SUPPORT_HREF} className="geo-tap"
+          style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 8, minHeight: 48, padding: "12px 16px", borderRadius: 12,
+            background: ACCENT.play, color: T.onAccent, textDecoration: "none", fontFamily: FONT.display, fontWeight: 700, fontSize: 15 }}>
+          <LineIcon name="mail" size={16} color={T.onAccent} strokeWidth={1.8} /> Contact support or request a feature
+        </a>
         {patches.map(p => {
           const open = openDays.has(p.date)
           const newHere = p.entries.filter(e => unseen[e.index]).length

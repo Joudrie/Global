@@ -170,3 +170,10 @@ test('no changelog entry is dated after today in Boston (where Sean is)', () => 
   const ahead = CHANGELOG.filter(e => e.date > today).map(e => `${e.date} ${e.title}`)
   assert.deepEqual(ahead, [], 'date changelog entries in Boston time')
 })
+
+test('Patch notes start with a support / feature-request button that opens the mail app', () => {
+  const screen = read('src/components/PatchNotesScreen.tsx')
+  assert.match(screen, /Contact support or request a feature/)
+  assert.match(screen, /mailto:sjoudrie@gmail\.com/)
+  assert.ok(screen.indexOf('Contact support or request a feature') < screen.indexOf('{patches.map('), 'above the days')
+})
