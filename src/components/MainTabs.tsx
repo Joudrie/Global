@@ -592,7 +592,7 @@ function DeckSlide({ accent, eyebrow, title, body, cta, onClick, art, watermark,
 
 /* ── Favourites: the games a player starred (utils/favorites.ts), most played
    first. Redraws when a star changes anywhere (or in another tab). Starring a
-   game can add or remove the whole Favourites row at the top of Play; the
+   game can add or remove the whole Favourites row under the Trending deck; the
    page scrolls by the same amount, so the star just tapped stays under the
    finger instead of jumping. ──────────────────────────────────────────────── */
 interface Fav { on: (id: string) => boolean; toggle: (id: string, el: HTMLElement) => void }
@@ -763,8 +763,11 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
         )
       ) : (
       <>
-        {/* Favourites — the games this player starred, most played first. Leads
-            the page once there is one; before the first star, a one-line hint. */}
+        {/* Trending this week — the swipeable flag-card deck (showpiece) */}
+        <TrendingDeck games={trending} launch={launch} fav={fav} />
+
+        {/* Favourites — the games this player starred, most played first, right
+            under the Trending deck; before the first star, a one-line hint. */}
         {favorites.length > 0 ? (
           <div>
             <ShelfHead icon={<Star size={15} color={T.gold} strokeWidth={1.7} />} accent={T.gold}
@@ -772,14 +775,11 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
             <Rail>{favorites.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent]))}</Rail>
           </div>
         ) : !usedFavorites && (
-          <p style={{ display: "flex", alignItems: "center", gap: 6, margin: "-8px 0 0", color: T.dim, fontSize: 11.5 }}>
+          <p style={{ display: "flex", alignItems: "center", gap: 6, margin: 0, color: T.dim, fontSize: 11.5 }}>
             <Star size={13} color={T.dim} strokeWidth={1.7} aria-hidden />
             {HAS_MOUSE ? "Hover a game and click its star to keep it up here." : "Tap the star on a game to keep it up here."}
           </p>
         )}
-
-        {/* Trending this week — the swipeable flag-card deck (showpiece) */}
-        <TrendingDeck games={trending} launch={launch} fav={fav} />
 
         {/* Jump back in — your recent rotation, one tap away (only after a few
             plays, so it never shows up half-empty for a new user) */}
