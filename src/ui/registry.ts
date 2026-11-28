@@ -112,6 +112,9 @@ export const REGISTRY: Entry[] = [
 
   // Loremaster — deep knowledge & trivia
   { id: "language", title: "Guess the Language", subtitle: "88 languages · easy → extreme", icon: "🗣️", tab: "play", group: "Loremaster", size: "tile", accent: "codex", featured: true },
+  // Spoken Here: a country's languages as a pie (census or survey, with its
+  // year); name the country (components/SpokenHereScreen.tsx).
+  { id: "spoken", title: "Spoken Here", subtitle: "Languages → country", icon: "🥧", tab: "play", group: "Loremaster", size: "tile", accent: "codex" },
   { id: "realorbot", title: "Real or Bot", subtitle: "Swipe: real flag or AI fake?", icon: "🤖", tab: "play", group: "Loremaster", size: "tile", accent: "codex", featured: true },
   { id: "twotruths", title: "Two Truths", subtitle: "Spot the lie about a country", icon: "🕵️", tab: "play", group: "Loremaster", size: "tile", accent: "codex" },
   { id: "deadoralive", title: "Dead or Alive", subtitle: "Live or vanished?", icon: "💀", tab: "play", group: "Loremaster", size: "tile", accent: "codex" },

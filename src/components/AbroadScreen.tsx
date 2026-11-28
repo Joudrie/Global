@@ -259,8 +259,8 @@ export function Segmented({ id, label, options, value, onChange, disabled = fals
 /** The screen's styles, for a screen that shows a Segmented before AbroadScreen mounts. */
 export const ABROAD_STYLES = STYLES
 
-/* ── Three strikes in the header: hollow until used. ────────────────────── */
-function Strikes({ used }: { used: number }) {
+/* ── Three strikes in the header: hollow until used (Spoken Here uses it too). */
+export function Strikes({ used }: { used: number }) {
   return (
     <span role="img" aria-label={`${used} of ${STRIKES} strikes`} style={{ display: "inline-flex", gap: 4, flexShrink: 0 }}>
       {Array.from({ length: STRIKES }, (_, i) => {
