@@ -172,7 +172,7 @@ test('the favourite star: a labelled toggle beside the card, never inside its bu
   assert.match(css, /prefers-reduced-motion: reduce\) \{\s*\.fav-star \{ transition: none; \}/)
 })
 
-test("Play: Creator's Picks in the creator's order, Jump back in skips favourites, Top games above Recommended, View all A–Z", async () => {
+test("Play: Carousel, Favourites, Creator's Picks, View all, then the categories (no Daily Rituals)", async () => {
   const reg = await import(path.join(ROOT, 'src/ui/registry.ts'))
   assert.deepEqual(reg.creatorPicks().map(e => e.title),
     ['Abroad', 'Flag Fusion', 'Flag Studio', 'Flag Identifier', 'Guess the Language', 'Real or Bot', 'Lineage'])
@@ -181,10 +181,16 @@ test("Play: Creator's Picks in the creator's order, Jump back in skips favourite
   assert.deepEqual(az.map(e => e.title), [...az.map(e => e.title)].sort((a, b) => a.localeCompare(b)))
   assert.ok(az.length >= reg.GAME_COUNT)
   const tabs = fs.readFileSync(path.join(ROOT, 'src/components/MainTabs.tsx'), 'utf8')
-  const at = t => tabs.indexOf(`title="${t}"`)
-  assert.ok(at('Favourites') < at('Jump back in') && at('Jump back in') < at("Creator's Picks") &&
-    at("Creator's Picks") < at('Top games') && at('Top games') < at('Recommended for you'), 'shelf order')
-  assert.match(tabs, /filter\(\(e\): e is Entry => !!e && !fav\.on\(e\.id\)\)/, 'Jump back in leaves out starred games')
+  const at = t => tabs.indexOf(t, tabs.indexOf('<TrendingDeck games'))
+  assert.ok(at('<TrendingDeck') < at('title="Favourites"') && at('title="Favourites"') < at(`title="Creator's Picks"`) &&
+    at(`title="Creator's Picks"`) < at('View all games') && at('View all games') < at('{categoryGroups.map(g => ('), 'row order')
+  for (const gone of ['title="Jump back in"', 'title="Recommended for you"', 'title="Top games"', 'title="Discover something new"'])
+    assert.ok(!tabs.includes(gone), `${gone} is gone`)
+  const groups = reg.groupsFor('play').map(g => g.group)
+  assert.ok(!groups.includes('Daily Rituals'), 'Daily Rituals is split up')
+  const where = id => reg.REGISTRY.find(e => e.id === id).group
+  assert.equal(where('connections'), 'Spot It'); assert.equal(where('funfact'), 'Learn the World')
+  assert.equal(where('worldcup'), 'Learn the World'); assert.equal(where('flagbracket'), 'One Glance'); assert.equal(where('tierlist'), 'One Glance')
 })
 
 test('Play: the All chip opens the A–Z page, four to a row', () => {

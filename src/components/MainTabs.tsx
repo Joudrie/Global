@@ -6,12 +6,12 @@ import type { AppState } from "../utils/storage"
 import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, recommendFor, discoverGames, trendingGames, topGames, featuredGames, creatorPicks, allGamesAZ } from "../ui/registry"
+import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, trendingGames, featuredGames, creatorPicks, allGamesAZ } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, FlagTile, FavoriteStar, SectionHeader } from "./ui"
-import { Crown, Star } from "lucide-react"
+import { Crown, LayoutGrid, Star } from "lucide-react"
 import { FAVORITES_EVENT, readFavorites, readPlayCounts, setFavorite, rankFavorites, hasUsedFavorites } from "../utils/favorites"
-import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon } from "./icons"
+import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, TrendingUpIcon } from "./icons"
 import FlagImage from "./FlagImage"
 import EarthLogo from "./EarthLogo"
 import { GamePoster } from "./GamePoster"
@@ -652,13 +652,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   const categoryGroups = groupsFor("play").filter(g => !g.entries[0].sandbox)
 
   // Local personalization, all derived on-device from recently-played ids.
-  const recentIds = loadRecent()
-  // A starred game is already in Favourites, so Jump back in leaves it out.
-  const recents = recentIds.map(id => all.find(r => r.id === id)).filter((e): e is Entry => !!e && !fav.on(e.id))
-  const enoughPlays = loadPlayCount() >= 4
-  const rec = recommendFor(recentIds)
   const dayIdx = dayIndex(today)
-  const discover = discoverGames(recentIds, dayIdx)
   // Trending deck — featured A-tier games lead, then a stable weekly rotation.
   // Real or Bot is pinned to the opening card and GeoPaint to the second, both
   // by request — the weekly shuffle only reorders everything behind them.
@@ -674,7 +668,6 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
     pin("realorbot", 0) // last pin wins the front: Real or Bot, Flag Studio, GeoPaint
     return list
   })()
-  const top = topGames(dayIdx)
 
   // Surprise me picks a game, never a tool.
   const shuffleable = playable.filter(r => !r.tool)
@@ -826,16 +819,6 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
           </p>
         )}
 
-        {/* Jump back in — your recent rotation, one tap away (only after a few
-            plays, so it never shows up half-empty for a new user) */}
-        {enoughPlays && recents.length > 0 && (
-          <div>
-            <ShelfHead icon={<HistoryIcon size={15} color={ACCENT.play} strokeWidth={1.7} />} accent={ACCENT.play}
-              title="Jump back in" reason="Pick up a recent game" />
-            <Rail>{recents.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent]))}</Rail>
-          </div>
-        )}
-
         {/* Creator's Picks — the creator's personal favourites, in a fixed order */}
         <div>
           <ShelfHead icon={<Crown size={15} color={T.gold} strokeWidth={1.7} />} accent={T.gold}
@@ -843,22 +826,20 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
           <Rail>{creatorPicks().map(e => tile(e, ACCENT[e.accent]))}</Rail>
         </div>
 
-        {/* Top games — the hand-picked hit list, order reshuffled daily. These
-            also live in their own category shelves below; repetition is fine. */}
-        <div>
-          <ShelfHead icon={<LineIcon name="tierlist" size={15} color={T.amber} />} accent={T.amber}
-            title="Top games" reason="The all-star lineup · shuffled daily" />
-          <Rail>{top.map(e => tile(e, ACCENT[e.accent]))}</Rail>
-        </div>
-
-        {/* Because you played … — locally-derived affinity recommendations */}
-        {rec && (
-          <div>
-            <ShelfHead icon={<LineIcon name="lightbulb" size={15} color={ACCENT.codex} strokeWidth={1.7} />} accent={ACCENT.codex}
-              title="Recommended for you" reason={`Because you played ${rec.seed.title}`} />
-            <Rail>{rec.entries.map(e => tile(e, ACCENT[e.accent]))}</Rail>
-          </div>
-        )}
+        {/* View all — every game and tool A–Z on one page (also the All chip) */}
+        <button onClick={viewAll} className="geo-tap" aria-label={`View all ${allGamesAZ().length} games, A to Z`}
+          style={{ width: "100%", display: "flex", alignItems: "center", gap: 12, padding: "14px 16px", borderRadius: 14, cursor: "pointer", textAlign: "left",
+            background: tint(ACCENT.play, 0.1), border: `1px solid ${tint(ACCENT.play, 0.45)}`, color: T.text }}>
+          <span style={{ width: 40, height: 40, borderRadius: 10, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+            background: ACCENT.play, color: T.onAccent }}>
+            <LayoutGrid size={20} color={T.onAccent} strokeWidth={1.8} aria-hidden />
+          </span>
+          <span style={{ flex: 1, minWidth: 0 }}>
+            <span className="geo-display" style={{ display: "block", fontWeight: 700, fontSize: 16, color: T.text, lineHeight: 1.15 }}>View all games</span>
+            <span style={{ display: "block", color: T.muted, fontSize: 12, marginTop: 2 }}>All {allGamesAZ().length}, A–Z, in one place</span>
+          </span>
+          <span aria-hidden style={{ color: ACCENT.play, fontSize: 22, lineHeight: 1, flexShrink: 0 }}>›</span>
+        </button>
 
         {/* The collections — every game, filed by appetite. Each shelf swipes.
             Learn the World leads with its live mastery line; the curriculum is
@@ -875,31 +856,6 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
             <Rail>{g.entries.map(e => tile(e, ACCENT[e.accent]))}</Rail>
           </div>
         ))}
-
-        {/* Discover something new — fresh picks rotated daily, weighted away from
-            your recent rotation so the long tail of the catalogue surfaces */}
-        {discover.length > 0 && (
-          <div>
-            <ShelfHead icon={<CompassIcon size={15} color={ACCENT.today} strokeWidth={1.7} />} accent={ACCENT.today}
-              title="Discover something new" reason="Fresh picks, rotated daily"
-              action={
-                <button onClick={shuffle} aria-label="Surprise me — play a random game" className="geo-tap"
-                  style={{ width: 40, height: 40, borderRadius: 999, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-                    background: tint(ACCENT.today, 0.12), border: `1px solid ${tint(ACCENT.today, 0.3)}`, color: ACCENT.today }}>
-                  <ShuffleIcon size={15} color={ACCENT.today} strokeWidth={1.7} />
-                </button>
-              } />
-            <Rail>{discover.map(e => tile(e, ACCENT[e.accent]))}</Rail>
-          </div>
-        )}
-
-        {/* View all — every game and tool on one page, A–Z */}
-        <button onClick={viewAll} className="geo-tap"
-          style={{ width: "100%", minHeight: 48, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600,
-            display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
-            background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
-          View all
-        </button>
 
         {/* Beta Sandbox — progressively disclosed, nothing deleted */}
         <div style={{ marginTop: 4 }}>
