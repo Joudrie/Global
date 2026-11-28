@@ -83,7 +83,10 @@ function Start({ prefs, onRegion, onPick, onBack }:
       <ScreenHeader title="Province Roulette" onBack={onBack} />
       <main className="w-full mx-auto flex flex-col" style={{ maxWidth: 720, padding: "4px 16px 32px", gap: 20 }}>
         <section style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          <div aria-hidden style={{ position: "relative", height: 112, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}` }}>
+          {/* Wider than a phone, the banner's middle is all of Quebec's white
+              cross bar: show the top, with the fleurs-de-lis, instead. */}
+          <style>{`@media (min-width: 520px) { .pr-poster img { object-position: 50% 0%; } }`}</style>
+          <div aria-hidden className="pr-poster" style={{ position: "relative", height: 112, borderRadius: 16, overflow: "hidden", border: `1px solid ${T.line}` }}>
             <GamePoster id="provinceroulette" accent={A} />
           </div>
           <div>

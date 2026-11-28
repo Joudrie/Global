@@ -5,10 +5,26 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "Fixes from a check of every game",
+    items: [
+      "Type-in games accept a country's code on Enter (BH for Bahrain), as the box says.",
+      "Build the Flag: the ticks and crosses on the result are easy to see on any colour, and stripe names sit inside their stripes.",
+      "Symbol Hunt: after Submit, found, missed and wrong flags are clearly marked, with a Found X of Y line.",
+      "Lookalikes shows its tip once, under the flags, without pushing them down. GeoPaint and Flag Outline show the real flag without black bars, and Flag Outline says \"1 guess left\".",
+      "The Crop's zoom bar ends on the last step, and Flag Identifier's counts have thousands commas.",
+      "Historical Flags and Identity Flags scroll the note and Next button into view after you answer. Silhouette's guess box no longer zooms the page on iPhones.",
+      "Subdivision Stumper's \"Other way to play\" switches to the other mode, and Province Roulette's banner shows the flag on wide screens instead of an empty white box.",
+      "Lineage shows each country's flags oldest to newest, ending on today's flag (Turkey and South Korea were out of order), and skips missing images.",
+      "Challenge Mode and Higher / Lower no longer move the answer buttons between questions, Capital Match no longer jumps on the first mistake, and Odd Border Out marks the right answer green and a wrong pick red.",
+      "Describe-It's last tip no longer names the country, Flag Timeline's ticks show on every flag, Atlas keeps its zoom button on screen, and Guess the Language says Japanese uses kanji and kana.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "Creator's Picks, a View all page, tidier patch notes and Codex fixes",
     items: [
       "Play has a new Creator's Picks row: my personal favourites, in the order I'd play them (Abroad, Flag Fusion, Flag Studio, Flag Identifier, Guess the Language, Real or Bot, Lineage).",
-      "Play: Top games now comes before Recommended for you, Jump back in no longer repeats games you've starred, and a View all button at the bottom lists every game A–Z.",
+      "Play: Top games now comes before Recommended for you, Jump back in no longer repeats games you've starred, and the All chip (or View all at the bottom) opens every game A–Z in one block, four to a row.",
       "The Codex no longer shows stray code after some names (Eastern Andalusians and the two Mirandese proposals), and flags whose image was missing are back: the Commonwealth of Nations, the Baltic Assembly, Montgomery (Alabama), and Iraq's Basra, Babylon and Nineveh governorates. Flags with no image left anywhere are hidden instead of showing an empty box.",
       "Flag Fusion: a fused flag that wouldn't draw on some iPhones (a small question-mark icon) now draws properly.",
       "Patch notes now start closed: tap a day to see its list of updates, then tap an update to read what changed.",

@@ -368,6 +368,7 @@ const LANGUAGE_NOTES: Record<string, string> = {
   sux: 'Sumerian, written in cuneiform, is the oldest known written language — and related to no living language.',
   akk: 'Akkadian was the language of Babylon and Assyria, written in cuneiform on clay tablets.',
   egy: 'Ancient Egyptian was written in hieroglyphs and spoken along the Nile for more than 3,000 years.',
+  ja:  'Japanese mixes Chinese characters (kanji) with its own kana: the rounded hiragana, as in は and から, give it away.',
 }
 
 export function languageNote(l: LanguageRecord): string {

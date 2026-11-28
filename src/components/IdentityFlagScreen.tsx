@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { IDENTITY_FLAGS } from "../data/identityFlags"
 import type { IdentityCategory, IdentityFlag } from "../data/identityFlags"
 import { T, ACCENT, tint } from "../ui/tokens"
@@ -75,6 +75,14 @@ export default function IdentityFlagScreen({ onBack }: Props) {
   const [selected, setSelected] = useState<string | null>(null)
   const [scores, setScores] = useState<{ correct: boolean }[]>([])
   const [done, setDone] = useState(false)
+
+  // On a phone the answer note and Next land below the fold: bring them up.
+  const endRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (selected === null) return
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    endRef.current?.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" })
+  }, [selected, idx])
 
   const startMode = (m: ModeId) => {
     const pool = MODES.find(x => x.id === m)!.pool
@@ -203,6 +211,7 @@ export default function IdentityFlagScreen({ onBack }: Props) {
             <PrimaryButton onClick={handleNext} accent={activeMode?.accent ?? A} style={{ maxWidth: 384 }}>
               {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
             </PrimaryButton>
+            <div ref={endRef} aria-hidden />
           </>
         )}
       </div>

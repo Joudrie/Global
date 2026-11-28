@@ -23,7 +23,7 @@ const fakeStore = (init = {}) => {
 }
 
 // The countries a game can ask about (as LineageScreen picks them).
-const ELIGIBLE = Object.entries(CODEX).filter(([code, e]) => e.flagHistory.length >= 3 && FLAGS.some(f => f.code === code)).map(([code]) => code)
+const ELIGIBLE = Object.entries(CODEX).filter(([code, e]) => FLAGS.some(f => f.code === code) && L.lineageChain(e.flagHistory).length >= 3).map(([code]) => code)
 
 test('a typed answer is worth double a picked one at every reveal level', () => {
   for (let total = 2; total <= 6; total++) {
@@ -148,4 +148,23 @@ test("the answer box never mentions a name (iOS AutoFill) and doesn't autocorrec
   assert.match(screen, /autoComplete=\{field\.autoComplete\}/)
   for (const m of screen.matchAll(/(?:placeholder|aria-label|name)="([^"]*)"/g)) assert.doesNotMatch(m[1], /name/i, m[0])
   assert.match(screen, /Type it in for double points/)
+})
+
+test('every chain runs oldest to newest and ends on the country\'s current flag', () => {
+  let games = 0
+  for (const [code, e] of Object.entries(CODEX)) {
+    if (!FLAGS.some(f => f.code === code)) continue
+    const chain = L.lineageChain(e.flagHistory)
+    if (chain.length < 3) continue
+    games++
+    const years = chain.map(h => h.fromYear)
+    assert.ok(years.every((y, i) => !i || y >= years[i - 1]), `${code}: ${years.join(' > ')}`)
+    if (e.flagHistory.some(h => h.toYear === null)) assert.equal(chain.at(-1).toYear, null, `${code} ends on a flag that isn't flown today`)
+    assert.equal(new Set(chain.map(h => h.flagUrl)).size, chain.length, `${code}: the same picture twice`)
+    assert.ok(chain.every(h => h.flagUrl), `${code}: a flag with no picture`)
+    assert.ok(chain.length <= 6, code)
+  }
+  assert.ok(games >= 140, `only ${games} countries can be played`)
+  // Histories stored out of order (Turkey, Liberia, South Korea) still read in order.
+  assert.deepEqual(L.lineageChain(CODEX.LR.flagHistory).map(h => h.fromYear), [1827, 1834, 1847])
 })

@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { HISTORICAL_FLAGS } from "../data/historicalFlags"
 import type { HistoricalEntity, HistoricalRegion } from "../data/historicalFlags"
 import { T, ACCENT, tint } from "../ui/tokens"
@@ -63,6 +63,14 @@ function HistoricalFlagScreenGame({ onBack, onReplay, region }: Props & { onRepl
 
   const round = rounds[idx]
   const answered = selected !== null
+
+  // On a phone the answer note and Next land below the fold: bring them up.
+  const endRef = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    if (!answered) return
+    const calm = window.matchMedia?.("(prefers-reduced-motion: reduce)").matches
+    endRef.current?.scrollIntoView({ block: "nearest", behavior: calm ? "auto" : "smooth" })
+  }, [answered, idx])
 
   const handlePick = (id: string) => {
     if (answered) return
@@ -154,6 +162,7 @@ function HistoricalFlagScreenGame({ onBack, onReplay, region }: Props & { onRepl
             <PrimaryButton onClick={handleNext} accent={A} style={{ maxWidth: 384 }}>
               {idx + 1 >= ROUNDS ? "See results →" : "Next →"}
             </PrimaryButton>
+            <div ref={endRef} aria-hidden />
           </>
         )}
       </div>

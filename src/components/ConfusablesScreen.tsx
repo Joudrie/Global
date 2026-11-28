@@ -115,11 +115,6 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
           style={{ background: T.surface, border: `1px solid ${T.line}` }}>
           <p className="text-xs uppercase tracking-widest mb-1" style={{ color: T.muted }}>Which flag is…</p>
           <p className="text-2xl font-black" style={{ color: T.text, fontFamily: FONT.display, fontWeight: 800 }}>{round.target.name}</p>
-          {answered && (
-            <p className="text-xs mt-1.5" style={{ color: T.muted }}>
-              {round.target.distinguishingTip}
-            </p>
-          )}
         </div>
 
         {/* 2×2 flag grid */}
@@ -163,11 +158,10 @@ function ConfusablesScreenGame({ onBack , onReplay }: Props & { onReplay: () => 
             <p className="text-sm font-semibold" style={{ color: isRight ? T.green : T.danger }}>
               {isRight ? `✓ Correct — ${round.target.name}` : `✗ That was ${round.choices[selected!].name}`}
             </p>
-            {!isRight && (
-              <p className="text-xs mt-1" style={{ color: T.muted }}>
-                {round.target.name}: {round.target.distinguishingTip}
-              </p>
-            )}
+            {/* The tip shows here, under the flags, so answering doesn't push the grid down. */}
+            <p className="text-xs mt-1" style={{ color: T.muted }}>
+              {isRight ? round.target.distinguishingTip : `${round.target.name}: ${round.target.distinguishingTip}`}
+            </p>
           </div>
         )}
 

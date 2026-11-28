@@ -196,7 +196,8 @@ function SilhouetteGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
               placeholder="Type the country name…"
               autoComplete="off"
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
-              style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }}
+              // 16px: iPhone Safari zooms the page into any smaller text field on focus.
+              style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 16 }}
             />
             {showDrop && matches.length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden z-10"

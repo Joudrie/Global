@@ -98,13 +98,14 @@ export default function HigherLowerScreen({ onBack }: Props) {
           <p style={{ fontSize: 13, color: T.muted, marginTop: 4 }}>Tap the one you think covers more countries, or use the buttons.</p>
         </div>
 
-        {/* Trait A — tap it to say "this one has more" */}
+        {/* Trait A — tap it to say "this one has more". Each count keeps its
+            space before the reveal, so the cards don't grow when it shows. */}
         <button onClick={() => answer(true)} disabled={!!reveal}
           className="geo-tap w-full max-w-sm rounded-2xl px-5 py-6 text-center"
           style={{ background: reveal && q.answer ? tint(T.green, 0.18) : T.surface, border: `1.5px solid ${reveal && q.answer ? T.green : tint(ACCENT.play, 0.4)}`, cursor: reveal ? "default" : "pointer", transition: "background 0.2s ease, border-color 0.2s ease" }}>
           <div style={{ display: "flex", justifyContent: "center", color: ACCENT.play }}><GameIcon name={q.a.icon} size={28} /></div>
           <div className="geo-display" style={{ fontSize: 18, fontWeight: 700, marginTop: 4, color: T.text }}>{q.a.label}</div>
-          {reveal && <div style={{ fontFamily: FONT.mono, fontSize: 24, fontWeight: 800, marginTop: 4, color: ACCENT.play }}>{q.a.count}</div>}
+          <div aria-hidden={!reveal || undefined} style={{ fontFamily: FONT.mono, fontSize: 24, fontWeight: 800, marginTop: 4, color: ACCENT.play, visibility: reveal ? "visible" : "hidden" }}>{q.a.count}</div>
         </button>
 
         <div className="geo-micro" style={{ fontSize: 11, color: T.muted }}>or</div>
@@ -115,7 +116,7 @@ export default function HigherLowerScreen({ onBack }: Props) {
           style={{ background: reveal && !q.answer ? tint(T.green, 0.18) : T.surface, border: `1.5px solid ${reveal && !q.answer ? T.green : tint(ACCENT.play, 0.4)}`, cursor: reveal ? "default" : "pointer", transition: "background 0.2s ease, border-color 0.2s ease" }}>
           <div style={{ display: "flex", justifyContent: "center", color: ACCENT.play }}><GameIcon name={q.b.icon} size={28} /></div>
           <div className="geo-display" style={{ fontSize: 18, fontWeight: 700, marginTop: 4, color: T.text }}>{q.b.label}</div>
-          {reveal && <div style={{ fontFamily: FONT.mono, fontSize: 24, fontWeight: 800, marginTop: 4, color: ACCENT.play }}>{q.b.count}</div>}
+          <div aria-hidden={!reveal || undefined} style={{ fontFamily: FONT.mono, fontSize: 24, fontWeight: 800, marginTop: 4, color: ACCENT.play, visibility: reveal ? "visible" : "hidden" }}>{q.b.count}</div>
         </button>
 
         {!reveal ? (
