@@ -40,7 +40,9 @@ const LOOKALIKES = [
 const sameGroup = (a, b) => a === b || LOOKALIKES.some(g => g.includes(a) && g.includes(b))
 
 test('src/data/flagIdentify.ts is up to date with scripts/flag-identifier/checked.mjs', () => {
-  assert.ok(read('src/data/flagIdentify.ts') === build.render(),
+  const files = build.render()
+  assert.deepEqual(Object.keys(files).map(f => path.relative(ROOT, f)).sort(), ['src/data/flagIdentify.ts', 'src/data/flagIdentifyCountries.ts'])
+  assert.ok(Object.entries(files).every(([f, text]) => fs.readFileSync(f, 'utf8') === text),
     'run: node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/flag-identifier/build.mjs')
 })
 
@@ -203,7 +205,7 @@ test('flags beyond the countries: each has its own image, a label, and no flag i
     assert.equal(new Set(values).size, values.length, `a ${field} twice`)
   }
   // Pages linked from the results exist on the identity pages.
-  for (const e of others.filter(x => x.href)) assert.match(e.href, /^\/identity\/[a-z-]+\/#[a-z0-9-]+$/, e.code)
+  for (const e of others.filter(x => x.href)) assert.match(e.href, /^\/(identity|historical)\/[a-z-]+\/#[a-z0-9-]+$/, e.code)
   // The well-known ones are in, under the kind people would give them.
   const kindOf = code => BY.get(code)?.category
   assert.equal(kindOf('us-tx'), 'region')
@@ -220,16 +222,18 @@ test('flags beyond the countries: each has its own image, a label, and no flag i
 
 test('every flag described in full fits, and only true twins tie with it', () => {
   // Twins: flags these words can't tell apart (Hesse is red over white like
-  // Monaco). Few enough that the picture on each row settles it.
-  let twins = 0
+  // Monaco; Poland's flag was also the Duchy of Warsaw's). Within one kind of
+  // flag they are few enough that the picture on each row settles it.
   for (const e of IDENTIFY_FLAGS) {
-    const list = rankAll(U.describe(e, true))
-    const me = list.find(m => m.entry.code === e.code)
+    const me = U.scoreFlag(e, U.describe(e, true))
     assert.equal(me.diff, 0, e.code)
     assert.equal(me.extras, 0, e.code)
-    if (list.filter(m => m.diff === 0 && m.extras === 0).length > 1) twins++
   }
-  assert.ok(twins / IDENTIFY_FLAGS.length < 0.2, `${twins} of ${IDENTIFY_FLAGS.length} have a twin`)
+  for (const { id: kind } of U.IDENTIFY_CATEGORIES) {
+    const pool = IDENTIFY_FLAGS.filter(e => e.category === kind)
+    const twins = pool.filter(e => U.rankFlags(pool, U.describe(e, true)).filter(m => m.diff === 0 && m.extras === 0).length > 1).length
+    assert.ok(twins / pool.length < 0.25, `${kind}: ${twins} of ${pool.length} have a twin`)
+  }
 })
 
 test('Boston: a seal in a circle in the middle counts as the circle, and Boston fits', () => {
@@ -309,4 +313,47 @@ test('picking a kind boosts that kind and hides nothing', () => {
   // A flag that also counts as a kind is boosted with it: Scotland for "country".
   const saltire = ask({ kind: 'country', layouts: ['saltire'], colors: ['blue', 'white'], none: true })
   assert.equal(rankAll(saltire)[0].entry.code, 'flag-scotland')
+})
+
+test('historical flags: the Soviet Union from a plain description, and the kind boosts them', () => {
+  const ussr = ask({ layouts: ['plain'], colors: ['red', 'yellow'], details: ['star', 'emblem'] })
+  assert.equal(rankAll(ussr)[0].entry.code, 'hist-soviet-union')
+  assert.equal(BY.get('hist-soviet-union').category, 'historical')
+  assert.match(BY.get('hist-soviet-union').label, /^Historical, 1922/)
+  assert.match(BY.get('hist-soviet-union').href, /^\/historical\/europe\/#soviet-union$/)
+  // Without the emblem it's China's colours: China first, the USSR still close.
+  const plain = rankAll(ask({ layouts: ['plain'], colors: ['red', 'yellow'], details: ['star'] }))
+  assert.equal(plain[0].entry.code, 'CN')
+  assert.ok(plain.find(m => m.entry.code === 'hist-soviet-union').diff <= U.CLOSE)
+  // "Historical" puts East Germany above Germany for black, red and gold with arms.
+  const gdr = ask({ kind: 'historical', layouts: ['hstripes'], colors: ['black', 'red', 'yellow'], details: ['emblem'] })
+  assert.equal(rankAll(gdr)[0].entry.code, 'hist-east-germany')
+  assert.ok(U.IDENTIFY_CATEGORIES.some(c => c.id === 'historical'))
+  assert.ok(IDENTIFY_FLAGS.filter(e => e.category === 'historical').length >= 150)
+})
+
+test('Japanese prefectures and other new regions are found', () => {
+  // Tokyo: a white emblem on purple.
+  const tokyo = rankAll(ask({ kind: 'region', layouts: ['plain'], colors: ['purple', 'white'], details: ['emblem'] }))
+  assert.ok(tokyo.slice(0, 4).some(m => m.entry.code === 'jp-13'), tokyo.slice(0, 4).map(m => m.entry.code).join())
+  assert.equal(BY.get('jp-13').label, 'Prefecture of Japan')
+  // Ehime: green and orange stripes with a flower.
+  assert.equal(rankAll(ask({ layouts: ['hstripes'], colors: ['green', 'orange', 'white'], details: ['plant'] }))[0].entry.code, 'jp-38')
+  for (const code of ['ar-x', 'ru-ta', 'ru-spb', 'gb-zet']) assert.ok(BY.has(code), code)
+})
+
+test('new detail words: fleur-de-lis, key, anchor, hand, heart, checkerboard', () => {
+  for (const id of ['fleur', 'key', 'anchor', 'hand', 'heart', 'checkers']) {
+    assert.ok(U.DETAILS.some(d => d.id === id), id)
+    assert.ok(IDENTIFY_FLAGS.filter(e => e.details.includes(id)).length >= 3, `${id} has fewer than 3 flags`)
+  }
+  assert.match(read('src/components/FlagIdentifierScreen.tsx'), /fleur: FleurDeLis, key: Key, anchor: Anchor, hand: Hand, heart: Heart, checkers: Grid3x3/)
+  // Quebec: white cross on blue with fleurs-de-lis.
+  assert.equal(rankAll(ask({ layouts: ['cross'], colors: ['blue', 'white'], details: ['fleur'] }))[0].entry.code, 'ca-qc')
+  // Croatia's checkerboard is a small part of its arms: picking it costs nothing.
+  assert.equal(U.scoreFlag(BY.get('HR'), ask({ colors: ['red', 'white', 'blue'], details: ['checkers'] })).diff, 0)
+  // Saint Petersburg: an anchor on red.
+  assert.equal(rankAll(ask({ layouts: ['plain'], colors: ['red', 'white'], details: ['anchor'] }))[0].entry.code, 'ru-spb')
+  // Zaire: a hand with a torch in a yellow disc on green.
+  assert.equal(rankAll(ask({ layouts: ['disc'], colors: ['green', 'yellow'], details: ['hand'] }))[0].entry.code, 'hist-zaire')
 })
