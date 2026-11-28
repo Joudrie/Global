@@ -2,7 +2,7 @@
 <!DOCTYPE svg PUBLIC "-//W3C//DTD SVG 20000303 Stylable//EN"
 "http://www.w3.org/TR/2000/03/WD-SVG-20000303/DTD/svg-20000303-stylable.dtd">
 
-<svg width="9.6640in" height="6.4420in" viewBox="0 0 9664 6442">
+<svg xmlns="http://www.w3.org/2000/svg" width="9.6640in" height="6.4420in" viewBox="0 0 9664 6442">
 
 <path style="fill:#ffffff" d="M0,0 L9664,0 9664,6442 0,6442 0,0z" />
 <circle style="fill:#052480" cx="4832" cy="3221" r="2060" />

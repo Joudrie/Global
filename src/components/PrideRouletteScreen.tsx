@@ -140,8 +140,9 @@ export default function PrideRouletteScreen({ onBack }: Props) {
             const isChosen = picked === f.id
             let border = `1.5px solid ${T.line}`
             if (answered) {
-              if (isTarget) border = `2px solid ${T.green}`
-              else if (isChosen) border = `2px solid ${T.danger}`
+              // Same width as before the answer, so the choices don't shift.
+              if (isTarget) border = `1.5px solid ${T.green}`
+              else if (isChosen) border = `1.5px solid ${T.danger}`
             }
             return (
               <button key={f.id} onClick={() => pick(f.id)} disabled={answered}

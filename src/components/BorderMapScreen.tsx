@@ -141,7 +141,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                 score={!done ? `Missed: ${targets.filter(c => !found.has(c)).map(NAME).join(", ")}.`
                   : misses === 0 ? "Flawless, no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`} />
               {!done && found.size > 0 && (
-                <p style={{ fontSize: 12.5, color: T.muted, marginTop: 8 }}>Found: {[...found].map(NAME).join(", ")}</p>
+                <p style={{ fontSize: 12.5, color: T.muted, textAlign: "center" }}>Found: {[...found].map(NAME).join(", ")}</p>
               )}
             </ResultCard>
             <PrimaryButton onClick={onReplay} accent={ACCENT.codex}>New country</PrimaryButton>

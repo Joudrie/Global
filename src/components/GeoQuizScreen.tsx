@@ -201,8 +201,9 @@ export default function GeoQuizScreen({ onBack }: Props) {
 
         {/* Continent is hidden by default — only revealed if the player spends their hint */}
         {hintShownFor === idx ? (
+          // As tall as the placeholder below, so spending the hint moves nothing.
           <div style={{
-            padding: '4px 14px', borderRadius: 999,
+            height: 25, boxSizing: 'border-box', padding: '0 14px', borderRadius: 999,
             background: tint(T.gold, 0.13), border: `1px solid ${tint(T.gold, 0.4)}`,
             fontSize: 11, color: T.gold, fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 5,

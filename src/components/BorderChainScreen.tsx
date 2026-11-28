@@ -107,6 +107,8 @@ function ChainGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                 ))}
               </div>
               <div className="geo-micro" style={{ fontSize: 11, color: T.dim, marginTop: 8, textAlign: "center" }}>The shortest path</div>
+              {/* The flags alone don't say which countries the route runs through. */}
+              <div style={{ fontSize: 12, color: T.muted, marginTop: 4, textAlign: "center", lineHeight: 1.5 }}>{optimal.map(NAME).join(" → ")}</div>
             </div>
           </ResultCard>
           <PrimaryButton onClick={onReplay} accent={ACCENT.learn}>New pair</PrimaryButton>
