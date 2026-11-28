@@ -255,7 +255,7 @@ function FlagDNAGame({ onBack, onReplay, streak, onFinish }:
               enterKeyHint="go" aria-label="Guess a country"
               placeholder={guesses.length ? "Guess another country…" : "Guess any country…"}
               autoComplete="off" autoCorrect="off" spellCheck={false}
-              className="w-full px-4 py-3 rounded-xl text-sm font-medium"
+              className="w-full px-4 py-3 rounded-xl text-base font-medium"
               style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, outline: "none" }}
             />
             {showDrop && matches.length > 0 && (

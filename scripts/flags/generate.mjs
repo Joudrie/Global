@@ -59,6 +59,10 @@ const REJECT_REPAIRS = new Set([
   "Flag_of_Lansing,_Michigan.svg",
   "Flag_of_Ann_Arbor,_Michigan.svg",
 ])
+// Written with spaces or underscores alike: compare in keyOf form.
+const REJECT_KEYS = new Set([...REJECT_REPAIRS].map(keyOf))
+const rejected = (arg) => REJECT_KEYS.has(keyOf(arg))
+
 
 // ── Repairs + unrepairable ──────────────────────────────────────────────────
 let repairedLocal = 0
@@ -66,8 +70,8 @@ let repairedHotlink = 0
 let removed = 0
 if (existsSync(here("./repairs.json"))) {
   const data = JSON.parse(readFileSync(here("./repairs.json")))
-  const repairs = data.repairs.filter((r) => !REJECT_REPAIRS.has(r.arg))
-  const vetoed = data.repairs.filter((r) => REJECT_REPAIRS.has(r.arg))
+  const repairs = data.repairs.filter((r) => !rejected(r.arg))
+  const vetoed = data.repairs.filter((r) => rejected(r.arg))
   for (const r of repairs) {
     const file = bySlug.get(`fix-${slugify(r.finalTitle)}`)
     if (file) {
@@ -115,7 +119,7 @@ const clean = (arg) => arg.replace(/\.(svg|png|gif|jpe?g)$/i, "").replace(/_/g, 
 if (existsSync(here("./repairs.json"))) {
   const d = JSON.parse(readFileSync(here("./repairs.json")))
   const fixed = d.repairs
-    .filter((r) => !REJECT_REPAIRS.has(r.arg))
+    .filter((r) => !rejected(r.arg))
     .map((r) => ({ label: clean(r.arg), url: map[keyOf(r.arg)] }))
     .filter((x) => x.url)
     .sort((a, b) => a.label.localeCompare(b.label))
@@ -134,7 +138,7 @@ if (existsSync(here("./repairs.json"))) {
           .filter((c) => /flag|bandera|drapeau|bandiera|vlag/i.test(c) && !JUNK.test(c))
           .slice(0, 5)
           .map((c) => ({ file: c, url: hotlink(c) }))
-  const missing = [...d.unrepairable, ...d.repairs.filter((r) => REJECT_REPAIRS.has(r.arg))]
+  const missing = [...d.unrepairable, ...d.repairs.filter((r) => rejected(r.arg))]
     .map((u) => ({ arg: u.arg, label: clean(u.arg), cands: candsFor(u) }))
     // Sort most-likely-to-have-a-real-flag first: entries with candidates float
     // up (more candidates = more likely), no-candidate ones sink to the bottom.
@@ -146,7 +150,7 @@ if (existsSync(here("./repairs.json"))) {
     { label: "Izabal (Guatemala)", key: "Flag_of_Izabal_Department.svg" },
   ]
   const recent = [
-    ...d.repairs.filter((r) => r.recovered && !REJECT_REPAIRS.has(r.arg)).map((r) => ({ label: clean(r.arg), url: map[keyOf(r.arg)] })),
+    ...d.repairs.filter((r) => r.recovered && !rejected(r.arg)).map((r) => ({ label: clean(r.arg), url: map[keyOf(r.arg)] })),
     ...EXTRA_RECENT.map((e) => ({ label: e.label, url: map[e.key] || hotlink(e.key) })),
   ].filter((x) => x.url).sort((a, b) => a.label.localeCompare(b.label))
 

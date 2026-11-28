@@ -163,7 +163,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
               style={{
                 background: T.surface, border: `1.5px solid ${T.line}`,
-                color: T.text, fontSize: 15,
+                color: T.text, fontSize: 16,
               }}
             />
             {showDrop && matches.length > 0 && (

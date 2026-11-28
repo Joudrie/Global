@@ -74,7 +74,7 @@ const SETS: ExtraSet[] = [
   { id: "extinct", label: "Extinct & Former States", short: "Former states", count: 555,
     load: () => Promise.all([import("../data/codexGalleries"), import("../data/extinctStates"), import("../data/historicalFlags")])
       .then(([g, e, h]) => galleryRows("extinct", g.extinctRegions(e.EXTINCT_STATES, h.HISTORICAL_FLAGS))) },
-  { id: "cities", label: "American Cities", short: "US cities", count: 125,
+  { id: "cities", label: "American Cities", short: "US cities", count: 122,
     load: () => import("../data/usCityFlags").then(m => m.US_CITY_FLAGS.map(f => entrant("cities", `${f.name}, ${f.state}`, f.flagUrl))) },
   { id: "orgs", label: "International Organizations", short: "Organizations", count: 67,
     load: () => Promise.all([import("../data/codexGalleries"), import("../data/orgFlags")])

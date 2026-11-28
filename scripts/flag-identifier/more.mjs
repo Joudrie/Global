@@ -549,7 +549,6 @@ export const MORE = {
   'city:cincinnati': 'hstripes disc / white blue red / emblem writing? weapon? manystripes?',
   'city:milwaukee': 'plain / lightblue|blue white? yellow? red? / writing building plant emblem?',
   'city:minneapolis': 'hoist / blue white / circle emblem? building?',
-  'city:dallas': 'vstripes hstripes / blue white lightblue / star',
   'city:houston': 'plain disc / blue white yellow? / star emblem',
   'city:san-antonio': 'vstripes split / blue red white / star building',
   'city:austin': 'plain / white red blue yellow? / emblem writing cross?',

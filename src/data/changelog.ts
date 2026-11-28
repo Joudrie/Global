@@ -19,6 +19,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Describe-It's last tip no longer names the country, Flag Timeline's ticks show on every flag, Atlas keeps its zoom button on screen, and Guess the Language says Japanese uses kanji and kana.",
       "Capital Cities picks wrong answers from the same region, as intended. US City Flags never shows two \"Springfield\" buttons, its note no longer pushes the answers down, and Yonkers' flag loads.",
       "Stat Clash and Pride Roulette no longer jump when you answer, Flag Forgery's side labels fit on phones, and Border Path names the countries on its shortest route.",
+      "Text boxes no longer zoom the page in on iPhones. Dallas, Oklahoma City and Jersey City were showing a county or state flag instead of their own, so they're left out until their real flags can be added.",
     ],
   },
   {

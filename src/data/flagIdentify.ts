@@ -1362,7 +1362,6 @@ const CITY_1: IdentifyEntry[] = [
   f("city-cincinnati","Cincinnati","city","US city, OH","/cf/3ebdde2005200e2d.svg","hstripes disc","white blue red","","emblem circle","writing weapon manystripes",{"note":"A white field with a wavy blue 'C' (the Ohio River) and a red-and-white roundel."}),
   f("city-milwaukee","Milwaukee","city","US city, WI","/cf/cf9ff031fc82406f.png","plain","lightblue|blue","white yellow red","writing building plant","emblem",{"note":"A famously cluttered 1955 design crammed with a gear, a ship, a teepee and a stadium — a vexillological cautionary tale."}),
   f("city-minneapolis","Minneapolis","city","US city, MN","/cf/6fb4519452ff4da1.svg","hoist","blue white","","circle triangle","emblem building",{"note":"A blue and white design symbolising the Mississippi, mills and the City of Lakes."}),
-  f("city-dallas","Dallas","city","US city, TX","/cf/1dadbc978a841ce2.svg","vstripes hstripes","blue white lightblue","","star","",{"note":"A white star on blue with red and white bars — a Texan take on the Lone Star."}),
   f("city-houston","Houston","city","US city, TX","/cf/35e3da44ec510aa0.png","plain disc","blue white","yellow","star emblem circle","",{"note":"A blue field with a white cogwheel and a single star — industry and Texas."}),
   f("city-san-antonio","San Antonio","city","US city, TX","/flags/wm/flag-of-san-antonio-texas.svg","vstripes split","blue red white","","star building","",{"note":"A blue field with the Alamo and the city's name."}),
   f("city-austin","Austin","city","US city, TX","/cf/97bcab2c9dde2116.svg","plain","white red blue","yellow","emblem writing","cross",{"note":"A white field with a blue roundel and a stylised 'A' — the Texas capital."}),
@@ -1489,10 +1488,10 @@ const CITY_1: IdentifyEntry[] = [
   f("wcity-bg-pleven","Pleven","city","City of Bulgaria","/city-flags/bg/pleven.gif","plain","white red","","emblem",""),
   f("wcity-bg-pazardzhik","Pazardzhik (city)","city","City of Bulgaria","/city-flags/bg/pazardzhik.png","hstripes","green white","","emblem",""),
   f("wcity-bg-sliven","Sliven (city)","city","City of Bulgaria","/city-flags/bg/sliven.png","hstripes","white green red","","emblem animal",""),
+  f("wcity-bg-dobrich","Dobrich","city","City of Bulgaria","/city-flags/bg/dobrich.svg","vstripes","green orange red","","emblem",""),
 ]
 
 const CITY_2: IdentifyEntry[] = [
-  f("wcity-bg-dobrich","Dobrich","city","City of Bulgaria","/city-flags/bg/dobrich.svg","vstripes","green orange red","","emblem",""),
   f("wcity-hr-split","Split","city","City of Croatia","/city-flags/hr/split.png","plain","blue white","","writing","",{"note":"The flag is navy blue with stylized repeated name of the city symbolizing the bell tower of the Cathedral of St."}),
   f("wcity-hr-rijeka","Rijeka","city","City of Croatia","/city-flags/hr/rijeka.png","plain disc","lightblue red black","","animal circle",""),
   f("wcity-hr-osijek","Osijek","city","City of Croatia","/city-flags/hr/osijek.png","hstripes split","white blue","","emblem",""),
@@ -1642,10 +1641,10 @@ const CITY_2: IdentifyEntry[] = [
   f("wcity-mt-san-gwann","San Ġwann","city","City of Malta","/city-flags/mt/san-gwann.png","plain","red white yellow","","animal cross",""),
   f("wcity-mt-valletta","Valletta","city","Capital of Malta","/city-flags/mt/valletta.png","plain","red yellow","","animal",""),
   f("wcity-md-tiraspol","Tiraspol","city","City of Moldova","/city-flags/md/tiraspol.png","hstripes","red white lightblue green","","manystripes",""),
+  f("wcity-md-bender","Bender","city","City of Moldova","/city-flags/md/bender.png","hstripes split","yellow black","","animal",""),
 ]
 
 const CITY_3: IdentifyEntry[] = [
-  f("wcity-md-bender","Bender","city","City of Moldova","/city-flags/md/bender.png","hstripes split","yellow black","","animal",""),
   f("wcity-md-rybnitsa","Rybnitsa","city","City of Moldova","/city-flags/md/rybnitsa.png","hstripes","blue green white","","emblem person",""),
   f("wcity-md-ungheni","Ungheni (city)","city","City of Moldova","/city-flags/md/ungheni.png","hoist hstripes","white red black","","manystripes triangle",""),
   f("wcity-md-durlesti","Durlești","city","City of Moldova","/city-flags/md/durlesti.jpg","hstripes","white black yellow","","emblem",""),
@@ -1795,10 +1794,10 @@ const CITY_3: IdentifyEntry[] = [
   f("wcity-es-vigo","Vigo","city","City of Spain","/city-flags/es/vigo.png","plain","red white","","triangle emblem",""),
   f("wcity-es-l-hospitalet-de-llobregat","L'Hospitalet de Llobregat","city","City of Spain","/city-flags/es/l-hospitalet-de-llobregat.png","saltire vstripes","white red yellow","","manystripes cross",""),
   f("wcity-es-gijon","Gijón","city","City of Spain","/city-flags/es/gijon.png","border","red white","","emblem",""),
+  f("wcity-es-vitoria-gasteiz","Vitoria-Gasteiz","city","City of Spain","/city-flags/es/vitoria-gasteiz.png","saltire","white red","","emblem cross",""),
 ]
 
 const CITY_4: IdentifyEntry[] = [
-  f("wcity-es-vitoria-gasteiz","Vitoria-Gasteiz","city","City of Spain","/city-flags/es/vitoria-gasteiz.png","saltire","white red","","emblem cross",""),
   f("wcity-es-elche","Elche","city","City of Spain","/city-flags/es/elche.png","quartered","yellow red blue","","emblem manystripes",""),
   f("wcity-es-granada","Granada (city)","city","City of Spain","/city-flags/es/granada.png","vstripes split","maroon green","","emblem",""),
   f("wcity-es-terrassa","Terrassa","city","City of Spain","/city-flags/es/terrassa.png","vstripes split","white red yellow","","building manystripes",""),
