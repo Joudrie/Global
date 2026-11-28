@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" id="flag-icons-pt" viewBox="0 0 640 480">
-  <path fill="red" d="M256 0h384v480H256z"/>
+  <path fill="red" d="M0 0h640v480H0z"/>
   <path fill="#060" d="M0 0h256v480H0z"/>
   <g fill="#ff0" fill-rule="evenodd" stroke="#000" stroke-linecap="round" stroke-linejoin="round" stroke-width=".6">
     <path d="M339.5 306.2c-32.3-1-180-93.2-181-108l8.1-13.5c14.7 21.3 165.7 111 180.6 107.8z"/>
