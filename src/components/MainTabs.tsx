@@ -6,10 +6,10 @@ import type { AppState } from "../utils/storage"
 import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, recommendFor, discoverGames, trendingGames, topGames, featuredGames } from "../ui/registry"
+import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, recommendFor, discoverGames, trendingGames, topGames, featuredGames, creatorPicks, allGamesAZ } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, FlagTile, FavoriteStar, SectionHeader } from "./ui"
-import { Star } from "lucide-react"
+import { Crown, Star } from "lucide-react"
 import { FAVORITES_EVENT, readFavorites, readPlayCounts, setFavorite, rankFavorites, hasUsedFavorites } from "../utils/favorites"
 import { LineIcon, FlameIcon, ChevronDownIcon, SearchIcon, ShuffleIcon, CompassIcon, HistoryIcon, TrendingUpIcon } from "./icons"
 import FlagImage from "./FlagImage"
@@ -653,7 +653,8 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
 
   // Local personalization, all derived on-device from recently-played ids.
   const recentIds = loadRecent()
-  const recents = recentIds.map(id => all.find(r => r.id === id)).filter((e): e is Entry => !!e)
+  // A starred game is already in Favourites, so Jump back in leaves it out.
+  const recents = recentIds.map(id => all.find(r => r.id === id)).filter((e): e is Entry => !!e && !fav.on(e.id))
   const enoughPlays = loadPlayCount() >= 4
   const rec = recommendFor(recentIds)
   const dayIdx = dayIndex(today)
@@ -687,15 +688,22 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   // games filed on Today such as Flag Gacha, and tools) so every game stays findable
   // by name. "Popular" is the hand-picked set.
   const POPULAR = "__popular"
+  const VIEW_ALL = "__all"
   const query = q.trim().toLowerCase()
   const filtering = !!query || activeGroup !== null
   const filtered = query
     ? [...GAMES, ...TOOLS].filter(r => `${r.title} ${r.subtitle}`.toLowerCase().includes(query))
     : activeGroup === POPULAR
       ? featured
-      : activeGroup
-        ? all.filter(r => r.group === activeGroup)
-        : []
+      : activeGroup === VIEW_ALL
+        ? allGamesAZ()
+        : activeGroup
+          ? all.filter(r => r.group === activeGroup)
+          : []
+  const viewAll = () => {
+    setActiveGroup(VIEW_ALL); setQ("")
+    window.requestAnimationFrame(() => document.getElementById("play-top")?.scrollIntoView({ block: "start" }))
+  }
 
   const chips: { label: string; group: string | null }[] = [
     { label: "All", group: null },
@@ -705,7 +713,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   const selectChip = (group: string | null) => { setActiveGroup(group); setQ("") }
 
   return (
-    <div className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+    <div id="play-top" className="carto-slide-up" style={{ display: "flex", flexDirection: "column", gap: 20, scrollMarginTop: 96 }}>
       {/* Title + Surprise me (variable-reward shuffle across the whole catalogue) */}
       <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
         <div>
@@ -753,8 +761,23 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
 
       {filtering ? (
         filtered.length ? (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
-            {filtered.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent], { width: "100%" }))}
+          <div style={{ display: "flex", flexDirection: "column", gap: 12, minWidth: 0 }}>
+            {activeGroup === VIEW_ALL && !query && (
+              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 10 }}>
+                <div>
+                  <div className="geo-display" style={{ fontWeight: 700, fontSize: 16, color: T.text }}>All games</div>
+                  <div style={{ color: T.muted, fontSize: 11 }}>{filtered.length} games and tools · A–Z</div>
+                </div>
+                <button onClick={() => selectChip(null)} className="geo-tap"
+                  style={{ minHeight: 36, padding: "6px 13px", borderRadius: 999, flexShrink: 0, fontFamily: FONT.display, fontWeight: 600, fontSize: 12.5,
+                    background: T.surface, color: T.muted, border: `1px solid ${T.line}` }}>
+                  Back
+                </button>
+              </div>
+            )}
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+              {filtered.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent], { width: "100%", minWidth: 0 }))}
+            </div>
           </div>
         ) : (
           <div style={{ padding: 18, borderRadius: 12, border: `1px dashed ${T.line}`, textAlign: "center", color: T.dim, fontSize: 12 }}>
@@ -791,14 +814,12 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
           </div>
         )}
 
-        {/* Because you played … — locally-derived affinity recommendations */}
-        {rec && (
-          <div>
-            <ShelfHead icon={<LineIcon name="lightbulb" size={15} color={ACCENT.codex} strokeWidth={1.7} />} accent={ACCENT.codex}
-              title="Recommended for you" reason={`Because you played ${rec.seed.title}`} />
-            <Rail>{rec.entries.map(e => tile(e, ACCENT[e.accent]))}</Rail>
-          </div>
-        )}
+        {/* Creator's Picks — the creator's personal favourites, in a fixed order */}
+        <div>
+          <ShelfHead icon={<Crown size={15} color={T.gold} strokeWidth={1.7} />} accent={T.gold}
+            title="Creator's Picks" reason="My personal favourites · try these first" />
+          <Rail>{creatorPicks().map(e => tile(e, ACCENT[e.accent]))}</Rail>
+        </div>
 
         {/* Top games — the hand-picked hit list, order reshuffled daily. These
             also live in their own category shelves below; repetition is fine. */}
@@ -807,6 +828,15 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
             title="Top games" reason="The all-star lineup · shuffled daily" />
           <Rail>{top.map(e => tile(e, ACCENT[e.accent]))}</Rail>
         </div>
+
+        {/* Because you played … — locally-derived affinity recommendations */}
+        {rec && (
+          <div>
+            <ShelfHead icon={<LineIcon name="lightbulb" size={15} color={ACCENT.codex} strokeWidth={1.7} />} accent={ACCENT.codex}
+              title="Recommended for you" reason={`Because you played ${rec.seed.title}`} />
+            <Rail>{rec.entries.map(e => tile(e, ACCENT[e.accent]))}</Rail>
+          </div>
+        )}
 
         {/* The collections — every game, filed by appetite. Each shelf swipes.
             Learn the World leads with its live mastery line; the curriculum is
@@ -840,6 +870,14 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
             <Rail>{discover.map(e => tile(e, ACCENT[e.accent]))}</Rail>
           </div>
         )}
+
+        {/* View all — every game and tool on one page, A–Z */}
+        <button onClick={viewAll} className="geo-tap"
+          style={{ width: "100%", minHeight: 48, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600,
+            display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
+            background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
+          View all
+        </button>
 
         {/* Beta Sandbox — progressively disclosed, nothing deleted */}
         <div style={{ marginTop: 4 }}>
