@@ -3,7 +3,7 @@ import type { CSSProperties, ReactNode } from "react"
 import {
   Ban, Bird, Building2, ChevronDown, CircleHelp, Circle, Crown, Flag, Globe, Hourglass, Landmark, Leaf,
   Map as MapIcon, MapPin, Megaphone, Moon, Plus, Rainbow, RotateCcw, Rows3, Shield, Star, Sun, Sword,
-  Triangle, Type, Check, UserRound,
+  Triangle, Type, Check, UserRound, Key, Anchor, Hand, Heart, Grid3x3,
 } from "lucide-react"
 import type { LucideIcon } from "lucide-react"
 import { FLAGS } from "../data/flags"
@@ -36,10 +36,22 @@ type Step = 0 | 1 | 2 | 3 | 4
 const STEPS = ["Kind", "Shape", "Colours", "Details", "Matches"] as const
 const LAST = 4
 
+// Lucide has no fleur-de-lis: one drawn the same way (24 grid, round 1.6 stroke).
+const FleurDeLis = (({ size = 24, strokeWidth = 2, color = "currentColor", ...rest }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth={strokeWidth}
+    strokeLinecap="round" strokeLinejoin="round" {...rest}>
+    <path d="M12 3c-2.6 2.8-2.6 6.6 0 10 2.6-3.4 2.6-7.2 0-10Z" />
+    <path d="M10.4 13.2C9 15.4 5.6 15.4 5 12.6c-.4-2 1.9-2.9 3-1.4" />
+    <path d="M13.6 13.2c1.4 2.2 4.8 2.2 5.4-.6.4-2-1.9-2.9-3-1.4" />
+    <path d="M8 14.5h8" /><path d="M12 14.5V20" /><path d="M9.8 20.5c.6-1.6 3.8-1.6 4.4 0" />
+  </svg>
+)) as LucideIcon
+
 const DETAIL_ICON: Record<DetailId, LucideIcon> = {
   star: Star, crescent: Moon, sun: Sun, cross: Plus, emblem: Shield, crown: Crown, animal: Bird,
-  plant: Leaf, weapon: Sword, building: Landmark, person: UserRound, writing: Type, map: MapIcon, circle: Circle,
-  triangle: Triangle, manystripes: Rows3,
+  plant: Leaf, weapon: Sword, building: Landmark, person: UserRound, writing: Type, map: MapIcon,
+  fleur: FleurDeLis, key: Key, anchor: Anchor, hand: Hand, heart: Heart, checkers: Grid3x3,
+  circle: Circle, triangle: Triangle, manystripes: Rows3,
 }
 const KIND_ICON: Record<IdentifyCategory, LucideIcon> = {
   country: Flag, region: MapPin, city: Building2, identity: Rainbow, movement: Megaphone,
@@ -47,6 +59,7 @@ const KIND_ICON: Record<IdentifyCategory, LucideIcon> = {
 }
 
 const COUNTRY = new Map(FLAGS.map(f => [f.code, f]))
+const TOTAL = IDENTIFY_FLAGS.length.toLocaleString("en-US")   // "1,192"
 // Only the kinds that have flags yet: a kind with none would be a dead choice.
 const KINDS = IDENTIFY_CATEGORIES
   .map(c => ({ ...c, count: IDENTIFY_FLAGS.filter(e => isKind(e, c.id)).length }))
@@ -103,7 +116,7 @@ export default function FlagIdentifierScreen({ onBack }: { onBack: () => void })
 
   const stepDone = [s.kind !== null, s.layouts.length > 0 || s.unsure[0], s.colors.length > 0 || s.unsure[1], s.details.length > 0 || s.noDetails || s.unsure[2]]
   const countLine = !answered
-    ? `All ${IDENTIFY_FLAGS.length} flags fit so far`
+    ? `All ${TOTAL} flags fit so far`
     : exact.length ? `Fits ${plural(exact.length, "flag")}` : "No flag fits everything"
   // Short: "3 more are close", or with a kind picked "41 close · 2 of other kinds" (flags that fit).
   const moreLine = othersFit > 0
@@ -144,7 +157,7 @@ export default function FlagIdentifierScreen({ onBack }: { onBack: () => void })
               hint="If you think you know, pick it and those flags come first. Every other flag that fits still shows below, in case it was something else."
               onReset={answered ? reset : undefined}>
               <div role="radiogroup" aria-label="Kind of flag" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <KindOption on={s.kind === null} label="Not sure" note={`Search all ${IDENTIFY_FLAGS.length} flags`} icon={CircleHelp} onClick={() => setKind(null)} />
+                <KindOption on={s.kind === null} label="Not sure" note={`Search all ${TOTAL} flags`} icon={CircleHelp} onClick={() => setKind(null)} />
                 {KINDS.map(k => (
                   <KindOption key={k.id} on={s.kind === k.id} label={k.label} note={plural(k.count, "flag")} icon={KIND_ICON[k.id]} onClick={() => setKind(k.id)} />
                 ))}
@@ -380,7 +393,7 @@ function Results({ s, ranked, exact, close, others, answered, countLine, open, s
     exact: exact.length, otherExact: otherExact.length, close: close.length, further: further.length, otherClose: otherClose.length,
   }
   const fits = kind ? `${plural(exact.length, kind.plural.replace(/s$/, ""), kind.plural)}` : plural(exact.length, "flag")
-  const where = kind ? `${kind.label} flags first; other kinds that fit are below.` : `Searching all ${IDENTIFY_FLAGS.length} flags.`
+  const where = kind ? `${kind.label} flags first; other kinds that fit are below.` : `Searching all ${TOTAL} flags.`
 
   return (
     <>
@@ -396,7 +409,7 @@ function Results({ s, ranked, exact, close, others, answered, countLine, open, s
           <p style={{ margin: "6px 0 0", fontSize: 13.5, lineHeight: 1.5, color: T.muted }}>
             {answered
               ? exact.length ? `Best fit first. ${where}` : `These are the closest. ${where}`
-              : `Answer a question or two to narrow it down. Searching all ${IDENTIFY_FLAGS.length} flags.`}
+              : `Answer a question or two to narrow it down. Searching all ${TOTAL} flags.`}
           </p>
         </div>
       </div>

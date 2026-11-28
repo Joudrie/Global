@@ -24,7 +24,7 @@ export const CHECKED = {
   BE: 'vstripes / black yellow red /',
   BA: 'plain / blue yellow white / star triangle',
   BG: 'hstripes / white green red /',
-  HR: 'hstripes / red white blue / emblem crown?',
+  HR: 'hstripes / red white blue / emblem crown? checkers?',
   CY: 'plain / white orange|yellow green? / map plant emblem?',
   CZ: 'hstripes split hoist / white red blue /',
   DK: 'nordic cross / red white /',
@@ -62,7 +62,7 @@ export const CHECKED = {
   CH: 'cross plain / red white /',
   UA: 'hstripes split / blue|lightblue yellow /',
   GB: 'unionjack cross saltire / red white blue /',
-  VA: 'vstripes split / yellow white red? / emblem cross? crown?',
+  VA: 'vstripes split / yellow white red? / emblem key cross? crown?',
 
   // ── Africa ──────────────────────────────────────────────────────────────
   DZ: 'vstripes split / green white red / star crescent',
