@@ -2220,7 +2220,7 @@ export const HISTORICAL_FLAGS: HistoricalEntity[] = [
   },
   {
     id: "belarusian-pr", name: "Belarusian People's Republic", era: "1918–1919", region: "Europe",
-    flagUrl: fp("Flag_of_Belarus.svg"), relatedCode: "BY",
+    flagUrl: fp("Flag_of_Belarus_(1918,_1991–1995).svg"), relatedCode: "BY",
     note: "The white-red-white flag of the short-lived republic declared during WWI; suppressed by the Bolsheviks, it returned as independent Belarus's flag from 1991 to 1995.",
   },
   {
