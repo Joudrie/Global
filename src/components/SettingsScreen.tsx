@@ -65,7 +65,7 @@ function CreatorUnlock() {
         onChange={e => setCode(e.target.value)}
         onKeyDown={e => { if (e.key === "Enter") submit() }}
         placeholder="creator unlock code"
-        style={{ flex: 1, minWidth: 0, padding: "9px 12px", borderRadius: 10, fontSize: 13, background: T.surfaceHi, border: `1px solid ${T.line}`, color: T.text, outline: "none" }}
+        style={{ flex: 1, minWidth: 0, padding: "9px 12px", borderRadius: 10, fontSize: 16, background: T.surfaceHi, border: `1px solid ${T.line}`, color: T.text, outline: "none" }}
       />
       <button onClick={submit} className="active:scale-95"
         style={{ flexShrink: 0, padding: "9px 16px", borderRadius: 10, fontSize: 13, fontWeight: 700, background: tint(T.gold, 0.14), border: `1px solid ${tint(T.gold, 0.4)}`, color: T.gold }}>

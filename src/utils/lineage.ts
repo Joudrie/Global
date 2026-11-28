@@ -6,6 +6,7 @@
 // name. The best score is one number for the game, whichever way it was played.
 import { COUNTRIES, judgeCountry } from "./countryNames"
 import type { Verdict } from "./abroad"
+import type { HistoricalFlag } from "../data/codex"
 
 export type LineageMode = "choice" | "type"
 
@@ -31,6 +32,27 @@ export const roundWorth = (revealed: number, total: number, mode: LineageMode) =
  *  mode is the one in use at the moment of answering. */
 export const roundPoints = (revealed: number, total: number, mode: LineageMode, correct: boolean) =>
   correct ? roundWorth(revealed, total, mode) : 0
+
+/** The flags a round shows, oldest first, ending on today's flag. Codex
+ *  histories aren't all in year order, so sort rather than trust the order.
+ *  Flags that only began after today's flag was adopted (a breakaway state, a
+ *  wartime occupation) aren't on the way to it, so they're left out, as are
+ *  entries with no picture (Sudan's Makuria). One entry per picture (a repeat
+ *  would waste a reveal); past `max`, the oldest flag and the newest `max - 1`. */
+export function lineageChain(history: HistoricalFlag[], max = 6): HistoricalFlag[] {
+  const current = history.filter(h => h.toYear === null).map(h => h.fromYear)
+  const since = current.length ? Math.max(...current) : Infinity
+  const sorted = history.filter(h => h.flagUrl && h.fromYear <= since)
+    .sort((a, b) => a.fromYear - b.fromYear || (a.toYear ?? Infinity) - (b.toYear ?? Infinity))
+  const seen = new Set<string>()
+  const unique: HistoricalFlag[] = []
+  for (let i = sorted.length - 1; i >= 0; i--) {
+    if (seen.has(sorted[i].flagUrl)) continue
+    seen.add(sorted[i].flagUrl)
+    unique.unshift(sorted[i])
+  }
+  return unique.length > max ? [unique[0], ...unique.slice(-(max - 1))] : unique
+}
 
 /** The most a game can score: every round typed from the oldest flag. */
 export const MAX_SCORE = ROUNDS * 1000 * TYPE_MULTIPLIER

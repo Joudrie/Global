@@ -141,7 +141,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                 score={!done ? `Missed: ${targets.filter(c => !found.has(c)).map(NAME).join(", ")}.`
                   : misses === 0 ? "Flawless, no wrong guesses." : `${misses} wrong guess${misses === 1 ? "" : "es"}`} />
               {!done && found.size > 0 && (
-                <p style={{ fontSize: 12.5, color: T.muted, marginTop: 8 }}>Found: {[...found].map(NAME).join(", ")}</p>
+                <p style={{ fontSize: 12.5, color: T.muted, textAlign: "center" }}>Found: {[...found].map(NAME).join(", ")}</p>
               )}
             </ResultCard>
             <PrimaryButton onClick={onReplay} accent={ACCENT.codex}>New country</PrimaryButton>
@@ -156,7 +156,7 @@ function BorderMapGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
               onChange={e => { setInput(e.target.value); setShowDrop(true); setMaybe([]) }} onKeyDown={onKey}
               onFocus={() => setShowDrop(true)} onBlur={() => setTimeout(() => setShowDrop(false), 150)}
               placeholder="Type a bordering country…" autoComplete="off"
-              style={{ width: "100%", padding: "13px 14px", borderRadius: 12, outline: "none", fontWeight: 600, fontSize: 15, fontFamily: FONT.display, background: T.surface, border: `1.5px solid ${T.lineHi}`, color: T.text }} />
+              style={{ width: "100%", padding: "13px 14px", borderRadius: 12, outline: "none", fontWeight: 600, fontSize: 16, fontFamily: FONT.display, background: T.surface, border: `1.5px solid ${T.lineHi}`, color: T.text }} />
             {showDrop && matches.length > 0 && (
               <div style={{ position: "absolute", left: 0, right: 0, bottom: "100%", marginBottom: 6, borderRadius: 12, overflow: "hidden", background: T.surface, border: `1px solid ${T.line}`, boxShadow: "0 8px 32px rgba(0,0,0,0.25)", zIndex: 5 }}>
                 {matches.map(f => (

@@ -177,13 +177,14 @@ function ForgeryGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         right={<HeaderStat label="Score" accent={ACCENT.play}>{score}</HeaderStat>} />
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "0 24px 20px", position: "relative" }}>
-        {/* swipe hints */}
+        {/* swipe hints. On a phone only the icons fit beside the 300px card;
+            the words would run under it ("DOCT…", "…RECT"). */}
         <div style={{ position: "absolute", inset: 0, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 8px", pointerEvents: "none" }}>
           <div style={{ opacity: dx < -30 ? 1 : 0.25, transition: "opacity 0.15s", textAlign: "center", color: T.warm }}>
-            <div style={{ display: "flex", justifyContent: "center" }}><GameIcon name="scissors" size={26} /></div><div className="geo-micro" style={{ fontSize: 11, marginTop: 4 }}>Doctored</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><GameIcon name="scissors" size={26} /></div><div className="geo-micro hidden min-[480px]:block" style={{ fontSize: 11, marginTop: 4 }}>Doctored</div>
           </div>
           <div style={{ opacity: dx > 30 ? 1 : 0.25, transition: "opacity 0.15s", textAlign: "center", color: ACCENT.learn }}>
-            <div style={{ display: "flex", justifyContent: "center" }}><LineIcon name="check" size={26} /></div><div className="geo-micro" style={{ fontSize: 11, marginTop: 4 }}>Correct</div>
+            <div style={{ display: "flex", justifyContent: "center" }}><LineIcon name="check" size={26} /></div><div className="geo-micro hidden min-[480px]:block" style={{ fontSize: 11, marginTop: 4 }}>Correct</div>
           </div>
         </div>
 

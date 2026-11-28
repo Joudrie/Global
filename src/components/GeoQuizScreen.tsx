@@ -201,8 +201,9 @@ export default function GeoQuizScreen({ onBack }: Props) {
 
         {/* Continent is hidden by default — only revealed if the player spends their hint */}
         {hintShownFor === idx ? (
+          // As tall as the placeholder below, so spending the hint moves nothing.
           <div style={{
-            padding: '4px 14px', borderRadius: 999,
+            height: 25, boxSizing: 'border-box', padding: '0 14px', borderRadius: 999,
             background: tint(T.gold, 0.13), border: `1px solid ${tint(T.gold, 0.4)}`,
             fontSize: 11, color: T.gold, fontWeight: 600,
             display: 'flex', alignItems: 'center', gap: 5,
@@ -265,7 +266,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
                   aria-label="Name the country"
                   placeholder="Name the country…"
                   className="w-full px-4 py-3.5 rounded-2xl outline-none font-semibold"
-                  style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
+                  style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 16 }} />
                 {typeHint && !maybe.length && (
                   <p role="status" className="text-xs mt-1.5" style={{ color: T.muted }}>
                     {matches.length ? "Pick one from the list" : "No country matches that"}

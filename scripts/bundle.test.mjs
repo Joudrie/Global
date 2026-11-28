@@ -139,3 +139,19 @@ test('every self-hosted SVG declares the SVG namespace, or browsers will not dra
   assert.ok(files.length > 1000, 'found the hosted flags')
   assert.deepEqual(bad, [], 'add xmlns="http://www.w3.org/2000/svg" to the <svg> tag')
 })
+
+test('text fields are at least 16px, so iPhone Safari does not zoom the page in on focus', () => {
+  const dir = path.join(ROOT, 'src/components')
+  const small = []
+  for (const f of fs.readdirSync(dir).filter(f => f.endsWith('.tsx') && !/FlagStudio|FlagDiagnostics/.test(f))) {
+    const s = fs.readFileSync(path.join(dir, f), 'utf8')
+    for (const m of s.matchAll(/<(input|textarea)\b/g)) {
+      const el = s.slice(m.index, s.indexOf('/>', m.index) + 2)
+      if (/type="(range|checkbox|radio|file|hidden|color)"/.test(el) || /className="[^"]*pf-input/.test(el)) continue
+      const px = el.match(/fontSize: ?([0-9.]+)/)
+      const tw = /\btext-(xs|sm)\b/.test(el)
+      if ((px && +px[1] < 16) || (!px && tw)) small.push(`${f}:${s.slice(0, m.index).split('\n').length}`)
+    }
+  }
+  assert.deepEqual(small, [])
+})

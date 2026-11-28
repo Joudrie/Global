@@ -84,7 +84,10 @@ test('the atlas: Europe A–Z, then the U.S. cities under North America', () => 
   const us = CITY_ATLAS[1].countries.find(k => k.code === 'US')
   assert.equal(us?.cities.length, US_CITY_FLAGS.length, 'every U.S. city')
   assert.ok(CITY_ATLAS.every(c => c.countries.every(k => k.cities.length)), 'no empty continent or country')
-  for (const id of Object.keys(US_CITY_POPULATION)) assert.ok(US_CITY_FLAGS.some(c => c.id === id), `${id} isn't a U.S. city`)
+  // Every population belongs to a city in usCityFlags.ts (a city whose flag is
+  // gone from Commons, like Dallas, is in the source but not in US_CITY_FLAGS).
+  const ids = new Set([...fs.readFileSync(path.join(ROOT, 'src/data/usCityFlags.ts'), 'utf8').matchAll(/\bc\("([a-z0-9-]+)"/g)].map(m => m[1]))
+  for (const id of Object.keys(US_CITY_POPULATION)) assert.ok(ids.has(id), `${id} isn't a U.S. city`)
   assert.ok(Object.keys(US_CITY_POPULATION).length >= US_CITY_FLAGS.length - 5, 'most U.S. cities have a population')
 })
 

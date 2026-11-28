@@ -254,7 +254,9 @@ export default function AtlasMapViewer({ map, onReady }: { map: AtlasMap; onRead
   )
 
   return (
-    <div ref={vpRef} style={{ position: "relative", height: "100%", minHeight: 260, overflow: "hidden", touchAction: "none", cursor: "grab",
+    // minHeight matches the map box in AtlasScreen: any taller and the box
+    // clips the bottom of the map, the zoom-out button and the hint chip.
+    <div ref={vpRef} style={{ position: "relative", height: "100%", minHeight: 200, overflow: "hidden", touchAction: "none", cursor: "grab",
       background: "radial-gradient(#aebbad 1px, transparent 1px) 0 0 / 20px 20px #d9dfd4" }}>
       <canvas ref={canvasRef} tabIndex={0} aria-label="Historical world map. Drag to pan, pinch or scroll to zoom, or use plus, minus and the arrow keys."
         style={{ display: "block", width: "100%", height: "100%", outlineOffset: -3 }} />

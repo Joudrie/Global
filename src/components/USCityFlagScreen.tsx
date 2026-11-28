@@ -10,15 +10,28 @@ interface Props { onBack: () => void }
 const ROUNDS = 8
 const shuffle = <X,>(a: X[]): X[] => [...a].sort(() => Math.random() - 0.5)
 
+// These cities' files are another place's flag: Dallas shows Dallas County's,
+// Oklahoma City Oklahoma's and Jersey City New Jersey's (src/data/localFlags.ts;
+// scripts/flags/generate.mjs meant to veto those repairs, but its keys have
+// spaces and never matched). Left out until they have their own flags.
+const WRONG_FLAG = new Set(["dallas", "oklahoma-city", "jersey-city"])
+const CITIES = US_CITY_FLAGS.filter(c => !WRONG_FLAG.has(c.id))
+
 interface Round { target: CityFlag; choices: CityFlag[] }
 
+// The choices show only the city's name, and three cities are called
+// Springfield (IL, MO, MA): never put two of the same name in one round.
 function buildRound(target: CityFlag): Round {
-  const others = shuffle(US_CITY_FLAGS.filter(c => c.id !== target.id)).slice(0, 3)
+  const others: CityFlag[] = []
+  for (const c of shuffle(CITIES)) {
+    if (others.length === 3) break
+    if (c.name !== target.name && !others.some(o => o.name === c.name)) others.push(c)
+  }
   return { target, choices: shuffle([target, ...others]) }
 }
 
 function buildRounds(): Round[] {
-  return shuffle(US_CITY_FLAGS).slice(0, ROUNDS).map(buildRound)
+  return shuffle(CITIES).slice(0, ROUNDS).map(buildRound)
 }
 
 function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
@@ -46,8 +59,8 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
     if (failed) bad.add(failed)
     setBroken(bad)
     const used = new Set(rounds.map(r => r.target.id))
-    const pool = US_CITY_FLAGS.filter(c => !bad.has(c.id) && !used.has(c.id))
-    const fresh = pool.length ? pool : US_CITY_FLAGS.filter(c => c.id !== rounds[idx].target.id)
+    const pool = CITIES.filter(c => !bad.has(c.id) && !used.has(c.id))
+    const fresh = pool.length ? pool : CITIES.filter(c => c.id !== rounds[idx].target.id)
     const target = fresh[Math.floor(Math.random() * fresh.length)]
     setRounds(rs => rs.map((r, i) => (i === idx ? buildRound(target) : r)))
   }
@@ -101,13 +114,6 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             onLoad={() => setFails(0)} onError={onFlagError} />
         </div>
 
-        {answered && (
-          <div className="w-full max-w-sm" style={{ padding: "12px 14px", borderRadius: 12, background: T.surface, border: `1px solid ${T.line}` }}>
-            <div className="geo-display" style={{ fontWeight: 700, fontSize: 15, color: T.text }}>{round.target.name}, {round.target.state}</div>
-            <p style={{ color: T.muted, fontSize: 11.5, lineHeight: 1.5, marginTop: 4 }}>{round.target.note}</p>
-          </div>
-        )}
-
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 9, width: "100%", maxWidth: 360 }}>
           {round.choices.map(c => {
             const isAnswer = c.id === round.target.id
@@ -125,6 +131,14 @@ function USCityFlagGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
             )
           })}
         </div>
+
+        {/* Under the choices, so they stay put under the finger when it appears. */}
+        {answered && (
+          <div className="w-full max-w-sm" style={{ padding: "12px 14px", borderRadius: 12, background: T.surface, border: `1px solid ${T.line}` }}>
+            <div className="geo-display" style={{ fontWeight: 700, fontSize: 15, color: T.text }}>{round.target.name}, {round.target.state}</div>
+            <p style={{ color: T.muted, fontSize: 11.5, lineHeight: 1.5, marginTop: 4 }}>{round.target.note}</p>
+          </div>
+        )}
 
         {answered && (
           <PrimaryButton onClick={next} accent={ACCENT.play} style={{ marginTop: "auto", maxWidth: 360 }}>

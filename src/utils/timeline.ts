@@ -5,7 +5,8 @@ import type { HistoricalFlag } from "../data/codex"
 
 /** A country's flags oldest first, one per image, keeping the newest `max`. */
 export function timelineFlags(history: HistoricalFlag[], max = 5): HistoricalFlag[] {
-  const sorted = [...history].sort((a, b) =>
+  // An entry with no picture (Sudan's Makuria) can't be placed.
+  const sorted = history.filter(h => h.flagUrl).sort((a, b) =>
     a.fromYear - b.fromYear || (a.toYear ?? Infinity) - (b.toYear ?? Infinity))
   // Two entries with the same picture can't be told apart: keep the later one.
   const seen = new Set<string>()

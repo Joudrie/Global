@@ -706,7 +706,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   }
 
   const chips: { label: string; group: string | null }[] = [
-    { label: "All", group: null },
+    { label: "All", group: VIEW_ALL },
     { label: "Popular", group: POPULAR },
     ...categoryGroups.map(g => ({ label: g.group, group: g.group })),
   ]
@@ -735,7 +735,7 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 44, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}` }}>
         <SearchIcon size={16} color={T.dim} strokeWidth={1.6} />
         <input value={q} onChange={e => { setQ(e.target.value); if (e.target.value) setActiveGroup(null) }} placeholder="Find a game…" aria-label="Search games"
-          style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 14 }} />
+          style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 16 }} />
         {q && (
           <button onClick={() => setQ("")} aria-label="Clear search"
             style={{ width: 44, height: 44, marginRight: -12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
@@ -746,9 +746,9 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
       {/* Category chips — fast filter across the whole catalogue */}
       <div className="carto-rail" style={{ display: "flex", gap: 8, overflowX: "auto", margin: "-8px -16px 0", padding: "0 16px 2px" }}>
         {chips.map(c => {
-          const on = c.group === null ? activeGroup === null && !query : activeGroup === c.group
+          const on = !query && activeGroup === c.group
           return (
-            <button key={c.label} onClick={() => selectChip(c.group)} aria-pressed={on} className="geo-tap"
+            <button key={c.label} onClick={() => (c.group === VIEW_ALL ? (on ? selectChip(null) : viewAll()) : selectChip(c.group))} aria-pressed={on} className="geo-tap"
               style={{ flexShrink: 0, padding: "6px 13px", minHeight: 36, borderRadius: 999, whiteSpace: "nowrap",
                 fontFamily: FONT.display, fontWeight: 600, fontSize: 12.5,
                 background: on ? ACCENT.play : T.surface, color: on ? T.onAccent : T.muted,
@@ -775,9 +775,15 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
                 </button>
               </div>
             )}
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
-              {filtered.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent], { width: "100%", minWidth: 0 }))}
-            </div>
+            {activeGroup === VIEW_ALL && !query ? (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(4, minmax(0, 1fr))", gap: 8 }}>
+                {filtered.map(e => <MiniTile key={e.id} e={e} accent={e.sandbox ? T.muted : ACCENT[e.accent]} onClick={() => launch(e)} />)}
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 10 }}>
+                {filtered.map(e => tile(e, e.sandbox ? T.muted : ACCENT[e.accent], { width: "100%", minWidth: 0 }))}
+              </div>
+            )}
           </div>
         ) : (
           <div style={{ padding: 18, borderRadius: 12, border: `1px dashed ${T.line}`, textAlign: "center", color: T.dim, fontSize: 12 }}>
@@ -906,6 +912,22 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
       </>
       )}
     </div>
+  )
+}
+
+/* ── The All page's tile: a small square of the game's poster with its name
+   under it, four to a row, like a phone's app grid. ────────────────────── */
+function MiniTile({ e, accent, onClick }: { e: Entry; accent: string; onClick: () => void }) {
+  return (
+    <button onClick={onClick} className="geo-tap" aria-label={`${e.title}: ${e.subtitle}`}
+      style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "stretch", gap: 5, padding: 0, background: "transparent", border: "none", textAlign: "center", cursor: "pointer" }}>
+      <span style={{ position: "relative", display: "block", width: "100%", aspectRatio: "1 / 1", borderRadius: 14, overflow: "hidden",
+        border: `1px solid ${T.line}`, background: tint(accent, 0.08) }}>
+        <GamePoster id={e.id} accent={accent} />
+      </span>
+      <span className="geo-display" style={{ color: T.text, fontWeight: 600, fontSize: 11, lineHeight: 1.15,
+        display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", overflowWrap: "anywhere" }}>{e.title}</span>
+    </button>
   )
 }
 

@@ -30,10 +30,12 @@ function buildCapitalQuiz(count = 10): CapQ[] {
     const cities = shuffle((CITIES[target.code] ?? []).filter(c => c !== target.capital))
     for (const c of cities.slice(0, 2)) if (!distractors.includes(c)) distractors.push(c)
     // Fill the rest with other countries' capitals (prefer same region).
-    const otherCaps = shuffle([
-      ...CAPITALS.filter(c => c.region === target.region && c.code !== target.code),
-      ...CAPITALS.filter(c => c.region !== target.region && c.code !== target.code),
-    ])
+    // Shuffle each group on its own: shuffling them together lost the
+    // preference, so Estonia's choices came from São Tomé and Amman.
+    const otherCaps = [
+      ...shuffle(CAPITALS.filter(c => c.region === target.region && c.code !== target.code)),
+      ...shuffle(CAPITALS.filter(c => c.region !== target.region && c.code !== target.code)),
+    ]
     for (const c of otherCaps) {
       if (distractors.length >= 3) break
       if (c.capital !== target.capital && !distractors.includes(c.capital)) distractors.push(c.capital)

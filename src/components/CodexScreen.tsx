@@ -193,7 +193,7 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
             value={search}
             onChange={e => setSearch(e.target.value)}
             onFocus={() => quietly(ALL_FLAGS.load())}
-            className="flex-1 bg-transparent text-sm outline-none"
+            className="flex-1 bg-transparent text-base outline-none"
             style={{ color: T.text }}
           />
           {search && (

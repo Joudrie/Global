@@ -72,7 +72,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <div className="min-h-screen flex flex-col" style={{ background: T.bg, color: T.text }}>
-      <ScreenHeader title="Flag Outline" subtitle={status === "play" ? `${MAX - wrong} guesses left` : answer.name} onBack={onBack}
+      <ScreenHeader title="Flag Outline" subtitle={status === "play" ? `${MAX - wrong} ${MAX - wrong === 1 ? "guess" : "guesses"} left` : answer.name} onBack={onBack}
         right={<HeaderStat label="Solved" accent={ACC}>{wins}</HeaderStat>} />
 
       <div className="flex-1 flex flex-col items-center px-5 pt-2 pb-10 gap-4">
@@ -80,9 +80,10 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
           Only the flag's <span style={{ color: ACC, fontWeight: 700 }}>outlines</span> show. Guess the country — each miss reveals more colour.
         </p>
 
-        {/* The flag: edge-filtered outline layer + a colour layer that fades in */}
-        <div style={{ width: "100%", maxWidth: 340, aspectRatio: "3 / 2", borderRadius: 10, overflow: "hidden", border: `1px solid ${T.line}`, boxShadow: `0 8px 24px -12px ${tint(T.text, 0.5)}`, background: "#0b0b10" }}>
-          <svg viewBox="0 0 300 200" width="100%" height="100%" style={{ display: "block" }}>
+        {/* The flag: edge-filtered outline layer + a colour layer that fades in.
+            4:3, the flag artwork's own shape, so it fills the frame with no bars. */}
+        <div style={{ width: "100%", maxWidth: 340, aspectRatio: "4 / 3", borderRadius: 10, overflow: "hidden", border: `1px solid ${T.line}`, boxShadow: `0 8px 24px -12px ${tint(T.text, 0.5)}`, background: "#0b0b10" }}>
+          <svg viewBox="0 0 320 240" width="100%" height="100%" style={{ display: "block" }}>
             <defs>
               <filter id={fid} x="-2%" y="-2%" width="104%" height="104%" colorInterpolationFilters="sRGB">
                 <feColorMatrix type="saturate" values="0" result="g" />
@@ -93,9 +94,9 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
               </filter>
             </defs>
             {status === "play" && (
-              <image href={src} x="0" y="0" width="300" height="200" preserveAspectRatio="xMidYMid slice" filter={`url(#${fid})`} />
+              <image href={src} x="0" y="0" width="320" height="240" preserveAspectRatio="xMidYMid slice" filter={`url(#${fid})`} />
             )}
-            <image href={src} x="0" y="0" width="300" height="200" preserveAspectRatio="xMidYMid slice" opacity={reveal} />
+            <image href={src} x="0" y="0" width="320" height="240" preserveAspectRatio="xMidYMid slice" opacity={reveal} />
           </svg>
         </div>
 
@@ -107,7 +108,7 @@ export default function FlagOutlineScreen({ onBack }: { onBack: () => void }) {
                 onChange={e => { setInput(e.target.value); setNote(""); setMaybe([]) }}
                 onKeyDown={e => { if (e.key === "Enter") submit() }}
                 placeholder="Type a country…" aria-label="Guess the country"
-                style={{ flex: 1, minWidth: 0, padding: "0 14px", height: 46, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 15, outline: "none" }} />
+                style={{ flex: 1, minWidth: 0, padding: "0 14px", height: 46, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, color: T.text, fontSize: 16, outline: "none" }} />
               <datalist id="flag-names">{names.map(n => <option key={n} value={n} />)}</datalist>
               <button onClick={submit} disabled={!input.trim()}
                 className="px-5 rounded-xl font-bold transition-all active:scale-95"

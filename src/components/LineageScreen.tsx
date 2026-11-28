@@ -8,7 +8,7 @@ import { FLAGS } from "../data/flags"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { HeaderStat, ResultCard, ResultHeader, ResultDots, PrimaryButton, SecondaryButton } from "./gameUi"
-import { ROUNDS, TYPE_MULTIPLIER, LINEAGE_FIELD, judgeLineage, loadBest, loadMode, recordScore, roundPoints, roundWorth, saveMode } from "../utils/lineage"
+import { ROUNDS, TYPE_MULTIPLIER, LINEAGE_FIELD, judgeLineage, lineageChain, loadBest, loadMode, recordScore, roundPoints, roundWorth, saveMode } from "../utils/lineage"
 import type { LineageMode } from "../utils/lineage"
 
 interface Props { onBack: () => void }
@@ -18,21 +18,19 @@ const field = LINEAGE_FIELD
 function shuffle<X>(a: X[]): X[] { return [...a].sort(() => Math.random() - 0.5) }
 const nameOf = (code: string) => FLAGS.find(f => f.code === code)?.name ?? code
 
-// Countries with a deep enough flag history to form a lineage.
+// Countries with a deep enough flag history to form a lineage. The chain
+// reads oldest → … → modern, capped to keep the board readable (lineageChain).
 const ELIGIBLE = Object.entries(CODEX)
-  .filter(([code, e]) => e.flagHistory.length >= 3 && FLAGS.some(f => f.code === code))
-  .map(([code, e]) => ({ code, name: nameOf(code), history: e.flagHistory }))
+  .filter(([code]) => FLAGS.some(f => f.code === code))
+  .map(([code, e]) => ({ code, name: nameOf(code), timeline: lineageChain(e.flagHistory) }))
+  .filter(e => e.timeline.length >= 3)
 
 interface Round { code: string; name: string; timeline: HistoricalFlag[]; choices: string[] }
 
 function buildRounds(): Round[] {
   return shuffle(ELIGIBLE).slice(0, ROUNDS).map(c => {
-    // Stored newest-first → reverse to oldest-first so the chain reads
-    // oldest → … → modern. Cap to keep the board readable.
-    const full = [...c.history].reverse()
-    const timeline = full.length > 6 ? [full[0], ...full.slice(-5)] : full
     const others = shuffle(ELIGIBLE.filter(e => e.code !== c.code)).slice(0, 3).map(e => e.name)
-    return { code: c.code, name: c.name, timeline, choices: shuffle([c.name, ...others]) }
+    return { code: c.code, name: c.name, timeline: c.timeline, choices: shuffle([c.name, ...others]) }
   })
 }
 

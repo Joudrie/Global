@@ -211,7 +211,8 @@ export default function GeoPaintScreen({ onBack }: Props) {
             <div className="flex-1">
               <div className="text-xs font-semibold mb-1.5 text-center" style={{ color: T.muted }}>The real flag</div>
               <div style={{ aspectRatio: "3 / 2", borderRadius: 10, overflow: "hidden", border: `1px solid ${T.line}`, background: T.surfaceHi }}>
-                <FlagImage code={puzzle.code} style={{ width: "100%", height: "100%", objectFit: "contain", display: "block" }} />
+                {/* cover, like "Your paint" beside it: the 4:3 artwork in a 3:2 frame would leave bars */}
+                <FlagImage code={puzzle.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
               </div>
             </div>
           </div>

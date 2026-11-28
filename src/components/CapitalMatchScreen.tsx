@@ -89,7 +89,10 @@ function CapitalMatchGame({ onBack, onReplay }: Props & { onReplay: () => void }
     <div className="min-h-screen flex flex-col" style={{ background: T.bg }}>
       <ScreenHeader title="Capital Match" subtitle="Tap a flag and its capital city" onBack={onBack}
         right={<div style={{ display: "flex", gap: 6 }}>
-          {mistakes > 0 && <HeaderStat label="Mistakes" accent={T.danger}>{mistakes}</HeaderStat>}
+          {/* Space kept from the start, so the first mistake doesn't push the board down. */}
+          <span aria-hidden={mistakes === 0 || undefined} style={{ display: "inline-flex", visibility: mistakes > 0 ? "visible" : "hidden" }}>
+            <HeaderStat label="Mistakes" accent={T.danger}>{mistakes}</HeaderStat>
+          </span>
           <HeaderStat accent={ACCENT.learn}>{idx + 1} / {ROUNDS}</HeaderStat>
         </div>} />
 

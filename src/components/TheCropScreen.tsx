@@ -34,9 +34,10 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
   // 800ms reveal delay (phase is still "playing" then).
   const locked = useRef(false)
 
-  const scaleIdx = Math.min(wrongGuesses, SCALES.length - 1)
-  // On the reveal, zoom all the way out to 1× so the whole flag is visible.
-  const scale    = phase === "result" ? 1 : SCALES[scaleIdx]
+  // On the reveal, zoom all the way out to 1× so the whole flag is visible
+  // (and the zoom bar says so).
+  const scaleIdx = phase === "result" ? SCALES.length - 1 : Math.min(wrongGuesses, SCALES.length - 1)
+  const scale    = SCALES[scaleIdx]
 
   const matches = useMemo(() => {
     return matchNames(FLAGS.filter(f => !guessedCodes.current.has(f.code)), input, 6)
@@ -162,7 +163,7 @@ function TheCropScreenGame({ onBack , onReplay }: Props & { onReplay: () => void
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
               style={{
                 background: T.surface, border: `1.5px solid ${T.line}`,
-                color: T.text, fontSize: 15,
+                color: T.text, fontSize: 16,
               }}
             />
             {showDrop && matches.length > 0 && (
