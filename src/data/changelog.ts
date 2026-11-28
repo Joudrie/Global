@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "Flag Identifier searches 3,230 flags",
+    items: [
+      "Flag Identifier now covers most of the Codex: 3,230 flags, up from 1,192. New: regions of about 80 more countries (Kenya's counties, Thailand's provinces, Colombia, Nigeria, Ukraine, Poland and more), nearly 800 historical flags, about 600 peoples' flags, overseas territories like Gibraltar and the Falklands, and more organisations.",
+      "It now says how much of the Codex it searches, so the count is never confused with the 4,500+ total.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "New game: Spoken Here",
     items: [
       "Each round is a pie chart of one country's languages from its latest census or survey, with the year it's from (\u201cMother tongue, 2021 census\u201d, and \u201cFrom 2001, 25 years ago\u201d when the figures are old). Name the country from four choices, or type it for double points.",

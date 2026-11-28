@@ -36,49 +36,51 @@ The identifier searches more than country flags now, and asks (optionally)
 what kind of flag it was: picking a kind puts those flags first and still lists
 every other flag that fits below them. Each flag is described in the same words
 as the countries, by eye against the image the site shows
-(`scripts/flag-identifier/more.mjs`; countries are in `checked.mjs`), then
-`build.mjs` writes `src/data/flagIdentify.ts`. To add a category: make contact
-sheets (`sheets.mjs <dir> <kind>`, or look at the source images), write one line
-per flag in `more.mjs`, rebuild, and run `npm test`.
+(`scripts/flag-identifier/more.mjs` and `codex.mjs`; countries are in
+`checked.mjs`), then `build.mjs` writes `src/data/flagIdentify.ts`. To add a
+category: draft it with `measure.mjs` (or make contact sheets with
+`sheets.mjs <dir> <kind>`), check and correct every line by eye, add the
+lines, rebuild, and run `npm test`.
 
-Covered (1,192 flags, Nov 2026):
+Covered (3,230 flags, Nov 2026), 3,882 of the 4,573 entries on the Codex's
+Browse-all wall (the rest are mostly the same flag under another name, or
+left out below):
 - Countries: all 197.
-- States and regions (429): US states, DC and territories (56), Canada (13),
-  Australia (8), Germany (16), Austria (9), Spain (19), Switzerland (26),
-  Italy (20), France (18), the Netherlands (12), Belgium (11 plus Flanders and
-  Wallonia), Brazil (27), Japan's 47 prefectures, Argentina (24), Russia's
-  federal subjects (83), the UK's 22 council and county flags, 5 Mexican
-  states, England, Scotland, Wales, Cornwall, Greenland, the Faroes, Åland,
-  Norfolk Island, Kurdistan Region, Zanzibar, Republika Srpska, Antarctica.
+- States and regions (1,295): first-level divisions of 100+ countries from
+  `subdivisions.ts` (every US state, Canada, Australia, Germany, Spain, Japan,
+  Russia, Thailand, Kenya, Romania, Indonesia, Peru, Ukraine, Ireland…), UK
+  councils, dependent territories (Gibraltar, Bermuda, the Falklands…).
 - US cities: 110 of the 124 in `usCityFlags.ts`.
-- Historical (206): 198 from `historicalFlags.ts` (the Soviet Union and all 15
-  SSRs, Yugoslavia, East Germany, Prussia, Austria-Hungary, the Ottoman
-  Empire, the Qing, Manchukuo, Rhodesia, the Confederacy…) plus 8 identity
-  flags of former states (the Ulster Banner, colonial Hong Kong, Biafra…). Several share a design with a flag still flown (Poland and the Duchy
-  of Warsaw, Turkey and the Ottoman Empire): both are listed, the country first.
-- Pride and identity (100): all 44 pride flags, and most peoples, indigenous
-  nations and religions.
-- Movements (127): separatist and regional flags (all but a handful in
-  `identityFlags.ts`), causes, and 44 micronations.
-- Organizations (23): the EU, UN, NATO, Olympics, Red Cross, OIC…
-- Details now include a fleur-de-lis, a key, an anchor, a hand, a heart and a
-  checkerboard.
+- Historical (780): `historicalFlags.ts`, the extinct-states gallery, the
+  former flags in every country's history in the Codex, and the UK nations'
+  old banners.
+- Pride, peoples and identity (679): all 44 pride flags and about 600
+  peoples' flags from the cultural-flags gallery (`ethnicFlags.ts`).
+- Movements (128) and organizations (41).
 
-Left to do, most looked-for first:
-- The other ~280 entries in `historicalFlags.ts` (German and Italian states,
-  Indian princely states, Indonesian sultanates, colonial flags…) and the
-  extinct-states gallery (`extinctStates.ts`, mostly the same states).
-- The rest of `subdivisions.ts`: Thailand, Kenya, Romania, Indonesia, Moldova,
-  Colombia, Nigeria and others (about 900 flags), most a provincial seal.
-- Mexico's other 27 states: each is the state's coat of arms on white, so the
-  words can't tell them apart; they need a way to describe the arms first.
-- Left out on purpose: logos with no field or a collage (Antifa, Extinction
-  Rebellion, the Happy Human, the Eurasian Economic Union, Pan-Celtic, some
-  micronations), the Belarusian People's Republic (its image is today's
-  Belarus flag), and US cities that are a logo or words (Sacramento, Irvine,
-  Fort Collins…), too busy (Tampa, Peoria), Yonkers (image doesn't load),
-  Oklahoma City and Jersey City (their image is the state's flag).
-- No words yet for rays from the centre, a tree versus a flower, or a ship.
+How the Codex batches were made (`scripts/flag-identifier/codex.mjs`):
+`measure.mjs` drafts each flag from its image (colours by share of the area,
+under 6% marked small; stripes from clean rows and columns; "plain" from one
+colour on most of the flag), draws contact sheets with the draft under each
+flag, and every flag was then checked by eye and corrected before its line
+went in. Crosses, discs, triangles and all symbols are added by eye.
+
+Left to do:
+- World city flags (`src/data/cityFlags.ts`, on another branch): add a
+  `wcity:` source to `build.mjs` (it prints a reminder once the file is
+  there) and describe them in `codex.mjs` the same way.
+- Left out, listed in `codex.mjs` by name (about 390 flags): a seal or coat
+  of arms on one plain colour that can't be told from three or more others
+  (52, mostly Japan, Peru, Bulgaria, Montenegro), most Romanian, Thai, Korean,
+  Estonian-style and Albanian seal-on-white flags, logo or text flags (Korean
+  provinces, Danish regions, organisations' logos, Liechtenstein's ribbon
+  flags), and maritime signal flags. They need words for what's inside a
+  seal before they can be told apart.
+- Mexico's 27 coat-of-arms-on-white state flags, for the same reason.
+- Peoples' flags that are a country's or region's own flag under the people's
+  name (about 210, like "Portuguese people"): searchable as that flag already.
+- No words yet for rays from the centre, a tree versus a flower, a ship, or
+  the order of stripes (so tricolours in the same colours tie).
 
 ## Notes / smaller follow-ups
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
