@@ -7,7 +7,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     date: "2026-11-28",
     title: "A tidier Play tab",
     items: [
-      "Play is shorter: the Trending carousel, your Favourites, Creator's Picks, then a big View all games button, then the categories. Jump back in, Recommended for you, Top games and Discover something new are gone (Surprise me still picks a random game).",
+      "Play is shorter: an All button beside the search box (the row of category buttons is gone), then the Trending carousel, your Favourites, Creator's Picks, a big View all games button, then the categories. Jump back in, Recommended for you, Top games and Discover something new are gone (Surprise me still picks a random game).",
       "The Daily Rituals shelf is split up: Connections is in Spot It, Fun Fact and World Cup 2026 in Learn the World, and Flag Bracket and Tier List Maker in One Glance.",
     ],
   },

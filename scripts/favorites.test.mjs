@@ -193,8 +193,10 @@ test("Play: Carousel, Favourites, Creator's Picks, View all, then the categories
   assert.equal(where('worldcup'), 'Learn the World'); assert.equal(where('flagbracket'), 'One Glance'); assert.equal(where('tierlist'), 'One Glance')
 })
 
-test('Play: the All chip opens the A–Z page, four to a row', () => {
+test('Play: an All button left of the search bar opens the A–Z page, four to a row; no chip row', () => {
   const tabs = fs.readFileSync(path.join(ROOT, 'src/components/MainTabs.tsx'), 'utf8')
-  assert.match(tabs, /\{ label: "All", group: VIEW_ALL \}/)
+  const all = tabs.indexOf('aria-label="All games, A to Z"'), search = tabs.indexOf('aria-label="Search games"')
+  assert.ok(all > 0 && search > all, 'All comes before the search box')
+  assert.doesNotMatch(tabs, /Category chips|label: "Popular"/)
   assert.match(tabs, /gridTemplateColumns: "repeat\(4, minmax\(0, 1fr\)\)"/)
 })
