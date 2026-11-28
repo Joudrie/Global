@@ -28,14 +28,14 @@ function checkCredit(c, where) {
   if (c.licenceUrl) assert.match(c.licenceUrl, /^https?:\/\//, `${where}: licence link`)
 }
 
-test('the scope is A–M for now', () => {
-  assert.equal(ARMS_SCOPE, 'A–M')
-  assert.ok(ARMS_SCOPE_RE.test('Albania') && ARMS_SCOPE_RE.test('Mozambique') && !ARMS_SCOPE_RE.test('Namibia') && !ARMS_SCOPE_RE.test('Zimbabwe'))
+test('the scope is every country', () => {
+  assert.equal(ARMS_SCOPE, 'A–Z')
+  assert.ok(FLAGS.every(f => ARMS_SCOPE_RE.test(f.name)))
 })
 
 test('every country in scope has arms with a free, credited image on disk, or a reason', () => {
   const inScope = FLAGS.filter(f => ARMS_SCOPE_RE.test(f.name))
-  assert.ok(inScope.length > 100, 'A–M is over a hundred countries')
+  assert.equal(inScope.length, FLAGS.length, 'every country')
   const has = new Map(COATS_OF_ARMS.map(a => [a.code, a]))
   const skipped = new Map(ARMS_SKIPPED.map(s => [s.code, s.reason]))
   for (const f of inScope) {
@@ -48,7 +48,8 @@ test('every country in scope has arms with a free, credited image on disk, or a 
     assert.match(a.src, PNG, `${f.name}: src`)
     assert.match(a.thumb, PNG, `${f.name}: thumb`)
     assert.ok(onDisk(a.src) && onDisk(a.thumb), `${f.name}: image files missing`)
-    assert.match(a.name, /^[A-Z].* of /, `${f.name}: name "${a.name}"`)
+    // "Coat of arms of Albania"; a few emblems have names of their own ("Blue Sky with a White Sun").
+    assert.match(a.name, /^[A-Z][^()]{5,70}$/, `${f.name}: name "${a.name}"`)
     assert.ok(['arms', 'emblem', 'seal', 'crest'].includes(a.kind), `${f.name}: kind`)
     assert.ok(a.ratio > 0.2 && a.ratio < 5, `${f.name}: ratio`)
     if (a.adopted !== undefined) assert.ok(a.adopted >= 1000 && a.adopted <= new Date().getFullYear(), `${f.name}: adopted ${a.adopted}`)
@@ -58,11 +59,15 @@ test('every country in scope has arms with a free, credited image on disk, or a 
   assert.equal(new Set(COATS_OF_ARMS.map(a => a.code)).size, COATS_OF_ARMS.length, 'one entry per country')
 })
 
-test('nothing past M yet, and every entry is a country in the Codex', () => {
-  for (const x of [...COATS_OF_ARMS, ...ARMS_SKIPPED]) {
-    const f = byCode.get(x.code)
-    assert.ok(f, `${x.code}: not in flags.ts`)
-    assert.ok(ARMS_SCOPE_RE.test(f.name), `${f.name}: out of scope (N–Z comes later)`)
+test('every entry is a country in the Codex', () => {
+  for (const x of [...COATS_OF_ARMS, ...ARMS_SKIPPED]) assert.ok(byCode.get(x.code), `${x.code}: not in flags.ts`)
+})
+
+test('no emblems of fascist or Nazi-era regimes', () => {
+  const FASCIST = /Nazi|Arrow Cross|Usta[šs]e|Independent State of Croatia|Italian Social Republic|fasces|Francoist|Nedi[ćc]|Quisling|Vichy|Slovak State|Protectorate of Bohemia/i
+  for (const a of COATS_OF_ARMS) for (const x of a.former) {
+    assert.doesNotMatch(x.name, FASCIST, `${a.code} ${x.name}`)
+    assert.doesNotMatch(x.commons, /Hungary_\(1945\)|Croatia_\(1941/, `${a.code} ${x.commons}`)
   }
 })
 
@@ -140,6 +145,24 @@ test('the Codex loads the arms only when the section opens', () => {
   }
   // The section is hidden while searching, like the other themed sections.
   assert.match(screen, /\{!isSearching && <ArmsCodexSection \/>\}/)
+})
+
+test('the Coats of Arms flashcard deck: every country with arms, by region, one line on the back', async () => {
+  const { armsDeck, DECK_COUNTS, DECK_REGIONS } = await src('data/codexDecks.ts')
+  const groups = armsDeck(COATS_OF_ARMS, FLAGS)
+  const cards = groups.flatMap(g => g.cards)
+  assert.equal(cards.length, COATS_OF_ARMS.length)
+  assert.equal(DECK_COUNTS.arms, cards.length)
+  assert.ok(DECK_REGIONS.includes('arms'))
+  assert.deepEqual(groups.map(g => g.label), ['Europe', 'Africa', 'Asia', 'Americas', 'Middle East', 'Oceania'])
+  for (const c of cards) {
+    const a = COATS_OF_ARMS.find(x => `arms-${x.code}` === c.key)
+    assert.equal(c.flagUrl, a.src)
+    assert.equal(c.subtitle, a.name)
+    assert.equal(c.name, byCode.get(a.code).name)
+    if (c.note && !a.note) assert.ok(a.description.startsWith(c.note) && c.note.length >= 20, `${c.key}: the description's first sentence`)
+  }
+  assert.equal(cards.find(c => c.key === 'arms-AF').pale, true)
 })
 
 test('the test site rebases /arms/ under its sub-path', () => {

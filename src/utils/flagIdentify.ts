@@ -32,7 +32,8 @@ export type ColourId =
   | "white" | "grey" | "black"
 export type DetailId =
   | "star" | "crescent" | "sun" | "cross" | "emblem" | "crown" | "animal" | "plant" | "weapon"
-  | "building" | "person" | "writing" | "map" | "circle" | "triangle" | "manystripes"
+  | "building" | "person" | "writing" | "map" | "fleur" | "key" | "anchor" | "hand" | "heart" | "checkers"
+  | "circle" | "triangle" | "manystripes"
 /** A colour, or two names people use for the same colour ("blue|lightblue"). */
 export type ColourSpec = ColourId | `${ColourId}|${ColourId}`
 
@@ -40,14 +41,14 @@ export type ColourSpec = ColourId | `${ColourId}|${ColourId}`
  *  flag most people mean first). A flag has one kind, and may also count as
  *  others (Scotland is a part of the UK that people call a country). */
 export type IdentifyCategory = "country" | "region" | "city" | "identity" | "movement" | "organization" | "historical"
-export const IDENTIFY_CATEGORIES: { id: IdentifyCategory; label: string; plural: string }[] = [
-  { id: "country", label: "Country", plural: "country flags" },
-  { id: "region", label: "State, province or region", plural: "state, province and region flags" },
-  { id: "city", label: "City", plural: "city flags" },
-  { id: "identity", label: "Pride & identity", plural: "pride and identity flags" },
-  { id: "movement", label: "Separatist or movement", plural: "separatist and movement flags" },
-  { id: "organization", label: "Organization", plural: "organization flags" },
-  { id: "historical", label: "Historical", plural: "historical flags" },
+export const IDENTIFY_CATEGORIES: { id: IdentifyCategory; label: string; one: string; plural: string }[] = [
+  { id: "country", label: "Country", one: "country flag", plural: "country flags" },
+  { id: "region", label: "State, province or region", one: "state, province or region flag", plural: "state, province and region flags" },
+  { id: "city", label: "City", one: "city flag", plural: "city flags" },
+  { id: "identity", label: "Pride, peoples & identity", one: "pride, people or identity flag", plural: "pride, people and identity flags" },
+  { id: "movement", label: "Separatist or movement", one: "separatist or movement flag", plural: "separatist and movement flags" },
+  { id: "organization", label: "Organization", one: "organization flag", plural: "organization flags" },
+  { id: "historical", label: "Historical", one: "historical flag", plural: "historical flags" },
 ]
 
 export interface IdentifyEntry {
@@ -121,6 +122,12 @@ export const DETAILS: { id: DetailId; label: string; miss: string; has: string }
   { id: "person", label: "Person or face", miss: "no person", has: "a person" },
   { id: "writing", label: "Writing", miss: "no writing", has: "writing" },
   { id: "map", label: "Map", miss: "no map", has: "a map" },
+  { id: "fleur", label: "Fleur-de-lis", miss: "no fleur-de-lis", has: "a fleur-de-lis" },
+  { id: "key", label: "Key", miss: "no key", has: "a key" },
+  { id: "anchor", label: "Anchor", miss: "no anchor", has: "an anchor" },
+  { id: "hand", label: "Hand", miss: "no hand", has: "a hand" },
+  { id: "heart", label: "Heart", miss: "no heart", has: "a heart" },
+  { id: "checkers", label: "Checkerboard", miss: "no checkerboard", has: "a checkerboard" },
   { id: "circle", label: "Circle or disc", miss: "no circle", has: "a circle" },
   { id: "triangle", label: "Triangle", miss: "no triangle", has: "a triangle" },
   { id: "manystripes", label: "Many stripes (5+)", miss: "fewer than five stripes", has: "many stripes" },
