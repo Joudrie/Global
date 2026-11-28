@@ -77,10 +77,25 @@ function FlagCanvas({ puzzle, placed, phase, over, onSlotClick }: {
     }
   }
 
+  // On a light disc, so a green tick still shows on a green band.
   const mark = (slotId: string, size = 18) => {
     if (phase !== 'result') return null
     const ok = slotIsCorrect(puzzle, placed, slotId)
-    return <span style={{ fontSize: size, fontWeight: 800, color: ok ? T.green : T.danger }}>{ok ? '✓' : '✗'}</span>
+    return <span style={{
+      width: size + 10, height: size + 10, borderRadius: 999, background: T.surface, boxShadow: `0 1px 3px ${tint(T.text, 0.3)}`,
+      display: 'inline-flex', alignItems: 'center', justifyContent: 'center', lineHeight: 1,
+      fontSize: size, fontWeight: 800, color: ok ? T.green : T.danger,
+    }}>{ok ? '✓' : '✗'}</span>
+  }
+  // Horizontal bands are named inside each band (a row of names under stacked bands reads left to right).
+  const bandLabel = (slotId: string) => {
+    if (phase !== 'playing') return null
+    const piece = getPiece(slotId)
+    return <span aria-hidden style={{
+      position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', pointerEvents: 'none',
+      fontSize: 10, fontWeight: piece ? 700 : 400,
+      color: piece ? (isLight(piece.color) ? 'rgba(0,0,0,0.6)' : 'rgba(255,255,255,0.92)') : T.dim,
+    }}>{piece ? piece.label : slotName(slotId)}</span>
   }
   const centredMark = (slotId: string) => phase === 'result'
     ? <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>{mark(slotId)}</span>
@@ -106,6 +121,7 @@ function FlagCanvas({ puzzle, placed, phase, over, onSlotClick }: {
         {puzzle.slots.map(s => (
           <div key={s} {...slotProps(s)} style={{ ...slotStyle(s), flex: 1, width: '100%' }} onClick={() => onSlotClick(s)}>
             {centredMark(s)}
+            {bandLabel(s)}
           </div>
         ))}
       </div>
@@ -357,8 +373,8 @@ export default function BuildFlagScreen({ onBack }: Props) {
         {/* Flag canvas */}
         <FlagCanvas puzzle={puzzle} placed={placed} phase="playing" over={over} onSlotClick={handleSlotClick} />
 
-        {/* Slot labels */}
-        <div className="flex justify-center gap-1" style={{ width: FLAG_W, marginTop: -12 }}>
+        {/* Slot labels (horizontal bands carry theirs inside the band) */}
+        {!['h2', 'h3', 'h4'].includes(puzzle.layout) && <div className="flex justify-center gap-1" style={{ width: FLAG_W, marginTop: -12 }}>
           {puzzle.slots.map(s => {
             const piece = puzzle.pieces.find(p => p.id === placed[s])
             return (
@@ -368,7 +384,7 @@ export default function BuildFlagScreen({ onBack }: Props) {
               </div>
             )
           })}
-        </div>
+        </div>}
 
         {/* Palette: every colour once, and it never runs out */}
         <div>

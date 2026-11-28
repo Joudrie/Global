@@ -93,11 +93,15 @@ export function matchNames<X extends Named>(list: X[], typed: string, limit = 6)
 }
 
 // What Enter should submit: the option whose name is exactly what was typed,
-// so "Niger" submits Niger even though "Nigeria" also matches; otherwise only
-// a single unambiguous match.
+// so "Niger" submits Niger even though "Nigeria" also matches; then the one
+// whose code it is ("bh" is Bahrain, though Bhutan also matches); otherwise
+// only a single unambiguous match.
 export function pickOnEnter<X extends Named>(matches: X[], typed: string): X | undefined {
-  if (!normName(typed)) return undefined
-  return matches.find(m => isExactName(m, typed)) ?? (matches.length === 1 ? matches[0] : undefined)
+  const q = normName(typed)
+  if (!q) return undefined
+  return matches.find(m => isExactName(m, typed))
+    ?? matches.find(m => m.code?.toLowerCase() === q)
+    ?? (matches.length === 1 ? matches[0] : undefined)
 }
 
 /**

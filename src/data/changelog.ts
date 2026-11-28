@@ -5,6 +5,17 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "Fixes from a check of every game",
+    items: [
+      "Type-in games accept a country's code on Enter (BH for Bahrain), as the box says.",
+      "Build the Flag: the ticks and crosses on the result are easy to see on any colour, and stripe names sit inside their stripes.",
+      "Symbol Hunt: after Submit, found, missed and wrong flags are clearly marked, with a Found X of Y line.",
+      "Lookalikes shows its tip once, under the flags, without pushing them down. GeoPaint and Flag Outline show the real flag without black bars, and Flag Outline says \"1 guess left\".",
+      "The Crop's zoom bar ends on the last step, and Flag Identifier's counts have thousands commas.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "Creator's Picks, a View all page, tidier patch notes and Codex fixes",
     items: [
       "Play has a new Creator's Picks row: my personal favourites, in the order I'd play them (Abroad, Flag Fusion, Flag Studio, Flag Identifier, Guess the Language, Real or Bot, Lineage).",

@@ -37,6 +37,13 @@ test('Enter never submits a partial match it had to guess', () => {
   assert.equal(enter('s'), undefined)
 })
 
+test('Enter on a country code submits that country ("name or code" boxes)', () => {
+  assert.equal(enter('BH'), 'BH')            // Bhutan also starts with "bh"
+  assert.equal(enter('cf'), 'CF')
+  assert.equal(enter('in'), 'IN')
+  assert.equal(enter('uk'), 'GB')            // an other name still wins over a code
+})
+
 test('a code or alias puts its country first in the list', () => {
   assert.equal(matchNames(FLAGS, 'in')[0].code, 'IN')
   assert.equal(matchNames(FLAGS, 'us')[0].code, 'US')
