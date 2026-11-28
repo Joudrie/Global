@@ -247,6 +247,7 @@ ${adScript ? '<script async src="https://pagead2.googlesyndication.com/pagead/js
   .faq details p{margin:8px 0 0;color:#5F726D;font-size:15px}
   footer{margin-top:48px;padding-top:18px;border-top:1px solid #DDCEAF;font-size:13px;color:#5F726D}
   footer a{margin-right:14px;color:#5F726D}
+  footer .credit a{margin-right:0}
   @media (max-width:520px){h1{font-size:28px}.entry .thumb{width:72px}.entry .entry{flex-direction:column;gap:8px}}
 </style>
 </head>
@@ -260,7 +261,7 @@ ${body}
 <footer>
   <p><a href="/">Play Globalio</a><a href="/flags/">Country flags</a><a href="/historical/">Historical flags</a><a href="/identity/">Identity flags</a><a href="/games/">Games</a><a href="/flag-maker/">Flag maker</a><a href="/flag-identifier/">Flag identifier</a></p>
   <p><a href="/whats-new/">What's new</a><a href="/about/">About</a><a href="/contact/">Contact</a><a href="/privacy.html">Privacy</a><a href="/terms.html">Terms</a></p>
-  <p>© Globalio. Flags, names and dates are researched from Wikipedia, Wikimedia Commons and official sources. Spot a mistake? <a href="/contact/">Tell us</a>.</p>
+  <p class="credit">© Globalio. Flags, names and dates are researched from Wikipedia, Wikimedia Commons and official sources. Spot a mistake? <a href="/contact/">Tell us</a>.</p>
   <p class="muted">Last updated ${formatDate(LAST_UPDATED)}. New games every month.</p>
 </footer>
 </div>

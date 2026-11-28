@@ -116,3 +116,26 @@ test('Codex gallery names carry no wiki or HTML markup, and every row has an ima
   assert.ok(orgs.includes('the Commonwealth of Nations') || orgs.some(t => /Commonwealth of Nations/.test(t)), 'the Commonwealth has its flag')
   assert.ok(orgs.some(t => /Baltic Assembly/.test(t)), 'the Baltic Assembly has its flag')
 })
+
+test('every self-hosted SVG declares the SVG namespace, or browsers will not draw it as an image', () => {
+  // An <svg> root without xmlns="http://www.w3.org/2000/svg" loads fine but
+  // never draws in an <img> (Yonkers' city flag showed a broken icon).
+  const NS = 'http://www.w3.org/2000/svg'
+  const files = []
+  const walk = d => { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const p = path.join(d, e.name); if (e.isDirectory()) walk(p); else if (p.endsWith('.svg')) files.push(p) } }
+  walk(path.join(ROOT, 'public'))
+  const bad = files.filter(f => {
+    const buf = fs.readFileSync(f).subarray(0, 65536)
+    const head = buf[0] === 0xff && buf[1] === 0xfe ? buf.toString('utf16le') : buf.toString('latin1')
+    const root = head.match(/<(?:([\w-]+):)?svg\b[^>]*>/)
+    if (!root) return true
+    const attr = root[1] ? `xmlns:${root[1]}` : 'xmlns'
+    const value = root[0].match(new RegExp(`\\s${attr}\\s*=\\s*["']([^"']*)["']`))?.[1]
+    // Illustrator files name it through an entity: xmlns="&ns_svg;".
+    const entity = value?.match(/^&([\w.-]+);$/)?.[1]
+    const resolved = entity ? head.match(new RegExp(`<!ENTITY\\s+${entity}\\s+["']([^"']*)["']`))?.[1] : value
+    return resolved !== NS
+  }).map(f => path.relative(ROOT, f))
+  assert.ok(files.length > 1000, 'found the hosted flags')
+  assert.deepEqual(bad, [], 'add xmlns="http://www.w3.org/2000/svg" to the <svg> tag')
+})
