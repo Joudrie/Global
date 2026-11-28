@@ -41,14 +41,14 @@ export type ColourSpec = ColourId | `${ColourId}|${ColourId}`
  *  flag most people mean first). A flag has one kind, and may also count as
  *  others (Scotland is a part of the UK that people call a country). */
 export type IdentifyCategory = "country" | "region" | "city" | "identity" | "movement" | "organization" | "historical"
-export const IDENTIFY_CATEGORIES: { id: IdentifyCategory; label: string; plural: string }[] = [
-  { id: "country", label: "Country", plural: "country flags" },
-  { id: "region", label: "State, province or region", plural: "state, province and region flags" },
-  { id: "city", label: "City", plural: "city flags" },
-  { id: "identity", label: "Pride & identity", plural: "pride and identity flags" },
-  { id: "movement", label: "Separatist or movement", plural: "separatist and movement flags" },
-  { id: "organization", label: "Organization", plural: "organization flags" },
-  { id: "historical", label: "Historical", plural: "historical flags" },
+export const IDENTIFY_CATEGORIES: { id: IdentifyCategory; label: string; one: string; plural: string }[] = [
+  { id: "country", label: "Country", one: "country flag", plural: "country flags" },
+  { id: "region", label: "State, province or region", one: "state, province or region flag", plural: "state, province and region flags" },
+  { id: "city", label: "City", one: "city flag", plural: "city flags" },
+  { id: "identity", label: "Pride, peoples & identity", one: "pride, people or identity flag", plural: "pride, people and identity flags" },
+  { id: "movement", label: "Separatist or movement", one: "separatist or movement flag", plural: "separatist and movement flags" },
+  { id: "organization", label: "Organization", one: "organization flag", plural: "organization flags" },
+  { id: "historical", label: "Historical", one: "historical flag", plural: "historical flags" },
 ]
 
 export interface IdentifyEntry {

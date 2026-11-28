@@ -85,7 +85,7 @@ const STYLES = `
 interface State extends Answers { unsure: [boolean, boolean, boolean] }   // shape, colours, details
 const START: State = { ...NO_ANSWERS, unsure: [false, false, false] }
 
-const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`
+const plural = (n: number, one: string, many = `${one}s`) => `${n.toLocaleString("en-US")} ${n === 1 ? one : many}`
 
 export default function FlagIdentifierScreen({ onBack }: { onBack: () => void }) {
   const [step, setStep] = useState<Step>(0)
@@ -127,7 +127,7 @@ export default function FlagIdentifierScreen({ onBack }: { onBack: () => void })
   const moreLine = othersFit > 0
     ? [close.length ? `${close.length} close` : "", `${othersFit} of other kinds`].filter(Boolean).join(" · ")
     : answered && close.length > 0 ? `${plural(close.length, "more is", "more are")} close`
-    : !answered ? `Of the Codex's ${CODEX_TOTAL}, more added as they're checked` : ""
+    : !answered ? `Of the Codex's ${CODEX_TOTAL} so far` : ""
   const preview = (exact.length ? exact : close.length ? close : others).slice(0, 3)
 
   return (
@@ -398,7 +398,7 @@ function Results({ s, ranked, exact, close, others, answered, countLine, open, s
   const counts: Record<Group, number> = {
     exact: exact.length, otherExact: otherExact.length, close: close.length, further: further.length, otherClose: otherClose.length,
   }
-  const fits = kind ? `${plural(exact.length, kind.plural.replace(/s$/, ""), kind.plural)}` : plural(exact.length, "flag")
+  const fits = kind ? `${plural(exact.length, kind.one, kind.plural)}` : plural(exact.length, "flag")
   const where = kind ? `${kind.label} flags first; other kinds that fit are below.` : `Searching ${SO_FAR}.`
 
   return (

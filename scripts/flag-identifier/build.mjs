@@ -14,10 +14,12 @@
 // light blue from blue by eye), a new one may be a mistake.
 // scripts/flagidentifier.test.mjs fails if the file is out of date.
 import fs from 'node:fs'
+import { createHash } from 'node:crypto'
 import path from 'node:path'
 import { pathToFileURL } from 'node:url'
 import { CHECKED } from './checked.mjs'
 import { MORE } from './more.mjs'
+import { CODEX_LINES } from './codex.mjs'
 
 const ROOT = path.resolve(import.meta.dirname, '../..')
 export const OUT = path.join(ROOT, 'src/data/flagIdentify.ts')
@@ -28,6 +30,33 @@ const { SUB_FLAGS } = await data('subdivisions.ts')
 const { US_CITY_FLAGS } = await data('usCityFlags.ts')
 const { IDENTITY_FLAGS } = await data('identityFlags.ts')
 const { HISTORICAL_FLAGS } = await data('historicalFlags.ts')
+const { ETHNIC_FLAGS } = await data('ethnicFlags.ts')
+const { EXTINCT_STATES } = await data('extinctStates.ts')
+const { ORG_FLAGS } = await data('orgFlags.ts')
+const { CODEX } = await data('codex.ts')
+const { TERRITORIES } = await data('territories.ts')
+const { UK_NATIONS } = await data('ukNations.ts')
+const TERRITORY_BY_IMG = new Map(Object.values(TERRITORIES).flat().filter(t => t.flagUrl && !t.noFlag).map(t => [t.flagUrl, t]))
+const { fp } = await data('flagUrl.ts')
+const { stripFlagOf, splitParen } = await data('codexGalleries.ts')
+const COUNTRY_NAME = new Map(FLAGS.map(f => [f.code, f.name]))
+/** "the United States", "the Netherlands", "France". */
+const theName = n => /^(United |Central African|Dominican|Czech|Democratic|Republic)|s$/.test(n)
+  && !/^(Belarus|Cyprus|Laos|Mauritius|Barbados|Honduras|Paraguay|Seychelles|Kiribati|Saint .*)$/.test(n)
+  ? `the ${n}` : n
+/** A gallery name as the Codex shows it: no footnote marks or markup. */
+const clean = s => s.replace(/<sup>.*?<\/sup>/g, '').replace(/'{2,}/g, '').replace(/\s+/g, ' ').trim()
+/** Every gallery item by its file, with the region and group it's listed under. */
+const byFile = regions => new Map(regions.flatMap(r => (r.groups ?? [{ label: '', items: r.items }])
+  .flatMap(g => g.items.map(it => [it.file, { ...it, region: r.region, group: g.label }]))))
+const ETHNIC = byFile(ETHNIC_FLAGS), EXTINCT = byFile(EXTINCT_STATES), ORGS = byFile(ORG_FLAGS)
+/** "Peoples of Europe" → "People, Europe" (the kind label under a people's flag). */
+function peopleLabel(region) {
+  if (/^Creole/.test(region)) return 'Creole people'
+  if (/multiethnic/.test(region)) return 'Multicultural region'
+  if (/^Historic/.test(region)) return 'Historic people'
+  return `People, ${region.replace(/^Peoples of (the )?/, '').replace(/ \((indigenous|modern)\)$/, (_, k) => k === 'indigenous' ? ' (indigenous)' : '')}`
+}
 const { LAYOUTS, COLOURS, DETAILS, LAYOUT_DETAIL, IDENTIFY_CATEGORIES } = await import(path.join(ROOT, 'src/utils/flagIdentify.ts'))
 
 const LAYOUT_IDS = new Set(LAYOUTS.map(l => l.id))
@@ -76,6 +105,25 @@ const SUB_LABEL = {
   FR: 'Region of France', NL: 'Province of the Netherlands', BE: 'Province of Belgium',
   BR: 'State of Brazil', MX: 'State of Mexico', JP: 'Prefecture of Japan', AR: 'Province of Argentina',
   RU: 'Region of Russia', GB: 'Council area of the UK',
+  CO: 'Department of Colombia', VE: 'State of Venezuela', PE: 'Region of Peru', EC: 'Province of Ecuador',
+  SE: 'County of Sweden', BG: 'Province of Bulgaria', IE: 'County of Ireland', UA: 'Region of Ukraine',
+  HR: 'County of Croatia', HU: 'County of Hungary', FI: 'Region of Finland', NO: 'County of Norway',
+  EE: 'County of Estonia', PL: 'Province of Poland', CZ: 'Region of Czechia', SK: 'Region of Slovakia',
+  LT: 'County of Lithuania', CL: 'Region of Chile', UY: 'Department of Uruguay', PY: 'Department of Paraguay',
+  BO: 'Department of Bolivia', GT: 'Department of Guatemala', SV: 'Department of El Salvador',
+  NI: 'Department of Nicaragua', HN: 'Department of Honduras', CR: 'Province of Costa Rica',
+  PA: 'Province of Panama', DO: 'Province of the Dominican Republic', TH: 'Province of Thailand',
+  KE: 'County of Kenya', RO: 'County of Romania', ID: 'Province of Indonesia', MD: 'District of Moldova',
+  NG: 'State of Nigeria', EG: 'Governorate of Egypt', MN: 'Province of Mongolia', KR: 'Province of South Korea',
+  MY: 'State of Malaysia', PW: 'State of Palau', PG: 'Province of Papua New Guinea', CV: 'Municipality of Cape Verde',
+  LR: 'County of Liberia', ET: 'Region of Ethiopia', JE: 'Parish of Jersey', GG: 'Parish of Guernsey',
+  AL: 'County of Albania', LI: 'Municipality of Liechtenstein', SM: 'Municipality of San Marino',
+  SS: 'State of South Sudan', ME: 'Municipality of Montenegro', PT: 'District of Portugal', DK: 'Region of Denmark',
+  GR: 'Region of Greece', MT: 'Region of Malta', LV: 'Region of Latvia', BA: 'Region of Bosnia and Herzegovina',
+  BY: 'Region of Belarus', AD: 'Parish of Andorra', XK: 'District of Kosovo', LK: 'Province of Sri Lanka',
+  SD: 'State of Sudan', SB: 'Province of the Solomon Islands', VU: 'Province of Vanuatu', MM: 'State of Myanmar',
+  AE: 'Emirate of the UAE', PK: 'Province of Pakistan', FM: 'State of Micronesia', KM: 'Island of the Comoros',
+  IQ: 'Region of Iraq',
 }
 const SUB_LABEL_ONE = {
   'us-dc': 'US capital', 'us-pr': 'US territory', 'us-gu': 'US territory', 'us-vi': 'US territory',
@@ -98,8 +146,13 @@ const IDENTITY_KIND = {
   Micronations: ['movement', 'Micronation'],
 }
 
+/** The first sentence of a long note: the row shows it, and links to the page with the rest. */
+const firstSentence = s => (s.match(/^.*?[.!?](?=\s+[A-Z"'(]|$)/s)?.[0] ?? s).trim()
+
 // Same as slug() in scripts/prerender.mjs, which makes the /identity/<category>/ pages.
 const slug = s => String(s).toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+/** A stable id for a gallery flag: its name, plus a short hash of its file so two names never meet. */
+const fileId = (name, file) => `${slug(name).slice(0, 40) || 'flag'}-${createHash('sha1').update(file).digest('hex').slice(0, 6)}`
 
 /** A more.mjs key → the flag's name, kind, label, image, note and page from the site's data. */
 function source(key) {
@@ -128,15 +181,60 @@ function source(key) {
     const h = HISTORICAL_FLAGS.find(x => x.id === id)
     if (!h) throw new Error(`${key}: no such historical flag`)
     return {
-      code: `hist-${h.id}`, name: h.name, category: 'historical', label: `Historical, ${h.era}`, img: h.flagUrl, note: h.note,
+      code: `hist-${h.id}`, name: h.name, category: 'historical', label: `Historical, ${h.era}`, img: h.flagUrl, note: firstSentence(h.note),
       href: `/historical/${slug(h.region)}/#${h.id}`,   // its entry on the historical flags pages (prerender.mjs)
     }
+  }
+  if (src === 'eth') {
+    const it = ETHNIC.get(id)
+    if (!it) throw new Error(`${key}: no such ethnic flag`)
+    // A people's flag that is a territory's own flag (Gibraltarians, Bermudians)
+    // goes under the territory, the name people look it up by.
+    const t = TERRITORY_BY_IMG.get(fp(it.file))
+    if (t) return { code: `terr-${slug(t.name)}`, name: t.name, category: 'region', label: t.status, img: t.flagUrl, note: t.note }
+    return { code: `eth-${fileId(clean(it.name), id)}`, name: clean(it.name), category: 'identity', label: peopleLabel(it.region), img: fp(it.file) }
+  }
+  if (src === 'ext') {
+    const it = EXTINCT.get(id)
+    if (!it) throw new Error(`${key}: no such extinct state`)
+    return { code: `ext-${fileId(stripFlagOf(splitParen(clean(it.name))[0]), id)}`, name: stripFlagOf(splitParen(clean(it.name))[0]), category: 'historical', label: 'Former state', img: fp(it.file) }
+  }
+  if (src === 'org') {
+    const it = ORGS.get(id)
+    if (!it) throw new Error(`${key}: no such organisation flag`)
+    const label = /sport/i.test(it.region) ? 'Sports federation' : /former/i.test(it.region) ? 'Former organization' : 'International organization'
+    return { code: `org-${fileId(stripFlagOf(clean(it.name)), id)}`, name: stripFlagOf(clean(it.name)), category: 'organization', label, img: fp(it.file) }
+  }
+  if (src === 'cx') {
+    const [code, label] = id.split(/:(.*)/s)
+    const h = CODEX[code]?.flagHistory.flatMap(x => [x, ...(x.parallel ?? [])]).find(x => x.label === label)
+    if (!h) throw new Error(`${key}: no such flag in ${code}'s history`)
+    return {
+      code: `cx-${code.toLowerCase()}-${slug(label)}`, name: h.label, category: 'historical',
+      label: `Former flag of ${theName(COUNTRY_NAME.get(code) ?? code)}`, img: h.flagUrl, note: firstSentence(h.note), href: `/flags/${code.toLowerCase()}/`,
+    }
+  }
+  if (src === 'terr') {
+    const [code, name] = id.split(/:(.*)/s)
+    const t = TERRITORIES[code]?.find(x => x.name === name)
+    if (!t || !t.flagUrl || t.noFlag) throw new Error(`${key}: no such territory flag`)
+    return { code: `terr-${slug(name)}`, name: t.name, category: 'region', label: `${t.status}`, img: t.flagUrl, note: t.note }
+  }
+  if (src === 'uk') {
+    const [nation, label] = id.split(/:(.*)/s)
+    const h = UK_NATIONS.find(n => n.name === nation)?.flagHistory.find(x => x.label === label)
+    if (!h) throw new Error(`${key}: no such flag in ${nation}'s history`)
+    return { code: `uk-${slug(nation)}-${slug(label)}`, name: h.label, category: 'historical', label: `Historic flag of ${nation}`, img: h.flagUrl, note: h.note }
   }
   throw new Error(`${key}: unknown source "${src}"`)
 }
 
+const LINES = { ...MORE, ...CODEX_LINES }
+const twice = Object.keys(CODEX_LINES).filter(k => k in MORE)
+if (twice.length) throw new Error(`in both more.mjs and codex.mjs: ${twice.join(', ')}`)
+
 function moreEntry(key) {
-  const value = MORE[key]
+  const value = LINES[key]
   const [line, over = {}] = Array.isArray(value) ? value : [value]
   const unknown = Object.keys(over).filter(k => !['name', 'kind', 'label', 'also'].includes(k))
   if (unknown.length) throw new Error(`${key}: unknown option ${unknown.join(', ')}`)
@@ -159,7 +257,7 @@ export function entries() {
   const extra = Object.keys(CHECKED).filter(c => !FLAGS.some(f => f.code === c))
   if (extra.length) throw new Error(`checked.mjs has lines for unknown codes: ${extra.join(', ')}`)
   const countries = FLAGS.map(f => ({ code: f.code, name: f.name, category: 'country', label: 'Country', ...parseLine(f.code, CHECKED[f.code]) }))
-  const all = [...countries, ...Object.keys(MORE).map(moreEntry)]
+  const all = [...countries, ...Object.keys(LINES).map(moreEntry)]
   // One entry per flag: a code or an image twice means the same flag was added twice.
   for (const field of ['code', 'img']) {
     const seen = new Map()
@@ -185,6 +283,20 @@ const block = (name, rows) => `const ${name}: IdentifyEntry[] = [
 ${rows.map(e => `  ${JSON.stringify(e)},`).join('\n')}
 ]`
 
+// Every other flag is written as one short call per row, f(code, name, kind,
+// label, img, "layouts", "colours", "small colours", "details", "small
+// details", { also, note, href }), with the word lists space-separated:
+// about half the size of the same rows as objects, for 3,000+ flags.
+const words = xs => xs.join(' ')
+const compact = e => {
+  const extra = Object.fromEntries(['also', 'note', 'href'].filter(k => e[k]).map(k => [k, e[k]]))
+  const args = [e.code, e.name, e.category, e.label, e.img ?? '', words(e.layouts), words(e.colors), words(e.minorColors), words(e.details), words(e.minorDetails)]
+  return `  f(${args.map(a => JSON.stringify(a)).join(',')}${Object.keys(extra).length ? `,${JSON.stringify(extra)}` : ''}),`
+}
+const compactBlock = (name, rows) => `const ${name}: IdentifyEntry[] = [
+${rows.map(compact).join('\n')}
+]`
+
 function blocks(rows, prefix) {
   const out = []
   for (let i = 0; i < rows.length; i += BLOCK) out.push([`${prefix}_${out.length + 1}`, rows.slice(i, i + BLOCK)])
@@ -206,10 +318,21 @@ ${countries.map(([n, rows]) => block(n, rows)).join('\n\n')}
 /** The country flags only, in the order of data/flags.ts. */
 export const IDENTIFY_COUNTRIES: IdentifyEntry[] = [${countries.map(([n]) => `...${n}`).join(', ')}]
 `,
-    [OUT]: `${HEADER}import type { IdentifyEntry } from "../utils/flagIdentify"
+    [OUT]: `${HEADER}import type { IdentifyEntry, IdentifyCategory } from "../utils/flagIdentify"
 import { IDENTIFY_COUNTRIES } from "./flagIdentifyCountries"
 
-${others.map(([n, rows]) => block(n, rows)).join('\n\n')}
+const list = (s: string) => (s ? s.split(" ") : []) as never[]
+/** One flag, from the compact row build.mjs writes (see there). */
+function f(code: string, name: string, category: IdentifyCategory, label: string, img: string,
+  layouts: string, colors: string, minorColors: string, details: string, minorDetails: string,
+  extra: Pick<IdentifyEntry, "also" | "note" | "href"> = {}): IdentifyEntry {
+  return {
+    code, name, category, label, ...(img ? { img } : {}), ...extra, layouts: list(layouts), colors: list(colors),
+    minorColors: list(minorColors), details: list(details), minorDetails: list(minorDetails),
+  }
+}
+
+${others.map(([n, rows]) => compactBlock(n, rows)).join('\n\n')}
 
 /** Every flag the identifier searches: countries first, then each kind in turn. */
 export const IDENTIFY_FLAGS: IdentifyEntry[] = [
@@ -223,6 +346,10 @@ ${others.map(([n]) => `  ...${n},`).join('\n')}
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const all = entries()
   for (const [file, text] of Object.entries(render())) fs.writeFileSync(file, text)
+  // World city flags (src/data/cityFlags.ts, from another branch) aren't described yet.
+  if (fs.existsSync(path.join(ROOT, 'src/data/cityFlags.ts'))) {
+    console.log('[flag-identifier] src/data/cityFlags.ts is here: add a wcity: source above and describe its flags in codex.mjs')
+  }
   const counts = IDENTIFY_CATEGORIES.map(c => `${all.filter(e => e.category === c.id).length} ${c.id}`).join(', ')
   console.log(`[flag-identifier] wrote ${path.relative(ROOT, OUT)} and ${path.relative(ROOT, COUNTRIES_OUT)} (${all.length} flags: ${counts})`)
   if (process.env.REPORT) {
