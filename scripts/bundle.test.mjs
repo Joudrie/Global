@@ -99,3 +99,20 @@ test('game counts in index.html and the manifest match GAME_COUNT', async () => 
     for (const n of counts) assert.equal(n, GAME_COUNT, f)
   }
 })
+
+test('Codex gallery names carry no wiki or HTML markup, and every row has an image', async () => {
+  const g = await src('data/codexGalleries.ts')
+  const { ETHNIC_FLAGS } = await src('data/ethnicFlags.ts')
+  const { IDENTITY_FLAGS } = await src('data/identityFlags.ts')
+  const { EXTINCT_STATES } = await src('data/extinctStates.ts')
+  const { HISTORICAL_FLAGS } = await src('data/historicalFlags.ts')
+  const { ORG_FLAGS } = await src('data/orgFlags.ts')
+  const rows = [...g.peoplesRegions(ETHNIC_FLAGS, IDENTITY_FLAGS), ...g.extinctRegions(EXTINCT_STATES, HISTORICAL_FLAGS), ...g.orgRegions(ORG_FLAGS)]
+    .flatMap(r => r.groups.flatMap(x => x.items))
+  const marked = rows.filter(r => /<[^>]+>|''|\[\[|\{\{|&[a-z]+;/.test(r.title + ' ' + r.detail)).map(r => r.title)
+  assert.deepEqual(marked, [], 'strip the markup from these names')
+  assert.deepEqual(rows.filter(r => !r.file).map(r => r.title), [], 'a row with no image should be left out')
+  const orgs = g.orgRegions(ORG_FLAGS).flatMap(r => r.groups.flatMap(x => x.items)).map(r => r.title)
+  assert.ok(orgs.includes('the Commonwealth of Nations') || orgs.some(t => /Commonwealth of Nations/.test(t)), 'the Commonwealth has its flag')
+  assert.ok(orgs.some(t => /Baltic Assembly/.test(t)), 'the Baltic Assembly has its flag')
+})

@@ -9,7 +9,7 @@ export interface OrgRegion { region: string; groups: OrgGroup[] }
 export const ORG_FLAGS: OrgRegion[] = [
   { region: "Political, cultural and military organizations", groups: [
     { label: "Global", items: [
-      { name: "Flag of the Commonwealth of Nations", file: "Commonwealth Flag 2013.svg" },
+      { name: "Flag of the Commonwealth of Nations", file: "Flag of the Commonwealth of Nations (1976–2013).svg" },
       { name: "Flag of the Community of Portuguese Language Countries", file: "Flag CPLP.svg" },
       { name: "Flag of the International Criminal Court", file: "Flag of the International Criminal Court.svg" },
       { name: "Flag of the Organisation internationale de la Francophonie", file: "Flag of La Francophonie.svg" },

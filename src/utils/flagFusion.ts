@@ -322,6 +322,17 @@ export function fusionSvg(f: Pick<Fusion, "structure" | "fill" | "tint" | "box">
 }
 export const svgUri = (svg: string) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`
 
+/** The fused SVG for drawing straight into the page, the fallback when a
+ *  browser won't decode it as an image (seen on an iPhone). Its ids get a
+ *  suffix so two flags on one screen can't share a mask, and it fills its box. */
+export function inlineSvg(svg: string, suffix: string): string {
+  const ids = new Set([...svg.matchAll(/\bid="([^"]+)"/g)].map(m => m[1]))
+  let out = svg.replace(/\bid="([^"]+)"/g, (_, id) => `id="${id}-${suffix}"`)
+  out = out.replace(/url\(#([^)]+)\)/g, (m, id) => (ids.has(id) ? `url(#${id}-${suffix})` : m))
+  out = out.replace(/((?:xlink:)?href)="#([^"]+)"/g, (m, attr, id) => (ids.has(id) ? `${attr}="#${id}-${suffix}"` : m))
+  return out.replace(/^<svg\b/, '<svg width="100%" height="100%" aria-hidden="true" focusable="false"')
+}
+
 /** The fusion in the owner's sketch, used for the poster and How it works:
  *  Brazil's layout, Afghanistan's emblem, Bhutan's colours. */
 export function exampleFusion(): Fusion {

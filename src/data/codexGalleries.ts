@@ -11,6 +11,9 @@ import type { IdentityFlag } from "./identityFlags"
 // counts the closed sections show) in step.
 
 export interface GRow { file: string; title: string; detail: string }
+// A flag whose file is gone from Commons resolves to "" (localFlags.ts): leave
+// it out rather than show an empty tile.
+const shown = (rows: GRow[]): GRow[] => rows.filter(r => r.file)
 /** icon: the name CodexScreen picks the region's icon by. */
 export interface GRegion { label: string; icon?: string; groups: { label: string; items: GRow[] }[] }
 
@@ -37,7 +40,7 @@ export function peoplesRegions(ethnic: EthnicRegion[], identity: IdentityFlag[])
   const idRegion = (cat: string, label: string): GRegion => ({
     label,
     icon: cat,
-    groups: [{ label: '', items: identity.filter(f => f.category === cat).map(f => ({ file: f.flagUrl, title: f.name, detail: f.note })) }],
+    groups: [{ label: '', items: shown(identity.filter(f => f.category === cat).map(f => ({ file: f.flagUrl, title: f.name, detail: f.note }))) }],
   })
   const ethnicRegions: GRegion[] = ethnic.map(r => {
     const short = r.region.replace(/^Peoples of /, '')
@@ -46,7 +49,7 @@ export function peoplesRegions(ethnic: EthnicRegion[], identity: IdentityFlag[])
       icon: r.region,
       groups: r.groups.map(g => ({
         label: g.label,
-        items: g.items.map(it => ({ file: fp(it.file), title: it.name, detail: it.note ?? g.note ?? (g.label ? `${g.label} — ${short}` : short) })),
+        items: shown(g.items.map(it => ({ file: fp(it.file), title: it.name, detail: it.note ?? g.note ?? (g.label ? `${g.label} — ${short}` : short) }))),
       })),
     }
   })
@@ -72,15 +75,16 @@ export function extinctRegions(extinct: ExtinctRegion[], historical: HistoricalE
   const regions: GRegion[] = extinct.map(r => ({
     label: r.region,
     icon: r.region,
-    groups: [{ label: '', items: r.items.map(it => {
+    groups: [{ label: '', items: shown(r.items.map(it => {
       const [pre, paren] = splitParen(it.name)
       curatedNames.add(norm(it.name))
       return { file: fp(it.file), title: stripFlagOf(pre), detail: paren ? cap(paren) + '.' : 'A former state.' }
-    }) }],
+    })) }],
   }))
   const byBucket: Record<string, GRow[]> = {}
   historical.forEach(h => {
     if (curatedNames.has(norm(h.name))) return // already in the curated gallery — skip
+    if (!h.flagUrl) return // no image (deleted from Commons)
     const bucket = histBucket[h.region] ?? 'Europe'
     const arr = byBucket[bucket] || (byBucket[bucket] = [])
     arr.push({ file: h.flagUrl, title: h.name, detail: `${h.era} — ${h.note}` })
@@ -97,7 +101,7 @@ export function orgRegions(orgs: OrgRegion[]): GRegion[] {
     label: r.region,
     groups: r.groups.map(g => ({
       label: g.label,
-      items: g.items.map(it => ({ file: fp(it.file), title: stripFlagOf(it.name), detail: g.label ? `${g.label} — ${r.region}` : r.region })),
+      items: shown(g.items.map(it => ({ file: fp(it.file), title: stripFlagOf(it.name), detail: g.label ? `${g.label} — ${r.region}` : r.region }))),
     })),
   }))
 }

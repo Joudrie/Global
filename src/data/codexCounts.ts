@@ -4,16 +4,16 @@
 // the data: update them when the galleries change.
 export const CODEX_COUNTS = {
   /** Mega Codex A–Z: every flag in the app (megaCodex.ts ALL_FLAGS_AZ). */
-  mega: 5018,
+  mega: 5023,
   /** Peoples & Cultures rows (codexGalleries.ts peoplesRegions). */
-  peoples: 1163,
+  peoples: 1148,
   /** The Identity categories shown as their own sections, in order. */
   identity: [["Pride & LGBTQ+", 44], ["Separatist & Autonomous", 142], ["Civic & Ideological", 42]] as [string, number][],
   micronations: 58,
   /** Extinct & Former States rows (codexGalleries.ts extinctRegions). */
   extinct: 570,
   /** City Flags (beta): Europe's and the U.S. cities (cityAtlas.ts ALL_ATLAS_CITIES). */
-  cities: 615,
+  cities: 616,
   orgs: 67,
   signal: 27,
   /** Coats of arms (beta): countries with one so far (coatsOfArms.ts COATS_OF_ARMS). */

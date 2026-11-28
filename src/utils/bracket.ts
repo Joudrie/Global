@@ -74,14 +74,14 @@ const SETS: ExtraSet[] = [
   { id: "extinct", label: "Extinct & Former States", short: "Former states", count: 555,
     load: () => Promise.all([import("../data/codexGalleries"), import("../data/extinctStates"), import("../data/historicalFlags")])
       .then(([g, e, h]) => galleryRows("extinct", g.extinctRegions(e.EXTINCT_STATES, h.HISTORICAL_FLAGS))) },
-  { id: "cities", label: "American Cities", short: "US cities", count: 124,
+  { id: "cities", label: "American Cities", short: "US cities", count: 125,
     load: () => import("../data/usCityFlags").then(m => m.US_CITY_FLAGS.map(f => entrant("cities", `${f.name}, ${f.state}`, f.flagUrl))) },
-  { id: "orgs", label: "International Organizations", short: "Organizations", count: 65,
+  { id: "orgs", label: "International Organizations", short: "Organizations", count: 67,
     load: () => Promise.all([import("../data/codexGalleries"), import("../data/orgFlags")])
       .then(([g, o]) => galleryRows("orgs", g.orgRegions(o.ORG_FLAGS))) },
   { id: "signal", label: "Signal & Maritime Flags", short: "Signal flags", count: 27, load: identity("signal", "Maritime & Signal") },
   { id: "states", label: "US States & Territories", short: "US states", count: 56, load: subdivisions("states", true) },
-  { id: "provinces", label: "Provinces & Regions", short: "Provinces", count: 1519, load: subdivisions("provinces", false) },
+  { id: "provinces", label: "Provinces & Regions", short: "Provinces", count: 1522, load: subdivisions("provinces", false) },
 ]
 export const EXTRA_SETS: readonly ExtraSet[] = SETS.map(s => ({ ...s, load: () => s.load().then(onePerImage) }))
 const EXTRA_BY_ID = new Map(EXTRA_SETS.map(s => [s.id, s]))

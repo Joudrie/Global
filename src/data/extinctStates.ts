@@ -45,7 +45,7 @@ export const EXTINCT_STATES: ExtinctRegion[] = [
     { name: "Flag of the Kingdom of Araucanía and Patagonia (de facto independent 1862–1865)", file: "Flag of the Kingdom of Araucanía and Patagonia.svg" },
     { name: "Flag of the California Republic", file: "First Bear Flag of California (1846).svg" },
     { name: "Flag of the Federal Republic of Central America (independent 1823-1838)", file: "Flag of the Federal Republic of Central America.svg" },
-    { name: "Flag of the Confederate States of America (''de facto'' independent 1861–1865, third of three versions)", file: "Confederate National Flag since Mar 4 1865.svg" },
+    { name: "Flag of the Confederate States of America (de facto independent 1861–1865, third of three versions)", file: "Confederate National Flag since Mar 4 1865.svg" },
     { name: "State of Deseret (self-proclaimed US state 1849–1850)", file: "Alleged Mormon flag 1877.svg" },
     { name: "Flag of Juliana Republic (independent July–November, 1839)", file: "Flag of República Juliana (1839).svg" },
     { name: "Flag of the Republic of Los Altos (independent 1844, 1848, 1849)", file: "Flag of Los Altos.svg" },
