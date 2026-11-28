@@ -78,15 +78,24 @@ Left to do, most looked-for first:
 ## Notes / smaller follow-ups
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
   "Browse all 4,500+ flags") covers every country: 192 current coats of arms,
-  emblems and seals, 126 with former ones (396 images, a few undated), and a
-  "Coats of Arms" flashcard deck (Flashcards → Codex). Built by
-  `scripts/arms/fetch.mjs` (Wikidata + English Wikipedia + Wikimedia Commons;
-  `--offline` rebuilds from its cache, `--why` explains every image). Emblems of
-  fascist and Nazi-era regimes (and their Axis puppet states) stay out. Still to do:
-  - Former arms for the countries still on "coming soon": many never changed
-    their arms, and the rest show the history only in drawings, photos, royal
-    arms or rows without dates. Next sources: other-language Wikipedias and
-    Commons' "Historical coats of arms of …" categories, checked by hand.
+  emblems and seals, 160 with former ones (479 images, 32 of them undated), and
+  a "Coats of Arms" flashcard deck (Flashcards → Codex). Built by
+  `scripts/arms/fetch.mjs` from Wikidata, the emblem's English Wikipedia
+  article, then (for countries that article leaves bare) the country's own
+  Wikipedia, the German, French, Spanish and Russian ones, and Commons'
+  "Historical coats of arms of …" categories; `--offline` rebuilds from its
+  cache, `--why` explains every image. Emblems of fascist and Nazi-era regimes
+  (and their Axis puppet states) stay out. Still to do:
+  - Former arms for the 32 countries still on "coming soon": Argentina,
+    Belgium, Bhutan, Switzerland, Djibouti, Denmark, Micronesia, Gabon,
+    Honduras, Indonesia, Israel, Jordan, Japan, Liechtenstein, Luxembourg,
+    Monaco, Marshall Islands, Maldives, Niger, Palestine, Sweden, San Marino,
+    Somalia, South Sudan, São Tomé and Príncipe, Eswatini, Chad, Tonga, Tuvalu,
+    the United States, Vatican City and Kosovo. Many never changed their arms
+    (Japan, Switzerland, the Vatican, the US seal); the rest show the history
+    only in royal or personal arms, drawings, photos, 1840s armorial plates or
+    rows without dates, or in file titles no second source dates. These need a
+    person with the sources (a national heraldry office, a constitution's text).
   - Skipped: Lebanon, Libya and Turkey (no official arms in Wikipedia's
     infobox), Nicaragua and Oman (their only images carry licences that aren't
     public domain or Creative Commons: "Attribution", "OGL-om"). Canada, France

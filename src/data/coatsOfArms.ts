@@ -120,7 +120,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Government of the United Arab Emirates",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Emblem of the Trucial States",
+        "from": 1968,
+        "to": 1971,
+        "src": "/arms/ae-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Trucial_States.svg",
+        "author": "Samhanin",
+        "licence": "CC BY 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/4.0"
+      }
+    ]
   },
   {
     "code": "AF",
@@ -419,7 +430,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "licence": "Public domain"
       },
       {
-        "name": "Coat of arms of the Portuguese Colony of Angola",
+        "name": "Coat of arms of Portuguese Colony of Angola",
         "from": 1935,
         "to": 1951,
         "src": "/arms/ao-3.png",
@@ -486,7 +497,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/au.png",
     "thumb": "/arms/thumb/au.png",
-    "ratio": 1.296,
+    "ratio": 1.301,
     "adopted": 1908,
     "description": "The coat of arms of Australia, officially the Commonwealth Coat of Arms, is a formal symbol of the Commonwealth of Australia. It depicts a shield, containing symbols of Australia's six states, and is held up by native Australian animals, the kangaroo and the emu.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Australia",
@@ -538,7 +549,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/ba.png",
     "thumb": "/arms/thumb/ba.png",
-    "ratio": 0.875,
+    "ratio": 0.878,
     "adopted": 1998,
     "description": "The coat of arms of Bosnia and Herzegovina was adopted in 1998, replacing the previous design that had been in use since 1992 when Bosnia and Herzegovina gained independence.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Bosnia_and_Herzegovina",
@@ -599,7 +610,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Tonyjeff, based on national symbol",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Seal of the Government of Bangladesh",
+        "from": 1971,
+        "to": 1972,
+        "src": "/arms/bd-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Seal_of_the_Government_of_Bangladesh.svg",
+        "author": "Mojo.bangladesh",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "BE",
@@ -881,7 +902,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "emblem",
     "src": "/arms/bn.png",
     "thumb": "/arms/thumb/bn.png",
-    "ratio": 1.143,
+    "ratio": 1.139,
     "adopted": 1959,
     "description": "The Emblem of Brunei is a national symbol that is also featured on the flag of Brunei. It was adopted in 1959. There are five main components to the national emblem: the flag, the royal parasol (ceremonial umbrella), the wings, the hands, and the crescent.",
     "article": "https://en.wikipedia.org/wiki/Emblem_of_Brunei",
@@ -1005,7 +1026,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/bs.png",
     "thumb": "/arms/thumb/bs.png",
-    "ratio": 0.8,
+    "ratio": 0.803,
     "description": "The coat of arms of the Bahamas contains a shield with the national symbols as its focal point.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_the_Bahamas",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_Bahamas.svg",
@@ -1063,7 +1084,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/bw.png",
     "thumb": "/arms/thumb/bw.png",
-    "ratio": 1.29,
+    "ratio": 1.296,
     "adopted": 1966,
     "description": "The coat of arms of Botswana consists of two zebras holding sorghum and ivory. Three cogs lie at the top of a shield representing the country's mineral production.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Botswana",
@@ -1071,7 +1092,16 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Bechuanaland Protectorate",
+        "src": "/arms/bw-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Bechuanaland_Protectorate.svg",
+        "author": "Turtle-bienhoa",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ]
   },
   {
     "code": "BY",
@@ -1383,7 +1413,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
       },
       {
-        "name": "Coat of arms of the Belgian Congo (colony)",
+        "name": "Coat of arms of Belgian Congo (colony)",
         "from": 1908,
         "to": 1960,
         "src": "/arms/cd-7.png",
@@ -1410,7 +1440,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/cf.png",
     "thumb": "/arms/thumb/cf.png",
-    "ratio": 1.056,
+    "ratio": 1.053,
     "description": "The coat of arms of the Central African Republic consists of a shield in the center, with two flags on its edges, and with a sun rising over the shield. Below and above the shield are banners, and there is the badge of the Order of Central African Merit located below the shield as well.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_the_Central_African_Republic",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Central_African_Republic.svg",
@@ -1837,7 +1867,42 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Miguel Teurbe Tolón",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Cuba",
+        "from": 1902,
+        "to": 1906,
+        "src": "/arms/cu-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Cuba_(1902-1959).svg",
+        "author": "Miguel Teurbe Tolón",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of Cuba",
+        "from": 1870,
+        "to": 1899,
+        "src": "/arms/cu-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Cuba_(19th_century).svg",
+        "author": "Samhanin",
+        "licence": "CC BY 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/4.0"
+      },
+      {
+        "name": "Coat of arms of the Captaincy General of Cuba (colony)",
+        "src": "/arms/cu-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_Captaincy_General_of_Cuba.svg",
+        "author": "Samhanin",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of Spanish Cuba (colony)",
+        "src": "/arms/cu-4.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_Spanish_Cuba.png",
+        "author": "Motiv888",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "CV",
@@ -1900,7 +1965,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/cy.png",
     "thumb": "/arms/thumb/cy.png",
-    "ratio": 0.991,
+    "ratio": 0.994,
     "adopted": 2006,
     "description": "The coat of arms of the Republic of Cyprus was adopted after the island became an independent republic in 1960. Its official design depicts a white dove carrying an olive branch in its beak, placed within a copper-coloured shield.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Cyprus",
@@ -2013,7 +2078,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "source": "Wikipedia and Wikidata agree",
     "former": [
       {
-        "name": "Lesser coat of arms of the German Empire",
+        "name": "Lesser coat of arms of German Empire",
         "from": 1889,
         "to": 1918,
         "src": "/arms/de-1.png",
@@ -2022,7 +2087,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "licence": "Public domain"
       },
       {
-        "name": "Coat of arms of the German Empire",
+        "name": "Coat of arms of German Empire",
         "from": 1848,
         "to": 1849,
         "src": "/arms/de-2.png",
@@ -2194,7 +2259,38 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC0",
     "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Ecuador",
+        "from": 1845,
+        "to": 1845,
+        "src": "/arms/ec-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Ecuador_(1845).svg",
+        "author": "Milenioscuro",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Coat of arms of Ecuador",
+        "from": 1843,
+        "to": 1843,
+        "src": "/arms/ec-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Ecuador_(1843).svg",
+        "author": "Milenioscuro",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of Ecuador",
+        "from": 1830,
+        "to": 1830,
+        "src": "/arms/ec-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Ecuador_(1830).svg",
+        "author": "Milenioscuro",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "EE",
@@ -2209,7 +2305,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Riigikantselei",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Emblem of the Estonian SSR",
+        "from": 1940,
+        "to": 1990,
+        "src": "/arms/ee-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Estonian_SSR.svg",
+        "author": "Jam123",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "EG",
@@ -2409,7 +2515,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/fi.png",
     "thumb": "/arms/thumb/fi.png",
-    "ratio": 0.822,
+    "ratio": 0.825,
     "description": "The coat of arms of Finland is a crowned lion on a red field, the right foreleg replaced with an armoured human arm brandishing a sword, trampling on a sabre with the hindpaws.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Finland",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Finland_2.svg",
@@ -2486,7 +2592,66 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY 3.0",
     "licenceUrl": "https://creativecommons.org/licenses/by/3.0",
     "source": "checked by hand",
-    "former": []
+    "former": [
+      {
+        "name": "Arms of France",
+        "from": 1946,
+        "to": 1958,
+        "src": "/arms/fr-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_France_(UN_variant).svg",
+        "author": "Ssolbergj",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Imperial coat of arms of France",
+        "from": 1804,
+        "to": 1814,
+        "src": "/arms/fr-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Imperial_Coat_of_Arms_of_France_(1804-1815).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of France",
+        "from": 1790,
+        "to": 1792,
+        "src": "/arms/fr-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_France_1790-92.svg",
+        "author": "Mlkh1234",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Coat of arms of France",
+        "from": 1515,
+        "to": 1578,
+        "src": "/arms/fr-4.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_France_1515-1578.svg",
+        "author": "Mlkh1234",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Arms of the Kingdom of France",
+        "from": 1376,
+        "to": 1469,
+        "src": "/arms/fr-5.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_the_Kingdom_of_France_(Moderne).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Arms of the Kingdom of France & Navarre",
+        "src": "/arms/fr-6.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_the_Kingdom_of_France_%26_Navarre_(Ancien).svg",
+        "author": "Sodacan : Sodacan derivative work: Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "GA",
@@ -2519,7 +2684,166 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 4.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "checked by hand",
-    "former": []
+    "former": [
+      {
+        "name": "Arms of the United Kingdom",
+        "from": 1837,
+        "to": 1952,
+        "src": "/arms/gb-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_the_United_Kingdom_(since_1837).svg",
+        "author": "* Coat_of_arms_of_the_United_Kingdom_",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Arms of the United Kingdom in Scotland",
+        "from": 1816,
+        "to": 1837,
+        "src": "/arms/gb-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_the_United_Kingdom_in_Scotland_(1816-1837).svg",
+        "author": "Sodacan derivative work: Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Arms of the United Kingdom in Scotland",
+        "from": 1801,
+        "to": 1816,
+        "src": "/arms/gb-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_the_United_Kingdom_in_Scotland_(1801-1816).svg",
+        "author": "Sodacan derivative work: Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Arms of Great Britain in Scotland",
+        "from": 1714,
+        "to": 1801,
+        "src": "/arms/gb-4.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_Great_Britain_in_Scotland_(1714-1801).svg",
+        "author": "Sodacan derivative work: Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of Great Britain",
+        "from": 1714,
+        "to": 1800,
+        "src": "/arms/gb-5.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Great_Britain_(1714%E2%80%931801).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Arms of Great Britain in Scotland",
+        "from": 1707,
+        "to": 1714,
+        "src": "/arms/gb-6.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_Great_Britain_in_Scotland_(1707-1714).svg",
+        "author": "Sodacan derivative work: Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1702,
+        "to": 1707,
+        "src": "/arms/gb-7.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_England_(1702%E2%80%931707).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1694,
+        "to": 1702,
+        "src": "/arms/gb-8.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_England_(1694%E2%80%931702).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1689,
+        "to": 1694,
+        "src": "/arms/gb-9.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_England_(1689%E2%80%931694).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1660,
+        "to": 1689,
+        "src": "/arms/gb-10.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_England_(1660-1689).svg",
+        "author": "",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of the Commonwealth of England",
+        "from": 1649,
+        "to": 1654,
+        "src": "/arms/gb-11.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_the_Commonwealth_of_England.svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1603,
+        "to": 1649,
+        "src": "/arms/gb-12.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_England_(1603%E2%80%931649).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1558,
+        "to": 1603,
+        "src": "/arms/gb-13.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_England_(1558-1603).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1554,
+        "to": 1558,
+        "src": "/arms/gb-14.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_England_(1554-1558).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of England",
+        "from": 1509,
+        "to": 1554,
+        "src": "/arms/gb-15.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_England_(1509-1554).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Coat of arms of the United Kingdom in Scotland",
+        "src": "/arms/gb-16.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_United_Kingdom_in_Scotland.svg",
+        "author": "",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "GD",
@@ -2905,7 +3229,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/hn.png",
     "thumb": "/arms/thumb/hn.png",
-    "ratio": 0.834,
+    "ratio": 0.838,
     "description": "The coat of arms of Honduras is a national emblem of the Republic of Honduras.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Honduras",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Honduras.svg",
@@ -2991,7 +3315,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/ht.png",
     "thumb": "/arms/thumb/ht.png",
-    "ratio": 1.285,
+    "ratio": 1.29,
     "adopted": 1986,
     "description": "The coat of arms of Haiti is the national coat of arms of the Republic of Haiti. It was originally introduced in 1807, and it has appeared in its current form since 1986.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Haiti",
@@ -3181,7 +3505,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/ie.png",
     "thumb": "/arms/thumb/ie.png",
-    "ratio": 0.772,
+    "ratio": 0.825,
     "adopted": 1945,
     "description": "The coat of arms of Ireland is blazoned as Azure a harp Or, stringed Argent (a gold harp with silver strings on a blue background). These arms have long been Ireland's heraldic emblem.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Ireland",
@@ -3316,7 +3640,27 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Madden. Derivative work: Zscout370.",
     "licence": "Public domain",
     "source": "Wikipedia infobox",
-    "former": []
+    "former": [
+      {
+        "name": "Emblem of Iran",
+        "from": 1980,
+        "to": 1980,
+        "src": "/arms/ir-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_Iran_(1980).svg",
+        "author": "MrInfo2012",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Imperial coat of arms of Iran",
+        "from": 1925,
+        "to": 1979,
+        "src": "/arms/ir-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Imperial_Coat_of_Arms_of_Iran.svg",
+        "author": "Original creator: Sodacan Reuploader: RepublikBjodeflag1956",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      }
+    ]
   },
   {
     "code": "IS",
@@ -3643,7 +3987,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of the Gilbert and Ellice Islands (colony)",
+        "from": 1937,
+        "to": 1979,
+        "src": "/arms/ki-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_Gilbert_and_Ellice_Islands_(1937-1979).svg",
+        "author": "SVG-image-maker",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ]
   },
   {
     "code": "KM",
@@ -3697,7 +4052,27 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 4.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Saint Christopher-Nevis-Anguilla",
+        "from": 1967,
+        "to": 1983,
+        "src": "/arms/kn-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Saint_Christopher-Nevis-Anguilla_1967-1983.svg",
+        "author": "Alekjds uploaded the base file on Wiki",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of Saint Christopher-Nevis-Anguilla",
+        "from": 1958,
+        "to": 1967,
+        "src": "/arms/kn-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Saint_Christopher-Nevis-Anguilla_(1958-1967).svg",
+        "author": "LadyofHats",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      }
+    ]
   },
   {
     "code": "KP",
@@ -4020,7 +4395,36 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Tonyjeff, based on national symbol.",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of the Dominion of Ceylon",
+        "from": 1954,
+        "to": 1972,
+        "src": "/arms/lk-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Ceylon_(1952%E2%80%931972).svg",
+        "author": "derivative work: MissMJ Coat_of_arms_Ceylon_dominion.jpg…",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Badge of Ceylon (colony)",
+        "from": 1875,
+        "to": 1948,
+        "src": "/arms/lk-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_Ceylon_(1875%E2%80%931948).svg",
+        "author": "Fry1989 eh?",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Coat of arms of Dutch Ceylon (colony)",
+        "from": 1602,
+        "to": 1796,
+        "src": "/arms/lk-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_Ceylon_dutch_colony.jpg",
+        "author": "",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "LR",
@@ -4164,7 +4568,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Government of Morocco",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Morocco",
+        "from": 1912,
+        "to": 1956,
+        "src": "/arms/ma-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Morocco_(Protectorate).svg",
+        "author": "Samhanin",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      }
+    ]
   },
   {
     "code": "MC",
@@ -4360,7 +4775,35 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "MacedonianBoy",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Emblem of the Republic of Macedonia",
+        "from": 1991,
+        "to": 2009,
+        "src": "/arms/mk-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Macedonia_(1946%E2%80%932009).svg",
+        "author": "Đorđe Andrejević-Kun & Antun August Augustinčić, Cameltrader",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Emblem of the Socialist Republic of Macedonia",
+        "from": 1946,
+        "to": 1991,
+        "src": "/arms/mk-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_Macedonia_(1946%E2%80%932009).svg",
+        "author": "Đorđe Andrejević-Kun & Antun August Augustinčić, Cameltrader",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Emblem of the People's Republic of Macedonia",
+        "from": 1944,
+        "to": 1946,
+        "src": "/arms/mk-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Macedonia_(1944%E2%80%931946).svg",
+        "author": "Apiya, edited by:-- MacedonianBoy",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "ML",
@@ -4481,7 +4924,63 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Tseveendorjiin Oidov",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Mongolia",
+        "from": 1960,
+        "to": 1991,
+        "src": "/arms/mn-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_Mongolia_(1960-1991).png",
+        "author": "",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "http://creativecommons.org/licenses/by-sa/3.0/"
+      },
+      {
+        "name": "Coat of arms of the People's Republic of Mongolia",
+        "from": 1941,
+        "to": 1960,
+        "src": "/arms/mn-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:State_emblem_of_the_People's_Republic_of_Mongolia_(1941_-_1960).svg",
+        "author": "Ericmetro",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of the People's Republic of Mongolia",
+        "from": 1940,
+        "to": 1941,
+        "src": "/arms/mn-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:State_emblem_of_the_People's_Republic_of_Mongolia_(1940_-_1941).svg",
+        "author": "Ericmetro",
+        "licence": "Public domain"
+      },
+      {
+        "name": "State emblem of the Mongolian People's Republic",
+        "from": 1924,
+        "to": 1940,
+        "src": "/arms/mn-4.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:State_emblem_of_Mongolian_People's_Republic_1924-1940.svg",
+        "author": "",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of Mongolia",
+        "from": 1911,
+        "to": 1924,
+        "src": "/arms/mn-5.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_Mongolia_(1911%E2%80%9324).svg",
+        "author": "Samhanin",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      {
+        "name": "State emblem of the People's republic of Mongolia",
+        "src": "/arms/mn-6.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:State_emblem_of_the_People's_republic_of_Mongolia_(1960%E2%80%931992).svg",
+        "author": "Nyam-Osoryn Tsültem (1923-2001)",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      }
+    ]
   },
   {
     "code": "MR",
@@ -4663,7 +5162,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/mx.png",
     "thumb": "/arms/thumb/mx.png",
-    "ratio": 1.1,
+    "ratio": 1.103,
     "description": "The coat of arms of Mexico is a national symbol of Mexico and depicts a Mexican (golden) eagle perched on a prickly pear cactus devouring a rattlesnake.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Mexico",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Mexico.svg",
@@ -4756,7 +5255,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of South West Africa",
+        "from": 1963,
+        "to": 1980,
+        "src": "/arms/na-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_South_West_Africa.svg",
+        "author": "Samhanin",
+        "licence": "CC BY 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/3.0"
+      }
+    ]
   },
   {
     "code": "NE",
@@ -4817,7 +5327,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/nl.png",
     "thumb": "/arms/thumb/nl.png",
-    "ratio": 0.913,
+    "ratio": 0.9,
     "adopted": 1980,
     "description": "The coat of arms of the Kingdom of the Netherlands was originally adopted in 1815 and later modified in 1907.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_the_Netherlands",
@@ -4825,7 +5335,27 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Johannes Evert van Leeuwen SVG is Own work",
     "licence": "Public domain",
     "source": "Wikipedia infobox",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of the Republic of the United Netherlands",
+        "from": 1665,
+        "to": 1795,
+        "src": "/arms/nl-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_republic_of_the_united_Netherlands.svg",
+        "author": "Unknown author, design is 18th century.",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of the Republic of the United Netherlands",
+        "from": 1581,
+        "to": 1665,
+        "src": "/arms/nl-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_republic_of_the_united_Netherlands_(before_1665).svg",
+        "author": "Katepanomegas",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "NO",
@@ -4840,7 +5370,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Emblazonment by Sverre Morken, redrawn by Jonas Madsen…",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Norway",
+        "from": 1905,
+        "to": 1905,
+        "src": "/arms/no-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Norway_(1905).svg",
+        "author": "User:Roede",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "NP",
@@ -4900,7 +5441,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Parliament of Nauru Vector: Designism",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Nauru",
+        "from": 1968,
+        "to": 2020,
+        "src": "/arms/nr-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Nauru.svg",
+        "author": "Hk_kng",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "NZ",
@@ -5067,7 +5618,52 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 4.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Badge of the Territory of New Guinea (colony)",
+        "from": 1921,
+        "to": 1971,
+        "src": "/arms/pg-1.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_the_Territory_of_New_Guinea.svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Emblem of the Territory of Papua",
+        "from": 1906,
+        "to": 1971,
+        "src": "/arms/pg-2.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Territory_of_Papua.svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Badge of British New Guinea (colony)",
+        "from": 1888,
+        "to": 1906,
+        "src": "/arms/pg-3.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_British_New_Guinea_(1888-1906).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Badge of the New Guinea Protectorate",
+        "from": 1884,
+        "to": 1888,
+        "src": "/arms/pg-4.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_the_New_Guinea_Protectorate_(1884-1888).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ]
   },
   {
     "code": "PH",
@@ -5137,7 +5733,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "licence": "Public domain"
       },
       {
-        "name": "Coat of arms of the Captaincy General of the Philippines",
+        "name": "Coat of arms of the Captaincy General of the Philippines (colony)",
         "src": "/arms/ph-7.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_Captaincy_General_of_the_Philippines.svg",
         "author": "Samhanin",
@@ -5159,7 +5755,26 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Meraj Muhammad",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Emblem of Pakistan",
+        "from": 1954,
+        "to": 1972,
+        "src": "/arms/pk-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_Pakistan_(1954-1972).svg",
+        "author": "Tanvir Anjum Adib",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Emblem of Pakistan",
+        "from": 1947,
+        "to": 1955,
+        "src": "/arms/pk-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_Pakistan_(1947-1954).svg",
+        "author": "Abdur Rahman Chughtai, vector image created by User:Baba66",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "PL",
@@ -5167,7 +5782,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/pl.png",
     "thumb": "/arms/thumb/pl.png",
-    "ratio": 0.85,
+    "ratio": 0.856,
     "adopted": 1990,
     "description": "The coat of arms of Poland is the heraldic symbol representing Poland. The current version was adopted in 1990. It is a white, crowned eagle with a golden beak and talons, on a red background.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Poland",
@@ -5288,7 +5903,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "originally Washiucho",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Seal of Palau",
+        "from": 1955,
+        "to": 1981,
+        "src": "/arms/pw-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Seal_of_Palau_(1955%E2%80%931981).svg",
+        "author": "SVG-image-maker",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      }
+    ]
   },
   {
     "code": "PY",
@@ -5504,7 +6130,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/ru.png",
     "thumb": "/arms/thumb/ru.png",
-    "ratio": 0.844,
+    "ratio": 0.847,
     "adopted": 1993,
     "description": "The coat of arms of Russia is one of the state symbols of the Russian Federation, along with the state flag and the national anthem. The current coat of arms was approved by Decree No. 2050 of the President of the Russian Federation dated on 30 November 1993.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Russia",
@@ -5798,7 +6424,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 3.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Badge of Singapore in the Straits Settlements (colony)",
+        "src": "/arms/sg-1.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_Singapore_in_the_Straits_Settlements.svg",
+        "author": "Samhanin",
+        "licence": "CC BY 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/4.0"
+      }
+    ]
   },
   {
     "code": "SI",
@@ -5850,7 +6486,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Tlusťa",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Slovakia",
+        "from": 1960,
+        "to": 1990,
+        "src": "/arms/sk-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Slovakia_(1960-1990).svg",
+        "author": "PavelD",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "SL",
@@ -5962,7 +6608,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Brokopondo derivative work: Completefailure",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Suriname",
+        "from": 1959,
+        "to": 1975,
+        "src": "/arms/sr-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Suriname_(1959-1975).svg",
+        "author": "Completefailure derivative work: Thommy",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      }
+    ]
   },
   {
     "code": "SS",
@@ -6029,7 +6686,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "emblem",
     "src": "/arms/sy.png",
     "thumb": "/arms/thumb/sy.png",
-    "ratio": 1.328,
+    "ratio": 1.333,
     "adopted": 2025,
     "description": "The emblem of Syria features a tan-coloured eagle, facing to its right (dexter), with three five-pointed stars, adopted from the Syrian flag, arranged in an arc above its head.",
     "article": "https://en.wikipedia.org/wiki/Emblem_of_Syria",
@@ -6151,7 +6808,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 4.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0",
     "source": "Wikipedia infobox",
-    "former": []
+    "former": [
+      {
+        "name": "Seal of French Togoland (colony)",
+        "from": 1916,
+        "to": 1960,
+        "src": "/arms/tg-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Seal_of_the_French_Territory_of_Togoland.svg",
+        "author": "Samhanin",
+        "licence": "CC BY 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/3.0"
+      }
+    ]
   },
   {
     "code": "TH",
@@ -6159,7 +6827,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "emblem",
     "src": "/arms/th.png",
     "thumb": "/arms/thumb/th.png",
-    "ratio": 0.938,
+    "ratio": 0.941,
     "adopted": 1911,
     "description": "The national emblem of Thailand, the arms of dominion of the Thai monarch (currently Vajiralongkorn), is called the พระครุฑพ่าห์ (RTGS transcription: Phra Khrut Pha; \"Garuda as the vehicle\" (of Vishnu)).",
     "article": "https://en.wikipedia.org/wiki/Emblem_of_Thailand",
@@ -6167,7 +6835,18 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Sodacan",
     "licence": "Public domain",
     "source": "Wikipedia infobox",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Siam",
+        "from": 1873,
+        "to": 1910,
+        "src": "/arms/th-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Siam_(greater).svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "TJ",
@@ -6209,6 +6888,33 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Tajik_Soviet_Socialist_Republic_(1940%E2%80%931991),_Emblem_of_Tajikistan_(1991%E2%80%931992).svg",
         "author": "TheSign 1998",
         "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of the Tajik SSR",
+        "from": 1936,
+        "to": 1937,
+        "src": "/arms/tj-4.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Tajik_SSR_(1936).svg",
+        "author": "TheSign 1998",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of the Tajik ASSR",
+        "from": 1929,
+        "to": 1931,
+        "src": "/arms/tj-5.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_Tajik_ASSR_04.1929-24.02.1931.svg",
+        "author": "Transoxsiana",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Coat of arms of the Tajik ASSR",
+        "from": 1929,
+        "to": 1929,
+        "src": "/arms/tj-6.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_Arms_of_Tajik_ASSR_1924-04.1929.svg",
+        "author": "Transoxsiana",
+        "licence": "Public domain"
       }
     ]
   },
@@ -6218,7 +6924,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "emblem",
     "src": "/arms/tl.png",
     "thumb": "/arms/thumb/tl.png",
-    "ratio": 1.003,
+    "ratio": 1,
     "description": "The national emblem of Timor-Leste, also known as the Belak (Tetum for \"Disk\"), is one of the national symbols of the country.",
     "article": "https://en.wikipedia.org/wiki/National_emblem_of_Timor-Leste",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_East_Timor.svg",
@@ -6269,6 +6975,13 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "src": "/arms/tm-2.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_Turkmenistan_(1992%E2%80%932000).svg",
         "author": "Leonid 2",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Emblem of the Turkmen SSR",
+        "src": "/arms/tm-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Turkmen_Soviet_Socialist_Republic_(1978%E2%80%931991),_Emblem_of_Turkmenistan_(1991%E2%80%931992).svg",
+        "author": "TheSign 1998",
         "licence": "Public domain"
       }
     ]
@@ -6413,7 +7126,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/tz.png",
     "thumb": "/arms/thumb/tz.png",
-    "ratio": 0.866,
+    "ratio": 0.859,
     "description": "The coat of arms of Tanzania comprises a warrior's shield which bears a golden portion on the upper part followed underneath by the flag of Tanzania.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Tanzania",
     "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Tanzania.svg",
@@ -6421,7 +7134,28 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 3.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Tanganyika",
+        "from": 1961,
+        "to": 1964,
+        "src": "/arms/tz-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Tanganyika_(1961%E2%80%931964).svg",
+        "author": "Di (they-them)",
+        "licence": "CC BY-SA 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/4.0"
+      },
+      {
+        "name": "Badge of the British trust territory of Tanganyika (colony)",
+        "from": 1923,
+        "to": 1961,
+        "src": "/arms/tz-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_Tanganyika_(1923%E2%80%931961).svg",
+        "author": "Cypp0847",
+        "licence": "CC BY 4.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by/4.0"
+      }
+    ]
   },
   {
     "code": "UA",
@@ -6429,7 +7163,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/ua.png",
     "thumb": "/arms/thumb/ua.png",
-    "ratio": 0.722,
+    "ratio": 0.725,
     "adopted": 1992,
     "description": "The coat of arms of Ukraine is a blue shield with a golden trident. It is colloquially known as the tryzub.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_Ukraine",
@@ -6437,7 +7171,15 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "Андрей Перцев",
     "licence": "Public domain",
     "source": "Wikipedia infobox",
-    "former": []
+    "former": [
+      {
+        "name": "Greater coat of arms of the Ukrainian People's Republic",
+        "src": "/arms/ua-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_the_Ukrainian_People's_Republic.svg",
+        "author": "Alex Tora",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "UG",
@@ -6454,7 +7196,16 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 3.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Badge of the Uganda Protectorate",
+        "src": "/arms/ug-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_the_Uganda_Protectorate.svg",
+        "author": "Sodacan",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "US",
@@ -6512,7 +7263,35 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Emblem of the Uzbek SSR",
+        "from": 1978,
+        "to": 1991,
+        "src": "/arms/uz-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Uzbek_Soviet_Socialist_Republic_(1978%E2%80%931991),_Emblem_of_Uzbekistan_(1991%E2%80%931992).svg",
+        "author": "Jam123",
+        "licence": "Public domain"
+      },
+      {
+        "name": "Emblem of the Uzbek SSR",
+        "from": 1929,
+        "to": 1937,
+        "src": "/arms/uz-2.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Uzbek_SSR_(1929-1937).svg",
+        "author": "TheSign 1998",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      },
+      {
+        "name": "Original emblem of the Uzbek SSR",
+        "src": "/arms/uz-3.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Emblem_of_the_Uzbek_SSR_(1931).svg",
+        "author": "TheSign 1998",
+        "licence": "CC BY-SA 3.0",
+        "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
+      }
+    ]
   },
   {
     "code": "VA",
@@ -6763,7 +7542,30 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "licence": "CC BY-SA 3.0",
     "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Badge of the British New Hebrides (colony)",
+        "from": 1953,
+        "to": 1980,
+        "src": "/arms/vu-1.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_the_British_New_Hebrides_(1952%E2%80%931980).svg",
+        "author": "Thommy",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      },
+      {
+        "name": "Badge of the British New Hebrides (colony)",
+        "from": 1906,
+        "to": 1953,
+        "src": "/arms/vu-2.png",
+        "light": true,
+        "commons": "https://commons.wikimedia.org/wiki/File:Badge_of_the_British_New_Hebrides_(1906%E2%80%931952).svg",
+        "author": "Thommy",
+        "licence": "CC0",
+        "licenceUrl": "http://creativecommons.org/publicdomain/zero/1.0/deed.en"
+      }
+    ]
   },
   {
     "code": "WS",
@@ -6880,7 +7682,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "kind": "arms",
     "src": "/arms/za.png",
     "thumb": "/arms/thumb/za.png",
-    "ratio": 0.763,
+    "ratio": 0.766,
     "adopted": 2000,
     "description": "The coat of arms of South Africa is the main heraldic insignia of South Africa. The present coat of arms was introduced on Freedom Day, 27 April 2000, and was designed by Iaan Bekker.",
     "article": "https://en.wikipedia.org/wiki/Coat_of_arms_of_South_Africa",
@@ -6933,7 +7735,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "FXXX",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Northern Rhodesia (colony)",
+        "from": 1923,
+        "to": 1953,
+        "src": "/arms/zm-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Northern_Rhodesia_(1939%E2%80%931964).svg",
+        "author": "Unknown, vector image created by User:NikNaks",
+        "licence": "Public domain"
+      }
+    ]
   },
   {
     "code": "ZW",
@@ -6949,7 +7761,17 @@ export const COATS_OF_ARMS: CountryArms[] = [
     "author": "FischX, Meul",
     "licence": "Public domain",
     "source": "Wikipedia and Wikidata agree",
-    "former": []
+    "former": [
+      {
+        "name": "Coat of arms of Rhodesia",
+        "from": 1924,
+        "to": 1953,
+        "src": "/arms/zw-1.png",
+        "commons": "https://commons.wikimedia.org/wiki/File:Coat_of_arms_of_Southern_Rhodesia_(1924%E2%80%931981).svg",
+        "author": "LadyofHats",
+        "licence": "Public domain"
+      }
+    ]
   }
 ]
 

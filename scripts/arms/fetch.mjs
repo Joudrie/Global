@@ -34,8 +34,14 @@
 //    - a caption or file title naming this country or one of its former
 //      names (ALIASES), and no other country or occupying power;
 //    - not a flag, coin, seal of a king, city, proposal, photo or rendering.
-//    Colonial arms tied to the territory are labelled "(colony)". The rest
-//    show "coming soon". Run with --why to see every image's verdict.
+//    Colonial arms tied to the territory are labelled "(colony)". Emblems of
+//    fascist and Nazi-era regimes and their Axis puppet states stay out.
+//    For countries the English article leaves bare, the same rules run over
+//    the emblem's article in the country's own Wikipedia, then the German,
+//    French, Spanish and Russian ones, and Commons' "Historical coats of arms
+//    of …" categories (their captions only date images; the file title must
+//    say whose arms they are). The rest show "coming soon". Run with --why to
+//    see every image's verdict.
 // 5. Wikimedia Commons: each file's page, author and licence (extmetadata).
 //    Files that aren't on Commons or aren't public domain / Creative Commons
 //    are left out and printed. Thumbnails come from Commons, are trimmed and
@@ -93,7 +99,11 @@ const ALIASES = {
   CD: ['Democratic Republic of the Congo', 'Democratic Republic of Congo', 'Zaire', 'Congo'], CI: ['Ivory Coast', 'Côte d\'Ivoire'], CZ: ['Czech', 'Czechoslovakia', 'Bohemia and Moravia'],
   ET: ['Ethiopian', 'Abyssinia'], GH: ['Gold Coast'], GY: ['British Guiana'], IR: ['Persia', 'Iranian'], KH: ['Khmer', 'Kampuchea'],
   KZ: ['Kazakh'], KG: ['Kirghiz', 'Kyrgyz'], LS: ['Basutoland'], MD: ['Moldavian', 'Moldavia'], MM: ['Burma'], MW: ['Nyasaland'],
-  MV: ['Maldivian'], RU: ['Russian Empire', 'Russian SFSR', 'Russian Soviet Federative Socialist Republic', 'Tsardom of Russia'], GB: ['Great Britain', 'Kingdom of Great Britain', 'England'], CF: ['Central African Empire'], MY: ['Malaya', 'Federation of Malaya'], GW: ['Portuguese Guinea'], DE: ['German Empire', 'German Reich', 'North German Confederation'], LA: ['Lao'], DJ: ['French Somaliland', 'Afars and Issas'], KI: ['Gilbert and Ellice'], AZ: ['Azerbaijani'],
+  MV: ['Maldivian'],
+  MK: ['Macedonia', 'Macedonian'], UA: ['Ukrainian'], UZ: ['Uzbek'], TZ: ['Tanganyika', 'Zanzibar'], ZW: ['Rhodesia', 'Southern Rhodesia'],
+  ZM: ['Northern Rhodesia'], NA: ['South West Africa'], TH: ['Siam', 'Siamese'], LK: ['Ceylon'], KN: ['Saint Christopher', 'St Kitts', 'St. Kitts'],
+  VU: ['New Hebrides'], TV: ['Ellice Islands'], SO: ['Somali'], TG: ['Togoland'], PG: ['Papua', 'New Guinea'], CH: ['Swiss', 'Helvetic'],
+  VA: ['Holy See', 'Papal States'], NO: ['Norwegian'], SK: ['Slovak'], TJ: ['Tajik'], TM: ['Turkmen'], AE: ['Trucial States'], RU: ['Russian Empire', 'Russian SFSR', 'Russian Soviet Federative Socialist Republic', 'Tsardom of Russia'], GB: ['Great Britain', 'Kingdom of Great Britain', 'England'], CF: ['Central African Empire'], MY: ['Malaya', 'Federation of Malaya'], GW: ['Portuguese Guinea'], DE: ['German Empire', 'German Reich', 'North German Confederation'], LA: ['Lao'], DJ: ['French Somaliland', 'Afars and Issas'], KI: ['Gilbert and Ellice'], AZ: ['Azerbaijani'],
   AM: ['Armenian'], GE: ['Georgian'], HR: ['Croatian'], EE: ['Estonian'], LV: ['Latvian'], LT: ['Lithuanian'], MN: ['Mongolian'],
 }
 // Gallery entries that pass the rules below but aren't the country's arms
@@ -113,6 +123,10 @@ const FORMER_DROP = new Set([
   // Japanese-sponsored puppet states of the same war: the Second Philippine
   // Republic (1943–1945) and Ba Maw's State of Burma (1943–1945).
   'Emblem of the Philippines (1943-1945).svg', 'Coat of arms of the Philippines (1943–1945).svg', 'State of Burma Emblem.svg',
+  // From other Wikipedias: a count's arms given the Grand Duchy's name
+  // (Luxembourg), and Indonesia's 1950 design the English article says was
+  // rejected; an undated "Bourbon kingdom" fantasy for Ecuador.
+  'Coat of arms Grand Duchy of Luxembourg.png', 'Coat of arms of United States of Indonesia.svg', 'Arms of Ecuador kingdom Bourbon.png',
   // Sweden: today's lesser arms, not a former version.
   'Coat of arms of Sweden (shield and chain).svg',
   // Azerbaijan: the 1920 design was never adopted.
@@ -163,7 +177,9 @@ const chunks = (list, n) => Array.from({ length: Math.ceil(list.length / n) }, (
 const qid = uri => uri.replace('http://www.wikidata.org/entity/', '')
 const fileOf = uri => decodeURIComponent(uri.replace(/^https?:\/\/commons\.wikimedia\.org\/wiki\/Special:FilePath\//, ''))
 const yearOf = v => (v ? Number(v.value.match(/^-?\d+/)[0]) : undefined)
-const normFile = f => f.replace(/^(File|Image):/i, '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim().replace(/^./, c => c.toUpperCase())
+/** The File: namespace in the Wikipedias the script reads. */
+const FILE_NS = 'File|Image|Datei|Bild|Fichier|Archivo|Imagen|Файл|Изображение|Plik|Bestand|Afbeelding|Ficheiro|Imagem|Immagine|Fil|Pilt|Soubor|Dosya|Tiedosto|Kuva|Slika|Datoteka|Податотека|Skrá|Berkas|Gambar|ファイル|画像|파일|ملف|קובץ|پرونده|Tập tin|Hình|Fișier|Failas|Attēls|Fitxer|Dosiero|Mynd|Ffeil|Faili|Ifayela'
+const normFile = f => f.replace(/&#0?39;|&apos;/g, "'").replace(/&amp;/g, '&').replace(/&quot;/g, '"').replace(new RegExp(`^(${FILE_NS})\\s*:`, 'i'), '').replace(/_/g, ' ').replace(/\s+/g, ' ').trim().replace(/^./, c => c.toUpperCase())
 
 /** Follows the API's normalized/redirects lists from an asked title. */
 const resolver = q => t => {
@@ -172,10 +188,10 @@ const resolver = q => t => {
   return t
 }
 /** Every page's wikitext for these titles (redirects followed), by asked title. */
-async function wikitexts(titles) {
+async function wikitexts(titles, host = 'en.wikipedia.org') {
   const out = {}
   for (const group of chunks([...new Set(titles)], 10)) {
-    const d = await wiki({ action: 'query', prop: 'revisions', rvprop: 'content', rvslots: 'main', redirects: '1', titles: group.join('|') })
+    const d = await api(host, { action: 'query', prop: 'revisions', rvprop: 'content', rvslots: 'main', redirects: '1', titles: group.join('|') })
     const to = resolver(d.query)
     for (const t of group) {
       const p = d.query.pages.find(p => p.title === to(t))
@@ -310,21 +326,21 @@ function shortDescription(text) {
 // A year range in a caption: "1928–1939", "1975–87", "from 11 June 1951 to 11 November 1975", "1992–present".
 const MONTH = '(?:January|February|March|April|May|June|July|August|September|October|November|December)'
 const DAY = `(?:\\d{1,2}\\s+${MONTH}\\s+|${MONTH}\\s+(?:\\d{1,2},?\\s+)?)?`
-const RANGE = new RegExp(`(?:\\b(?:from|between|in|during)\\s+)?(?:c\\.\\s*)?${DAY}(1[0-9]{3}|20[0-9]{2})\\s*(?:–|—|-|−|\\bto\\b|\\buntil\\b|\\band\\b)\\s*${DAY}(1[0-9]{3}|20[0-9]{2}|\\d{2}\\b|present|now|today)?`, 'i')
+const RANGE = new RegExp(`(?:\\b(?:from|between|in|during)\\s+)?(?:c\\.\\s*)?${DAY}(1[0-9]{3}|20[0-9]{2})\\s*(?:–|—|-|−|\\bto\\b|\\buntil\\b|\\band\\b|\\bbis\\b|\\bà\\b|\\bau\\b|\\bal\\b|\\bhasta\\b|\\bat[ée]\\b|\\btot\\b|\\btil\\b|\\btill\\b|\\bdo\\b|до|по)\\s*${DAY}(1[0-9]{3}|20[0-9]{2}|\\d{2}\\b|present|now|today|heute|aujourd|actualidad|presente|наст)?`, 'i')
 function yearRange(caption) {
   const m = caption.match(RANGE)
   if (!m) return null
   const from = Number(m[1])
   const raw = m[2]
   if (!raw) return null // "1875 –": open-ended, unclear
-  if (/present|now|today/i.test(raw)) return { from, to: null, text: m[0] }
+  if (/present|now|today|heute|aujourd|actualidad|presente|наст/i.test(raw)) return { from, to: null, text: m[0] }
   let to = Number(raw)
   if (raw.length === 2) to = Math.floor(from / 100) * 100 + to + (to < from % 100 ? 100 : 0)
   return to >= from ? { from, to, text: m[0] } : null
 }
 
 const OTHER_STATES = /Northern Cyprus|Turkish Federated State|Great Britain|England|Ottoman|Holy Roman|Austria-Hungary|Russian Empire|Soviet Union|USSR|Khedive|Khedivate|Venice|Lusignan|Mamluk|United Arab Republic|Yugoslavia|Transleithania|Hungarian Crown|Order of Malta|Hospitaller|Aragon|Habsburg|Burgund|Prussia|Brandenburg|Bavaria|Saxony|Napoleon|Spanish Empire|British West Africa|Central America|New Granada|Leeward Islands|British East Africa|British Central Africa|Ruanda-Urundi|Anglo-Egyptian|Bessarabia|Taiping|Manchukuo|Azad Hind|Tripolitania|Cyrenaica|Sweden|Swedish|Suède|Danish|Dano-Norwegian|Dutch|Netherlands|Holland|Venetian|East Germany|German Democratic Republic/
-const NOT_ARMS = /\b(flags?|banners?|standards?|coins?|passports?|stamps?|currency|banknotes?|maps?|photos?|photograph|masthead|gazette|proposals?|proposed|rejected|design for|reconstruction|king|queen|emperor|empress|sultan|emir of|shah|cardinal|count|countess|duke|duchess|prince|princess|bishop|ecclesiastic\w*|reign|reigned|house of|dynasty|city|cities|town|municipal\w*|council|company|occupation|occupied|presiden\w*|personal|monogram|governor|governorate|oblast|province of|air force|army|navy|police|roundel|rival|exile|unilateral\w*|royal|helmet|crown of|regalia|banner of|order of|medal|uniform|building|gate|statue|carving|relief|prime minister|chief adviser|minist\w*|parliament|senate|assembly|court|cabinet|speaker|statute|chairman|chief of state|head of state|turco-egyptian)\b/i
+const NOT_ARMS = /\b(flags?|banners?|standards?|coins?|passports?|stamps?|currency|banknotes?|maps?|photos?|photograph|masthead|gazette|proposals?|proposed|rejected|design for|reconstruction|king|queen|emperor|empress|sultan|emir of|shah|cardinal|count|countess|duke|duchess|prince|princess|bishop|ecclesiastic\w*|reign|reigned|house of|dynasty|city|cities|town|municipal\w*|council|company|occupation|occupied|presiden\w*|personal|monogram|governor|governorate|oblast|province of|air force|army|navy|police|roundel|rival|exile|unilateral\w*|royal|helmet|crown of|regalia|banner of|order of|medal|uniform|building|gate|statue|carving|relief|prime minister|chief adviser|minist\w*|parliament|senate|assembly|court|cabinet|speaker|statute|chairman|chief of state|head of state|turco-egyptian|shahbanou|directorate|telegraph|agency|authority)\b/i
 // A person with a regnal number: "Henry VI", "Christian IV".
 const REGNAL = /\b[A-Z][a-z]+ (?:[IVX]+)\b/
 const GENERIC_WORDS = /\b(the|a|an|of|from|to|in|and|with|used|use|version|versions|official|greater|lesser|middle|small|large|national|state|coat|coats|arms|armorial|achievement|emblem|emblems|seal|seals|badge|crest|design|first|second|third|old|older|former|historical|historic|until|since|ca|c|between|during|modification|modified|variant|colou?r|colou?red|full|simplified|this)\b/gi
@@ -346,7 +362,7 @@ function splitTop(s) {
 const IMAGE_OPTION = /^\s*(thumb|thumbnail|frame|frameless|framed|border|left|right|center|centre|none|baseline|middle|sub|super|top|bottom|text-top|text-bottom|upright(\s*=.*)?|\d*x?\d+\s*px|(alt|link|page|class|lang|thumbtime|upright)\s*=.*)\s*$/i
 const IMAGE_FILE = /\.(svg|png|jpe?g|gif|tiff?)$/i
 /** "[[File:X|thumb|caption]]" with one level of nested links inside. */
-const FILE_LINK = /\[\[(?:File|Image):([^|\]]+)((?:\|(?:[^[\]]|\[\[[^\]]*\]\])*)?)\]\]/gi
+const FILE_LINK = new RegExp(`\\[\\[(?:${FILE_NS})\\s*:([^|\\]]+)((?:\\|(?:[^[\\]]|\\[\\[[^\\]]*\\]\\])*)?)\\]\\]`, 'gi')
 /** A table cell that is only a year range: "1819—1834", "''1540—1556''", "1834–c. 1940". */
 const YEAR_CELL = /^\s*(c\.\s*)?(1[0-9]{3}|20[0-9]{2})\s*(–|—|-|−|to)\s*(c\.\s*)?(1[0-9]{3}|20[0-9]{2}|present|today)\s*$/i
 
@@ -426,7 +442,7 @@ function articleImages(wikitext) {
 
 /** A name for a state or regime that no longer exists (or a colonial badge). */
 const FORMER_POLITY = /\b(Kingdom|Empire|Federation|Colony|colonial|Protectorate|SSR|Soviet|Socialist|People's|Democratic Republic|Dominion|Lordship|Principality|Badge)\b/i
-const HISTORY_SECTION = /histor|former|previous|past\b|evolution|older|earlier|chronolog|changes|colonial|timeline|origin|predecessor/i
+const HISTORY_SECTION = /histor|former|previous|past\b|evolution|older|earlier|chronolog|changes|colonial|timeline|origin|predecessor|Geschichte|ehemalig|früher|ancien|antigu|истори|прежн|бывш|storia|storic|geschiedenis|tidligere|ajalugu|tarih|sejarah|commons:/i
 // A country's own earlier states that OTHER_STATES lists for the others.
 const OWN_HISTORY = {
   RU: /Russian Empire/g, GB: /Great Britain|England/g, NL: /Dutch|Netherlands|Holland/g, SE: /Sweden|Swedish/g,
@@ -460,7 +476,7 @@ function fileYears(file) {
   const one = t.match(/\((1[0-9]{3}|20[0-9]{2})\)/)
   return one ? { from: Number(one[1]), to: Number(one[1]), text: one[0] } : null
 }
-const COLONY = /\b(British|Portuguese|French|Italian|Belgian|Spanish|Dutch|German|Danish) (?!(?:Republic|Empire|Confederation|Reich|Democratic|Federal|Socialist|Soviet|People)\b)[A-Z][a-z]+|\bcolon(y|ial)\b|\bprotectorate\b|Government-General|Congo Free State|Nyasaland|Basutoland|Bechuanaland|Gold Coast|Portuguese West Africa|Portuguese East Africa|^Badge of|\bbadge$/i
+const COLONY = /\b(British|Portuguese|French|Italian|Belgian|Spanish|Dutch|German|Danish) (?!(?:Republic|Empire|Confederation|Reich|Democratic|Federal|Socialist|Soviet|People)\b)[A-Z][a-z]+|\bcolon(y|ial)\b|\bprotectorate\b|Government-General|Congo Free State|Nyasaland|Basutoland|Bechuanaland|Gold Coast|Portuguese West Africa|Portuguese East Africa|^Badge of|\bbadge$|Captaincy General|Northern Rhodesia|Southern Rhodesia|Gilbert and Ellice/i
 const NAME_FIX = [
   [/^Coat of arms of ZAVNOH & Federal State of Croatia$/, 'Coat of arms of the Federal State of Croatia'],
   [/^Emblem used by the /, 'Emblem of the '],
@@ -473,6 +489,15 @@ const NAME_FIX = [
   [/\s+Laurel$/, ''],
   [/\s+-\s+(obverse|reverse)$/i, ''],
   [/^Coat of arms from the /, 'Coat of arms of the '],
+  [/,?\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\s+(?:to|–|-)\s+(?:January|February|March|April|May|June|July|August|September|October|November|December)\b.*$/, ''],
+  [/,\s+(?:as|which|used|adopted|with|when)\b.*$/, ''],
+  [/\s+(?:was|is|were|which|that)$/, ''],
+  [/ of (?!the )((?:[A-Z][a-z]+ )(?:ASSR|SSR)\b)/, ' of the $1'],
+  [/ of (?!the )([A-Z][a-z]+ People's Republic\b)/, ' of the $1'],
+  [/ of the (French|Portuguese|Belgian|German|Italian|Spanish) (?=[A-Z])/, ' of $1 '],
+  [/^Coat of arms Ceylon dutch colony$/, 'Coat of arms of Dutch Ceylon (colony)'],
+  [/\s+1[0-9]{3}\s*[-–]\s*\d{2,4}$/, ''],
+  [/\bthe republic of the united Netherlands\b/, 'the Republic of the United Netherlands'],
   [/^\d+(st|nd|rd|th) coat of arms of /i, 'Coat of arms of '],
   [/ of Russian Empire\b/, ' of the Russian Empire'],
   [/\bCoat of arms of Soviet Armenia\b/, 'Coat of arms of the Armenian SSR'],
@@ -484,7 +509,7 @@ const NAME_FIX = [
   [/\s+/g, ' '],
 ]
 
-function formerArms(p) {
+function formerArms(p, extra = []) {
   const page = armsPages[p.article]
   const names = [p.f.name, ...(ALIASES[p.f.code] ?? [])]
   // "South Australia" and "Western Australia" are states, not Australia.
@@ -505,6 +530,7 @@ function formerArms(p) {
   // The article's images, then Wikidata's dated former files.
   const images = page ? articleImages(page.text) : []
   for (const file of Object.keys(wdHere)) images.push({ file, caption: '', from: 'wikidata', section: '' })
+  images.push(...extra)
   const out = []
   const decisions = []
   let adoptedHint
@@ -521,6 +547,8 @@ function formerArms(p) {
     const fileWords = file.replace(/\.[a-z]+$/i, '').replace(/[_-]/g, ' ')
     const section = c.section ?? ''
     if (NOT_HISTORY_SECTION.test(section) && c.from !== 'wikidata') { why(`section "${section}"`); continue }
+    // "Coat of arms of Kingdom of Belgium 1846.png": a plate from an 1840s armorial, not a version.
+    if (/\s1[5-8]\d\d\.(png|jpe?g|gif)$/i.test(file)) { why('a plate from an old armorial'); continue }
     if (FASCIST.test(fileWords) || FASCIST.test(c.caption)) { why('a fascist or Nazi-era regime\'s emblem'); continue }
     if (!allowed && (NOT_A_VERSION.test(fileWords) || NOT_A_VERSION.test(c.caption))) { why('a rendering, object or proposal'); continue }
 
@@ -552,7 +580,7 @@ function formerArms(p) {
     // ── The name: the caption without its dates, else the file's title.
     let name = ''
     let generic = true
-    if (c.caption && c.from !== 'table') {
+    if (c.caption && c.from !== 'table' && !c.foreign) {
       const full = c.caption.replace(/\s*\([^()]*\b\d{4}\b[^()]*\)/g, ' ').replace(capRange?.text ?? '\u0000', ' ')
         .split(/\.\s/)[0]
         // ", adopted in 1826", "from July 5, 1975", "from 13 July to 6 August"
@@ -682,6 +710,7 @@ function authorOf(ii) {
     .replace(/^(Original|Author|Image|Autor of SVG image|Original Author)\s*:\s*/i, '').replace(/^:\s*/, '')
     .replace(/^(File\s*:\s*)?[^:]+\.(svg|png|jpe?g)\S*\s*(:|by)\s*/i, '') // "File:X.svg : Someone", "X.svg by Someone"
     .replace(/\s*dyskusja\s+Mail\b.*$/i, '').replace(/\s*\d{1,2}:\d{2}, \d{1,2} \w+ \d{4} \(UTC\)/g, '')
+    .replace(/\S+@\S+\.[a-z]{2,}/gi, '') // no e-mail addresses in credits
     .replace(/\bUnknown(\s+Unknown)+\b/gi, 'Unknown').replace(/\b(Unknown author)(\s+\1)+/gi, '$1')
     .replace(/\(\s*talk\s*\)/gi, '').replace(/[^\s,;:]+\.svg'?\)?/gi, '').replace(/\bderitive\b/g, 'derivative')
     // Commons boilerplate that follows the name.
@@ -715,7 +744,12 @@ function writePng(raw, out, box) {
   fs.mkdirSync(path.dirname(out), { recursive: true })
   if (!MAGICK) { fs.copyFileSync(raw, out); return }
   // [0]: the first frame of a GIF; trim transparent or plain margins.
-  execFileSync('convert', [`${raw}[0]`, '-background', 'none', '-trim', '+repage', '-resize', `${box}x${box}>`, '-strip', `PNG32:${out}`])
+  // Scans and JPEGs come on a white sheet: clear white connected to the
+  // corners (flood fill, so white inside the emblem stays). Corners that
+  // aren't white (transparent, or a coloured full-bleed design) are left alone.
+  const [w, h] = execFileSync('identify', ['-format', '%w %h', `${raw}[0]`]).toString().trim().split(' ').map(Number)
+  const clear = ['-alpha', 'set', '-fuzz', '6%', '-fill', 'none', ...[[0, 0], [w - 1, 0], [0, h - 1], [w - 1, h - 1]].flatMap(([x, y]) => ['-floodfill', `+${x}+${y}`, 'white'])]
+  execFileSync('convert', [`${raw}[0]`, ...clear, '-background', 'none', '-trim', '+repage', '-resize', `${box}x${box}>`, '-strip', `PNG32:${out}`])
   if (PNGQUANT) {
     try { execFileSync('pngquant', ['--quality=50-85', '--speed', '1', '--strip', '--force', '--output', out, out], { stdio: 'ignore' }) } catch { /* 99: quality not reached, keep the full-colour file */ }
   }
@@ -737,6 +771,54 @@ function isLight(file) {
 
 // ── Put it together ──────────────────────────────────────────────────────────
 const formers = new Map(picks.map(p => [p.f.code, formerArms(p)]))
+
+// ── 4b. Countries the English article leaves bare: other Wikipedias (the
+// country's own language first, then German, French, Spanish, Russian) and
+// Commons' "Historical coats of arms of …" categories. Their captions can't
+// name anything, so only images whose (English) file title names this country
+// with an arms word count, with the same year rules: the caption's years, or
+// the file title's when the caption, Wikidata or the English article agrees.
+const OWN_LANG = {
+  AE: 'ar', AR: 'es', BD: 'bn', BE: 'nl', BT: 'dz', CH: 'de', CU: 'es', DJ: 'fr', DK: 'da', EC: 'es', EE: 'et', FR: 'fr', GA: 'fr',
+  HN: 'es', ID: 'id', IL: 'he', IR: 'fa', JO: 'ar', JP: 'ja', LI: 'de', LK: 'si', LU: 'lb', MA: 'ar', MC: 'fr', MK: 'mk', MN: 'mn',
+  MV: 'dv', NE: 'fr', NL: 'nl', NO: 'nb', PK: 'ur', PS: 'ar', SE: 'sv', SK: 'sk', SM: 'it', SO: 'so', SR: 'nl', ST: 'pt', TD: 'fr',
+  TG: 'fr', TH: 'th', TZ: 'sw', UA: 'uk', UZ: 'uz', VA: 'it', XK: 'sq',
+}
+const OTHER_LANGS = ['de', 'fr', 'es', 'ru']
+const bare = picks.filter(p => !formers.get(p.f.code).former.length && p.w?.arms?.qid)
+if (bare.length) {
+  const langs = [...new Set([...OTHER_LANGS, ...bare.map(p => OWN_LANG[p.f.code]).filter(Boolean)])]
+  const links = await sparql(`SELECT ?arms ?lang ?title WHERE {
+    VALUES ?arms { ${bare.map(p => `wd:${p.w.arms.qid}`).join(' ')} }
+    ?art schema:about ?arms; schema:inLanguage ?lang; schema:name ?title; schema:isPartOf ?wiki .
+    FILTER(STRENDS(STR(?wiki), ".wikipedia.org/")) FILTER(?lang IN (${langs.map(l => `"${l}"`).join(', ')})) }`)
+  const byLang = {}
+  for (const r of links) (byLang[r.lang.value] ??= []).push({ qid: qid(r.arms.value), title: r.title.value })
+  const texts = {}
+  for (const [lang, list] of Object.entries(byLang)) {
+    const got = await wikitexts(list.map(x => x.title), `${lang === 'nb' ? 'no' : lang}.wikipedia.org`)
+    for (const x of list) if (got[x.title]) (texts[x.qid] ??= {})[lang] = got[x.title].text
+  }
+  for (const p of bare) {
+    const extra = []
+    const order = [OWN_LANG[p.f.code], ...OTHER_LANGS].filter((l, i, a) => l && a.indexOf(l) === i)
+    for (const lang of order) {
+      const text = texts[p.w.arms.qid]?.[lang]
+      if (text) for (const c of articleImages(text)) extra.push({ ...c, from: `${lang}.wikipedia`, foreign: true })
+    }
+    // Commons: "Historical coats of arms of X" and "… national coats of arms of X".
+    for (const cat of [`Historical coats of arms of ${p.f.name}`, `Historical national coats of arms of ${p.f.name}`]) {
+      const d = await api('commons.wikimedia.org', { action: 'query', list: 'categorymembers', cmtitle: `Category:${cat}`, cmtype: 'file', cmlimit: '200' })
+      for (const m of d.query?.categorymembers ?? []) extra.push({ file: normFile(m.title), caption: '', from: 'commons', foreign: true, section: `Commons: ${cat}` })
+    }
+    if (!extra.length) continue
+    const again = formerArms(p, extra)
+    if (again.former.length) {
+      formers.set(p.f.code, again)
+      notes.push(`${p.f.code}: ${again.former.length} former from ${[...new Set(again.former.map(x => x.via.split(',')[0]))].join(', ')}`)
+    }
+  }
+}
 const info = await commonsInfo([...picks.map(p => p.file), ...[...formers.values()].flatMap(x => x.former.map(y => y.file))])
 const entries = []
 const left = [] // former files left out for their licence
