@@ -4,7 +4,7 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 
 export const CHANGELOG: ChangelogEntry[] = [
   {
-    date: "2026-11-28",
+    date: "2026-11-27",
     title: "Small fixes",
     items: [
       "Links to Globalio now show the tan globe logo in previews instead of an old map.",
@@ -12,14 +12,14 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: "2026-11-28",
+    date: "2026-11-27",
     title: "Sharper flags on phones: no more thin lines between stripes",
     items: [
       "73 country flags, Germany, Austria, the Netherlands, Russia, Greece, South Africa and the US among them, no longer show a faint line where two stripes meet on some phone screens. The flags look exactly the same otherwise.",
     ],
   },
   {
-    date: "2026-11-28",
+    date: "2026-11-27",
     title: "Flag Identifier searches 3,230 flags",
     items: [
       "Flag Identifier now covers most of the Codex: 3,230 flags, up from 1,192. New: regions of about 80 more countries (Kenya's counties, Thailand's provinces, Colombia, Nigeria, Ukraine, Poland and more), nearly 800 historical flags, about 600 peoples' flags, overseas territories like Gibraltar and the Falklands, and more organisations.",
@@ -27,7 +27,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: "2026-11-28",
+    date: "2026-11-27",
     title: "New game: Spoken Here",
     items: [
       "Each round is a pie chart of one country's languages from its latest census or survey, with the year it's from (\u201cMother tongue, 2021 census\u201d, and \u201cFrom 2001, 25 years ago\u201d when the figures are old). Name the country from four choices, or type it for double points.",
@@ -35,7 +35,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: "2026-11-28",
+    date: "2026-11-27",
     title: "Coats of arms for every country, and a Coats of Arms flashcard deck",
     items: [
       "The Codex's Coats of Arms section now covers every country: 192 national emblems by region, and the ones that came before for 160 of them.",
@@ -43,7 +43,7 @@ export const CHANGELOG: ChangelogEntry[] = [
     ],
   },
   {
-    date: "2026-11-28",
+    date: "2026-11-27",
     title: "Flag Identifier now finds 1,192 flags, historical ones included",
     items: [
       "Flag Identifier adds 206 historical flags (the USSR and its republics, Yugoslavia, the Ottoman Empire, Austria-Hungary, Rhodesia and more), Japan's 47 prefectures, Argentina's provinces, Russia's regions, UK county flags, and over a hundred more movements and micronations.",
