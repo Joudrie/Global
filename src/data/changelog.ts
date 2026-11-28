@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "Small fixes",
+    items: [
+      "Links to Globalio now show the tan globe logo in previews instead of an old map.",
+      "The Belarusian People's Republic (1918) shows its white-red-white flag instead of today's Belarus flag.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "Sharper flags on phones: no more thin lines between stripes",
     items: [
       "73 country flags, Germany, Austria, the Netherlands, Russia, Greece, South Africa and the US among them, no longer show a faint line where two stripes meet on some phone screens. The flags look exactly the same otherwise.",
