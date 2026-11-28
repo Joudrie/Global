@@ -5,8 +5,9 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
-    title: "A tidier Play tab",
+    title: "A tidier Play tab and Settings",
     items: [
+      "Settings is easier to read: short sections for Account, Your progress, Help and About. Patch notes now open with a button to contact support or request a feature.",
       "Play is shorter: an All button beside the search box (the row of category buttons is gone), then the Trending carousel, your Favourites, Creator's Picks, a big View all games button, then the categories. Jump back in, Recommended for you, Top games and Discover something new are gone (Surprise me still picks a random game).",
       "On the All page, thumbnails fit their squares: Dead or Alive shows the Soviet hammer and sickle instead of a red block, Stat Clash shows the Vatican's emblem, Lineage and Flag Timeline stack their flags, and Spoken Here and Guess the Language no longer get cut off.",
       "The Daily Rituals shelf is split up: Connections is in Spot It, Fun Fact and World Cup 2026 in Learn the World, and Flag Bracket and Tier List Maker in One Glance.",
