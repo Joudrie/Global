@@ -167,7 +167,7 @@ function DescribeItGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
               }}
               placeholder="Type a country name or code…"
               className="w-full px-4 py-3.5 rounded-xl outline-none font-semibold"
-              style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
+              style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 16 }} />
             {showDrop && matches.length > 0 && (
               <div className="absolute left-0 right-0 top-full mt-1 rounded-xl overflow-hidden z-20"
                 style={{ background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 8px 32px ${tint(T.text, 0.18)}` }}>

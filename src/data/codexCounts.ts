@@ -4,7 +4,7 @@
 // the data: update them when the galleries change.
 export const CODEX_COUNTS = {
   /** Mega Codex A–Z: every flag in the app (megaCodex.ts ALL_FLAGS_AZ). */
-  mega: 5023,
+  mega: 5020,
   /** Peoples & Cultures rows (codexGalleries.ts peoplesRegions). */
   peoples: 1148,
   /** The Identity categories shown as their own sections, in order. */
@@ -13,7 +13,7 @@ export const CODEX_COUNTS = {
   /** Extinct & Former States rows (codexGalleries.ts extinctRegions). */
   extinct: 570,
   /** City Flags (beta): Europe's and the U.S. cities (cityAtlas.ts ALL_ATLAS_CITIES). */
-  cities: 616,
+  cities: 613,
   orgs: 67,
   signal: 27,
   /** Coats of arms (beta): countries with one so far (coatsOfArms.ts COATS_OF_ARMS). */

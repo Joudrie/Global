@@ -266,7 +266,7 @@ export default function GeoQuizScreen({ onBack }: Props) {
                   aria-label="Name the country"
                   placeholder="Name the country…"
                   className="w-full px-4 py-3.5 rounded-2xl outline-none font-semibold"
-                  style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 15 }} />
+                  style={{ background: T.surface, border: `1.5px solid ${T.line}`, color: T.text, fontSize: 16 }} />
                 {typeHint && !maybe.length && (
                   <p role="status" className="text-xs mt-1.5" style={{ color: T.muted }}>
                     {matches.length ? "Pick one from the list" : "No country matches that"}
