@@ -36,12 +36,21 @@ function describe(f: FlagRecord): string[] {
 
 interface Round { target: FlagRecord; clues: string[] }
 
+// A tip that names the country ("the Bolivian coat of arms", "a map of
+// Kosovo", "Chad's is a darker indigo") would hand over the answer, so such
+// tips are left out. A name word's stem is enough to catch "Omani", "Fijian".
+const NAME_FILLER = /^(and|the|of|republic|islands?|saint|north|south|east|west|united|democratic|central|guinea|kingdom|states)$/i
+function namesCountry(tip: string, f: FlagRecord): boolean {
+  return f.name.split(/[\s,()'’-]+/).filter(w => w.length > 3 && !NAME_FILLER.test(w))
+    .some(w => new RegExp(`\\b${w.slice(0, Math.max(4, w.length - 2)).replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}`, "i").test(tip))
+}
+
 function buildRounds(): Round[] {
   return [...ELIGIBLE].sort(() => Math.random() - 0.5).slice(0, ROUNDS).map(target => {
     const clues = describe(target)
     // region + fun-fact as deeper hints
     clues.push(`Region: ${target.region}.`)
-    if (target.distinguishingTip) clues.push(`Tip: ${target.distinguishingTip}`)
+    if (target.distinguishingTip && !namesCountry(target.distinguishingTip, target)) clues.push(`Tip: ${target.distinguishingTip}`)
     return { target, clues }
   })
 }

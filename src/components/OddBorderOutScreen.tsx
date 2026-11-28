@@ -82,9 +82,10 @@ function OddBorderGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
             const isOdd = code === round.odd
             const isPick = picked === code
             let border = `1.5px solid ${T.line}`
+            // Green for the impostor, red for a wrong pick, as in the other quizzes.
             if (answered) {
-              if (isOdd) border = `2.5px solid ${ACCENT.codex}`
-              else if (isPick) border = `2.5px solid ${T.warm}`
+              if (isOdd) border = `2.5px solid ${T.green}`
+              else if (isPick) border = `2.5px solid ${T.danger}`
             }
             return (
               <button key={code} onClick={() => choose(code)} disabled={answered} className="geo-tap"
@@ -93,13 +94,20 @@ function OddBorderGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
                   <FlagImage code={code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                 </div>
                 <div style={{ padding: "7px 8px", fontFamily: FONT.display, fontWeight: 600, fontSize: 12.5, color: T.text }}>{NAME(code)}</div>
-                {answered && isOdd && <span style={{ position: "absolute", top: 6, right: 6, background: ACCENT.codex, color: "#fff", borderRadius: 999, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>✓</span>}
-                {answered && isPick && !isOdd && <span style={{ position: "absolute", top: 6, right: 6, background: T.warm, color: "#fff", borderRadius: 999, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>✗</span>}
+                {answered && isOdd && <span style={{ position: "absolute", top: 6, right: 6, background: T.green, color: "#fff", borderRadius: 999, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>✓</span>}
+                {answered && isPick && !isOdd && <span style={{ position: "absolute", top: 6, right: 6, background: T.danger, color: "#fff", borderRadius: 999, width: 22, height: 22, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>✗</span>}
               </button>
             )
           })}
         </div>
 
+        {answered && (
+          <p role="status" style={{ textAlign: "center", fontSize: 13, fontWeight: 600, color: picked === round.odd ? T.green : T.danger }}>
+            {picked === round.odd
+              ? `✓ Right: ${NAME(round.odd)} doesn't border ${NAME(round.target)}`
+              : `✗ ${NAME(picked!)} borders ${NAME(round.target)}. The odd one out is ${NAME(round.odd)}.`}
+          </p>
+        )}
         {answered && (
           <PrimaryButton onClick={next} accent={ACCENT.learn} style={{ marginTop: "auto", maxWidth: 360 }}>
             {idx + 1 >= ROUNDS ? "See result →" : "Next →"}

@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react"
-import { Lock, Landmark, TreePalm, Castle, Sun, Mountain, Sailboat, Globe } from "lucide-react"
+import { Lock, Landmark, TreePalm, Castle, Sun, Mountain, Sailboat, Globe, Waves, MoonStar } from "lucide-react"
 import { CHALLENGE_CONTINENTS } from "../data/challenges"
 import type { ChallengeContinent, ChallengeCountry, SubRegion } from "../data/challenges"
 import { FLAGS } from "../data/flags"
@@ -16,8 +16,8 @@ const ACC = ACCENT.challenge
 
 // Distinct region icon per continent (no more identical globes everywhere).
 const CONTINENT_ICON: Record<string, typeof Castle> = {
-  "north-america": Landmark, "south-america": TreePalm, "europe": Castle,
-  "africa": Sun, "asia": Mountain, "oceania": Sailboat,
+  "north-america": Landmark, "caribbean": Waves, "south-america": TreePalm, "europe": Castle,
+  "africa": Sun, "asia": Mountain, "oceania": Sailboat, "middle-east": MoonStar,
 }
 const continentIcon = (id: string) => CONTINENT_ICON[id] ?? Globe
 const flagOf = (code: string) => FLAGS.find(f => f.code === code)?.flagUrl ?? `/flags/${code.toLowerCase()}.svg`
@@ -242,20 +242,11 @@ export default function ChallengeScreen({ onBack }: Props) {
                 </div>
               ) : (
                 <img src={q.target.flagUrl} alt="flag" width={280} height={175}
-                  className="object-contain" style={{ display: "block", background: T.surfaceHi }}
+                  className="object-contain" style={{ display: "block", width: 280, height: 175, background: T.surfaceHi }}
                   onError={() => setImgError(e => ({ ...e, [q.target.code]: true }))} />
               )}
             </div>
           </div>
-
-          {answered && (
-            <div className="w-full max-w-sm mb-3 px-4 py-3 rounded-xl animate-slide-up"
-              style={{ background: T.surface, border: `1px solid ${tint(selected === q.correctIndex ? T.green : T.danger, 0.4)}` }}>
-              <div className="text-xs font-semibold" style={{ color: selected === q.correctIndex ? T.green : T.danger }}>
-                {selected === q.correctIndex ? `✓ Correct — ${q.target.name}` : `✗ That was ${q.target.name}`}
-              </div>
-            </div>
-          )}
 
           <div className="w-full max-w-sm grid grid-cols-2 gap-3 mb-4">
             {q.choices.map((choice, i) => (
@@ -266,6 +257,16 @@ export default function ChallengeScreen({ onBack }: Props) {
               </button>
             ))}
           </div>
+
+          {/* Under the choices, so they don't move under the finger. */}
+          {answered && (
+            <div className="w-full max-w-sm mb-3 px-4 py-3 rounded-xl animate-slide-up"
+              style={{ background: T.surface, border: `1px solid ${tint(selected === q.correctIndex ? T.green : T.danger, 0.4)}` }}>
+              <div className="text-xs font-semibold" style={{ color: selected === q.correctIndex ? T.green : T.danger }}>
+                {selected === q.correctIndex ? `✓ Correct — ${q.target.name}` : `✗ That was ${q.target.name}`}
+              </div>
+            </div>
+          )}
 
           {answered && (
             <PrimaryButton onClick={handleNext} accent={ACC} style={{ maxWidth: 384 }}>
