@@ -1,0 +1,1 @@
+var e=e=>{let t=e.match(/Special:FilePath\/([^?#]+)/);return t?`https://commons.wikimedia.org/wiki/File:${t[1]}`:null},t=(e,t=240)=>e.includes(`Special:FilePath`)&&!e.includes(`?`)?`${e}?width=${t}`:e,n=e=>t(e);export{t as n,n as r,e as t};

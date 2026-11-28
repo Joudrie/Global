@@ -1,0 +1,7 @@
+<svg width="3000" height="2500" xmlns="http://www.w3.org/2000/svg">
+  <path fill="#10226E" d="M0 0h3000v2500H0z"/>
+  <path fill="#fff" stroke="#fff" stroke-width="128" stroke-linejoin="round" d="M255 133h2490L1500 2335z"/>
+  <path fill="#A96E1C" d="M255 133h2490L1500 2335z"/>
+  <circle cx="50%" cy="991.5" r="398.5" fill="#fff"/>
+  <circle cx="50%" cy="991.5" r="379.5" fill="#10226E"/>
+</svg>

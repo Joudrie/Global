@@ -1,0 +1,6 @@
+<?xml version="1.0"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="250">
+<circle fill="#195A32" r="559"/>
+<path fill="#FFF" d="m0,0h500v150H0"/>
+<path fill="#A41E37" d="m0,0h500v100H0"/>
+</svg>

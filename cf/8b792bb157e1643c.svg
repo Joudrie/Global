@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   version="1.1"
+   id="svg10"
+   width="786"
+   height="432"
+   viewBox="0 0 786 432"
+   sodipodi:docname="Kilwa flag.svg"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)">
+  <metadata
+     id="metadata16">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <defs
+     id="defs14" />
+  <sodipodi:namedview
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1"
+     objecttolerance="10"
+     gridtolerance="10"
+     guidetolerance="10"
+     inkscape:pageopacity="0"
+     inkscape:pageshadow="2"
+     inkscape:window-width="1194"
+     inkscape:window-height="792"
+     id="namedview12"
+     showgrid="true"
+     inkscape:zoom="0.30857204"
+     inkscape:cx="19.798173"
+     inkscape:cy="287.75677"
+     inkscape:window-x="607"
+     inkscape:window-y="150"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg10">
+    <inkscape:grid
+       type="xygrid"
+       id="grid828"
+       spacingx="0.5"
+       spacingy="0.5" />
+  </sodipodi:namedview>
+  <path
+     style="display:inline;opacity:1;fill:#ffcc00;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 0,0 V 217 H 217.5 L 786,0 Z"
+     id="path919"
+     inkscape:connector-curvature="0" />
+  <path
+     inkscape:connector-curvature="0"
+     style="display:inline;opacity:1;fill:#ffffff;stroke-width:0.44162545"
+     d="m 140,152.53701 c -10.83274,8.93017 -24.52193,13.82533 -38.66334,13.82533 -33.219583,0 -60.149723,-26.4574 -60.149723,-59.09383 0,-32.63644 26.93014,-59.09384 60.149723,-59.09384 14.14141,0 27.8306,4.89516 38.66334,13.82533 -5.35466,-1.90676 -11.00651,-2.88203 -16.70157,-2.88203 -27.06782,0 -49.010885,21.55787 -49.010885,48.15054 0,26.59266 21.943065,48.15053 49.010885,48.15053 5.69506,0 11.34735,-0.97527 16.70157,-2.88203 z"
+     id="path888" />
+  <path
+     style="display:inline;opacity:1;fill:#cc0000;fill-opacity:1;fill-rule:evenodd;stroke:none;stroke-width:0.1;stroke-linecap:butt;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+     d="M 0,434 V 217 H 217.5 L 786,434 Z"
+     id="path919-0"
+     inkscape:connector-curvature="0" />
+  <path
+     inkscape:connector-curvature="0"
+     style="display:inline;opacity:1;fill:#ffffff;stroke-width:0.44162545"
+     d="m 140,281.46299 c -10.83274,-8.93017 -24.52193,-13.82533 -38.66334,-13.82533 -33.21958,0 -60.14972,26.4574 -60.14972,59.09383 0,32.63644 26.93014,59.09384 60.14972,59.09384 14.14141,0 27.8306,-4.89516 38.66334,-13.82533 -5.35466,1.90676 -11.00651,2.88203 -16.70157,2.88203 -27.06782,0 -49.01088,-21.55787 -49.01088,-48.15054 0,-26.59266 21.94306,-48.15053 49.01088,-48.15053 5.69506,0 11.34735,0.97527 16.70157,2.88203 z"
+     id="path888-5" />
+</svg>
