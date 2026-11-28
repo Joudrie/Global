@@ -5,6 +5,62 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "City flags in the Codex (beta)",
+    items: [
+      "A new City Flags section lists cities by continent, then by country: open France and you'll find its 24 cities from Paris down, each with its flag, population and, for well-known flags, a line on what it shows.",
+      "Europe comes first, with 491 cities across 44 countries. The 124 American city flags now sit under North America → United States, sorted by size.",
+      "All of them are in the Mega Codex, which now holds over 5,000 flags, and in a new City Flags deck in Flashcards.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Small fixes",
+    items: [
+      "Links to Globalio now show the tan globe logo in previews instead of an old map.",
+      "The Belarusian People's Republic (1918) shows its white-red-white flag instead of today's Belarus flag.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Sharper flags on phones: no more thin lines between stripes",
+    items: [
+      "73 country flags, Germany, Austria, the Netherlands, Russia, Greece, South Africa and the US among them, no longer show a faint line where two stripes meet on some phone screens. The flags look exactly the same otherwise.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Flag Identifier searches 3,230 flags",
+    items: [
+      "Flag Identifier now covers most of the Codex: 3,230 flags, up from 1,192. New: regions of about 80 more countries (Kenya's counties, Thailand's provinces, Colombia, Nigeria, Ukraine, Poland and more), nearly 800 historical flags, about 600 peoples' flags, overseas territories like Gibraltar and the Falklands, and more organisations.",
+      "It now says how much of the Codex it searches, so the count is never confused with the 4,500+ total.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "New game: Spoken Here",
+    items: [
+      "Each round is a pie chart of one country's languages from its latest census or survey, with the year it's from (\u201cMother tongue, 2021 census\u201d, and \u201cFrom 2001, 25 years ago\u201d when the figures are old). Name the country from four choices, or type it for double points.",
+      "Easy and medium name the languages; hard shows only their families, from Romance and Bantu to Turkic and Austronesian. After each answer you see the flag, every language counted and where the figures come from. 100 countries.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Coats of arms for every country, and a Coats of Arms flashcard deck",
+    items: [
+      "The Codex's Coats of Arms section now covers every country: 192 national emblems by region, and the ones that came before for 160 of them.",
+      "Flashcards has a new Coats of Arms deck in the Codex tab: the emblem on the front, the country and what it shows on the back.",
+    ],
+  },
+  {
+    date: "2026-11-27",
+    title: "Flag Identifier now finds 1,192 flags, historical ones included",
+    items: [
+      "Flag Identifier adds 206 historical flags (the USSR and its republics, Yugoslavia, the Ottoman Empire, Austria-Hungary, Rhodesia and more), Japan's 47 prefectures, Argentina's provinces, Russia's regions, UK county flags, and over a hundred more movements and micronations.",
+      "Six new details to pick from: fleur-de-lis, key, anchor, hand, heart and checkerboard. Quebec, New Orleans and Croatia are now a tap away.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Many more former coats of arms in the Codex",
     items: [
       "Coats of arms (beta): 86 countries now show the coats of arms that came before, up from 49, with small redesigns included: Hungary has nine, plus Cambodia, Laos, Chile, Austria, Lithuania, Mexico and more.",

@@ -40,7 +40,9 @@ const LOOKALIKES = [
 const sameGroup = (a, b) => a === b || LOOKALIKES.some(g => g.includes(a) && g.includes(b))
 
 test('src/data/flagIdentify.ts is up to date with scripts/flag-identifier/checked.mjs', () => {
-  assert.ok(read('src/data/flagIdentify.ts') === build.render(),
+  const files = build.render()
+  assert.deepEqual(Object.keys(files).map(f => path.relative(ROOT, f)).sort(), ['src/data/flagIdentify.ts', 'src/data/flagIdentifyCountries.ts'])
+  assert.ok(Object.entries(files).every(([f, text]) => fs.readFileSync(f, 'utf8') === text),
     'run: node --experimental-strip-types --import ./scripts/ts-resolve.mjs scripts/flag-identifier/build.mjs')
 })
 
@@ -166,7 +168,7 @@ test('"None" ignores details that are the layout itself', () => {
   assert.equal(U.scoreFlag(BY.get('CA'), ask({ colors: ['red', 'white'], none: true })).diff, 1)
 })
 
-test('Flag Identifier is a tool next to Flag Studio, and the game count stays 56', () => {
+test('Flag Identifier is a tool next to Flag Studio, and the game count stays 57', () => {
   const ids = REGISTRY.map(e => e.id)
   assert.equal(ids[ids.indexOf('flagstudio') + 1], 'flagidentifier')
   const e = REGISTRY.find(x => x.id === 'flagidentifier')
@@ -176,7 +178,7 @@ test('Flag Identifier is a tool next to Flag Studio, and the game count stays 56
   assert.equal(e.tab, 'play')
   assert.ok(e.tool && !e.sandbox && !e.featured)
   assert.ok(!GAMES.includes(e))
-  assert.equal(GAME_COUNT, 56)
+  assert.equal(GAME_COUNT, 57)
   assert.match(read('src/App.tsx'), /screen === "flagidentifier"/)
   assert.match(read('src/components/icons.tsx'), /flagidentifier: \w+/)
   assert.match(read('src/components/GamePoster.tsx'), /case "flagidentifier":/)
@@ -203,7 +205,7 @@ test('flags beyond the countries: each has its own image, a label, and no flag i
     assert.equal(new Set(values).size, values.length, `a ${field} twice`)
   }
   // Pages linked from the results exist on the identity pages.
-  for (const e of others.filter(x => x.href)) assert.match(e.href, /^\/identity\/[a-z-]+\/#[a-z0-9-]+$/, e.code)
+  for (const e of others.filter(x => x.href)) assert.match(e.href, /^\/(identity|historical)\/[a-z-]+\/#[a-z0-9-]+$|^\/flags\/[a-z]{2}\/$/, e.code)
   // The well-known ones are in, under the kind people would give them.
   const kindOf = code => BY.get(code)?.category
   assert.equal(kindOf('us-tx'), 'region')
@@ -220,16 +222,25 @@ test('flags beyond the countries: each has its own image, a label, and no flag i
 
 test('every flag described in full fits, and only true twins tie with it', () => {
   // Twins: flags these words can't tell apart (Hesse is red over white like
-  // Monaco). Few enough that the picture on each row settles it.
-  let twins = 0
+  // Monaco; Poland's flag was also the Duchy of Warsaw's). Within one kind of
+  // flag they are few enough that the picture on each row settles it. Former
+  // flags are often variants of one another (the colonial blue ensigns with a
+  // badge, the Soviet republics, Mexico's eagles), so up to half may have one;
+  // regional flags come in families of one design with different arms (Estonia's
+  // white-over-green counties, San Marino's castles, Andorra's parishes), and
+  // many peoples fly a tricolour that differs from another only in the order
+  // of its stripes, which these words don't record.
   for (const e of IDENTIFY_FLAGS) {
-    const list = rankAll(U.describe(e, true))
-    const me = list.find(m => m.entry.code === e.code)
+    const me = U.scoreFlag(e, U.describe(e, true))
     assert.equal(me.diff, 0, e.code)
     assert.equal(me.extras, 0, e.code)
-    if (list.filter(m => m.diff === 0 && m.extras === 0).length > 1) twins++
   }
-  assert.ok(twins / IDENTIFY_FLAGS.length < 0.2, `${twins} of ${IDENTIFY_FLAGS.length} have a twin`)
+  for (const { id: kind } of U.IDENTIFY_CATEGORIES) {
+    const pool = IDENTIFY_FLAGS.filter(e => e.category === kind)
+    const twins = pool.filter(e => U.rankFlags(pool, U.describe(e, true)).filter(m => m.diff === 0 && m.extras === 0).length > 1).length
+    const most = { historical: 0.5, region: 0.3, identity: 0.3 }[kind] ?? 0.25
+    assert.ok(twins / pool.length < most, `${kind}: ${twins} of ${pool.length} have a twin`)
+  }
 })
 
 test('Boston: a seal in a circle in the middle counts as the circle, and Boston fits', () => {
@@ -309,4 +320,89 @@ test('picking a kind boosts that kind and hides nothing', () => {
   // A flag that also counts as a kind is boosted with it: Scotland for "country".
   const saltire = ask({ kind: 'country', layouts: ['saltire'], colors: ['blue', 'white'], none: true })
   assert.equal(rankAll(saltire)[0].entry.code, 'flag-scotland')
+})
+
+test('historical flags: the Soviet Union from a plain description, and the kind boosts them', () => {
+  const ussr = ask({ layouts: ['plain'], colors: ['red', 'yellow'], details: ['star', 'emblem'] })
+  assert.equal(rankAll(ussr)[0].entry.code, 'hist-soviet-union')
+  assert.equal(BY.get('hist-soviet-union').category, 'historical')
+  assert.match(BY.get('hist-soviet-union').label, /^Historical, 1922/)
+  assert.match(BY.get('hist-soviet-union').href, /^\/historical\/europe\/#soviet-union$/)
+  // Without the emblem it's China's colours: China first, the USSR still close.
+  const plain = rankAll(ask({ layouts: ['plain'], colors: ['red', 'yellow'], details: ['star'] }))
+  assert.equal(plain[0].entry.code, 'CN')
+  assert.ok(plain.find(m => m.entry.code === 'hist-soviet-union').diff <= U.CLOSE)
+  // "Historical" puts East Germany above Germany for black, red and gold with arms.
+  const gdr = ask({ kind: 'historical', layouts: ['hstripes'], colors: ['black', 'red', 'yellow'], details: ['emblem'] })
+  assert.equal(rankAll(gdr)[0].entry.code, 'hist-east-germany')
+  assert.ok(U.IDENTIFY_CATEGORIES.some(c => c.id === 'historical'))
+  assert.ok(IDENTIFY_FLAGS.filter(e => e.category === 'historical').length >= 150)
+})
+
+test('Japanese prefectures and other new regions are found', () => {
+  // Tokyo: a white emblem on purple.
+  const tokyo = rankAll(ask({ kind: 'region', layouts: ['plain'], colors: ['purple', 'white'], details: ['emblem'] }))
+  assert.ok(tokyo.slice(0, 4).some(m => m.entry.code === 'jp-13'), tokyo.slice(0, 4).map(m => m.entry.code).join())
+  assert.equal(BY.get('jp-13').label, 'Prefecture of Japan')
+  // Ehime: green and orange stripes with a flower.
+  assert.equal(rankAll(ask({ layouts: ['hstripes'], colors: ['green', 'orange', 'white'], details: ['plant'] }))[0].entry.code, 'jp-38')
+  for (const code of ['ar-x', 'ru-ta', 'ru-spb', 'gb-zet']) assert.ok(BY.has(code), code)
+})
+
+test('new detail words: fleur-de-lis, key, anchor, hand, heart, checkerboard', () => {
+  for (const id of ['fleur', 'key', 'anchor', 'hand', 'heart', 'checkers']) {
+    assert.ok(U.DETAILS.some(d => d.id === id), id)
+    assert.ok(IDENTIFY_FLAGS.filter(e => e.details.includes(id)).length >= 3, `${id} has fewer than 3 flags`)
+  }
+  assert.match(read('src/components/FlagIdentifierScreen.tsx'), /fleur: FleurDeLis, key: Key, anchor: Anchor, hand: Hand, heart: Heart, checkers: Grid3x3/)
+  // Quebec: white cross on blue with fleurs-de-lis.
+  assert.equal(rankAll(ask({ layouts: ['cross'], colors: ['blue', 'white'], details: ['fleur'] }))[0].entry.code, 'ca-qc')
+  // Croatia's checkerboard is a small part of its arms: picking it costs nothing.
+  assert.equal(U.scoreFlag(BY.get('HR'), ask({ colors: ['red', 'white', 'blue'], details: ['checkers'] })).diff, 0)
+  // Saint Petersburg: an anchor on red.
+  assert.equal(rankAll(ask({ layouts: ['plain'], colors: ['red', 'white'], details: ['anchor'] }))[0].entry.code, 'ru-spb')
+  // Zaire: a hand with a torch in a yellow disc on green.
+  assert.equal(rankAll(ask({ layouts: ['disc'], colors: ['green', 'yellow'], details: ['hand'] }))[0].entry.code, 'hist-zaire')
+})
+
+test('the count says how much of the Codex it searches, never "all"', async () => {
+  const screen = read('src/components/FlagIdentifierScreen.tsx')
+  assert.match(screen, /const CODEX_TOTAL = "5,000\+"/)
+  assert.match(screen, /of the Codex's \$\{CODEX_TOTAL\} flags so far/)
+  assert.doesNotMatch(screen, /Search(ing)? all \$\{TOTAL\}|All \$\{TOTAL\} flags fit/)
+  // "5,000+" stays true of the Mega Codex, and the identifier is a part of it.
+  const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  assert.ok(ALL_FLAGS_AZ.length >= 5000, `${ALL_FLAGS_AZ.length}`)
+  assert.ok(IDENTIFY_FLAGS.length < ALL_FLAGS_AZ.length)
+})
+
+test('the rest of the Codex: most of its flags are searchable, each described from its image', async () => {
+  const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  const imgs = new Set([...IDENTIFY_FLAGS.map(e => e.img).filter(Boolean), ...FLAGS.map(f => f.flagUrl)])
+  const names = new Set(IDENTIFY_FLAGS.map(e => e.name.toLowerCase()))
+  // Europe's city flags (cityFlags.ts) joined the Codex before the identifier
+  // described them; they're counted once the wcity: source lands in build.mjs.
+  const { EUROPE_CITY_FLAGS } = await src('data/cityFlags.ts')
+  const cityUrls = new Set(EUROPE_CITY_FLAGS.map(c => c.flagUrl))
+  const rest = ALL_FLAGS_AZ.filter(f => !cityUrls.has(f.url))
+  const covered = rest.filter(f => imgs.has(f.url) || names.has(f.title.toLowerCase())).length
+  assert.ok(IDENTIFY_FLAGS.length >= 3000, `${IDENTIFY_FLAGS.length}`)
+  assert.ok(covered / rest.length >= 0.8, `${covered} of ${rest.length}`)
+  // Newly searchable: Gibraltar (a castle and a key, filed under the territory,
+  // not its people), a Kenyan county, a people's flag and a former state. A
+  // people's flag that is another flag already in under a different name
+  // (the Māori flag, Mapuche) is in once, not twice.
+  assert.equal(IDENTIFY_FLAGS.filter(e => /^M[aā]ori/.test(e.name)).length, 1)
+  const gib = rankAll(ask({ layouts: ['hstripes'], colors: ['white', 'red'], details: ['building', 'key'] }))
+  assert.equal(gib[0].entry.name, 'Gibraltar')
+  assert.equal(gib[0].entry.label, 'British Overseas Territory')
+  const nakuru = rankAll(ask({ kind: 'region', layouts: ['hstripes', 'disc'], colors: ['blue', 'yellow', 'green', 'white'], details: ['animal'] }))
+  assert.equal(nakuru[0].entry.code, 'ke-nakuru')
+  assert.equal(BY.get('ke-nakuru').label, 'County of Kenya')
+  const hausa = IDENTIFY_FLAGS.find(e => e.name === 'Hausa people')
+  assert.equal(hausa?.label, 'People, Africa')
+  assert.equal(rankAll(ask({ kind: 'identity', layouts: ['hstripes', 'disc'], colors: ['blue', 'white'], details: ['animal'] }))[0].entry.name, 'Lango people')
+  assert.ok(IDENTIFY_FLAGS.some(e => e.label === 'Former state'))
+  // World city flags get their own source once src/data/cityFlags.ts lands.
+  assert.match(read('scripts/flag-identifier/build.mjs'), /cityFlags\.ts/)
 })

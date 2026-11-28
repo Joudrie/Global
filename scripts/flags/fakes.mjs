@@ -37,8 +37,8 @@ const BI_STAR = 'm280 200.2-19.3.3-10 16.4-9.9-16.4-19.2-.4 9.3-16.9-9.2-16.8 19
 const EDITS = {
   // Bands run red–black–gold instead of black–red–gold.
   de: [
-    ['fill="#000001" d="M0 0h640v160H0z"', 'fill="red" d="M0 0h640v160H0z"'],
-    ['fill="red" d="M0 160h640v160H0z"', 'fill="#000001" d="M0 160h640v160H0z"'],
+    ['fill="#000001" d="M0 0h640v480H0z"', 'fill="red" d="M0 0h640v480H0z"'],
+    ['fill="red" d="M0 160h640v320H0z"', 'fill="#000001" d="M0 160h640v320H0z"'],
   ],
   // The Sun of May keeps its disc and rays but loses every facial feature.
   ar: [
@@ -72,10 +72,14 @@ const EDITS = {
   pa: [
     ['<path fill="#d80000" fill-rule="evenodd" d="m516.9', '<path fill="#d80000" fill-rule="evenodd" transform="rotate(180 474.4 360.7)" d="m516.9'],
   ],
-  // The canton is inverted: a blue cross on a white square.
+  // The canton is inverted: a blue cross on a white square. (The real cross's
+  // upright runs on into the white stripe below the canton; a blue one stops at
+  // the canton's edge, and its arm runs on into the blue stripe instead.)
   gr: [
     ['<path fill="#0d5eaf" d="M0 0h266.7v266.7H0z"/>', '<path fill="#fff" d="M0 0h266.7v266.7H0z"/>'],
     ['<g fill="#fff" fill-rule="evenodd" stroke-width="1.3">', '<g fill="#0d5eaf" fill-rule="evenodd" stroke-width="1.3">'],
+    ['d="M106.7 0H160v293.3h-53.3z"', 'd="M106.7 0H160v266.7h-53.3z"'],
+    ['d="M0 106.7h266.7V160H0z"', 'd="M0 106.7h293.3V160H0z"'],
   ],
   // The star sits clear of the crescent, past the tips of its horns.
   dz: [

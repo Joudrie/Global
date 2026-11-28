@@ -2,6 +2,8 @@ import type { GRegion } from "./codexGalleries"
 import type { IdentityCategory, IdentityFlag } from "./identityFlags"
 import type { AtlasContinent } from "./cityAtlas"
 import type { MegaFlag } from "./megaCodex"
+import type { CountryArms } from "./coatsOfArms"
+import type { FlagRecord } from "./flags"
 
 // The Codex's "Beyond countries" sections as flashcard decks (Flashcards →
 // Codex). Each deck is built from the same data and the same rows as its Codex
@@ -14,9 +16,13 @@ import type { MegaFlag } from "./megaCodex"
 
 export type CodexDeckId =
   | "mega" | "peoples" | "pride" | "separatist" | "civic" | "micronations"
-  | "extinct" | "cities" | "orgs" | "signal"
+  | "extinct" | "cities" | "orgs" | "signal" | "arms"
 
-export interface DeckCard { key: string; flagUrl: string; name: string; subtitle: string; note?: string }
+export interface DeckCard {
+  key: string; flagUrl: string; name: string; subtitle: string; note?: string
+  /** Pale, colourless image (Afghanistan's emblem): shown on a slate backing. */
+  pale?: boolean
+}
 /** One of a deck's regions, as the Codex section splits it. A deck with no regions has one, labelled "". */
 export interface DeckGroup { label: string; cards: DeckCard[] }
 
@@ -33,10 +39,11 @@ export const DECK_COUNTS: Record<CodexDeckId, number> = {
   cities: 615,
   orgs: 65,
   signal: 27,
+  arms: 192,
 }
 
 /** Decks split into regions, like their Codex sections: pick one, or all. */
-export const DECK_REGIONS: CodexDeckId[] = ["peoples", "extinct", "orgs", "cities"]
+export const DECK_REGIONS: CodexDeckId[] = ["peoples", "extinct", "orgs", "cities", "arms"]
 
 /** The Mega Codex holds every flag in the app; a session draws this many at random. */
 export const MEGA_SESSION = 50
@@ -90,6 +97,26 @@ export function megaDeck(all: MegaFlag[]): DeckGroup[] {
   return [{ label: "", cards: all.map((f, i) => ({ key: `mega-${i}`, flagUrl: cardImage(f.url), name: plain(f.title), subtitle: "Mega Codex", note: f.fact })) }]
 }
 
+// The Codex's region order (CodexScreen's REGION_ORDER), for the arms deck.
+const ARMS_REGIONS = ["Europe", "Africa", "Asia", "Americas", "Middle East", "Oceania"] as const
+/** The first sentence of a description, for the back of a card. */
+const firstSentence = (s?: string) => s?.match(/^.*?(?<!\b(?:St|Mt|Dr|No|Jr|Sr|ca|c|[A-Z]))[.!?](?=\s+[A-Z"“]|$)/)?.[0] ?? s
+
+/** Coats of arms (beta): each country's current emblem, by region as in the
+ *  Codex section. Back of the card: the country, the emblem's name, one line. */
+export function armsDeck(arms: CountryArms[], flags: FlagRecord[]): DeckGroup[] {
+  const byCode = new Map(flags.map(f => [f.code, f]))
+  const rows = arms.map(a => ({ a, f: byCode.get(a.code) })).filter((r): r is { a: CountryArms; f: FlagRecord } => !!r.f)
+    .sort((x, y) => x.f.name.localeCompare(y.f.name))
+  return ARMS_REGIONS.map(label => ({
+    label,
+    cards: rows.filter(r => r.f.region === label).map(({ a, f }) => ({
+      key: `arms-${a.code}`, flagUrl: a.src, name: f.name, subtitle: a.name,
+      note: a.note ?? firstSentence(a.description), ...(a.light ? { pale: true } : {}),
+    })),
+  })).filter(g => g.cards.length > 0)
+}
+
 /** A deck's cards, from the data its Codex section loads. */
 export function loadCodexDeck(id: CodexDeckId): Promise<DeckGroup[]> {
   switch (id) {
@@ -106,6 +133,8 @@ export function loadCodexDeck(id: CodexDeckId): Promise<DeckGroup[]> {
         .then(([g, o]) => galleryDeck(g.orgRegions(o.ORG_FLAGS), id, "International Organizations"))
     case "cities":
       return import("./cityAtlas").then(m => cityDeck(m.CITY_ATLAS))
+    case "arms":
+      return Promise.all([import("./coatsOfArms"), import("./flags")]).then(([a, f]) => armsDeck(a.COATS_OF_ARMS, f.FLAGS))
     case "signal":
       return import("./identityFlags").then(m => identityDeck(m.IDENTITY_FLAGS, "Maritime & Signal", "Signal & Maritime Flags"))
     default:

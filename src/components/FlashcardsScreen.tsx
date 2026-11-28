@@ -9,7 +9,7 @@ import { T, ACCENT, FONT, tint } from '../ui/tokens'
 import { ScreenHeader } from "./ui"
 import { PrimaryButton, SecondaryButton } from "./gameUi"
 import { LineIcon } from './icons'
-import { Brain, ChevronLeft, ChevronRight, Search, Users, Rainbow, MapPin, Vote, Crown, Landmark, Building2, Anchor } from 'lucide-react'
+import { Brain, ChevronLeft, ChevronRight, Search, Users, Rainbow, MapPin, Vote, Crown, Landmark, Building2, Anchor, Shield } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
 
 interface Props {
@@ -40,7 +40,10 @@ const CODEX_DECKS: { id: CodexDeckId; title: string; beta?: boolean; icon: Lucid
   { id: 'cities',       title: 'City Flags',      beta: true, icon: Building2, color: T.chartreuse, blurb: 'City flags, by country' },
   { id: 'orgs',         title: 'International Organizations', icon: Building2, color: T.green,      blurb: 'UN, NATO, the Olympics, FIFA…' },
   { id: 'signal',       title: 'Signal & Maritime Flags',     icon: Anchor,    color: T.cyan,       blurb: 'Code flags, Alpha to Zulu' },
+  { id: 'arms',         title: 'Coats of Arms', beta: true,   icon: Shield,    color: T.gold,       blurb: 'National emblems, by region' },
 ]
+// The slate tile behind a pale emblem (Afghanistan's), as in the Codex.
+const PALE_BACKING = tint(T.text, 0.32)
 
 // A unified card used by the flip view, built from either a country flag or a subdivision flag.
 interface StudyCard {
@@ -50,6 +53,8 @@ interface StudyCard {
   subtitle: string
   funFact?: string
   tip?: string
+  /** Pale, colourless image: shown on a slate backing. */
+  pale?: boolean
 }
 
 const REGION_OPTS: { label: string; value: 'all' | Region }[] = [
@@ -143,7 +148,7 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
     const picked = codexGroup == null ? groups : groups.slice(codexGroup, codexGroup + 1)
     const shuffled = shuffleWithSeed(picked.flatMap(g => g.cards), `${sessionSeed}${codexDeck}${codexGroup}${round}`)
     return (codexDeck === 'mega' ? shuffled.slice(0, MEGA_SESSION) : shuffled)
-      .map(c => ({ key: c.key, flagUrl: c.flagUrl, name: c.name, subtitle: c.subtitle, funFact: c.note }))
+      .map(c => ({ key: c.key, flagUrl: c.flagUrl, name: c.name, subtitle: c.subtitle, funFact: c.note, pale: c.pale }))
   }, [deckType, codexDeck, codexGroup, decks, round, sessionSeed])
 
   const cards =
@@ -507,8 +512,8 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
                     <span style={{ color: T.dim, fontSize: 12 }}>This flag's image didn't load</span>
                   </div>
                 ) : (
-                  <img key={card.key} src={card.flagUrl} alt="flag"
-                    style={{ width: '100%', height: 180, objectFit: 'contain', background: T.surfaceHi, borderRadius: 12, border: `2px solid ${T.line}` }}
+                  <img key={card.key} src={card.flagUrl} alt={codexDeck === 'arms' ? 'emblem' : 'flag'}
+                    style={{ width: '100%', height: 180, objectFit: 'contain', background: card.pale ? PALE_BACKING : T.surfaceHi, borderRadius: 12, border: `2px solid ${T.line}`, ...(codexDeck === 'arms' ? { padding: 12, boxSizing: 'border-box' } : {}) }}
                     onError={() => setBrokenImg(card.flagUrl)} />
                 )}
                 <p style={{ color: ACCENT.learn, fontSize: 14, margin: 0 }}>Tap to reveal · Swipe to skip</p>
@@ -523,7 +528,7 @@ export default function FlashcardsScreen({ onBack, onQuizSet }: Props) {
               }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 16 }}>
                   <img key={card.key} src={card.flagUrl} alt={card.name}
-                    style={{ width: 56, height: 36, objectFit: 'contain', background: T.surfaceHi, borderRadius: 6, border: `1.5px solid ${T.line}`, flexShrink: 0,
+                    style={{ width: 56, height: 36, objectFit: 'contain', background: card.pale ? PALE_BACKING : T.surfaceHi, borderRadius: 6, border: `1.5px solid ${T.line}`, flexShrink: 0,
                       visibility: brokenImg === card.flagUrl ? 'hidden' : 'visible' }} />
                   <div style={{ minWidth: 0 }}>
                     <div className="geo-display" style={{ color: T.text, fontWeight: 800, fontSize: 20 }}>{card.name}</div>

@@ -36,44 +36,51 @@ The identifier searches more than country flags now, and asks (optionally)
 what kind of flag it was: picking a kind puts those flags first and still lists
 every other flag that fits below them. Each flag is described in the same words
 as the countries, by eye against the image the site shows
-(`scripts/flag-identifier/more.mjs`; countries are in `checked.mjs`), then
-`build.mjs` writes `src/data/flagIdentify.ts`. To add a category: make contact
-sheets (`sheets.mjs <dir> <kind>`, or look at the source images), write one line
-per flag in `more.mjs`, rebuild, and run `npm test`.
+(`scripts/flag-identifier/more.mjs` and `codex.mjs`; countries are in
+`checked.mjs`), then `build.mjs` writes `src/data/flagIdentify.ts`. To add a
+category: draft it with `measure.mjs` (or make contact sheets with
+`sheets.mjs <dir> <kind>`), check and correct every line by eye, add the
+lines, rebuild, and run `npm test`.
 
-Covered (662 flags, Nov 2026):
+Covered (3,230 flags, Nov 2026), 3,882 of the 4,573 entries on the Codex's
+Browse-all wall (the rest are mostly the same flag under another name, or
+left out below):
 - Countries: all 197.
-- States and regions (252): US states, DC and territories (56), Canada (13),
-  Australia (8), Germany (16), Austria (9), Spain (19), Switzerland (26),
-  Italy (20), France (18), the Netherlands (12), Belgium (11 provinces and
-  regions, plus Flanders and Wallonia), Brazil (27), 5 Mexican states, England,
-  Scotland, Wales, Cornwall, Greenland, the Faroes, Åland, Kurdistan Region,
-  Zanzibar, Republika Srpska, Antarctica.
-- US cities: 104 of the 124 in `usCityFlags.ts`.
-- Pride and identity (63): all 44 pride flags, plus the best-known peoples
-  (Aboriginal, Māori, Sámi, Romani, Amazigh, pan-African, pan-Arab, pan-Slavic…)
-  and religions.
-- Movements (23) and organizations (20): Catalan esteladas, Tibet, unrecognised
-  states (Somaliland, TRNC, Abkhazia…), the EU, UN, NATO, Olympics, Red Cross…
-- Historical: only the Ulster Banner, Artsakh and Biafra so far.
+- States and regions (1,295): first-level divisions of 100+ countries from
+  `subdivisions.ts` (every US state, Canada, Australia, Germany, Spain, Japan,
+  Russia, Thailand, Kenya, Romania, Indonesia, Peru, Ukraine, Ireland…), UK
+  councils, dependent territories (Gibraltar, Bermuda, the Falklands…).
+- US cities: 110 of the 124 in `usCityFlags.ts`.
+- Historical (780): `historicalFlags.ts`, the extinct-states gallery, the
+  former flags in every country's history in the Codex, and the UK nations'
+  old banners.
+- Pride, peoples and identity (679): all 44 pride flags and about 600
+  peoples' flags from the cultural-flags gallery (`ethnicFlags.ts`).
+- Movements (128) and organizations (41).
 
-Left to do, most looked-for first:
-- Historical flags (`historicalFlags.ts`, `extinctStates.ts`, the Codex
-  timelines): USSR, Yugoslavia, East Germany, the Confederacy, Ottoman Empire…
-  The "Historical" kind has only 5 flags until then.
-- Other first-level divisions: Japan's 47 prefectures, Argentina, Russia's
-  republics, the UK's council flags, the rest of `subdivisions.ts`.
-- Mexico's other 27 states: each is the state's coat of arms on white, so the
-  words can't tell them apart; they need a way to describe the arms first.
-- The rest of the identity flags: separatist and autonomous (about 110 left),
-  pan-national and indigenous peoples, micronations, causes (anarchist flags
-  and so on).
-- US cities left out: logos only or too busy to describe in these words
-  (Sacramento, Tampa, Irvine, Fort Collins…), Yonkers (its image doesn't load),
-  and Oklahoma City and Jersey City, whose images here are their state's flag.
-- No words yet for some common symbols, so those flags lean on colours and
-  layout: a fleur-de-lis, a key, an anchor, a hand, a heart, a checkerboard or
-  rays from the centre.
+How the Codex batches were made (`scripts/flag-identifier/codex.mjs`):
+`measure.mjs` drafts each flag from its image (colours by share of the area,
+under 6% marked small; stripes from clean rows and columns; "plain" from one
+colour on most of the flag), draws contact sheets with the draft under each
+flag, and every flag was then checked by eye and corrected before its line
+went in. Crosses, discs, triangles and all symbols are added by eye.
+
+Left to do:
+- World city flags (`src/data/cityFlags.ts`, on another branch): add a
+  `wcity:` source to `build.mjs` (it prints a reminder once the file is
+  there) and describe them in `codex.mjs` the same way.
+- Left out, listed in `codex.mjs` by name (about 390 flags): a seal or coat
+  of arms on one plain colour that can't be told from three or more others
+  (52, mostly Japan, Peru, Bulgaria, Montenegro), most Romanian, Thai, Korean,
+  Estonian-style and Albanian seal-on-white flags, logo or text flags (Korean
+  provinces, Danish regions, organisations' logos, Liechtenstein's ribbon
+  flags), and maritime signal flags. They need words for what's inside a
+  seal before they can be told apart.
+- Mexico's 27 coat-of-arms-on-white state flags, for the same reason.
+- Peoples' flags that are a country's or region's own flag under the people's
+  name (about 210, like "Portuguese people"): searchable as that flag already.
+- No words yet for rays from the centre, a tree versus a flower, a ship, or
+  the order of stripes (so tricolours in the same colours tie).
 
 ## Notes / smaller follow-ups
 - **City flags (Codex, beta).** The Codex's "City Flags" section lists cities by
@@ -104,22 +111,32 @@ Left to do, most looked-for first:
   - Smaller places with famous flags under the 100,000 line (Siena; Bruges is
     already in) were left out on purpose; add them only by hand, with a reason.
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
-  "Browse all 4,500+ flags") covers countries A–M: 116 current coats of arms,
-  emblems and seals, 86 with former ones (277 images, a few undated). Built by
-  `scripts/arms/fetch.mjs` (Wikidata + English Wikipedia + Wikimedia Commons;
-  `--offline` rebuilds from its cache, `--why` explains every image). Still to do:
-  - N–Z countries: widen `SCOPE` in the script, run it, check its notes.
-  - Former arms for the 30 A–M countries still on "coming soon" (Argentina,
-    Belgium, Denmark, Ecuador, Estonia, Iran, Japan, Luxembourg, Mongolia…):
-    many never changed their arms, and the rest show the history only in
-    drawings, photos, royal arms or rows without dates. Next sources: other-language Wikipedias (es, fr, de, ru)
-    and Commons' "Historical coats of arms of …" categories, checked by hand.
-  - Lebanon and Libya are skipped (no official arms in Wikipedia's infobox);
-    Canada and France were chosen by hand. Recheck when their infoboxes change.
+  "Browse all 4,500+ flags") covers every country: 192 current coats of arms,
+  emblems and seals, 160 with former ones (479 images, 32 of them undated), and
+  a "Coats of Arms" flashcard deck (Flashcards → Codex). Built by
+  `scripts/arms/fetch.mjs` from Wikidata, the emblem's English Wikipedia
+  article, then (for countries that article leaves bare) the country's own
+  Wikipedia, the German, French, Spanish and Russian ones, and Commons'
+  "Historical coats of arms of …" categories; `--offline` rebuilds from its
+  cache, `--why` explains every image. Emblems of fascist and Nazi-era regimes
+  (and their Axis puppet states) stay out. Still to do:
+  - Former arms for the 32 countries still on "coming soon": Argentina,
+    Belgium, Bhutan, Switzerland, Djibouti, Denmark, Micronesia, Gabon,
+    Honduras, Indonesia, Israel, Jordan, Japan, Liechtenstein, Luxembourg,
+    Monaco, Marshall Islands, Maldives, Niger, Palestine, Sweden, San Marino,
+    Somalia, South Sudan, São Tomé and Príncipe, Eswatini, Chad, Tonga, Tuvalu,
+    the United States, Vatican City and Kosovo. Many never changed their arms
+    (Japan, Switzerland, the Vatican, the US seal); the rest show the history
+    only in royal or personal arms, drawings, photos, 1840s armorial plates or
+    rows without dates, or in file titles no second source dates. These need a
+    person with the sources (a national heraldry office, a constitution's text).
+  - Skipped: Lebanon, Libya and Turkey (no official arms in Wikipedia's
+    infobox), Nicaragua and Oman (their only images carry licences that aren't
+    public domain or Creative Commons: "Attribution", "OGL-om"). Canada, France
+    and the United Kingdom were chosen by hand. Recheck when these change.
+  - The deck shows today's arms only; former ones could become a second deck.
   - Later: subdivisions (states, provinces) and royal houses.
-  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms),
-    and a Flashcards deck (Flashcards → Codex; `scripts/bundle.test.mjs` lets
-    `arms` off the "every Codex section is a deck" rule until then).
+  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms).
     Flags stay front and center: the arms are a side door, not the main menu.
 - "Peoples & Cultures" fun-fact pool currently has **32** entries (only flags
   with a written `note` show). Expanding it means writing more cultural facts in

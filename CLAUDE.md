@@ -36,6 +36,7 @@ then `scripts/prerender.mjs` writes the static content pages, 404 and sitemap in
 ## What's new
 
 - Every change that players will notice gets an entry at the top of `src/data/changelog.ts`.
+  Date entries in Boston time (America/New_York), where Sean is: `TZ=America/New_York date +%F`.
   It feeds /whats-new/ and the "Last updated" line on the home screen and every content page,
   which show Google the site is maintained. The site promises new games every month.
 

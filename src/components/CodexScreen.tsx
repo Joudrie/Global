@@ -318,7 +318,7 @@ export default function CodexScreen({ onBack, initialCode, embedded = false, onB
             <LineIcon name="codex" size={14} color={T.muted} /> Browse all 4,500+ flags
           </button>
         )}
-        {/* Coats of arms (beta) — national emblems by region, A–M so far */}
+        {/* Coats of arms (beta) — national emblems by region */}
         {!isSearching && <ArmsCodexSection />}
         {/* Ad box — dormant until a publisher ID is set in src/ads.ts */}
         {!isSearching && <AdBox slot={AD_SLOTS.codexFooter} style={{ marginTop: 24 }} />}
@@ -721,7 +721,7 @@ function OrgCodexSection() {
 // ── Coats of arms (Beta) ──
 // The country list again, by region, with each country's coat of arms (or
 // emblem, or seal) instead of its flag; a row opens the current one large and
-// its former ones (CodexArms). Built by scripts/arms/fetch.mjs, A–M so far.
+// its former ones (CodexArms). Built by scripts/arms/fetch.mjs.
 const FLAG_BY_CODE = new Map(FLAGS.map(f => [f.code, f]))
 /** "Coat of arms of Albania" → "Coat of arms"; "State Emblem of India" → "State Emblem". */
 const armsTerm = (name: string) => name.replace(/ of (?!arms\b).*$/, '')
@@ -753,7 +753,7 @@ function ArmsCodexSection() {
           <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2" style={{ color }}>
             <Shield size={15} color={color} strokeWidth={1.6} absoluteStrokeWidth /> Coats of Arms <span style={{ color: tint(color, 0.6), fontSize: 10 }}>(Beta)</span>
           </h3>
-          <p className="text-xs" style={{ color: T.dim }}>{CODEX_COUNTS.arms} national emblems · A–M so far</p>
+          <p className="text-xs" style={{ color: T.dim }}>{CODEX_COUNTS.arms} national emblems · by region</p>
         </div>
         <ChevronDown size={17} color={color} strokeWidth={1.6} absoluteStrokeWidth className="codex-chev"
           style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
