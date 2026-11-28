@@ -744,7 +744,7 @@ const IDENTIFIER_URL = '/?play=flagidentifier'
 const IDENTIFIER_FAQ = [
   ['How does it work?', 'Answer up to four questions: what kind of flag you think it is, its layout, its colours and anything on it, like stars, a sun or a coat of arms. Every flag is ranked by how well it fits, and the list is there at every step.'],
   ['What if I remember a colour wrong?', 'It still shows up. Flags are ranked, not filtered: one wrong colour or detail moves a flag into the "close" list instead of hiding it, and light blue for blue only counts half.'],
-  ['Which flags can it find?', `All ${FLAGS.length} country flags, plus ${IDENTIFY_ALL.length - FLAGS.length} more: US states, Canadian provinces, Japanese prefectures and other states and regions, US cities, historical flags like the Soviet Union's, pride and identity flags, separatist movements, micronations and international organizations. More are added category by category.`],
+  ['Which flags can it find?', `${IDENTIFY_ALL.length.toLocaleString('en-US')} of the 4,500+ flags in the Codex so far: all ${FLAGS.length} country flags, plus ${(IDENTIFY_ALL.length - FLAGS.length).toLocaleString('en-US')} more: US states, Canadian provinces, Japanese prefectures and other states and regions, US cities, historical flags like the Soviet Union's, pride and identity flags, separatist movements, micronations and international organizations. More are added category by category.`],
   ['What if I don\'t know what kind of flag it is?', 'Leave it on "Not sure". If you do pick a kind, say a pride flag or a US state, those flags come first, and every other flag that fits is still listed below, in case it was something else.'],
   ['Is it free?', 'Yes. No account needed, and nothing you pick leaves your device.'],
 ]
@@ -853,7 +853,7 @@ ${IDENTIFIER_FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(
 `
   return page({
     title: "Flag Identifier: find any flag by its colours and shapes | Globalio",
-    description: clip(`Saw a flag you can't name? Describe its layout, colours and symbols and see which of ${IDENTIFY_ALL.length} country, state, city, historical and pride flags fit, best match first.`),
+    description: clip(`Saw a flag you can't name? Describe its layout, colours and symbols and see which of ${IDENTIFY_ALL.length.toLocaleString('en-US')} country, state, city, historical and pride flags fit, best match first.`),
     canonical: `${ORIGIN}/flag-identifier/`,
     jsonLd: [
       {

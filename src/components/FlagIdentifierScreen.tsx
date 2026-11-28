@@ -60,6 +60,11 @@ const KIND_ICON: Record<IdentifyCategory, LucideIcon> = {
 
 const COUNTRY = new Map(FLAGS.map(f => [f.code, f]))
 const TOTAL = IDENTIFY_FLAGS.length.toLocaleString("en-US")   // "1,192"
+// The Codex's whole collection, as the Codex and home screen put it ("Browse
+// all 4,500+ flags"). The identifier covers part of it so far, and says so,
+// so it never reads as if it searched everything.
+const CODEX_TOTAL = "4,500+"
+const SO_FAR = `${TOTAL} of the Codex's ${CODEX_TOTAL} flags so far`
 // Only the kinds that have flags yet: a kind with none would be a dead choice.
 const KINDS = IDENTIFY_CATEGORIES
   .map(c => ({ ...c, count: IDENTIFY_FLAGS.filter(e => isKind(e, c.id)).length }))
@@ -116,12 +121,13 @@ export default function FlagIdentifierScreen({ onBack }: { onBack: () => void })
 
   const stepDone = [s.kind !== null, s.layouts.length > 0 || s.unsure[0], s.colors.length > 0 || s.unsure[1], s.details.length > 0 || s.noDetails || s.unsure[2]]
   const countLine = !answered
-    ? `All ${TOTAL} flags fit so far`
+    ? `${TOTAL} flags to search`
     : exact.length ? `Fits ${plural(exact.length, "flag")}` : "No flag fits everything"
   // Short: "3 more are close", or with a kind picked "41 close · 2 of other kinds" (flags that fit).
   const moreLine = othersFit > 0
     ? [close.length ? `${close.length} close` : "", `${othersFit} of other kinds`].filter(Boolean).join(" · ")
-    : answered && close.length > 0 ? `${plural(close.length, "more is", "more are")} close` : ""
+    : answered && close.length > 0 ? `${plural(close.length, "more is", "more are")} close`
+    : !answered ? `Of the Codex's ${CODEX_TOTAL}, more added as they're checked` : ""
   const preview = (exact.length ? exact : close.length ? close : others).slice(0, 3)
 
   return (
@@ -157,7 +163,7 @@ export default function FlagIdentifierScreen({ onBack }: { onBack: () => void })
               hint="If you think you know, pick it and those flags come first. Every other flag that fits still shows below, in case it was something else."
               onReset={answered ? reset : undefined}>
               <div role="radiogroup" aria-label="Kind of flag" style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                <KindOption on={s.kind === null} label="Not sure" note={`Search all ${TOTAL} flags`} icon={CircleHelp} onClick={() => setKind(null)} />
+                <KindOption on={s.kind === null} label="Not sure" note={`Search ${SO_FAR}`} icon={CircleHelp} onClick={() => setKind(null)} />
                 {KINDS.map(k => (
                   <KindOption key={k.id} on={s.kind === k.id} label={k.label} note={plural(k.count, "flag")} icon={KIND_ICON[k.id]} onClick={() => setKind(k.id)} />
                 ))}
@@ -393,7 +399,7 @@ function Results({ s, ranked, exact, close, others, answered, countLine, open, s
     exact: exact.length, otherExact: otherExact.length, close: close.length, further: further.length, otherClose: otherClose.length,
   }
   const fits = kind ? `${plural(exact.length, kind.plural.replace(/s$/, ""), kind.plural)}` : plural(exact.length, "flag")
-  const where = kind ? `${kind.label} flags first; other kinds that fit are below.` : `Searching all ${TOTAL} flags.`
+  const where = kind ? `${kind.label} flags first; other kinds that fit are below.` : `Searching ${SO_FAR}.`
 
   return (
     <>
@@ -404,12 +410,12 @@ function Results({ s, ranked, exact, close, others, answered, countLine, open, s
         </div>
         <div>
           <h2 data-testid="results-title" className="geo-display" style={{ margin: 0, fontWeight: 700, fontSize: 22, lineHeight: 1.2, color: T.text }}>
-            {answered ? (exact.length ? `Your description fits ${fits}` : "No flag fits everything") : "Every flag"}
+            {answered ? (exact.length ? `Your description fits ${fits}` : "No flag fits everything") : `All ${TOTAL} searchable flags`}
           </h2>
           <p style={{ margin: "6px 0 0", fontSize: 13.5, lineHeight: 1.5, color: T.muted }}>
             {answered
               ? exact.length ? `Best fit first. ${where}` : `These are the closest. ${where}`
-              : `Answer a question or two to narrow it down. Searching all ${TOTAL} flags.`}
+              : `Answer a question or two to narrow it down. Searching ${SO_FAR}.`}
           </p>
         </div>
       </div>

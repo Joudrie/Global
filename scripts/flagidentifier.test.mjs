@@ -357,3 +357,14 @@ test('new detail words: fleur-de-lis, key, anchor, hand, heart, checkerboard', (
   // Zaire: a hand with a torch in a yellow disc on green.
   assert.equal(rankAll(ask({ layouts: ['disc'], colors: ['green', 'yellow'], details: ['hand'] }))[0].entry.code, 'hist-zaire')
 })
+
+test('the count says how much of the Codex it searches, never "all"', async () => {
+  const screen = read('src/components/FlagIdentifierScreen.tsx')
+  assert.match(screen, /const CODEX_TOTAL = "4,500\+"/)
+  assert.match(screen, /of the Codex's \$\{CODEX_TOTAL\} flags so far/)
+  assert.doesNotMatch(screen, /Search(ing)? all \$\{TOTAL\}|All \$\{TOTAL\} flags fit/)
+  // "4,500+" stays true of the Codex's Browse-all wall, and the identifier is a part of it.
+  const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  assert.ok(ALL_FLAGS_AZ.length >= 4500, `${ALL_FLAGS_AZ.length}`)
+  assert.ok(IDENTIFY_FLAGS.length < ALL_FLAGS_AZ.length)
+})
