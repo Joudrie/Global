@@ -5,6 +5,14 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "Coats of arms for every country, and a Coats of Arms flashcard deck",
+    items: [
+      "The Codex's Coats of Arms section now covers every country: 192 national emblems by region, and the ones that came before for 160 of them.",
+      "Flashcards has a new Coats of Arms deck in the Codex tab: the emblem on the front, the country and what it shows on the back.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "Flag Identifier now finds 1,192 flags, historical ones included",
     items: [
       "Flag Identifier adds 206 historical flags (the USSR and its republics, Yugoslavia, the Ottoman Empire, Austria-Hungary, Rhodesia and more), Japan's 47 prefectures, Argentina's provinces, Russia's regions, UK county flags, and over a hundred more movements and micronations.",
