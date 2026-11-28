@@ -6,7 +6,7 @@ import type { AppState } from "../utils/storage"
 import { displayStreak } from "../utils/storage"
 import { todayString } from "../utils/prng"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
-import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, trendingGames, featuredGames, creatorPicks, allGamesAZ } from "../ui/registry"
+import { groupsFor, REGISTRY, GAMES, GAME_COUNT, TOOLS, RENAMED, trendingGames, creatorPicks, allGamesAZ } from "../ui/registry"
 import type { Entry, TabKey } from "../ui/registry"
 import { TabBar, FlagTile, FavoriteStar, SectionHeader } from "./ui"
 import { Crown, LayoutGrid, Star } from "lucide-react"
@@ -643,7 +643,6 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   const all = REGISTRY.filter(r => r.tab === "play")
   const playable = all.filter(r => !r.sandbox)
   const sandbox = all.filter(r => r.sandbox)
-  const featured = featuredGames() // Flag Fusion first
   // Every game tile on Play, with its favourite star.
   const tile = (e: Entry, accent: string, style?: CSSProperties) => (
     <FlagTile key={e.id} id={e.id} title={e.title} subtitle={e.subtitle} accent={accent} onClick={() => launch(e)} style={style}
@@ -679,20 +678,15 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
   // Browse vs. filter: a search query or a non-"All" chip collapses the shelves
   // into a flat result grid. Search spans the *whole* catalogue (sandbox too,
   // games filed on Today such as Flag Gacha, and tools) so every game stays findable
-  // by name. "Popular" is the hand-picked set.
-  const POPULAR = "__popular"
+  // by name. The All button opens every game A–Z.
   const VIEW_ALL = "__all"
   const query = q.trim().toLowerCase()
   const filtering = !!query || activeGroup !== null
   const filtered = query
     ? [...GAMES, ...TOOLS].filter(r => `${r.title} ${r.subtitle}`.toLowerCase().includes(query))
-    : activeGroup === POPULAR
-      ? featured
-      : activeGroup === VIEW_ALL
-        ? allGamesAZ()
-        : activeGroup
-          ? all.filter(r => r.group === activeGroup)
-          : []
+    : activeGroup === VIEW_ALL
+      ? allGamesAZ()
+      : []
   // The All page sits on its own history entry, so the phone's Back gesture
   // returns to the shelves instead of leaving the site.
   const allEntry = useRef(false)
@@ -714,11 +708,6 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
     window.requestAnimationFrame(() => document.getElementById("play-top")?.scrollIntoView({ block: "start" }))
   }
 
-  const chips: { label: string; group: string | null }[] = [
-    { label: "All", group: VIEW_ALL },
-    { label: "Popular", group: POPULAR },
-    ...categoryGroups.map(g => ({ label: g.group, group: g.group })),
-  ]
   const selectChip = (group: string | null) => { setActiveGroup(group); setQ("") }
 
   return (
@@ -740,32 +729,31 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
         </button>
       </div>
 
-      {/* Find any game by name — including everything buried in the sandbox */}
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 44, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}` }}>
-        <SearchIcon size={16} color={T.dim} strokeWidth={1.6} />
-        <input value={q} onChange={e => { setQ(e.target.value); if (e.target.value) setActiveGroup(null) }} placeholder="Find a game…" aria-label="Search games"
-          style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 16 }} />
-        {q && (
-          <button onClick={() => setQ("")} aria-label="Clear search"
-            style={{ width: 44, height: 44, marginRight: -12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
-              color: T.dim, background: "transparent", fontSize: 18, lineHeight: 1 }}>×</button>
-        )}
-      </div>
-
-      {/* Category chips — fast filter across the whole catalogue */}
-      <div className="carto-rail" style={{ display: "flex", gap: 8, overflowX: "auto", margin: "-8px -16px 0", padding: "0 16px 2px" }}>
-        {chips.map(c => {
-          const on = !query && activeGroup === c.group
+      {/* All (every game A–Z) to the left of the search bar, which finds any
+          game by name, including everything buried in the sandbox */}
+      <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        {(() => {
+          const on = !query && activeGroup === VIEW_ALL
           return (
-            <button key={c.label} onClick={() => (c.group === VIEW_ALL ? (on ? selectChip(null) : viewAll()) : selectChip(c.group))} aria-pressed={on} className="geo-tap"
-              style={{ flexShrink: 0, padding: "6px 13px", minHeight: 36, borderRadius: 999, whiteSpace: "nowrap",
-                fontFamily: FONT.display, fontWeight: 600, fontSize: 12.5,
-                background: on ? ACCENT.play : T.surface, color: on ? T.onAccent : T.muted,
+            <button onClick={() => (on ? selectChip(null) : viewAll())} aria-pressed={on} aria-label="All games, A to Z" className="geo-tap"
+              style={{ flexShrink: 0, height: 44, padding: "0 16px", borderRadius: 12, whiteSpace: "nowrap",
+                fontFamily: FONT.display, fontWeight: 700, fontSize: 14,
+                background: on ? ACCENT.play : T.surface, color: on ? T.onAccent : T.text,
                 border: `1px solid ${on ? ACCENT.play : T.line}` }}>
-              {c.label}
+              All
             </button>
           )
-        })}
+        })()}
+        <div style={{ flex: 1, minWidth: 0, display: "flex", alignItems: "center", gap: 8, padding: "0 12px", height: 44, borderRadius: 12, background: T.surface, border: `1px solid ${T.line}` }}>
+          <SearchIcon size={16} color={T.dim} strokeWidth={1.6} />
+          <input value={q} onChange={e => { setQ(e.target.value); if (e.target.value) setActiveGroup(null) }} placeholder="Find a game…" aria-label="Search games"
+            style={{ flex: 1, minWidth: 0, background: "transparent", border: "none", outline: "none", color: T.text, fontSize: 16 }} />
+          {q && (
+            <button onClick={() => setQ("")} aria-label="Clear search"
+              style={{ width: 44, height: 44, marginRight: -12, flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                color: T.dim, background: "transparent", fontSize: 18, lineHeight: 1 }}>×</button>
+          )}
+        </div>
       </div>
 
       {filtering ? (
