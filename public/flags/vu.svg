@@ -3,11 +3,15 @@
     <clipPath id="vu-a">
       <path d="M0 0v475l420-195h480v-85H420Z"/>
     </clipPath>
+    <clipPath id="vu-c">
+      <path d="M-10 11.9 416.7 210H910v55H416.7L-10 463.1Z"/>
+    </clipPath>
   </defs>
   <path fill="#009543" d="M0 0h640v480H0z"/>
   <path fill="#d21034" d="M0 0h640v240H0z"/>
   <g clip-path="url(#vu-a)" transform="scale(.71111 1.01053)">
-    <path stroke="#fdce12" stroke-width="110" d="m0 0 420 195h480v85H420L0 475"/>
+    <path d="m0 0 420 195h480v85H420L0 475"/>
+    <path fill="none" stroke="#fdce12" stroke-width="110" clip-path="url(#vu-c)" d="m0 0 420 195h480v85H420L0 475"/>
     <path fill="none" stroke="#000" stroke-width="60" d="m0 0 420 195h480m0 85H420L0 475"/>
   </g>
   <g fill="#fdce12" transform="translate(-22)scale(1.01053)">

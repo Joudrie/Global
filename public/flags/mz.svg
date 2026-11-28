@@ -5,10 +5,10 @@
     </clipPath>
   </defs>
   <g clip-path="url(#mz-a)" transform="scale(.9375)">
-    <path fill="#009a00" fill-rule="evenodd" d="M0 0h768v160H0z"/>
-    <path fill="#fff" fill-rule="evenodd" d="M0 160h768v16H0z"/>
-    <path fill="#000001" fill-rule="evenodd" d="M0 176h768v160H0z"/>
-    <path fill="#fff" fill-rule="evenodd" d="M0 336h768v16H0z"/>
+    <path fill="#009a00" fill-rule="evenodd" d="M0 0h768v512H0z"/>
+    <path fill="#fff" fill-rule="evenodd" d="M0 160h768v352H0z"/>
+    <path fill="#000001" fill-rule="evenodd" d="M0 176h768v336H0z"/>
+    <path fill="#fff" fill-rule="evenodd" d="M0 336h768v176H0z"/>
     <path fill="#ffca00" fill-rule="evenodd" d="M0 352h768v160H0z"/>
     <path fill="red" fill-rule="evenodd" d="M0 0v512l336-256z"/>
     <path fill="#ffca00" fill-rule="evenodd" d="m198.5 333-51.2-37.5L96.1 333l19.9-60.3-51.5-37.1 63.5.2 19.3-60.4 19.4 60.5 63.5-.3-51.5 37.1z"/>

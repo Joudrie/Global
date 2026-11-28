@@ -5,6 +5,13 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "Sharper flags on phones: no more thin lines between stripes",
+    items: [
+      "73 country flags, Germany, Austria, the Netherlands, Russia, Greece, South Africa and the US among them, no longer show a faint line where two stripes meet on some phone screens. The flags look exactly the same otherwise.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "Flag Identifier searches 3,230 flags",
     items: [
       "Flag Identifier now covers most of the Codex: 3,230 flags, up from 1,192. New: regions of about 80 more countries (Kenya's counties, Thailand's provinces, Colombia, Nigeria, Ukraine, Poland and more), nearly 800 historical flags, about 600 peoples' flags, overseas territories like Gibraltar and the Falklands, and more organisations.",

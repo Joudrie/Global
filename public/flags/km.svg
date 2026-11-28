@@ -5,9 +5,9 @@
     </clipPath>
   </defs>
   <g fill-rule="evenodd" clip-path="url(#km-a)" transform="scale(.9375)">
-    <path fill="#ff0" d="M0 0h768.8v128H0z"/>
-    <path fill="#fff" d="M0 128h768.8v128H0z"/>
-    <path fill="#be0027" d="M0 256h768.8v128H0z"/>
+    <path fill="#ff0" d="M0 0h768.8v512H0z"/>
+    <path fill="#fff" d="M0 128h768.8v384H0z"/>
+    <path fill="#be0027" d="M0 256h768.8v256H0z"/>
     <path fill="#3b5aa3" d="M0 384h768.8v128H0z"/>
     <path fill="#239e46" d="M0 0v512l381.9-255.3z"/>
     <path fill="#fff" d="M157.2 141.4c-85-4.3-123.9 63.5-123.8 115.9-.2 62 58.6 113 112.8 110C117 353.5 81.2 314.6 81 257c-.3-52.1 29.5-97.5 76.3-115.6z"/>
