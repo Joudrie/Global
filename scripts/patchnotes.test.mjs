@@ -170,3 +170,9 @@ test('the newest week opens, and a bullet that starts with a game links to it', 
   assert.equal(P.itemGame('Easy: no game here', games), null)
   assert.equal(P.itemGame('Flag Bracket now covers most of the Codex: lots more.', games), null, 'a sentence, not a name')
 })
+
+test('no changelog entry is dated after today in Boston (where Sean is)', () => {
+  const today = new Intl.DateTimeFormat('en-CA', { timeZone: 'America/New_York' }).format(new Date())
+  const ahead = CHANGELOG.filter(e => e.date > today).map(e => `${e.date} ${e.title}`)
+  assert.deepEqual(ahead, [], 'date changelog entries in Boston time')
+})
