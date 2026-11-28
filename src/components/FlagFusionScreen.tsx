@@ -1,11 +1,11 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react"
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react"
 import type { CSSProperties, KeyboardEvent as ReactKeyboardEvent, ReactNode } from "react"
 import { Check, CircleHelp, X } from "lucide-react"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
 import {
   PARTS, PART_LABEL, TIERS, WRONG_GUESSES, PART_POINTS, SPARE_POINTS, MAX_POINTS,
-  countryName, dealGame, emblemUrl, fusionPoints, fusionSvg, isRight, svgUri,
+  countryName, dealGame, emblemUrl, fusionPoints, fusionSvg, inlineSvg, isRight, svgUri,
 } from "../utils/flagFusion"
 import type { Fusion, Part, Tier } from "../utils/flagFusion"
 import { didYouMean, matchNames, pickOnEnter } from "../utils/pickOnEnter"
@@ -213,12 +213,19 @@ function useStencils(codes: string[]) {
  *  label says nothing about them. */
 function FusedFlag({ fusion, label = "The fused flag", style }: { fusion: Fusion; label?: string; style?: CSSProperties }) {
   const stencil = stencilCache.get(fusion.emblem.code)
-  const src = useMemo(() => (stencil ? svgUri(fusionSvg(fusion, stencil)) : null), [fusion, stencil])
+  const svg = useMemo(() => (stencil ? fusionSvg(fusion, stencil) : null), [fusion, stencil])
+  // If the browser won't decode the SVG as an image (an iPhone showed a
+  // broken-image icon), draw the same SVG straight into the page instead.
+  const [broken, setBroken] = useState<string | null>(null)
+  const uid = useId().replace(/[^a-zA-Z0-9]/g, "")
+  const inline = useMemo(() => (svg && broken === svg ? inlineSvg(svg, uid) : null), [svg, broken, uid])
+  const fill: CSSProperties = { position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }
   return (
     <div role="img" aria-label={label}
       style={{ position: "relative", aspectRatio: "4 / 3", width: "100%", borderRadius: 4, overflow: "hidden", background: T.surfaceHi,
         border: `1px solid ${T.line}`, boxShadow: `0 8px 24px -14px ${tint(T.text, 0.55)}`, ...style }}>
-      {src && <img src={src} alt="" draggable={false} style={{ position: "absolute", inset: 0, width: "100%", height: "100%", display: "block" }} />}
+      {svg && !inline && <img src={svgUri(svg)} alt="" draggable={false} onError={() => setBroken(svg)} style={fill} />}
+      {inline && <div aria-hidden style={fill} dangerouslySetInnerHTML={{ __html: inline }} />}
     </div>
   )
 }

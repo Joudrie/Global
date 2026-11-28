@@ -286,3 +286,15 @@ test('the copy says five flags and five wrong guesses, matching the rules', () =
   assert.equal(F.ROUNDS, 5)
   assert.equal(F.WRONG_GUESSES, 5)
 })
+
+test('the inline fallback renames every id and every reference to it', () => {
+  const f = F.exampleFusion()
+  const stencil = fs.readFileSync(path.join(ROOT, 'public', F.emblemUrl(f.emblem.code)), 'utf8')
+  const svg = F.fusionSvg(f, stencil)
+  const out = F.inlineSvg(svg, 'x1')
+  const ids = [...out.matchAll(/\bid="([^"]+)"/g)].map(m => m[1])
+  assert.ok(ids.length > 0 && ids.every(id => id.endsWith('-x1')), 'every id gets the suffix')
+  const refs = [...out.matchAll(/url\(#([^)]+)\)|href="#([^"]+)"/g)].map(m => m[1] ?? m[2])
+  assert.ok(refs.length > 0 && refs.every(r => ids.includes(r)), 'every reference points at a renamed id')
+  assert.match(out, /^<svg width="100%" height="100%"/)
+})

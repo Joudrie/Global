@@ -5,8 +5,10 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
-    title: "Tidier patch notes, and a Mega Codex button",
+    title: "Tidier patch notes, a Mega Codex button, and Codex fixes",
     items: [
+      "The Codex no longer shows stray code after some names (Eastern Andalusians and the two Mirandese proposals), and flags whose image was missing are back: the Commonwealth of Nations, the Baltic Assembly, Montgomery (Alabama), and Iraq's Basra, Babylon and Nineveh governorates. Flags with no image left anywhere are hidden instead of showing an empty box.",
+      "Flag Fusion: a fused flag that wouldn't draw on some iPhones (a small question-mark icon) now draws properly.",
       "Patch notes now start closed: tap a day to see its list of updates, then tap an update to read what changed.",
       "The button at the bottom of the Codex is now Mega Codex: it opens the Mega Codex with every flag, sorted A–Z, Z–A or shuffled, and you can tap any flag for its description.",
     ],

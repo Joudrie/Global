@@ -29,15 +29,15 @@ export interface DeckGroup { label: string; cards: DeckCard[] }
 /** Cards in each deck, shown before its data loads. scripts/bundle.test.mjs
  *  checks these match the decks: update them when the Codex galleries change. */
 export const DECK_COUNTS: Record<CodexDeckId, number> = {
-  mega: 5018,
+  mega: 5023,
   peoples: 1148,
   pride: 44,
   separatist: 142,
   civic: 42,
   micronations: 50,
   extinct: 570,
-  cities: 615,
-  orgs: 65,
+  cities: 616,
+  orgs: 67,
   signal: 27,
   arms: 192,
 }
