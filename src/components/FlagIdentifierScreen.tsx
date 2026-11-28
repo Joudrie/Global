@@ -125,7 +125,7 @@ export default function FlagIdentifierScreen({ onBack }: { onBack: () => void })
     : exact.length ? `Fits ${plural(exact.length, "flag")}` : "No flag fits everything"
   // Short: "3 more are close", or with a kind picked "41 close · 2 of other kinds" (flags that fit).
   const moreLine = othersFit > 0
-    ? [close.length ? `${close.length} close` : "", `${othersFit} of other kinds`].filter(Boolean).join(" · ")
+    ? [close.length ? `${close.length.toLocaleString("en-US")} close` : "", `${othersFit.toLocaleString("en-US")} of other kinds`].filter(Boolean).join(" · ")
     : answered && close.length > 0 ? `${plural(close.length, "more is", "more are")} close`
     : !answered ? `Of the Codex's ${CODEX_TOTAL} so far` : ""
   const preview = (exact.length ? exact : close.length ? close : others).slice(0, 3)
