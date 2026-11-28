@@ -12,6 +12,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Symbol Hunt: after Submit, found, missed and wrong flags are clearly marked, with a Found X of Y line.",
       "Lookalikes shows its tip once, under the flags, without pushing them down. GeoPaint and Flag Outline show the real flag without black bars, and Flag Outline says \"1 guess left\".",
       "The Crop's zoom bar ends on the last step, and Flag Identifier's counts have thousands commas.",
+      "Historical Flags and Identity Flags scroll the note and Next button into view after you answer. Silhouette's guess box no longer zooms the page on iPhones.",
+      "Subdivision Stumper's \"Other way to play\" switches to the other mode, and Province Roulette's banner shows the flag on wide screens instead of an empty white box.",
     ],
   },
   {
