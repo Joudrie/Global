@@ -101,6 +101,7 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
   // A deep link (Flag of the Day → its entry) opens on that country; otherwise
   // the embedded Codex restores the reader's last view.
   const [saved] = useState(() => (embedded && initialCode == null ? loadView() : null))
+  const headRef = useRef<HTMLDivElement>(null)
   // A tapped country expands inline beneath its row — browsing never leaves
   // the page, so there's nothing to "go back" from.
   const [selectedCode, setSelectedCode] = useState<string | null>(initialCode ?? saved?.code ?? null)
@@ -124,7 +125,12 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
   // the embedded list goes back to where it was. initialCode is read once,
   // like the state above.
   useLayoutEffect(() => {
-    if (initialCode) document.getElementById(rowId(initialCode))?.scrollIntoView({ block: 'start' })
+    if (initialCode) {
+      document.getElementById(rowId(initialCode))?.scrollIntoView({ block: 'start' })
+      // Clear the pinned header (standalone only) so the entry's top shows.
+      const h = headRef.current?.offsetHeight ?? 0
+      if (h) window.scrollBy(0, -h)
+    }
     if (!embedded) return
     const scroller = scrollParent(rootRef.current)
     if (!scroller) return
@@ -179,7 +185,11 @@ export default function CodexScreen({ onBack, initialCode, embedded = false }: P
           <div style={{ color: T.muted, fontSize: 12, marginTop: 2 }}>{FLAGS.length} countries · flags, facts and histories</div>
         </header>
       ) : (
-        <ScreenHeader title="Codex" subtitle={`${FLAGS.length} countries · flags, facts and histories`} onBack={onBack} />
+        // Opened on its own (from World Cup), the Codex scrolls down to the
+        // nation; the header stays pinned so its Back button is always in reach.
+        <div ref={headRef} style={{ position: 'sticky', top: 0, zIndex: 5, background: T.bg }}>
+          <ScreenHeader title="Codex" subtitle={`${FLAGS.length} countries · flags, facts and histories`} onBack={onBack} />
+        </div>
       )}
 
       {/* Search */}

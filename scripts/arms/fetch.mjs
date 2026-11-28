@@ -713,6 +713,8 @@ function authorOf(ii) {
     .replace(/\S+@\S+\.[a-z]{2,}/gi, '') // no e-mail addresses in credits
     .replace(/\bUnknown(\s+Unknown)+\b/gi, 'Unknown').replace(/\b(Unknown author)(\s+\1)+/gi, '$1')
     .replace(/\(\s*talk\s*\)/gi, '').replace(/[^\s,;:]+\.svg'?\)?/gi, '').replace(/\bderitive\b/g, 'derivative')
+    // A bullet list of source files ("* Coat_of_arms_of_the_United_Kingdom_…"): drop file-name fragments.
+    .replace(/^\s*\*\s*/, '').replace(/\b[\p{L}\d]+(?:_[\p{L}\d()-]*){2,}/gu, '')
     // Commons boilerplate that follows the name.
     .replace(/\s*\b(This (W3C|SVG|vector|file|image)\b|Legal disclaimer|Communist symbol)\b.*$/i, '')
     .replace(/\s+([,.;])/g, '$1').replace(/^[\s,;:.&]+|[\s,;:&]+$/g, '').replace(/\s+/g, ' ').trim()
