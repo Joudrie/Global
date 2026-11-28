@@ -11,7 +11,7 @@ import type { Snapshot } from "../utils/mergeProgress"
 import { todayString } from "../utils/prng"
 import { hasStoredSession, profilesVisible } from "../accounts"
 import { useAccount } from "../account/useAccount"
-import { ACHIEVEMENTS_EVENT, unlocksOf } from "../profile/achievements"
+import { ACHIEVEMENTS_EVENT, shownUnlocks, unlocksOf } from "../profile/achievements"
 import { PROFILE_EVENT, PROFILE_KEY, monthName, profileOf, saveProfile } from "../profile/local"
 import { shownStreak, statsOf } from "../profile/stats"
 import { hasUpload, offeredDesigns } from "../profile/public"
@@ -214,7 +214,7 @@ export default function YouProfile({ state, snap, onSetName, onNavigate, onSignI
   const { svc, view } = useAccount()
   const profile = profileOf(snap)
   const stats = statsOf(snap)
-  const unlocks = unlocksOf(snap)
+  const unlocks = shownUnlocks(unlocksOf(snap))
   const signedIn = !!view?.ready && view.signedIn
   const mine = publicOn && signedIn ? view?.profile.mine ?? null : null
   const offered = offeredDesigns(snap).filter(d => !hasUpload(d))

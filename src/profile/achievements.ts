@@ -14,6 +14,7 @@ import { FLAGS } from "../data/flags"
 import type { Snapshot } from "../utils/mergeProgress"
 import { GAUNTLET_KEY, passedRegions, readGauntlet } from "../utils/gauntlet"
 import { bestEntries, bestOf, gachaCount, gamesCount, mainOf, studioDesigns } from "./save"
+import { previewAll } from "./preview"
 
 export const ACHIEVEMENTS_KEY = "globalio_achievements"
 export const ACHIEVEMENTS_EVENT = "globalio:achievements"
@@ -56,6 +57,15 @@ export function factsOf(snap: Snapshot): AchievementFacts {
 export function earned(snap: Snapshot, unlocks: Unlocks = unlocksOf(snap)): string[] {
   const f = factsOf(snap)
   return ACHIEVEMENTS.filter(a => a.check && !unlocks[a.id] && a.check(f)).map(a => a.id)
+}
+
+// ── Creator preview (see ./preview.ts) ──────────────────────────────────────
+/** The unlocks to show: every achievement while the preview is on
+ *  (real unlock times kept), else exactly the save's. */
+export function shownUnlocks(unlocks: Unlocks, on: boolean = previewAll()): Unlocks {
+  if (!on) return unlocks
+  const now = Date.now()
+  return Object.fromEntries(ACHIEVEMENTS.map(a => [a.id, unlocks[a.id] ?? now]))
 }
 
 // ── This device ─────────────────────────────────────────────────────────────

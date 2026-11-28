@@ -16,7 +16,7 @@ import type { Snapshot } from "../utils/mergeProgress"
 import { openSupporter } from "../utils/supporterNav"
 import { accountsVisible, hasStoredSession, profilesVisible, SIGN_IN_ERROR, SIGN_IN_RETURN } from "../accounts"
 import { useAccount } from "../account/useAccount"
-import { unlocksOf } from "../profile/achievements"
+import { shownUnlocks, unlocksOf } from "../profile/achievements"
 import { bestsList, statsOf } from "../profile/stats"
 import { demoProfile } from "../profile/demo"
 import { demoOn, leaveDemo } from "../profile/link"
@@ -273,7 +273,7 @@ export default function YouTab({ state, onNavigate, onSetName, onOpenPlayer }: {
     [state, tick])
   const demoView = useMemo(() => (demo ? demoData() : null), [demo])
   const stats = statsOf(snap)
-  const unlocks = unlocksOf(snap)
+  const unlocks = shownUnlocks(unlocksOf(snap))
   const openFind = () => {
     setFindOpen(true)
     window.requestAnimationFrame(() => {
