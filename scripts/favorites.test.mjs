@@ -186,3 +186,9 @@ test("Play: Creator's Picks in the creator's order, Jump back in skips favourite
     at("Creator's Picks") < at('Top games') && at('Top games') < at('Recommended for you'), 'shelf order')
   assert.match(tabs, /filter\(\(e\): e is Entry => !!e && !fav\.on\(e\.id\)\)/, 'Jump back in leaves out starred games')
 })
+
+test('Play: the All chip opens the A–Z page, four to a row', () => {
+  const tabs = fs.readFileSync(path.join(ROOT, 'src/components/MainTabs.tsx'), 'utf8')
+  assert.match(tabs, /\{ label: "All", group: VIEW_ALL \}/)
+  assert.match(tabs, /gridTemplateColumns: "repeat\(4, minmax\(0, 1fr\)\)"/)
+})
