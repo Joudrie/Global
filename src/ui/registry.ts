@@ -53,18 +53,14 @@ export const REGISTRY: Entry[] = [
   { id: "identity", title: "Identity Flags", subtitle: "Pride · ethnic · signal flags", icon: "🏳️‍🌈", tab: "play", group: "Learn the World", size: "module", accent: "learn" },
   { id: "provinceroulette", title: "Province Roulette", subtitle: "Spin: continent, country, name", icon: "🎰", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },
   { id: "substumper", title: "Subdivision Stumper", subtitle: "Guess the country, or name it", icon: "📍", tab: "play", group: "Learn the World", size: "module", accent: "learn", progress: subProgress },
+  { id: "funfact", title: "Fun Fact", subtitle: "Daily flag fact", icon: "💡", tab: "play", group: "Learn the World", size: "tile", accent: "today" },
+  { id: "worldcup", title: "World Cup 2026", subtitle: "48 nations · flags & history", icon: "🏆", tab: "play", group: "Learn the World", size: "tile", accent: "today", featured: true },
 
-  // Daily Rituals — come back every day
-  // (Flag Gacha lives on the TODAY tab only — it's a daily ritual, not an
-  //  arcade game, and the dev wants it off Play entirely.)
+  // Flag Gacha lives on the TODAY tab only — it's a daily ritual, not an
+  // arcade game, and the dev wants it off Play entirely. (Play's Daily Rituals
+  // shelf was split up: its games sit in Learn the World, Spot It and One Glance.)
   { id: "gacha", title: "Flag Gacha", subtitle: "Daily pull · collect them all", icon: "🎁", tab: "today", group: "Daily Rituals", size: "tile", accent: "today" },
-  { id: "connections", title: "Connections", subtitle: "Beta · four groups of four countries", icon: "🧩", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
-  { id: "funfact", title: "Fun Fact", subtitle: "Daily flag fact", icon: "💡", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
-  { id: "flagbracket", title: "Flag Bracket", subtitle: "Vote your champion", icon: "🏆", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
-  { id: "tierlist", title: "Tier List Maker", subtitle: "Rank flags S–F", icon: "🏆", tab: "play", group: "Daily Rituals", size: "tile", accent: "today" },
 
-  // Featured limited-time explorer — surfaces in Trending & Popular
-  { id: "worldcup", title: "World Cup 2026", subtitle: "48 nations · flags & history", icon: "🏆", tab: "play", group: "Daily Rituals", size: "tile", accent: "today", featured: true },
 
   // One Glance — reveal & make (visual, satisfying, fast)
   // Flag Fusion leads the shelf (and every hand-picked list: FRONT_GAME below).
@@ -80,6 +76,8 @@ export const REGISTRY: Entry[] = [
   { id: "sketchflag", title: "Sketch the Flag", subtitle: "Draw it from memory", icon: "✏️", tab: "play", group: "One Glance", size: "tile", accent: "play", featured: true },
   { id: "flagoutline", title: "Flag Outline", subtitle: "Guess from the outlines", icon: "🔲", tab: "play", group: "One Glance", size: "tile", accent: "codex" },
   { id: "frankenflag", title: "Frankenflag", subtitle: "Name every piece", icon: "🧟", tab: "play", group: "One Glance", size: "tile", accent: "challenge", featured: true },
+  { id: "flagbracket", title: "Flag Bracket", subtitle: "Vote your champion", icon: "🏆", tab: "play", group: "One Glance", size: "tile", accent: "today" },
+  { id: "tierlist", title: "Tier List Maker", subtitle: "Rank flags S–F", icon: "🏆", tab: "play", group: "One Glance", size: "tile", accent: "today" },
 
   // Spot It — eagle-eye difference & pattern hunting
   { id: "oddoneout", title: "Odd One Out", subtitle: "Find the impostor", icon: "🕵️", tab: "play", group: "Spot It", size: "tile", accent: "play" },
@@ -89,6 +87,7 @@ export const REGISTRY: Entry[] = [
   { id: "flagfamilies", title: "Flag Families", subtitle: "Sort into families", icon: "👪", tab: "play", group: "Spot It", size: "tile", accent: "play" },
   { id: "spoterror", title: "Spot the Error", subtitle: "Tap where the flag is wrong", icon: "🔺", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
   { id: "forgery", title: "Flag Forgery", subtitle: "Swipe: correct or doctored?", icon: "🔍", tab: "play", group: "Spot It", size: "tile", accent: "play", featured: true },
+  { id: "connections", title: "Connections", subtitle: "Beta · four groups of four countries", icon: "🧩", tab: "play", group: "Spot It", size: "tile", accent: "today" },
 
   // Cartographer — maps, borders & shapes
   { id: "geo", title: "Geography", subtitle: "Identify countries by shape", icon: "🗺️", tab: "play", group: "Cartographer", size: "tile", accent: "learn" },
