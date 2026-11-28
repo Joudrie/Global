@@ -116,13 +116,28 @@ function SymbolHuntGame({ onBack, onReplay }: Props & { onReplay: () => void }) 
                   ? <FlagImage code={cell.code} style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} />
                   : <img src={cell.url} alt="" style={{ width: "100%", height: "100%", objectFit: "cover", display: "block" }} onError={e => { (e.target as HTMLImageElement).style.opacity = "0.3" }} />}
                 {isPicked && !checked && <span style={{ position: "absolute", top: 3, right: 3, width: 18, height: 18, borderRadius: "50%", background: ACCENT.play, color: "#fff", fontSize: 11, display: "flex", alignItems: "center", justifyContent: "center" }}>✓</span>}
-                {checked && isMatch && <span style={{ position: "absolute", bottom: 2, right: 3, fontSize: 13, color: ACCENT.codex }}>✓</span>}
-                {checked && isPicked && !isMatch && <span style={{ position: "absolute", bottom: 2, right: 3, fontSize: 13, color: T.warm }}>✗</span>}
+                {/* Results on solid badges, so they show on any flag: found (filled ✓), missed (outlined ✓), wrong pick (✗). */}
+                {checked && (isMatch || isPicked) && (
+                  <span style={{
+                    position: "absolute", bottom: 3, right: 3, width: 20, height: 20, borderRadius: "50%", fontSize: 12, fontWeight: 800,
+                    display: "flex", alignItems: "center", justifyContent: "center",
+                    ...(isMatch && isPicked ? { background: ACCENT.codex, color: "#fff" }
+                      : isMatch ? { background: T.surface, color: ACCENT.codex, border: `1.5px solid ${ACCENT.codex}` }
+                      : { background: T.warm, color: "#fff" }),
+                  }}>{isMatch ? "✓" : "✗"}</span>
+                )}
                 {checked && !cell.code && <span style={{ position: "absolute", top: 2, left: 3, fontSize: 11, fontWeight: 700, color: T.warm, background: T.bg, padding: "0 4px", borderRadius: 4 }}>not a country</span>}
               </button>
             )
           })}
         </div>
+
+        {checked && scores[idx] && (
+          <p role="status" style={{ margin: 0, textAlign: "center", fontSize: 13, color: T.muted }}>
+            Found {scores[idx].hit} of {scores[idx].total}{scores[idx].miss ? ` · ${scores[idx].miss} wrong` : ""}
+            {scores[idx].hit < scores[idx].total ? " · an outlined ✓ is one you missed" : ""}
+          </p>
+        )}
 
         <div style={{ marginTop: "auto" }}>
           {!checked

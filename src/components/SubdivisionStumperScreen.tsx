@@ -74,7 +74,11 @@ export default function SubdivisionStumperScreen({ onBack, onSubLearned }: Props
       {!game && <Start prefs={prefs} onPrefs={p => savePrefs({ ...prefs, ...p })} onStart={start} onBack={onBack} />}
       {game && !outcome && <Play key={game.id} game={game} onBack={onBack} onSubLearned={onSubLearned} onDone={(rounds, r) => finish(game, rounds, r)} />}
       {game && outcome && <Result game={game} outcome={outcome} onBack={onBack}
-        onAgain={() => start(game.mode, game.pool)} onChange={() => { setGame(null); setOutcome(null); window.scrollTo({ top: 0 }) }} />}
+        onAgain={() => start(game.mode, game.pool)} onChange={() => {
+          // After "Whose is it?" the button reads "Other way to play": open on Name it.
+          if (game.mode === "whose") savePrefs({ ...prefs, mode: "name" })
+          setGame(null); setOutcome(null); window.scrollTo({ top: 0 })
+        }} />}
     </div>
   )
 }
