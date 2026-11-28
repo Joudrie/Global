@@ -123,7 +123,9 @@ function StatClashGame({ onBack, onReplay }: Props & { onReplay: () => void }) {
         </div>
         <div style={{ padding: "9px 8px" }}>
           <div className="geo-display" style={{ fontWeight: 700, fontSize: 14, color: T.text }}>{NAME(code)}</div>
-          {reveal && <div className="geo-mono" style={{ fontSize: 11, color: isWinner ? ACCENT.codex : T.muted, marginTop: 2 }}>{fmt(q.metric, code)}</div>}
+          {/* The value's line is always there (empty until the reveal), so the
+              cards don't grow and jump up when the numbers appear. */}
+          <div className="geo-mono" aria-hidden={!reveal} style={{ fontSize: 11, color: isWinner ? ACCENT.codex : T.muted, marginTop: 2 }}>{reveal ? fmt(q.metric, code) : "\u00a0"}</div>
         </div>
       </button>
     )

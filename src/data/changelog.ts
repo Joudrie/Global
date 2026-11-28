@@ -17,6 +17,8 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Lineage shows each country's flags oldest to newest, ending on today's flag (Turkey and South Korea were out of order), and skips missing images.",
       "Challenge Mode and Higher / Lower no longer move the answer buttons between questions, Capital Match no longer jumps on the first mistake, and Odd Border Out marks the right answer green and a wrong pick red.",
       "Describe-It's last tip no longer names the country, Flag Timeline's ticks show on every flag, Atlas keeps its zoom button on screen, and Guess the Language says Japanese uses kanji and kana.",
+      "Capital Cities picks wrong answers from the same region, as intended. US City Flags never shows two \"Springfield\" buttons, its note no longer pushes the answers down, and Yonkers' flag loads.",
+      "Stat Clash and Pride Roulette no longer jump when you answer, Flag Forgery's side labels fit on phones, and Border Path names the countries on its shortest route.",
     ],
   },
   {
