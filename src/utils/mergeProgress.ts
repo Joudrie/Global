@@ -112,6 +112,7 @@ export const RULES: Rule[] = [
   { key: "globalio_onboarded", rule: "device", symmetric: false, note: "Intro seen." },
   { key: "globalio_fs_shuffle_hint", rule: "device", symmetric: false, note: "Flag Studio hint seen." },
   { key: "globalio_creator", rule: "device", symmetric: false, note: "Creator tools shown." },
+  { key: "globalio_preview_all", rule: "device", symmetric: false, note: "Creator preview: every achievement shown unlocked." },
   { key: /^globalio_account/, rule: "device", symmetric: false,
     note: "The account on this device (sign-in session, sync status, ?accounts=1). Never in a backup or synced (src/accounts.ts), so this rule never runs." },
 ]

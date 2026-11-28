@@ -928,3 +928,16 @@ test('the privacy policy says what friends can see, and who sees a friend list',
   assert.match(html, /visible only to the two players in it/)
   assert.match(html, /keep that note for 30 days/)
 })
+
+test('creator preview: every achievement shown, real times kept, nothing saved', () => {
+  const real = { [ACHIEVEMENTS[0].id]: 1234 }
+  assert.deepEqual(ACH.shownUnlocks(real, false), real)
+  const all = ACH.shownUnlocks(real, true)
+  assert.equal(Object.keys(all).length, ACHIEVEMENTS.length)
+  assert.equal(all[ACHIEVEMENTS[0].id], 1234)
+  assert.deepEqual(real, { [ACHIEVEMENTS[0].id]: 1234 }, 'the real unlocks are not changed')
+  // Only the display reads it: the stats published to the account and to
+  // friends (statsOf) still count the real unlocks.
+  const stats = fs.readFileSync(path.join(ROOT, 'src/profile/stats.ts'), 'utf8')
+  assert.doesNotMatch(stats, /shownUnlocks|previewAll/)
+})

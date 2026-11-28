@@ -8,6 +8,7 @@ import { loadState, saveState, setPremium, isSupporter } from "../utils/storage"
 import { exportProgress } from "../utils/backup"
 import RestoreBackup from "./RestoreBackup"
 import { accountsVisible } from "../accounts"
+import { previewAll, setPreviewAll } from "../profile/preview"
 
 const AccountCard = lazy(() => import("./AccountCard"))
 
@@ -23,6 +24,21 @@ function creatorTools(): boolean {
     if (new URLSearchParams(window.location.search).has("creator")) localStorage.setItem(CREATOR_KEY, "1")
     return localStorage.getItem(CREATOR_KEY) === "1"
   } catch { return false }
+}
+
+// Creator preview — show every achievement unlocked on this device, to look
+// them all over. Display only (see shownUnlocks): the real unlocks, the
+// account and what friends see don't change, and switching it off undoes it.
+function PreviewAllToggle() {
+  const [on, setOn] = useState(previewAll)
+  const flip = () => { setPreviewAll(!on); setOn(!on) }
+  return (
+    <button onClick={flip} aria-pressed={on}
+      className="w-full mt-3 py-2.5 rounded-xl text-xs font-semibold transition-all active:scale-95"
+      style={{ background: on ? tint(T.gold, 0.14) : 'transparent', border: `1px ${on ? 'solid' : 'dashed'} ${on ? tint(T.gold, 0.4) : T.line}`, color: on ? T.gold : T.dim }}>
+      {on ? "✓ Every achievement shown unlocked (tap to turn off)" : "Show every achievement unlocked (preview)"}
+    </button>
+  )
 }
 
 // Creator unlock — typing the passcode flips on the Supporter flag locally,
@@ -130,6 +146,7 @@ export default function SettingsScreen({ onBack, onFlagCheck, onPatchNotes }: Pr
 
         {/* Creator unlock — enter the passcode to turn ads off on this device */}
         {creator && <CreatorUnlock />}
+        {creator && <PreviewAllToggle />}
 
         {/* Replay the first-run intro (clears the flag and reloads) */}
         <button onClick={() => { try { localStorage.removeItem("globalio_onboarded") } catch { /* ignore */ } window.location.reload() }}
