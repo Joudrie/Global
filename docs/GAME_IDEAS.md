@@ -77,22 +77,23 @@ Left to do, most looked-for first:
 
 ## Notes / smaller follow-ups
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
-  "Browse all 4,500+ flags") covers countries A–M: 116 current coats of arms,
-  emblems and seals, 86 with former ones (277 images, a few undated). Built by
+  "Browse all 4,500+ flags") covers every country: 192 current coats of arms,
+  emblems and seals, 126 with former ones (396 images, a few undated), and a
+  "Coats of Arms" flashcard deck (Flashcards → Codex). Built by
   `scripts/arms/fetch.mjs` (Wikidata + English Wikipedia + Wikimedia Commons;
-  `--offline` rebuilds from its cache, `--why` explains every image). Still to do:
-  - N–Z countries: widen `SCOPE` in the script, run it, check its notes.
-  - Former arms for the 30 A–M countries still on "coming soon" (Argentina,
-    Belgium, Denmark, Ecuador, Estonia, Iran, Japan, Luxembourg, Mongolia…):
-    many never changed their arms, and the rest show the history only in
-    drawings, photos, royal arms or rows without dates. Next sources: other-language Wikipedias (es, fr, de, ru)
-    and Commons' "Historical coats of arms of …" categories, checked by hand.
-  - Lebanon and Libya are skipped (no official arms in Wikipedia's infobox);
-    Canada and France were chosen by hand. Recheck when their infoboxes change.
+  `--offline` rebuilds from its cache, `--why` explains every image). Emblems of
+  fascist and Nazi-era regimes (and their Axis puppet states) stay out. Still to do:
+  - Former arms for the countries still on "coming soon": many never changed
+    their arms, and the rest show the history only in drawings, photos, royal
+    arms or rows without dates. Next sources: other-language Wikipedias and
+    Commons' "Historical coats of arms of …" categories, checked by hand.
+  - Skipped: Lebanon, Libya and Turkey (no official arms in Wikipedia's
+    infobox), Nicaragua and Oman (their only images carry licences that aren't
+    public domain or Creative Commons: "Attribution", "OGL-om"). Canada, France
+    and the United Kingdom were chosen by hand. Recheck when these change.
+  - The deck shows today's arms only; former ones could become a second deck.
   - Later: subdivisions (states, provinces) and royal houses.
-  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms),
-    and a Flashcards deck (Flashcards → Codex; `scripts/bundle.test.mjs` lets
-    `arms` off the "every Codex section is a deck" rule until then).
+  - Maybe a game, e.g. "Whose coat of arms?" (pick the country from its arms).
     Flags stay front and center: the arms are a side door, not the main menu.
 - "Peoples & Cultures" fun-fact pool currently has **32** entries (only flags
   with a written `note` show). Expanding it means writing more cultural facts in

@@ -7,7 +7,7 @@
 //    the answers are cached in node_modules/.cache/arms/)
 //
 // Scope for now: the countries in src/data/flags.ts whose English name starts
-// with A–M (SCOPE below). Widen SCOPE (and SCOPE_LABEL) to add the rest.
+// with A–Z, i.e. all of them (SCOPE below; it was A–M while the section began).
 //
 // 1. Wikidata (SPARQL): each country's item (by ISO code), its coat of arms
 //    images (P94) and its coat-of-arms item (P237) with that item's English
@@ -61,8 +61,8 @@ const OFFLINE = process.argv.includes('--offline')
 const UA = 'GlobalioBuild/1.0 (https://globalio.app)'
 
 /** The countries covered so far: English names A–M. */
-const SCOPE = /^[A-M]/i
-const SCOPE_LABEL = 'A–M'
+const SCOPE = /^[A-Z]/i
+const SCOPE_LABEL = 'A–Z'
 /** Former arms per country, newest first; older ones wait for a later pass. */
 const MAX_FORMER = 16
 /** Undated former arms per country (the file names the country, no source dates it). */
@@ -76,12 +76,16 @@ const NOT_THE_STATE = new Set(['Q644636' /* Cyprus, the island */])
 const CURRENT = {
   // Official arms; the infobox leaves them out by editors' choice (its FAQ).
   CA: { file: 'Royal Coat of arms of Canada.svg', why: 'English Wikipedia\'s infobox leaves the arms out by editors\' choice; the file is Wikidata\'s (P94)' },
+  // The infobox shows both variants side by side; this is Wikidata's preferred
+  // one, used outside Scotland.
+  GB: { file: 'Coat of arms of the United Kingdom (2022, variant 2).svg', article: 'Coat of arms of the United Kingdom', why: 'the infobox shows both variants side by side; this is Wikidata\'s preferred one (used outside Scotland)' },
   // No official arms or emblem: the infobox shows the Great Seal instead.
   FR: { file: 'Great Seal of France.svg', article: 'Great Seal of France', note: 'France has no official coat of arms or emblem. Wikipedia shows its Great Seal instead.' },
 }
 const SKIP = {
   LB: 'Lebanon\'s coat of arms is unofficial, and Wikipedia\'s infobox shows none.',
   LY: 'Libya has had no national emblem since 2011, and Wikipedia\'s infobox shows none.',
+  TR: 'Turkey has no official coat of arms or emblem (its constitution names none), and Wikipedia\'s infobox shows none.',
 }
 // Former names a gallery caption may use for the country.
 const ALIASES = {
@@ -89,7 +93,7 @@ const ALIASES = {
   CD: ['Democratic Republic of the Congo', 'Democratic Republic of Congo', 'Zaire', 'Congo'], CI: ['Ivory Coast', 'Côte d\'Ivoire'], CZ: ['Czech', 'Czechoslovakia', 'Bohemia and Moravia'],
   ET: ['Ethiopian', 'Abyssinia'], GH: ['Gold Coast'], GY: ['British Guiana'], IR: ['Persia', 'Iranian'], KH: ['Khmer', 'Kampuchea'],
   KZ: ['Kazakh'], KG: ['Kirghiz', 'Kyrgyz'], LS: ['Basutoland'], MD: ['Moldavian', 'Moldavia'], MM: ['Burma'], MW: ['Nyasaland'],
-  MV: ['Maldivian'], CF: ['Central African Empire'], MY: ['Malaya', 'Federation of Malaya'], GW: ['Portuguese Guinea'], DE: ['German Empire', 'German Reich', 'North German Confederation'], LA: ['Lao'], DJ: ['French Somaliland', 'Afars and Issas'], KI: ['Gilbert and Ellice'], AZ: ['Azerbaijani'],
+  MV: ['Maldivian'], RU: ['Russian Empire', 'Russian SFSR', 'Russian Soviet Federative Socialist Republic', 'Tsardom of Russia'], GB: ['Great Britain', 'Kingdom of Great Britain', 'England'], CF: ['Central African Empire'], MY: ['Malaya', 'Federation of Malaya'], GW: ['Portuguese Guinea'], DE: ['German Empire', 'German Reich', 'North German Confederation'], LA: ['Lao'], DJ: ['French Somaliland', 'Afars and Issas'], KI: ['Gilbert and Ellice'], AZ: ['Azerbaijani'],
   AM: ['Armenian'], GE: ['Georgian'], HR: ['Croatian'], EE: ['Estonian'], LV: ['Latvian'], LT: ['Lithuanian'], MN: ['Mongolian'],
 }
 // Gallery entries that pass the rules below but aren't the country's arms
@@ -106,6 +110,11 @@ const FORMER_DROP = new Set([
   // shouldn't show beside a country's arms without context: the Arrow Cross
   // government of Hungary (1944–1945) and the Ustaše state in Croatia (1941–1945).
   'Coat of arms of Hungary (1945).svg', 'Coat of arms of Croatia (1941–1945).svg',
+  // Japanese-sponsored puppet states of the same war: the Second Philippine
+  // Republic (1943–1945) and Ba Maw's State of Burma (1943–1945).
+  'Emblem of the Philippines (1943-1945).svg', 'Coat of arms of the Philippines (1943–1945).svg', 'State of Burma Emblem.svg',
+  // Sweden: today's lesser arms, not a former version.
+  'Coat of arms of Sweden (shield and chain).svg',
   // Azerbaijan: the 1920 design was never adopted.
   'Coat of arms of the Azerbaijan Democratic Republic.svg',
   // Chad's seal is in use today, beside the arms.
@@ -273,7 +282,7 @@ for (const f of countries) {
 // ── 3. The emblems' own articles: name, intro, galleries ────────────────────
 const armsPages = await wikitexts(picks.map(p => p.article).filter(Boolean))
 const armsIntros = await intros(picks.map(p => p.article).filter(Boolean))
-const kindOf = name => (/seal/i.test(name) ? 'seal' : /crest/i.test(name) ? 'crest' : /emblem/i.test(name) ? 'emblem' : 'arms')
+const kindOf = name => (/seal/i.test(name) ? 'seal' : /crest/i.test(name) ? 'crest' : /emblem/i.test(name) ? 'emblem' : /arms/i.test(name) ? 'arms' : 'emblem')
 const termOf = type => (type && !/^coat of arms$/i.test(type) ? type.replace(/^./, c => c.toUpperCase()) : 'Coat of arms')
 
 /** The first two sentences of an intro, if they make a short description. */
@@ -315,7 +324,7 @@ function yearRange(caption) {
 }
 
 const OTHER_STATES = /Northern Cyprus|Turkish Federated State|Great Britain|England|Ottoman|Holy Roman|Austria-Hungary|Russian Empire|Soviet Union|USSR|Khedive|Khedivate|Venice|Lusignan|Mamluk|United Arab Republic|Yugoslavia|Transleithania|Hungarian Crown|Order of Malta|Hospitaller|Aragon|Habsburg|Burgund|Prussia|Brandenburg|Bavaria|Saxony|Napoleon|Spanish Empire|British West Africa|Central America|New Granada|Leeward Islands|British East Africa|British Central Africa|Ruanda-Urundi|Anglo-Egyptian|Bessarabia|Taiping|Manchukuo|Azad Hind|Tripolitania|Cyrenaica|Sweden|Swedish|Suède|Danish|Dano-Norwegian|Dutch|Netherlands|Holland|Venetian|East Germany|German Democratic Republic/
-const NOT_ARMS = /\b(flags?|banners?|standards?|coins?|passports?|stamps?|currency|banknotes?|maps?|photos?|photograph|masthead|gazette|proposals?|proposed|rejected|design for|reconstruction|king|queen|emperor|empress|sultan|emir of|shah|cardinal|count|countess|duke|duchess|prince|princess|bishop|ecclesiastic\w*|reign|reigned|house of|dynasty|city|cities|town|municipal\w*|council|company|occupation|occupied|presiden\w*|personal|monogram|governor|governorate|oblast|province of|air force|army|navy|police|roundel|rival|exile|unilateral\w*|royal|helmet|crown of|regalia|banner of|order of|medal|uniform|building|gate|statue|carving|relief|prime minister|chief adviser|minist\w*|parliament|senate|assembly|court|cabinet|speaker|statute)\b/i
+const NOT_ARMS = /\b(flags?|banners?|standards?|coins?|passports?|stamps?|currency|banknotes?|maps?|photos?|photograph|masthead|gazette|proposals?|proposed|rejected|design for|reconstruction|king|queen|emperor|empress|sultan|emir of|shah|cardinal|count|countess|duke|duchess|prince|princess|bishop|ecclesiastic\w*|reign|reigned|house of|dynasty|city|cities|town|municipal\w*|council|company|occupation|occupied|presiden\w*|personal|monogram|governor|governorate|oblast|province of|air force|army|navy|police|roundel|rival|exile|unilateral\w*|royal|helmet|crown of|regalia|banner of|order of|medal|uniform|building|gate|statue|carving|relief|prime minister|chief adviser|minist\w*|parliament|senate|assembly|court|cabinet|speaker|statute|chairman|chief of state|head of state|turco-egyptian)\b/i
 // A person with a regnal number: "Henry VI", "Christian IV".
 const REGNAL = /\b[A-Z][a-z]+ (?:[IVX]+)\b/
 const GENERIC_WORDS = /\b(the|a|an|of|from|to|in|and|with|used|use|version|versions|official|greater|lesser|middle|small|large|national|state|coat|coats|arms|armorial|achievement|emblem|emblems|seal|seals|badge|crest|design|first|second|third|old|older|former|historical|historic|until|since|ca|c|between|during|modification|modified|variant|colou?r|colou?red|full|simplified|this)\b/gi
@@ -418,11 +427,20 @@ function articleImages(wikitext) {
 /** A name for a state or regime that no longer exists (or a colonial badge). */
 const FORMER_POLITY = /\b(Kingdom|Empire|Federation|Colony|colonial|Protectorate|SSR|Soviet|Socialist|People's|Democratic Republic|Dominion|Lordship|Principality|Badge)\b/i
 const HISTORY_SECTION = /histor|former|previous|past\b|evolution|older|earlier|chronolog|changes|colonial|timeline|origin|predecessor/i
+// A country's own earlier states that OTHER_STATES lists for the others.
+const OWN_HISTORY = {
+  RU: /Russian Empire/g, GB: /Great Britain|England/g, NL: /Dutch|Netherlands|Holland/g, SE: /Sweden|Swedish/g,
+  ES: /Spanish Empire/g, AT: /Austria-Hungary|Habsburg/g, HU: /Austria-Hungary|Hungarian Crown|Transleithania/g,
+  DE: /Prussia|Holy Roman/g, DK: /Danish/g, TR: /Ottoman/g,
+}
+// Fascist and Nazi-era regimes' emblems stay out of the Codex (the owner's
+// rule): by name here, by file in FORMER_DROP (Hungary 1945, Croatia 1941–1945…).
+const FASCIST = /\b(Nazi|Third Reich|Arrow Cross|Usta[šs]e|Ustasha|Independent State of Croatia|Italian Social Republic|Sal[òo] Republic|fasces|fascis[mt]\w*|Francoist|Franco(?:'s)? (?:Spain|regime|dictatorship|era)|Nedi[ćc]|Quisling|Vichy|National Legionary|Slovak State|First Slovak Republic|Government of National Salvation|Reichskommissariat|Protectorate of Bohemia and Moravia|Second Philippine Republic|State of Burma \(1943|Manchukuo|Mengjiang|Wang Jingwei)\b/i
 // Sections that hold today's variants, other bodies' emblems or designs that
 // never became official, not the country's former arms.
 const NOT_HISTORY_SECTION = /subdivision|provinc|regions?\b|states and|territor|cities|municipal|other (coats|emblems|arms)|govern(ment)? (bodies|agencies)|national bodies|ministr|military|armed forces|police|presiden|proposal|proposed|competition|design contest|similar|derivative|usage|\buse\b|see also|variants of the|royal (arms|coat|standard)|monarch|personal|subnational|unilaterally|separatist/i
 // Renderings, objects and photographs, not a version of the arms.
-const NOT_A_VERSION = /monochrome|black and white|black-and-white|\bb&w\b|rendition|relief|\b3d\b|outline|silhouette|gr[ae]yscale|engraving|drawing|sketch|illustration|photo|carving|stone|sculpture|embroider|plaque|mosaic|stained|window|fa[cç]ade|entrance|book|postcard|poster|letterhead|logo|explained|meaning|means|diagram|construction sheet|template|blank|example|interpretation|proposal|proposed|draft|alternative|winner|competition|model|featuring|text\b|deemed|prototype|carved|temporary|exhibition|leaflet|printed|projekt/i
+const NOT_A_VERSION = /monochrome|black and white|black-and-white|\bb&w\b|rendition|relief|\b3d\b|outline|silhouette|gr[ae]yscale|engraving|drawing|sketch|illustration|photo|carving|stone|sculpture|embroider|plaque|mosaic|stained|window|fa[cç]ade|entrance|book|postcard|poster|letterhead|logo|explained|meaning|means|diagram|construction sheet|template|blank|example|interpretation|proposal|proposed|draft|alternative|winner|competition|model|featuring|text\b|deemed|prototype|carved|temporary|exhibition|leaflet|printed|projekt|unofficial|de facto/i
 /** Wikidata's P94 statements with start and end times, by country, file. */
 const wdDates = {}
 {
@@ -442,7 +460,7 @@ function fileYears(file) {
   const one = t.match(/\((1[0-9]{3}|20[0-9]{2})\)/)
   return one ? { from: Number(one[1]), to: Number(one[1]), text: one[0] } : null
 }
-const COLONY = /\b(British|Portuguese|French|Italian|Belgian|Spanish|Dutch|German|Danish) (?!(?:Republic|Empire|Confederation|Reich|Democratic|Federal|Socialist|Soviet|People)\b)[A-Z][a-z]+|\bcolon(y|ial)\b|\bprotectorate\b|Government-General|Congo Free State|Nyasaland|Basutoland|Bechuanaland|Gold Coast|Portuguese West Africa|Portuguese East Africa|^Badge of/i
+const COLONY = /\b(British|Portuguese|French|Italian|Belgian|Spanish|Dutch|German|Danish) (?!(?:Republic|Empire|Confederation|Reich|Democratic|Federal|Socialist|Soviet|People)\b)[A-Z][a-z]+|\bcolon(y|ial)\b|\bprotectorate\b|Government-General|Congo Free State|Nyasaland|Basutoland|Bechuanaland|Gold Coast|Portuguese West Africa|Portuguese East Africa|^Badge of|\bbadge$/i
 const NAME_FIX = [
   [/^Coat of arms of ZAVNOH & Federal State of Croatia$/, 'Coat of arms of the Federal State of Croatia'],
   [/^Emblem used by the /, 'Emblem of the '],
@@ -451,7 +469,12 @@ const NAME_FIX = [
   [/^Coat of arms of British Honduras\/Belize$/, 'Coat of arms of British Honduras'],
   [/^Former (\w)/, (_, c) => c.toUpperCase()],
   [/^Small or 'lesser' coat of arms/, 'Lesser coat of arms'],
-  [/\s+variant$/, ''],
+  [/\s+variant$/i, ''],
+  [/\s+Laurel$/, ''],
+  [/\s+-\s+(obverse|reverse)$/i, ''],
+  [/^Coat of arms from the /, 'Coat of arms of the '],
+  [/^\d+(st|nd|rd|th) coat of arms of /i, 'Coat of arms of '],
+  [/ of Russian Empire\b/, ' of the Russian Empire'],
   [/\bCoat of arms of Soviet Armenia\b/, 'Coat of arms of the Armenian SSR'],
   [/ of The /g, ' of the '],
   [/^Coat of arms of (the )?Austro-Hungarian condominium of /, 'Coat of arms of Austro-Hungarian '],
@@ -470,7 +493,8 @@ function formerArms(p) {
   // Another country in the Codex, unless it's part of this one's names
   // ("Guinea" in "Guinea-Bissau") or a name of its own ("United States of Brazil").
   const others = FLAGS.filter(o => o.code !== p.f.code && !names.some(n => n.toLowerCase().includes(o.name.toLowerCase())))
-  const isOther = s => OTHER_STATES.test(s) || others.some(o => new RegExp(`\\b${o.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b(?!\\s+of\\b)`).test(s))
+  const own = OWN_HISTORY[p.f.code]
+  const isOther = s => OTHER_STATES.test(own ? s.replace(own, '') : s) || others.some(o => new RegExp(`\\b${o.name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}\\b(?!\\s+of\\b)`).test(s))
   const articleText = page ? plain(stripComments(page.text)) : ''
   const inArticle = y => new RegExp(`\\b${y}\\b`).test(articleText)
   // The current emblem's own name and the plain forms of it ("Arms of Hungary"):
@@ -497,6 +521,7 @@ function formerArms(p) {
     const fileWords = file.replace(/\.[a-z]+$/i, '').replace(/[_-]/g, ' ')
     const section = c.section ?? ''
     if (NOT_HISTORY_SECTION.test(section) && c.from !== 'wikidata') { why(`section "${section}"`); continue }
+    if (FASCIST.test(fileWords) || FASCIST.test(c.caption)) { why('a fascist or Nazi-era regime\'s emblem'); continue }
     if (!allowed && (NOT_A_VERSION.test(fileWords) || NOT_A_VERSION.test(c.caption))) { why('a rendering, object or proposal'); continue }
 
     // ── Years: the caption's (or the table's year cell), else the file
@@ -587,7 +612,7 @@ function formerArms(p) {
   }
   // Newest first; undated ones last, at most a few.
   const dated = out.filter(x => x.from !== undefined).sort((a, b) => b.from - a.from || b.to - a.to)
-  const key = n => n.toLowerCase().replace(/\bthe\s+/g, '').replace(/\s*\([^()]*\)$/, '')
+  const key = n => n.toLowerCase().replace(/\b(the|national|state)\s+/g, '').replace(/\s*\([^()]*\)$/, '')
   const undated = out.filter(x => x.from === undefined && !dated.some(d => key(d.name) === key(x.name))).slice(0, MAX_UNDATED)
   const all = [...dated, ...undated]
   return { former: all.slice(0, MAX_FORMER), cut: Math.max(0, all.length - MAX_FORMER), adoptedHint, decisions }
@@ -608,7 +633,7 @@ function adoptedYear(p, hint, intro) {
   let current
   // "established in its current form in 1944 but has its origins in … 1813":
   // the first year after "current", else the last before it; not lifespans in brackets.
-  const sentence = intro?.split(/(?<=\.)\s+/).map(s => s.replace(/\([^()]*\)/g, '')).find(s => /\b(current|present)\b/i.test(s) && YEAR_RE.test(s))
+  const sentence = intro?.split(/(?<=\.)\s+/).map(s => s.replace(/\([^()]*\)/g, '')).find(s => /\b(current|present)\b/i.test(s) && YEAR_RE.test(s) && !/\b(rendering|die|engraving|drawing|painting|reverse)\b/i.test(s))
   if (sentence) {
     const at = sentence.search(/\b(current|present)\b/i)
     const after = sentence.slice(at).match(YEAR_RE)
@@ -655,7 +680,7 @@ function licenceOf(ii) {
 function authorOf(ii) {
   let a = htmlText(meta(ii, 'Artist'))
     .replace(/^(Original|Author|Image|Autor of SVG image|Original Author)\s*:\s*/i, '').replace(/^:\s*/, '')
-    .replace(/^(File:)?[^:]+\.(svg|png|jpe?g)\s*(:|by)\s*/i, '') // "File:X.svg : Someone", "X.svg by Someone"
+    .replace(/^(File\s*:\s*)?[^:]+\.(svg|png|jpe?g)\S*\s*(:|by)\s*/i, '') // "File:X.svg : Someone", "X.svg by Someone"
     .replace(/\s*dyskusja\s+Mail\b.*$/i, '').replace(/\s*\d{1,2}:\d{2}, \d{1,2} \w+ \d{4} \(UTC\)/g, '')
     .replace(/\bUnknown(\s+Unknown)+\b/gi, 'Unknown').replace(/\b(Unknown author)(\s+\1)+/gi, '$1')
     .replace(/\(\s*talk\s*\)/gi, '').replace(/[^\s,;:]+\.svg'?\)?/gi, '').replace(/\bderitive\b/g, 'derivative')
