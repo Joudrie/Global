@@ -700,6 +700,22 @@ function PlayTab({ launch, state, today }: { launch: (e: Entry) => void; state: 
         : activeGroup
           ? all.filter(r => r.group === activeGroup)
           : []
+  // The All page sits on its own history entry, so the phone's Back gesture
+  // returns to the shelves instead of leaving the site.
+  const allEntry = useRef(false)
+  useEffect(() => {
+    if (activeGroup === VIEW_ALL && !allEntry.current) {
+      try { window.history.pushState({ globalio: "playall" }, ""); allEntry.current = true } catch { /* ignore */ }
+    } else if (activeGroup !== VIEW_ALL && allEntry.current) {
+      allEntry.current = false
+      window.history.back()
+    }
+  }, [activeGroup])
+  useEffect(() => {
+    const onPop = () => { if (allEntry.current) { allEntry.current = false; setActiveGroup(null) } }
+    window.addEventListener("popstate", onPop)
+    return () => window.removeEventListener("popstate", onPop)
+  }, [])
   const viewAll = () => {
     setActiveGroup(VIEW_ALL); setQ("")
     window.requestAnimationFrame(() => document.getElementById("play-top")?.scrollIntoView({ block: "start" }))

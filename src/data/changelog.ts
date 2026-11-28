@@ -21,6 +21,7 @@ export const CHANGELOG: ChangelogEntry[] = [
       "Stat Clash and Pride Roulette no longer jump when you answer, Flag Forgery's side labels fit on phones, and Border Path names the countries on its shortest route.",
       "Text boxes no longer zoom the page in on iPhones. Dallas, Oklahoma City and Jersey City were showing a county or state flag instead of their own, so they're left out until their real flags can be added.",
       "Codex: tapping a region lower down a long list (Thuringia, Cardiff) now scrolls its details into view, and long region names break more cleanly on phones.",
+      "World Cup: a nation's Codex entry keeps its Back button on screen, and the phone's Back gesture now closes Play's All page instead of leaving the site.",
     ],
   },
   {

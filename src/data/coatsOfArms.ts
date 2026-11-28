@@ -2691,7 +2691,7 @@ export const COATS_OF_ARMS: CountryArms[] = [
         "to": 1952,
         "src": "/arms/gb-1.png",
         "commons": "https://commons.wikimedia.org/wiki/File:Arms_of_the_United_Kingdom_(since_1837).svg",
-        "author": "* Coat_of_arms_of_the_United_Kingdom_",
+        "author": "",
         "licence": "CC BY-SA 3.0",
         "licenceUrl": "https://creativecommons.org/licenses/by-sa/3.0"
       },
