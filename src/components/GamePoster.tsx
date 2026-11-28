@@ -124,6 +124,30 @@ function FourGrid({ codes, ring, badge }: { codes: string[]; ring?: number; badg
 }
 
 // Two flags head-to-head with a VS seal (plus optional higher/lower arrows).
+// Spoken Here's poster: Switzerland's main languages (2021), as a donut.
+const POSTER_PIE = [
+  { label: "German", pct: 62, color: "#2E64AD" },
+  { label: "French", pct: 23, color: "#B4492B" },
+  { label: "Italian", pct: 8, color: "#D2917B" },
+  { label: "", pct: 7, color: "#ADA493" },
+]
+function PosterPie({ size }: { size: number }) {
+  const R = 46, r = 26, C = 50
+  let at = 0
+  const pt = (rad: number, a: number) => `${C + rad * Math.sin(a)} ${C - rad * Math.cos(a)}`
+  return (
+    <svg viewBox="0 0 100 100" width={size} height={size} aria-hidden style={{ flexShrink: 0 }}>
+      {POSTER_PIE.map(p => {
+        const a0 = (at / 100) * Math.PI * 2, a1 = ((at + p.pct) / 100) * Math.PI * 2
+        at += p.pct
+        const big = a1 - a0 > Math.PI ? 1 : 0
+        return <path key={p.color} d={`M${pt(R, a0)}A${R} ${R} 0 ${big} 1 ${pt(R, a1)}L${pt(r, a1)}A${r} ${r} 0 ${big} 0 ${pt(r, a0)}Z`}
+          fill={p.color} stroke={T.surface} strokeWidth={2} strokeLinejoin="round" />
+      })}
+    </svg>
+  )
+}
+
 function Versus({ a, b, accent, hero, arrows = false }: { a: string; b: string; accent: string; hero: boolean; arrows?: boolean }) {
   const badge: CSSProperties = { position: "absolute", top: "8%", borderRadius: 999, padding: hero ? 4 : 2, display: "flex", background: `${T.surface}F0`, boxShadow: `0 2px 6px -2px ${tint(T.text, 0.6)}` }
   return (
@@ -612,6 +636,26 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
             <MiniFlag code="it" style={{ width: hero ? 26 : 18, boxShadow: "none" }} />
             <MiniFlag code="jp" style={{ width: hero ? 26 : 18, boxShadow: "none" }} />
             <span style={{ fontFamily: "'Playfair Display', Georgia, serif", fontWeight: 800, fontSize: hero ? 16 : 12, color: accent }}>?</span>
+          </div>
+        </div>
+      ) }
+    case "spoken":
+      // A small donut of one country's languages, labelled beside it
+      // (Switzerland's: German, French, Italian). Colours are the game's
+      // family tones: Germanic blue, Romance terracotta and a lighter step of it.
+      return { bleed: false, node: (
+        // On a tile the art keeps left and low, clear of the favourite star,
+        // and the labels drop their shares.
+        <div style={{ ...box, background: wash, display: "flex", alignItems: hero ? "center" : "flex-end", justifyContent: hero ? "center" : "flex-start",
+          gap: hero ? 16 : 6, padding: hero ? 0 : "0 0 8px 10px" }}>
+          <PosterPie size={hero ? 76 : 40} />
+          <div style={{ display: "flex", flexDirection: "column", gap: hero ? 4 : 2 }}>
+            {POSTER_PIE.filter(p => p.label).map(p => (
+              <span key={p.label} style={{ display: "flex", alignItems: "center", gap: hero ? 6 : 3, fontSize: hero ? 13 : 8.5, fontWeight: 700, color: T.text, lineHeight: 1.1, whiteSpace: "nowrap" }}>
+                <span style={{ width: hero ? 9 : 6, height: hero ? 9 : 6, borderRadius: 2, background: p.color, flexShrink: 0 }} />
+                {p.label}{hero && <span style={{ fontWeight: 600, color: T.muted }}>{p.pct}%</span>}
+              </span>
+            ))}
           </div>
         </div>
       ) }

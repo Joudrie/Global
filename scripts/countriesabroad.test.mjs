@@ -328,8 +328,8 @@ test('Abroad (Countries and Cities) sits before Native Names on the Sharp Recall
     assert.ok(!e.sandbox)
   }
   assert.equal(REGISTRY.find(x => x.id === 'abroad').title, 'Abroad')
-  // 57 with Cities Abroad and Countries Abroad apart; one game since they became Abroad.
-  assert.equal(GAME_COUNT, 56)
+  // One game since Cities Abroad and Countries Abroad became Abroad; 57 with Spoken Here.
+  assert.equal(GAME_COUNT, 57)
   const prerender = fs.readFileSync(path.join(ROOT, 'scripts/prerender.mjs'), 'utf8')
   assert.match(prerender, /abroad: '/)
   assert.match(prerender, /nativenames: '/)

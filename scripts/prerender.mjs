@@ -592,6 +592,7 @@ const GAME_DESC = {
   statclash: 'Two countries, one question: which has the bigger population or area?',
   prideroulette: 'Name pride flags one after another. One mistake and the run is over.',
   language: 'Read a sentence and pick which of 88 languages it is written in, from easy to extreme.',
+  spoken: 'Each round is a pie chart of one country\'s languages, from its latest census or survey, with the year it comes from: German 62%, French 23%, Italian 8%. Name the country, from four choices or typed for double points. Easy and medium name the languages; hard shows only their families, from Romance and Bantu to Turkic and Austronesian. Ten right before three strikes wins. 100 countries, and every pie names its source.',
   realorbot: 'Swipe to decide whether a flag is real or an AI-generated fake.',
   twotruths: 'Three statements about a country. Two are true. Spot the lie.',
   deadoralive: 'Is this country still around, or has it vanished from the map?',

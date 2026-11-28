@@ -1,0 +1,317 @@
+// Spoken Here: the hand-checked input. scripts/languagepie/build.mjs turns it
+// into src/data/languageShares.ts and checks every figure against the other
+// sources it has cached (the CIA World Factbook, the Pew Research Center's 2019
+// survey, and the numbers on the Wikipedia page each entry was read from), then
+// writes report.md with every disagreement.
+//
+// One entry per country, keyed by its code in src/data/flags.ts:
+//   year     the year the figures are for
+//   kind     census | survey | register (population register) | estimate
+//   measure  mother (mother tongue) | first (first language learned) | home
+//            (language spoken at home) | main (main language) | everyday
+//            (language of everyday use) | household (language of the household)
+//            | spoken (languages spoken; people could name several)
+//   s        the shares as the source gives them, in percent, largest first;
+//            "Other" and "Not stated" as the source has them. build.mjs groups
+//            languages under 3% into Other and leaves "Not stated" out (the
+//            pie shows the shares of those who answered, and says so).
+//   multi    true when people could give more than one answer, so the shares
+//            add up to more than 100%
+//   src      [who published the figures, a link to them]
+//   wiki     the English Wikipedia page the figures were read from or checked
+//            against (build.mjs checks its numbers appear there)
+//   note     anything a player should know, shown under the source
+//   tier     'easy' or 'medium', to overrule MEDIUM below; 'hard' to allow it on hard
+// Language names are the ones families.mjs knows; a name ending in " only" or
+// joining two with " and " is a category the census itself used.
+//
+// Countries with no percentages anywhere (only a list of languages) are not
+// here; build.mjs lists them in report.md with the reason (LEFT_OUT below).
+
+const W = t => `https://en.wikipedia.org/wiki/${t.replace(/ /g, '_')}`
+const FB = slug => `https://www.cia.gov/the-world-factbook/countries/${slug}/`
+const PEW = ['Pew Research Center, Spring 2019 Global Attitudes Survey', 'https://www.pewresearch.org/wp-content/uploads/2020/01/FT_01.06.20_languages_topline.pdf']
+
+export const COUNTRIES = {
+  // ── Europe ──────────────────────────────────────────────────────────────
+  AL: { year: 2023, kind: 'census', measure: 'home', s: { Albanian: 91.07, Other: 2.11, 'Not stated': 6.8 },
+    src: ['INSTAT, 2023 census', W('Languages of Albania')], wiki: 'Languages of Albania' },
+  AD: { year: 2022, kind: 'survey', measure: 'home', multi: true, s: { Catalan: 44, Spanish: 40.3, Portuguese: 13.5, French: 10, Other: 9.8 },
+    src: ['Government of Andorra, survey of language use', W('Languages of Andorra')], wiki: 'Languages of Andorra' },
+  AT: { year: 2001, kind: 'census', measure: 'everyday', s: { German: 88.6, Turkish: 2.3, Serbian: 2.2, Croatian: 1.6, Other: 5.3 },
+    src: ['Statistik Austria, 2001 census', W('Demographics of Austria')], wiki: 'Demographics of Austria' },
+  BY: { year: 2019, kind: 'census', measure: 'home', s: { Russian: 71.3, Belarusian: 26, Other: 2.7 },
+    note: 'Other includes people who did not answer.',
+    src: ['Belstat, 2019 census', 'https://www.belstat.gov.by/upload/iblock/345/34515eeb3bb5f4ea5ca53b72290e9595.pdf'], wiki: 'Languages of Belarus' },
+  BA: { year: 2013, kind: 'census', measure: 'mother', s: { Bosnian: 52.86, Serbian: 30.76, Croatian: 14.6, Other: 1.57, 'Not stated': 0.21 },
+    src: ['Agency for Statistics of Bosnia and Herzegovina, 2013 census', W('Demographics of Bosnia and Herzegovina')], wiki: 'Demographics of Bosnia and Herzegovina' },
+  BG: { year: 2021, kind: 'census', measure: 'mother', s: { Bulgarian: 86.2, Turkish: 8.8, Romani: 3.9, Other: 1.1 },
+    note: 'Shares of the nine in ten who gave a mother tongue.',
+    src: ['National Statistical Institute, 2021 census', W('Languages of Bulgaria')], wiki: 'Languages of Bulgaria' },
+  HR: { year: 2021, kind: 'census', measure: 'mother', s: { Croatian: 95.2, Serbian: 1.2, Other: 3.1, 'Not stated': 0.5 },
+    src: ['Croatian Bureau of Statistics, 2021 census, via the CIA World Factbook', FB('croatia')], wiki: 'Demographics of Croatia' },
+  CY: { year: 2011, kind: 'census', measure: 'spoken', s: { Greek: 80.9, English: 4.1, Romanian: 2.9, Russian: 2.5, Bulgarian: 2.2, Arabic: 1.2, Filipino: 1.1, Turkish: 0.2, Other: 4.3, 'Not stated': 0.6 },
+    src: ['Statistical Service of Cyprus, 2011 census', W('Languages of Cyprus')], wiki: 'Languages of Cyprus',
+    note: 'Only the areas the Republic of Cyprus controls.' },
+  CZ: { year: 2021, kind: 'census', measure: 'mother', s: { Czech: 88.4, Slovak: 1.5, Other: 2.6, 'Not stated': 7.2 },
+    src: ['Czech Statistical Office, 2021 census, via the CIA World Factbook', FB('czechia')], wiki: 'Demographics of the Czech Republic',
+    note: 'People with one mother tongue; the few with two are left out.' },
+  EE: { year: 2021, kind: 'census', measure: 'mother', s: { Estonian: 67.23, Russian: 28.47, Other: 4.3 },
+    src: ['Statistics Estonia, 2021 census', W('Demographics of Estonia')], wiki: 'Demographics of Estonia' },
+  FI: { year: 2025, kind: 'register', measure: 'mother', s: { Finnish: 83.5, Swedish: 5, Russian: 1.8, Estonian: 0.9, Ukrainian: 0.8, Arabic: 0.8, English: 0.7, Other: 6.5 },
+    src: ['Statistics Finland, population register', W('Demographics of Finland')], wiki: 'Demographics of Finland' },
+  FR: { year: 2007, kind: 'survey', measure: 'mother', s: { French: 87.2, Arabic: 3.6, Portuguese: 1.5, Spanish: 1.2, Italian: 1, German: 0.7, Turkish: 0.5, English: 0.4, Other: 3.9 },
+    src: ['INSEE, Adult Education Survey', W('Languages of France')], wiki: 'Languages of France',
+    note: 'France\'s census does not ask about language.' },
+  DE: { year: 2019, kind: 'survey', measure: 'home', s: { German: 90, Turkish: 2, Arabic: 1, Other: 6 }, src: PEW, wiki: 'Languages of Germany',
+    note: 'A survey of adults; Germany\'s census does not ask about language.' },
+  GR: { year: 2019, kind: 'survey', measure: 'home', s: { Greek: 98, Albanian: 1, Other: 1 }, src: PEW,
+    note: 'A survey of adults; Greece\'s census does not ask about language.' },
+  HU: { year: 2011, kind: 'census', measure: 'mother', s: { Hungarian: 98.9, Other: 1.1 },
+    src: ['Hungarian Central Statistical Office, 2011 census', W('Languages of Hungary')], wiki: 'Languages of Hungary',
+    note: 'Other includes people who did not answer.' },
+  IT: { year: 2019, kind: 'survey', measure: 'home', s: { Italian: 96, Other: 4 }, src: PEW,
+    note: 'A survey of adults. Italian here includes the regional languages many speak beside it.' },
+  XK: { year: 2011, kind: 'census', measure: 'mother', s: { Albanian: 94.5, Bosnian: 1.7, Serbian: 1.6, Turkish: 1.1, Other: 0.9, 'Not stated': 0.1 },
+    src: ['Kosovo Agency of Statistics, 2011 census', W('Demographics of Kosovo')], wiki: 'Demographics of Kosovo',
+    note: 'The census left out northern Kosovo and many Serbs and Roma boycotted it, so their languages are undercounted.' },
+  LV: { year: 2022, kind: 'register', measure: 'home', s: { Latvian: 62, Russian: 34.6, Other: 3.4 },
+    src: ['Official Statistics Portal of Latvia', 'https://data.stat.gov.lv/pxweb/en/OSP_PUB/START__POP__IR__IRE/IRE031/'], wiki: 'Demographics of Latvia' },
+  LI: { year: 2015, kind: 'census', measure: 'main', s: { German: 91.5, Italian: 1.5, Turkish: 1.3, Portuguese: 1.1, Other: 4.6 },
+    src: ['CIA World Factbook, from the 2015 census', FB('liechtenstein')] },
+  LT: { year: 2021, kind: 'census', measure: 'mother', s: { Lithuanian: 85.33, Russian: 6.79, Polish: 5.12, 'Two languages': 1.75, Other: 1.02 },
+    src: ['State Data Agency of Lithuania, 2021 census', W('Demographics of Lithuania')], wiki: 'Demographics of Lithuania' },
+  LU: { year: 2021, kind: 'census', measure: 'main', s: { Luxembourgish: 48.9, Portuguese: 15.4, French: 14.9, Italian: 3.6, English: 3.6, German: 2.9, Other: 10.8 },
+    src: ['STATEC, 2021 census', W('Languages of Luxembourg')], wiki: 'Languages of Luxembourg' },
+  MT: { year: 2005, kind: 'census', measure: 'spoken', s: { Maltese: 90.1, English: 6, 'Two languages': 3, Other: 0.9 },
+    src: ['CIA World Factbook, from the 2005 census', FB('malta')], wiki: 'Languages of Malta' },
+  MD: { year: 2024, kind: 'census', measure: 'home', s: { Romanian: 79.2, Russian: 15.3, Gagauz: 2.3, Ukrainian: 2, Bulgarian: 0.8, Other: 0.5 },
+    src: ['National Bureau of Statistics of Moldova, 2024 census', W('Languages of Moldova')], wiki: 'Languages of Moldova',
+    note: 'Romanian includes the 46% who called it Moldovan.' },
+  ME: { year: 2023, kind: 'census', measure: 'mother', s: { Serbian: 43.18, Montenegrin: 34.52, Bosnian: 6.97, Albanian: 5.25, Russian: 2.36, 'Serbo-Croatian': 2.08, Other: 5.64 },
+    src: ['MONSTAT, 2023 census', W('Languages of Montenegro')], wiki: 'Languages of Montenegro' },
+  MK: { year: 2021, kind: 'census', measure: 'mother', s: { Macedonian: 61.4, Albanian: 24.3, Turkish: 3.4, Romani: 1.7, Other: 2, 'Not stated': 7.2 },
+    src: ['State Statistical Office, 2021 census, via the CIA World Factbook', FB('north-macedonia')], wiki: 'Languages of North Macedonia' },
+  NL: { year: 2019, kind: 'survey', measure: 'home', s: { Dutch: 93, Frisian: 1, Arabic: 1, Other: 5 }, src: PEW,
+    note: 'A survey of adults; the Netherlands\' census does not ask about language.' },
+  PL: { year: 2011, kind: 'census', measure: 'home', multi: true, s: { Polish: 98.2, Silesian: 1.4, Other: 1.1, 'Not stated': 1.2 },
+    src: ['Statistics Poland, 2011 census, via the CIA World Factbook', FB('poland')], wiki: 'Languages of Poland' },
+  RO: { year: 2021, kind: 'census', measure: 'mother', s: { Romanian: 91.6, Hungarian: 6.3, Romani: 1.2, Other: 0.7 },
+    src: ['National Institute of Statistics, 2021 census, via the CIA World Factbook', FB('romania')], wiki: 'Languages of Romania',
+    note: 'Shares of the 87% who gave a mother tongue.' },
+  RU: { year: 2010, kind: 'census', measure: 'mother', s: { Russian: 85.7, Tatar: 3.2, Chechen: 1, Other: 10.1 },
+    src: ['Rosstat, 2010 census, via the CIA World Factbook', FB('russia')], wiki: 'Languages of Russia' },
+  RS: { year: 2011, kind: 'census', measure: 'mother', s: { Serbian: 88.1, Hungarian: 3.4, Bosnian: 1.9, Romani: 1.4, Other: 3.4, 'Not stated': 1.8 },
+    src: ['Statistical Office of Serbia, 2011 census', W('Demographics of Serbia')], wiki: 'Demographics of Serbia',
+    note: 'Most ethnic Albanians boycotted this census.' },
+  SK: { year: 2021, kind: 'census', measure: 'mother', s: { Slovak: 81.8, Hungarian: 8.5, Romani: 1.8, Other: 2.2, 'Not stated': 5.7 },
+    src: ['Statistical Office of the Slovak Republic, 2021 census, via the CIA World Factbook', FB('slovakia')] },
+  SI: { year: 2002, kind: 'census', measure: 'mother', s: { Slovene: 87.7, Croatian: 2.8, 'Serbo-Croatian': 1.8, Bosnian: 1.6, Serbian: 1.6, Hungarian: 0.4, Italian: 0.2, Other: 3.9 },
+    src: ['Statistical Office of Slovenia, 2002 census, via the CIA World Factbook', FB('slovenia')], wiki: 'Languages of Slovenia',
+    note: 'The last census to ask about language. Other includes people who did not answer.' },
+  ES: { year: 2019, kind: 'survey', measure: 'home', s: { Spanish: 81, Catalan: 12, Galician: 3, Basque: 1, Other: 2, 'Not stated': 1 }, src: PEW, wiki: 'Languages of Spain',
+    note: 'A survey of adults. Catalan includes Valencian (4%).' },
+  SE: { year: 2019, kind: 'survey', measure: 'home', s: { Swedish: 94, Other: 6 }, src: PEW,
+    note: 'A survey of adults; Sweden records no languages.' },
+  CH: { year: 2021, kind: 'survey', measure: 'main', multi: true, s: { German: 62, French: 22.7, Italian: 8.2, English: 5.4, Portuguese: 3.7, Albanian: 3.2, 'Serbo-Croatian': 2.5, Spanish: 2.4, Romansh: 0.5, Other: 7.7 },
+    src: ['Federal Statistical Office, structural survey', W('Languages of Switzerland')], wiki: 'Languages of Switzerland' },
+  UA: { year: 2001, kind: 'census', measure: 'mother', s: { Ukrainian: 67.5, Russian: 29.6, Other: 2.9 },
+    src: ['State Statistics Service of Ukraine, 2001 census, via the CIA World Factbook', FB('ukraine')], wiki: 'Languages of Ukraine',
+    note: 'Ukraine has held no census since 2001.' },
+  GB: { year: 2021, kind: 'census', measure: 'main', s: { English: 91.1, Other: 8.9 },
+    src: ['Office for National Statistics, 2021 census', W('Languages of the United Kingdom')], wiki: 'Languages of the United Kingdom',
+    note: 'England and Wales only (nine in ten of the UK). English includes Welsh as a main language in Wales.' },
+
+  // ── Africa ──────────────────────────────────────────────────────────────
+  AO: { year: 2014, kind: 'census', measure: 'home', multi: true, s: { Portuguese: 71.2, Umbundu: 23, Kikongo: 8.2, Kimbundu: 7.8, Chokwe: 6.5, Nyaneka: 3.4, Ngangela: 3.1, Kwanyama: 2.3, Luvale: 1, Other: 8.1 },
+    src: ['National Statistics Institute of Angola, 2014 census, via the CIA World Factbook', FB('angola')], wiki: 'Languages of Angola' },
+  BW: { year: 2011, kind: 'census', measure: 'home', s: { Tswana: 77.3, Kalanga: 7.4, Kgalagadi: 3.4, English: 2.8, Shona: 2, Mbukushu: 1.6, Ndebele: 1, Other: 4.5 },
+    src: ['Statistics Botswana, 2011 census', W('Languages of Botswana')], wiki: 'Languages of Botswana' },
+  BF: { year: 2019, kind: 'census', measure: 'spoken', s: { Mooré: 52.9, Fula: 7.8, Gourmanché: 6.8, Dyula: 5.7, Bissa: 3.3, Gurunsi: 3.2, French: 2.2, Bwamu: 2, Dagara: 2, San: 1.7, Marka: 1.6, Bobo: 1.5, Senufo: 1.5, Lobi: 1.2, Other: 6.6 },
+    src: ['INSD, 2019 census, via the CIA World Factbook', FB('burkina-faso')], wiki: 'Languages of Burkina Faso' },
+  ET: { year: 2007, kind: 'census', measure: 'mother', s: { Oromo: 33.8, Amharic: 29.3, Somali: 6.2, Tigrinya: 5.9, Sidamo: 4, Gurage: 2, Afar: 1.7, Hadiyya: 1.7, "Silt'e": 1.2, Other: 14.2 },
+    src: ['Central Statistical Agency, 2007 census', W('Languages of Ethiopia')], wiki: 'Languages of Ethiopia',
+    note: 'The last census; the next has been postponed since 2017.' },
+  GM: { year: 2021, kind: 'estimate', measure: 'first', s: { Mandinka: 38, Pulaar: 21, Wolof: 18, Soninke: 9, Jola: 4.5, Serer: 2.4, Manjak: 1.6, Kriol: 1, English: 0.5, Other: 4 },
+    src: ['Ethnologue, 24th edition', W('Languages of the Gambia')], wiki: 'Languages of the Gambia' },
+  GW: { year: 2009, kind: 'census', measure: 'spoken', multi: true, s: { Kriol: 90.4, Portuguese: 27.2, Fula: 25.7, Balanta: 19.7, Mandinka: 12.8, Papel: 7.4, Manjak: 7.3, French: 5.1, English: 2.9, Other: 14.5 },
+    src: ['National Statistics Institute, 2009 census', W('Languages of Guinea-Bissau')], wiki: 'Languages of Guinea-Bissau' },
+  KM: { year: 2025, kind: 'survey', measure: 'home', s: { Comorian: 89.9, French: 9.9, Other: 0.2 },
+    src: ['Afrobarometer', W('Languages of the Comoros')], wiki: 'Languages of the Comoros', note: 'A survey of adults.' },
+  MG: { year: 2018, kind: 'census', measure: 'spoken', multi: true, s: { Malagasy: 99.9, French: 23.6, English: 8.2, Other: 0.6 },
+    src: ['INSTAT Madagascar, 2018 census, via the CIA World Factbook', FB('madagascar')] },
+  MU: { year: 2022, kind: 'census', measure: 'home', s: { 'Mauritian Creole': 90, Bhojpuri: 5.1, French: 4.4, English: 0.6 },
+    src: ['Statistics Mauritius, 2022 census', W('Languages of Mauritius')], wiki: 'Languages of Mauritius' },
+  MA: { year: 2024, kind: 'census', measure: 'spoken', multi: true, s: { Arabic: 92.7, Tashelhit: 14.2, 'Central Atlas Tamazight': 7.4, Tarifit: 3.2 },
+    src: ['High Commission for Planning, 2024 census', W('Languages of Morocco')], wiki: 'Languages of Morocco',
+    note: 'Arabic is mostly Moroccan Arabic (Darija).' },
+  MZ: { year: 2017, kind: 'census', measure: 'mother', s: { Makhuwa: 26.1, Portuguese: 16.6, Tsonga: 8.6, Nyanja: 8.1, Sena: 7.1, Lomwe: 7.1, Chuwabo: 4.7, Ndau: 3.8, Tswa: 3.8, Other: 12.3, 'Not stated': 1.8 },
+    src: ['National Statistics Institute of Mozambique, 2017 census', W('Languages of Mozambique')], wiki: 'Languages of Mozambique' },
+  NA: { year: 2022, kind: 'census', measure: 'home', s: { Oshiwambo: 48.9, Khoekhoegowab: 11.3, Afrikaans: 11.3, Otjiherero: 8.6, Rukwangali: 8.5, Lozi: 4.8, English: 3.4, German: 1, Other: 2.2 },
+    src: ['Namibia Statistics Agency, 2022 census', W('Demographics of Namibia')], wiki: 'Demographics of Namibia' },
+  RW: { year: 2002, kind: 'census', measure: 'spoken', s: { Kinyarwanda: 93.2, Other: 6.5, 'Not stated': 0.3 },
+    src: ['CIA World Factbook, from the 2002 census', FB('rwanda')],
+    note: 'Other is mostly people who speak more than one language.' },
+  ST: { year: 2012, kind: 'census', measure: 'spoken', multi: true, s: { Portuguese: 98.4, Forro: 36.2, 'Cape Verdean Creole': 8.5, French: 6.8, Angolar: 6.6, English: 4.9, Other: 3.4 },
+    src: ['National Statistics Institute, 2012 census', W('Languages of São Tomé and Príncipe')], wiki: 'Languages of São Tomé and Príncipe' },
+  SN: { year: 2023, kind: 'census', measure: 'main', s: { Wolof: 53.5, Pulaar: 26.3, Serer: 9.6, Jola: 2.8, Mandinka: 2.8, French: 0.6, Balanta: 0.4, Manjak: 0.4, Other: 3.6 },
+    src: ['ANSD, 2023 census', W('Languages of Senegal')], wiki: 'Languages of Senegal' },
+  SC: { year: 2010, kind: 'census', measure: 'spoken', s: { 'Seychellois Creole': 89.1, English: 5.1, French: 0.7, Other: 3.8, 'Not stated': 1.4 },
+    src: ['CIA World Factbook, from the 2010 census', FB('seychelles')] },
+  ZA: { year: 2022, kind: 'census', measure: 'home', s: { Zulu: 24.4, Xhosa: 16.3, Afrikaans: 10.6, Sepedi: 10, English: 8.7, Tswana: 8.3, Sotho: 7.8, Tsonga: 4.7, Swati: 2.8, Venda: 2.5, Ndebele: 1.7, Other: 2.2 },
+    src: ['Statistics South Africa, 2022 census', W('Languages of South Africa')], wiki: 'Languages of South Africa' },
+  ZM: { year: 2010, kind: 'census', measure: 'spoken', s: { Bemba: 33.4, Nyanja: 14.7, Tonga: 11.4, Lozi: 5.5, Chewa: 4.5, Nsenga: 2.9, Tumbuka: 2.5, English: 1.7, Other: 23.1, 'Not stated': 0.2 },
+    src: ['Central Statistical Office, 2010 census, via the CIA World Factbook', FB('zambia')] },
+  ZW: { year: 2022, kind: 'census', measure: 'mother', s: { Shona: 80.9, Ndebele: 11.5, English: 0.3, Other: 7.3 },
+    src: ['ZIMSTAT, 2022 census, via the CIA World Factbook', FB('zimbabwe')],
+    note: 'Other is 13 official minority languages and a few more.' },
+
+  // ── Asia ────────────────────────────────────────────────────────────────
+  AF: { year: 2020, kind: 'estimate', measure: 'spoken', multi: true, s: { Dari: 77, Pashto: 48, Uzbek: 11, English: 6, Turkmen: 3, Urdu: 3, Pashayi: 1, Nuristani: 1, Arabic: 1, Balochi: 1 },
+    src: ['CIA World Factbook', FB('afghanistan')], wiki: 'Languages of Afghanistan' },
+  AM: { year: 2022, kind: 'census', measure: 'mother', s: { Armenian: 97.2, Russian: 1.4, Yazidi: 1, Other: 0.4 },
+    src: ['Statistical Committee of Armenia, 2022 census, via the CIA World Factbook', FB('armenia')] },
+  AZ: { year: 2019, kind: 'census', measure: 'mother', s: { Azerbaijani: 96.1, Other: 3.9 },
+    src: ['State Statistical Committee of Azerbaijan, 2019 census, via the CIA World Factbook', FB('azerbaijan')] },
+  BD: { year: 2022, kind: 'census', measure: 'spoken', s: { Bengali: 99, Other: 1 },
+    src: ['Bangladesh Bureau of Statistics, 2022 census', W('Languages of Bangladesh')], wiki: 'Languages of Bangladesh' },
+  BT: { year: 2005, kind: 'estimate', measure: 'spoken', s: { Sharchop: 28, Dzongkha: 24, Nepali: 22, Other: 26 },
+    src: ['CIA World Factbook', FB('bhutan')], wiki: 'Languages of Bhutan' },
+  KH: { year: 2019, kind: 'census', measure: 'mother', s: { Khmer: 95.8, Chinese: 0.6, Vietnamese: 0.5, Other: 3.1 },
+    src: ['National Institute of Statistics, 2019 census', W('Demographics of Cambodia')], wiki: 'Demographics of Cambodia',
+    note: 'Other is mostly the languages of the highland minorities.' },
+  GE: { year: 2024, kind: 'census', measure: 'mother', s: { Georgian: 85.1, Azerbaijani: 6.76, Armenian: 3.55, Russian: 1.39, Ossetian: 0.1, Other: 3.1 },
+    src: ['Geostat, 2024 census', W('Demographics of Georgia (country)')], wiki: 'Demographics of Georgia (country)' },
+  IN: { year: 2011, kind: 'census', measure: 'mother', s: { Hindi: 43.63, Bengali: 8.3, Marathi: 6.83, Telugu: 6.7, Tamil: 5.7, Gujarati: 4.58, Urdu: 4.19, Kannada: 3.61, Odia: 3.1, Malayalam: 2.88, Punjabi: 2.74, Assamese: 1.16, Maithili: 1.12, Other: 5.46 },
+    src: ['Census of India, 2011', W('Languages of India')], wiki: 'Languages of India',
+    note: 'Hindi counts the many languages the census files under it, such as Bhojpuri.' },
+  KG: { year: 2009, kind: 'census', measure: 'mother', s: { Kyrgyz: 71.4, Uzbek: 14.4, Russian: 9, Other: 5.2 },
+    src: ['National Statistical Committee, 2009 census, via the CIA World Factbook', FB('kyrgyzstan')], wiki: 'Languages of Kyrgyzstan' },
+  MN: { year: 1999, kind: 'estimate', measure: 'spoken', s: { Mongolian: 90, Other: 10 },
+    src: ['CIA World Factbook', FB('mongolia')],
+    note: 'Other is mostly Kazakh and Russian.' },
+  NP: { year: 2021, kind: 'census', measure: 'mother', s: { Nepali: 44.9, Maithili: 11.1, Bhojpuri: 6.2, Tharu: 5.9, Tamang: 4.9, Bajjika: 3.9, Awadhi: 3, Newar: 3, Magar: 2.8, Doteli: 1.7, Urdu: 1.4, Limbu: 1.2, Gurung: 1.1, Other: 8.9 },
+    src: ['National Statistics Office, 2021 census, via the CIA World Factbook', FB('nepal')], wiki: 'Languages of Nepal' },
+  PK: { year: 2023, kind: 'census', measure: 'mother', s: { Punjabi: 36.98, Pashto: 18.15, Sindhi: 14.31, Saraiki: 12, Urdu: 9.25, Balochi: 3.38, Hindko: 2.32, Brahui: 1.16, Mewati: 0.46, Other: 1.99 },
+    src: ['Pakistan Bureau of Statistics, 2023 census', W('Languages of Pakistan')], wiki: 'Languages of Pakistan' },
+  PH: { year: 2020, kind: 'census', measure: 'household', s: { Tagalog: 39.9, Cebuano: 22.5, Hiligaynon: 7.3, Ilocano: 7.1, Bikol: 3.9, Waray: 2.6, Kapampangan: 2.4, Other: 13.9, 'Not stated': 0.4 },
+    src: ['Philippine Statistics Authority, 2020 census', W('Languages of the Philippines')], wiki: 'Languages of the Philippines',
+    note: 'Shares of households. Cebuano includes the 16% who called it Bisaya.' },
+  SG: { year: 2025, kind: 'survey', measure: 'home', s: { English: 58.1, Mandarin: 26.6, Malay: 7, 'Other Chinese': 4.9, Tamil: 2.2, Other: 1.3 },
+    src: ['Department of Statistics Singapore, General Household Survey 2025', 'https://tablebuilder.singstat.gov.sg/statistical-tables/downloadMultiple/Wd3UCL0iaU4YBQje1d8vRQ'], wiki: 'Demographics of Singapore',
+    note: 'The language spoken most often at home, by residents aged 5 and over.' },
+  LK: { year: 2012, kind: 'census', measure: 'spoken', multi: true, s: { Sinhala: 87, Tamil: 28.5, English: 23.8 },
+    src: ['Department of Census and Statistics, 2012 census, via the CIA World Factbook', FB('sri-lanka')], wiki: 'Languages of Sri Lanka' },
+  TW: { year: 2010, kind: 'census', measure: 'home', multi: true, s: { Mandarin: 83.5, 'Taiwanese Hokkien': 81.9, Hakka: 6.6 },
+    src: ['2010 population and housing census', W('Languages of Taiwan')], wiki: 'Languages of Taiwan' },
+  TJ: { year: 2010, kind: 'census', measure: 'mother', s: { Tajik: 84.4, Uzbek: 11.9, Kyrgyz: 0.8, Russian: 0.5, Other: 2.4 },
+    src: ['Agency on Statistics, 2010 census', W('Languages of Tajikistan')], wiki: 'Languages of Tajikistan' },
+  TH: { year: 2010, kind: 'census', measure: 'home', s: { 'Thai only': 90.7, 'Thai and another language': 6.4, 'Other languages only': 2.9 },
+    src: ['National Statistical Office, 2010 census, via the CIA World Factbook', FB('thailand')], wiki: 'Languages of Thailand',
+    note: 'Thai includes Isan, Northern and Southern Thai.' },
+  TL: { year: 2015, kind: 'census', measure: 'mother', s: { Tetum: 36.7, Mambai: 16.6, Makasai: 10.5, Baikenu: 5.9, Kemak: 5.8, Bunak: 5.5, Tokodede: 4, Fataluku: 3.5, Other: 11.5 },
+    src: ['General Directorate of Statistics, 2015 census, via the CIA World Factbook', FB('timor-leste')], wiki: 'Languages of East Timor',
+    note: 'Tetum is Tetun Prasa (30.6%) and Tetun Terik (6.1%).' },
+  TM: { year: 1999, kind: 'estimate', measure: 'spoken', s: { Turkmen: 72, Russian: 12, Uzbek: 9, Other: 7 },
+    src: ['CIA World Factbook', FB('turkmenistan')], wiki: 'Turkmenistan' },
+  UZ: { year: 2026, kind: 'census', measure: 'mother', s: { Uzbek: 91.3, Karakalpak: 2.3, Tajik: 2.2, Russian: 2, Kazakh: 1.4, Other: 0.7 },
+    src: ['Statistics Agency of Uzbekistan, 2026 census (first results)', 'https://stat.uz/en/press-center/news-of-committee/68981-o-zbekiston-respublikasida-2026-yilda-o-tkazilgan-aholi-va-qishloq-xo-jaligini-ro-yxatga-olishning-dastlabki-natijalari-2'],
+    wiki: 'Demographics of Uzbekistan' },
+
+  // ── Middle East ─────────────────────────────────────────────────────────
+  IL: { year: 2011, kind: 'survey', measure: 'mother', s: { Hebrew: 49, Arabic: 18, Russian: 15, Yiddish: 2, French: 2, English: 2, Spanish: 1.6, Other: 10 },
+    src: ['Israel Central Bureau of Statistics, social survey', W('Languages of Israel')], wiki: 'Languages of Israel',
+    note: 'A survey of people aged 20 and over.' },
+  TR: { year: 2006, kind: 'survey', measure: 'mother', s: { Turkish: 84.54, Kurdish: 11.97, Arabic: 1.38, Zazaki: 1.01, Other: 1.1 },
+    src: ['KONDA, Social Structure Survey', 'http://www.konda.com.tr/tr/raporlar/2006_09_KONDA_Toplumsal_Yapi.pdf'], wiki: 'Languages of Turkey',
+    note: 'A survey; Turkey\'s census has not asked about language since 1965.' },
+
+  // ── Americas ────────────────────────────────────────────────────────────
+  BZ: { year: 2010, kind: 'census', measure: 'spoken', multi: true, s: { English: 62.9, Spanish: 56.6, 'Belizean Creole': 44.6, Maya: 10.5, German: 3.2, Garifuna: 2.9, Other: 1.8 },
+    src: ['Statistical Institute of Belize, 2010 census, via the CIA World Factbook', FB('belize')], wiki: 'Languages of Belize' },
+  BO: { year: 2012, kind: 'census', measure: 'first', s: { Spanish: 68.1, Quechua: 17.2, Aymara: 10.5, Guarani: 0.6, Other: 1.5, 'Not stated': 2.1 },
+    src: ['National Statistics Institute, 2012 census, via the CIA World Factbook', FB('bolivia')], wiki: 'Languages of Bolivia' },
+  CA: { year: 2016, kind: 'census', measure: 'mother', s: { English: 57.8, French: 20.6, 'English and French': 0.5, Other: 21.1 },
+    src: ['Statistics Canada, 2016 census', W('Languages of Canada')], wiki: 'Languages of Canada',
+    note: 'Other is every language besides English and French.' },
+  CL: { year: 2012, kind: 'census', measure: 'spoken', multi: true, s: { Spanish: 99.5, English: 10.2, 'Indigenous languages': 1, Other: 2.3, 'Not stated': 0.2 },
+    src: ['CIA World Factbook, from the 2012 census', FB('chile')], wiki: 'Demographics of Chile' },
+  CO: { year: 2023, kind: 'estimate', measure: 'spoken', s: { Spanish: 98.9, 'Indigenous languages': 1, Portuguese: 0.1 },
+    src: ['CIA World Factbook', FB('colombia')] },
+  EC: { year: 2022, kind: 'census', measure: 'spoken', multi: true, s: { Spanish: 98.6, Quechua: 3.2, 'Other indigenous languages': 0.7, Other: 3.4 },
+    src: ['INEC, 2022 census, via the CIA World Factbook', FB('ecuador')], wiki: 'Languages of Ecuador' },
+  GT: { year: 2018, kind: 'census', measure: 'mother', s: { Spanish: 69.9, "Q'eqchi'": 8.3, "K'iche'": 7.8, Mam: 4.4, Kaqchikel: 3, 'Other Mayan languages': 6.2, Other: 0.4 },
+    src: ['National Statistics Institute, 2018 census, via the CIA World Factbook', FB('guatemala')], wiki: 'Languages of Guatemala' },
+  MX: { year: 2020, kind: 'census', measure: 'spoken', s: { 'Spanish only': 93.8, 'Spanish and an indigenous language': 5.4, 'Indigenous languages only': 0.6, 'Not stated': 0.2 },
+    src: ['INEGI, 2020 census, via the CIA World Factbook', FB('mexico')], wiki: 'Demographics of Mexico' },
+  NI: { year: 2020, kind: 'estimate', measure: 'spoken', s: { Spanish: 99.5, 'Indigenous languages': 0.3, Portuguese: 0.1, Other: 0.1 },
+    src: ['CIA World Factbook', FB('nicaragua')] },
+  PY: { year: 2012, kind: 'census', measure: 'household', s: { 'Guarani and Spanish': 46.3, 'Guarani only': 34, 'Spanish only': 15.2, Other: 4.1, 'Not stated': 0.4 },
+    src: ['DGEEC, 2012 census, via the CIA World Factbook', FB('paraguay')], wiki: 'Languages of Paraguay' },
+  PE: { year: 2017, kind: 'census', measure: 'first', s: { Spanish: 82.9, Quechua: 13.6, Aymara: 1.6, 'Other indigenous languages': 0.8, 'Asháninka': 0.3, Other: 0.3, 'Not stated': 0.7 },
+    src: ['INEI, 2017 census, via the CIA World Factbook', FB('peru')], wiki: 'Demographics of Peru' },
+  US: { year: 2017, kind: 'survey', measure: 'home', s: { English: 78.2, Spanish: 13.4, Chinese: 1.1, Other: 7.3 },
+    src: ['US Census Bureau, American Community Survey', FB('united-states')], wiki: 'Languages of the United States',
+    note: 'People aged 5 and over. English means English only.' },
+  VE: { year: 2023, kind: 'estimate', measure: 'spoken', s: { Spanish: 98.2, 'Indigenous languages': 1.3, Portuguese: 0.1, Other: 0.4 },
+    src: ['CIA World Factbook', FB('venezuela')] },
+
+  // ── Oceania ─────────────────────────────────────────────────────────────
+  AU: { year: 2021, kind: 'census', measure: 'home', s: { English: 72, Mandarin: 2.7, Arabic: 1.4, Vietnamese: 1.3, Cantonese: 1.2, Other: 15.7, 'Not stated': 5.7 },
+    src: ['Australian Bureau of Statistics, 2021 census, via the CIA World Factbook', FB('australia')], wiki: 'Languages of Australia' },
+  MH: { year: 1999, kind: 'census', measure: 'spoken', s: { Marshallese: 98.2, Other: 1.8 },
+    src: ['CIA World Factbook, from the 1999 census', FB('marshall-islands')] },
+  NR: { year: 2011, kind: 'census', measure: 'home', s: { Nauruan: 93, English: 2, Other: 5 },
+    src: ['Nauru Bureau of Statistics, 2011 census, via the CIA World Factbook', FB('nauru')], wiki: 'Demographics of Nauru' },
+  NZ: { year: 2018, kind: 'census', measure: 'spoken', multi: true, s: { English: 95.4, 'Māori': 4, Samoan: 2.2, Mandarin: 2, Hindi: 1.5, French: 1.2, Cantonese: 1.1 },
+    src: ['Stats NZ, 2018 census, via the CIA World Factbook', FB('new-zealand')], wiki: 'Languages of New Zealand' },
+  PW: { year: 2015, kind: 'census', measure: 'spoken', s: { Palauan: 65.2, English: 19.1, Filipino: 9.9, Chinese: 1.2, Other: 4.7 },
+    src: ['CIA World Factbook, from the 2015 census', FB('palau')] },
+  TO: { year: 2021, kind: 'census', measure: 'home', s: { 'Tongan only': 85, 'Tongan and another language': 13.9, 'No Tongan at home': 1.1 },
+    src: ['Tonga Statistics Department, 2021 census, via the CIA World Factbook', FB('tonga')],
+    note: 'People aged 5 and over.' },
+  VU: { year: 2020, kind: 'census', measure: 'first', s: { 'Oceanic languages': 82.6, Bislama: 14.5, English: 2.1, French: 0.8 },
+    src: ['Vanuatu Bureau of Statistics, 2020 census, via the CIA World Factbook', FB('vanuatu')],
+    note: 'Vanuatu has more than 100 local languages, all Oceanic. People aged 3 and over.' },
+  WS: { year: 2006, kind: 'census', measure: 'spoken', s: { Samoan: 91.1, 'Samoan and English': 6.7, English: 0.5, Other: 0.2, 'Not stated': 1.6 },
+    src: ['CIA World Factbook, from the 2006 census', FB('samoa')] },
+}
+
+// Medium: pies that take knowing more than a language's name. Either the top
+// language is the main language of other countries too (German, Russian,
+// Spanish, English, Portuguese, Arabic, Romanian, Serbian, Albanian, Greek), so
+// the small slices decide it, or it is a language most players won't place
+// (Oshiwambo, Mooré, Tetum). Every other country is easy: its top language
+// names it (Czech, Finnish, Tongan) or its mix is famous (Switzerland, India,
+// Paraguay, Canada). Hard is worked out by build.mjs: pies that can still be
+// told apart when only the families are shown.
+export const MEDIUM = [
+  'DE', 'AT', 'LI', 'RU', 'BY', 'MD', 'RO', 'RS', 'ME', 'AL', 'XK', 'GR', 'CY', 'AD',
+  'BO', 'PE', 'EC', 'CL', 'CO', 'VE', 'NI', 'MX', 'GT', 'BZ', 'NZ', 'AU', 'GB',
+  'MA', 'AO', 'MZ', 'ST', 'GW', 'GM', 'SN', 'BF', 'ET', 'ZW', 'ZM', 'NA', 'BW', 'RW', 'MG',
+  'VU', 'TL', 'KH', 'BT', 'AF',
+]
+
+// Countries left out, and why. Every country in src/data/flags.ts is either in
+// COUNTRIES or here (build.mjs checks).
+const NONE = 'no percentages: the sources only list the languages'
+export const LEFT_OUT = {
+  BE: 'no census has asked about language since 1947; the shares quoted (about 60% Dutch, 40% French) carry no year or survey',
+  DK: NONE, IS: NONE, IE: 'the census counts Irish speakers and other home languages, but not a share of each language', MC: NONE,
+  NO: NONE, PT: NONE, SM: NONE, VA: NONE,
+  DZ: 'only a 2009 study of Arabic dialects, with no figure for Berber or French', BJ: NONE, BI: NONE, CM: NONE, CV: NONE,
+  CF: NONE, TD: NONE, CG: NONE, CD: NONE, CI: NONE, DJ: NONE, EG: 'only Ethnologue estimates of Arabic dialects', ER: NONE,
+  SZ: NONE, GA: NONE, GH: 'the Factbook\'s 2010 figures look like ethnic groups rather than languages', GN: NONE,
+  KE: NONE, LS: NONE, LR: 'only "English 20%", nothing for the other languages', LY: NONE,
+  ML: 'sources disagree: the Factbook\'s 2009 figures leave out Bambara, Wikipedia\'s give Bambara 30% and Fula 25%', MW: NONE,
+  MR: NONE, NE: NONE, NG: NONE, SL: 'only "Krio is the first language of 10%"', SO: NONE, SS: NONE, SD: NONE, TZ: NONE,
+  TG: NONE, TN: NONE, UG: NONE, GQ: 'only "Spanish 67.6%, other 32.4%" from 1994',
+  BN: NONE, CN: 'the census does not ask; only encyclopedia estimates of Chinese varieties', ID: 'only the share of Javanese (2010) is published in the sources', JP: NONE,
+  KZ: 'the 2021 census gives who understands each language (Kazakh 80%, Russian 84%), not a first language', LA: NONE, MY: NONE, MV: NONE,
+  MM: NONE, KP: NONE, KR: NONE, VN: NONE,
+  BH: NONE, IR: 'only undated estimates from "recent scientific papers"', IQ: NONE, JO: NONE, KW: NONE, LB: NONE, OM: NONE, PS: NONE,
+  QA: NONE, SA: NONE, SY: NONE, AE: NONE, YE: NONE,
+  AG: NONE, AR: NONE, BS: NONE, BB: NONE, BR: 'only an undated "Portuguese 99.5%"', CR: NONE, CU: NONE, DM: NONE, DO: NONE,
+  SV: NONE, GD: NONE, GY: NONE, HT: NONE, HN: NONE, JM: NONE, PA: NONE, KN: NONE, LC: NONE, VC: NONE, SR: NONE, TT: NONE, UY: NONE,
+  FJ: NONE, KI: NONE, FM: NONE, PG: NONE, SB: NONE, TV: NONE,
+}
