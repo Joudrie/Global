@@ -171,3 +171,18 @@ test('the favourite star: a labelled toggle beside the card, never inside its bu
   assert.match(css, /@media \(hover: hover\) and \(pointer: fine\) \{\s*\.fav-star:hover/, 'hidden until hover only where there is hover')
   assert.match(css, /prefers-reduced-motion: reduce\) \{\s*\.fav-star \{ transition: none; \}/)
 })
+
+test("Play: Creator's Picks in the creator's order, Jump back in skips favourites, Top games above Recommended, View all A–Z", async () => {
+  const reg = await import(path.join(ROOT, 'src/ui/registry.ts'))
+  assert.deepEqual(reg.creatorPicks().map(e => e.title),
+    ['Abroad', 'Flag Fusion', 'Flag Studio', 'Flag Identifier', 'Guess the Language', 'Real or Bot', 'Lineage'])
+  const az = reg.allGamesAZ()
+  assert.equal(new Set(az.map(e => e.id)).size, az.length, 'each game once')
+  assert.deepEqual(az.map(e => e.title), [...az.map(e => e.title)].sort((a, b) => a.localeCompare(b)))
+  assert.ok(az.length >= reg.GAME_COUNT)
+  const tabs = fs.readFileSync(path.join(ROOT, 'src/components/MainTabs.tsx'), 'utf8')
+  const at = t => tabs.indexOf(`title="${t}"`)
+  assert.ok(at('Favourites') < at('Jump back in') && at('Jump back in') < at("Creator's Picks") &&
+    at("Creator's Picks") < at('Top games') && at('Top games') < at('Recommended for you'), 'shelf order')
+  assert.match(tabs, /filter\(\(e\): e is Entry => !!e && !fav\.on\(e\.id\)\)/, 'Jump back in leaves out starred games')
+})

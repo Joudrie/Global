@@ -149,6 +149,19 @@ export const GAME_COUNT = GAMES.length
 /** Tools that open from Play beside the games. */
 export const TOOLS: Entry[] = REGISTRY.filter(e => e.tool)
 
+// Creator's Picks: the creator's own favourites, in the creator's order
+// (Play tab shelf).
+export const CREATOR_PICKS: string[] = ["abroad", "flagfusion", "flagstudio", "flagidentifier", "language", "realorbot", "lineage"]
+export const creatorPicks = (): Entry[] =>
+  CREATOR_PICKS.map(id => REGISTRY.find(e => e.id === id)).filter((e): e is Entry => !!e)
+
+/** Every game and tool once, A–Z by title: the Play tab's View all page. */
+export const allGamesAZ = (): Entry[] => {
+  const seen = new Set<string>()
+  return [...GAMES, ...TOOLS].filter(e => !seen.has(e.id) && !!seen.add(e.id))
+    .sort((a, b) => a.title.localeCompare(b.title))
+}
+
 /** Old game ids → the game that took them over. Links (?play=…) and saved
  *  recents with an old id open the new game. Cities Abroad and Countries
  *  Abroad became the two switches of Abroad; ABROAD_LINK_KINDS says which
