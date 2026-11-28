@@ -4,7 +4,7 @@
 // the data: update them when the galleries change.
 export const CODEX_COUNTS = {
   /** Mega Codex A–Z: every flag in the app (megaCodex.ts ALL_FLAGS_AZ). */
-  mega: 5017,
+  mega: 5018,
   /** Peoples & Cultures rows (codexGalleries.ts peoplesRegions). */
   peoples: 1163,
   /** The Identity categories shown as their own sections, in order. */

@@ -119,12 +119,18 @@ function gatherAllFlags(): MegaFlag[] {
   // one (Madrid, the city and the region) and called "Madrid (city)".
   const urlOf = new Map(all.map(f => [f.title.toLowerCase(), f.url]))
   const countryName = new Map(FLAGS.map(f => [f.code, /^(Netherlands|United |Czech Republic)/.test(f.name) ? `the ${f.name}` : f.name]))
+  // Two cities of one name (Brest in Belarus and in France): the second is
+  // "Brest (France)", not dropped as a duplicate.
+  const plainName = new Map(FLAGS.map(f => [f.code, f.name]))
   EUROPE_CITY_FLAGS.forEach(c => {
     const prev = urlOf.get(c.name.toLowerCase())
     const file = decodeURIComponent(c.commons.replace(/^.*\/File:/, "")).replace(/_/g, " ")
     if (prev && (prev === c.flagUrl || prev === fp(file))) return
     const city = `A city in ${countryName.get(c.country)}, home to ${formatPopulation(c.population)} people (${c.year}).`
-    push(prev ? `${c.name} (city)` : c.name, c.flagUrl, c.description ? `${city} ${c.description}` : city)
+    let title = prev ? `${c.name} (city)` : c.name
+    if (urlOf.has(title.toLowerCase())) title = `${c.name} (${plainName.get(c.country)})`
+    urlOf.set(title.toLowerCase(), c.flagUrl)
+    push(title, c.flagUrl, c.description ? `${city} ${c.description}` : city)
   })
   return all
 }

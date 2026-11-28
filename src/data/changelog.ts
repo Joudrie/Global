@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "Flag Identifier finds city flags",
+    items: [
+      "Flag Identifier now searches 3,619 flags, up from 3,230: 389 city flags of Europe joined, so describing red-black-red with three white crosses finds Amsterdam. Pick City as the kind to search city flags first.",
+      "The flag wall at the bottom of the Codex (now called See every flag on one wall) shows every flag in the Codex, about 4,300 images, up from 2,850. City flags, peoples' flags, organisations and former states are on it now.",
+      "Brest in France is back in the Mega Codex, beside Brest in Belarus.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "City flags in the Codex (beta)",
     items: [
       "A new City Flags section lists cities by continent, then by country: open France and you'll find its 24 cities from Paris down, each with its flag, population and, for well-known flags, a line on what it shows.",

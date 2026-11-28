@@ -1,5 +1,5 @@
-// Flag Identifier: the rest of the Codex, the flags its "Browse all 4,500+
-// flags" wall shows that more.mjs doesn't describe yet. Same words and same
+// Flag Identifier: the rest of the Codex, the flags its Mega Codex
+// (megaCodex.ts) holds that more.mjs doesn't describe yet. Same words and same
 // keys as more.mjs, plus:
 //   'eth:<file>'          src/data/ethnicFlags.ts    (peoples and cultures)
 //   'ext:<file>'          src/data/extinctStates.ts  (former states)
