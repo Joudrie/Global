@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { FlagRecord } from '../data/flags'
 import { CODEX } from '../data/codex'
 import { UK_NATIONS } from '../data/ukNations'
@@ -440,7 +440,9 @@ function SubRegionTile({ sr, confirmedNoFlags, onSelect, selected }: { sr: SubRe
           />
         : (sr.noFlag || confirmedNoFlags) ? NO_FLAG_PLACEHOLDER : UNKNOWN_FLAG_PLACEHOLDER
       }
-      <span style={{ fontSize: 8.5, color: selected ? T.green : T.muted, textAlign: 'center', lineHeight: 1.2, wordBreak: 'break-word' }}>{sr.name}</span>
+      {/* Hyphenate long names ("Aberdeen-shire") where the browser can, rather
+          than splitting them at any letter ("Aberdeenshi / re"). */}
+      <span style={{ fontSize: 8.5, color: selected ? T.green : T.muted, textAlign: 'center', lineHeight: 1.2, wordBreak: 'break-word', hyphens: 'auto', WebkitHyphens: 'auto' }}>{sr.name}</span>
     </>
   )
   const colStyle: React.CSSProperties = { display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4 }
@@ -462,8 +464,14 @@ const GRID_STYLE: React.CSSProperties = { display: 'grid', gridTemplateColumns: 
 // Inline detail panel — a tapped subdivision shows a larger flag + a fact right
 // above the grid, so detailed flags become legible without leaving the page.
 function SubDetailPanel({ sr, facts, onClose }: { sr: SubRegion; facts: Facts | null; onClose: () => void }) {
+  // A tile further down the grid opens this panel off screen, above it: bring it into view.
+  const ref = useRef<HTMLDivElement>(null)
+  useEffect(() => {
+    const reduce = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches
+    ref.current?.scrollIntoView({ block: 'nearest', behavior: reduce ? 'auto' : 'smooth' })
+  }, [sr.code])
   return (
-    <div style={{ marginBottom: 14, padding: 12, borderRadius: 12, background: T.surface, border: `1px solid ${tint(T.green, 0.4)}` }}>
+    <div ref={ref} style={{ marginBottom: 14, padding: 12, borderRadius: 12, background: T.surface, border: `1px solid ${tint(T.green, 0.4)}`, scrollMarginTop: 12 }}>
       <div style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
         {sr.flagUrl && (
           <img src={sr.flagUrl} alt={sr.name}
