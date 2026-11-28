@@ -60,9 +60,9 @@ const KIND_ICON: Record<IdentifyCategory, LucideIcon> = {
 
 const COUNTRY = new Map(FLAGS.map(f => [f.code, f]))
 const TOTAL = IDENTIFY_FLAGS.length.toLocaleString("en-US")   // "1,192"
-// The Codex's whole collection, as the Codex and home screen put it ("Browse
-// all 4,500+ flags"). The identifier covers part of it so far, and says so,
-// so it never reads as if it searched everything.
+// The Codex's whole collection, as the home screen puts it ("Explore 5,000+
+// flags"). The identifier covers most of it so far, and says so, so it never
+// reads as if it searched everything.
 const CODEX_TOTAL = "5,000+"
 const SO_FAR = `${TOTAL} of the Codex's ${CODEX_TOTAL} flags so far`
 // Only the kinds that have flags yet: a kind with none would be a dead choice.

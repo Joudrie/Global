@@ -380,14 +380,9 @@ test('the rest of the Codex: most of its flags are searchable, each described fr
   const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
   const imgs = new Set([...IDENTIFY_FLAGS.map(e => e.img).filter(Boolean), ...FLAGS.map(f => f.flagUrl)])
   const names = new Set(IDENTIFY_FLAGS.map(e => e.name.toLowerCase()))
-  // Europe's city flags (cityFlags.ts) joined the Codex before the identifier
-  // described them; they're counted once the wcity: source lands in build.mjs.
-  const { EUROPE_CITY_FLAGS } = await src('data/cityFlags.ts')
-  const cityUrls = new Set(EUROPE_CITY_FLAGS.map(c => c.flagUrl))
-  const rest = ALL_FLAGS_AZ.filter(f => !cityUrls.has(f.url))
-  const covered = rest.filter(f => imgs.has(f.url) || names.has(f.title.toLowerCase())).length
-  assert.ok(IDENTIFY_FLAGS.length >= 3000, `${IDENTIFY_FLAGS.length}`)
-  assert.ok(covered / rest.length >= 0.8, `${covered} of ${rest.length}`)
+  const covered = ALL_FLAGS_AZ.filter(f => imgs.has(f.url) || names.has(f.title.toLowerCase())).length
+  assert.ok(IDENTIFY_FLAGS.length >= 3500, `${IDENTIFY_FLAGS.length}`)
+  assert.ok(covered / ALL_FLAGS_AZ.length >= 0.8, `${covered} of ${ALL_FLAGS_AZ.length}`)
   // Newly searchable: Gibraltar (a castle and a key, filed under the territory,
   // not its people), a Kenyan county, a people's flag and a former state. A
   // people's flag that is another flag already in under a different name
@@ -403,6 +398,38 @@ test('the rest of the Codex: most of its flags are searchable, each described fr
   assert.equal(hausa?.label, 'People, Africa')
   assert.equal(rankAll(ask({ kind: 'identity', layouts: ['hstripes', 'disc'], colors: ['blue', 'white'], details: ['animal'] }))[0].entry.name, 'Lango people')
   assert.ok(IDENTIFY_FLAGS.some(e => e.label === 'Former state'))
-  // World city flags get their own source once src/data/cityFlags.ts lands.
-  assert.match(read('scripts/flag-identifier/build.mjs'), /cityFlags\.ts/)
+})
+
+test("Europe's city flags: named as the Codex names them, and found from a description", async () => {
+  const { EUROPE_CITY_FLAGS } = await src('data/cityFlags.ts')
+  const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
+  const cities = IDENTIFY_FLAGS.filter(e => e.code.startsWith('wcity-'))
+  assert.ok(cities.length >= 350, `${cities.length}`)
+  const title = new Map(ALL_FLAGS_AZ.map(f => [f.url, f.title]))
+  for (const e of cities) {
+    assert.equal(e.category, 'city', e.code)
+    const c = EUROPE_CITY_FLAGS.find(x => `wcity-${x.id}` === e.code && x.flagUrl === e.img)
+    assert.ok(c, e.code)
+    // The Codex's own title; a city it doesn't list by name (Pleven, the same
+    // flag as its region; Brest in France beside Brest in Belarus) keeps the
+    // city's name, with its country when another flag has that name.
+    assert.ok([title.get(e.img), c.name].includes(e.name) || e.name.startsWith(`${c.name} (`), e.code)
+    assert.match(e.label, /^(Capital|City) of /, e.code)
+  }
+  // A city named like a region already in is "X (city)", never a second "X".
+  const others = new Set(IDENTIFY_FLAGS.filter(e => !e.code.startsWith('wcity-')).map(e => e.name.toLowerCase()))
+  const cityNames = cities.map(e => e.name.toLowerCase())
+  assert.equal(new Set(cityNames).size, cityNames.length, 'two cities share a name')
+  for (const e of cities) assert.ok(!others.has(e.name.toLowerCase()), `${e.code}: ${e.name} is another flag's name`)
+  assert.equal(BY.get('wcity-fr-brest').name, 'Brest (France)')
+  assert.equal(BY.get('wcity-at-salzburg').name, 'Salzburg (city)')   // the state of Salzburg is in too
+  // Amsterdam: red, black and red with three white saltires on the black.
+  const ams = rankAll(ask({ layouts: ['hstripes'], colors: ['red', 'black', 'white'], details: ['cross'] }))
+  assert.equal(ams[0].entry.code, 'wcity-nl-amsterdam')
+  assert.equal(ams[0].entry.label, 'Capital of the Netherlands')
+  assert.equal(rankAll(ask({ kind: 'city', layouts: ['hstripes'], colors: ['red', 'black', 'white'] }))[0].entry.code, 'wcity-nl-amsterdam')
+  // Saint Petersburg's anchors stay the federal city's: one entry, not two.
+  assert.equal(IDENTIFY_FLAGS.filter(e => /^Saint Petersburg/.test(e.name)).length, 1)
+  // Gibraltar-style castles and keys: Angers, red and blue halves with a key and fleurs-de-lis.
+  assert.equal(rankAll(ask({ layouts: ['vstripes', 'split'], colors: ['red', 'blue'], details: ['key', 'fleur'] }))[0].entry.code, 'wcity-fr-angers')
 })

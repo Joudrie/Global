@@ -68,7 +68,7 @@ interface Props {
   /** Rendered inside the dashboard's Codex tab: no back button on the list
    *  view (the bottom tab bar is the navigation). */
   embedded?: boolean
-  /** "Browse all 4,500+ flags" at the bottom: every flag on one scrolling wall. */
+  /** "See every flag on one wall" at the bottom: the Mega Codex wall. */
   onBrowseAll?: () => void
 }
 
@@ -315,7 +315,7 @@ export default function CodexScreen({ onBack, initialCode, embedded = false, onB
             style={{ width: "100%", minHeight: 48, marginTop: 24, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600,
               display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
               background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
-            <LineIcon name="codex" size={14} color={T.muted} /> Browse all 4,500+ flags
+            <LineIcon name="codex" size={14} color={T.muted} /> See every flag on one wall
           </button>
         )}
         {/* Coats of arms (beta) — national emblems by region */}

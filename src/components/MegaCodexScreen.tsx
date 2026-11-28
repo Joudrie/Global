@@ -4,6 +4,7 @@ import { SUB_FLAGS } from "../data/subdivisions"
 import { HISTORICAL_FLAGS } from "../data/historicalFlags"
 import { IDENTITY_FLAGS } from "../data/identityFlags"
 import { CODEX } from "../data/codex"
+import { ALL_FLAGS_AZ } from "../data/megaCodex"
 import { T, tint } from "../ui/tokens"
 import { ChevronLeftIcon } from "./icons"
 
@@ -24,6 +25,9 @@ function gatherFlagUrls(): string[] {
       hf.parallel?.forEach(p => urls.add(p.flagUrl))
     })
   })
+  // Everything else in the Codex: peoples, extinct states, organisations,
+  // city flags (megaCodex.ts). Flags that share an image show once.
+  ALL_FLAGS_AZ.forEach(f => urls.add(f.url))
   return [...urls].filter(u => !EXCLUDE(u)).sort(() => Math.random() - 0.5)
 }
 

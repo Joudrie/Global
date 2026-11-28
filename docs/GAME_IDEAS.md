@@ -42,7 +42,7 @@ category: draft it with `measure.mjs` (or make contact sheets with
 `sheets.mjs <dir> <kind>`), check and correct every line by eye, add the
 lines, rebuild, and run `npm test`.
 
-Covered (3,230 flags, Nov 2026), 3,882 of the 4,573 entries on the Codex's
+Covered (3,619 flags, Nov 2026), 4,270 of the 5,017 entries on the Codex's
 Browse-all wall (the rest are mostly the same flag under another name, or
 left out below):
 - Countries: all 197.
@@ -50,7 +50,9 @@ left out below):
   `subdivisions.ts` (every US state, Canada, Australia, Germany, Spain, Japan,
   Russia, Thailand, Kenya, Romania, Indonesia, Peru, Ukraine, Ireland…), UK
   councils, dependent territories (Gibraltar, Bermuda, the Falklands…).
-- US cities: 110 of the 124 in `usCityFlags.ts`.
+- Cities (499): 110 of the 124 US cities in `usCityFlags.ts`, and 389 of the
+  491 city flags of Europe in `cityFlags.ts` (34 more are the same image as a
+  flag already in, like Berlin or Prague, and are found as that flag).
 - Historical (780): `historicalFlags.ts`, the extinct-states gallery, the
   former flags in every country's history in the Codex, and the UK nations'
   old banners.
@@ -66,9 +68,14 @@ flag, and every flag was then checked by eye and corrected before its line
 went in. Crosses, discs, triangles and all symbols are added by eye.
 
 Left to do:
-- World city flags (`src/data/cityFlags.ts`, on another branch): add a
-  `wcity:` source to `build.mjs` (it prints a reminder once the file is
-  there) and describe them in `codex.mjs` the same way.
+- City flags outside Europe and the US, when the Codex has them: add them to
+  `cityFlags.ts` and describe them under `wcity:` in `codex.mjs`.
+- European city flags left out (68, listed in `codex.mjs`): 50 coats of arms
+  or seals on a plain or gironny field that can't be told from two or more
+  others (Bucharest, Sofia, Reykjavík, most Portuguese gonfalons…), the
+  Liechtenstein ribbon banners, Le Havre, and Zurich, Geneva, Bern, Lucerne,
+  Aberdeen, Dundee and Saint Petersburg, whose city flag is their canton's,
+  council's or federal city's, already in.
 - Left out, listed in `codex.mjs` by name (about 390 flags): a seal or coat
   of arms on one plain colour that can't be told from three or more others
   (52, mostly Japan, Peru, Bulgaria, Montenegro), most Romanian, Thai, Korean,
