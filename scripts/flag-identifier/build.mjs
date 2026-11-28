@@ -36,6 +36,10 @@ const { ORG_FLAGS } = await data('orgFlags.ts')
 const { CODEX } = await data('codex.ts')
 const { TERRITORIES } = await data('territories.ts')
 const { UK_NATIONS } = await data('ukNations.ts')
+const { EUROPE_CITY_FLAGS } = await data('cityFlags.ts')
+const { ALL_FLAGS_AZ } = await data('megaCodex.ts')
+/** A city's name as the Codex shows it: "Madrid (city)" where a region has the plain name. */
+const CODEX_TITLE = new Map(ALL_FLAGS_AZ.map(f => [f.url, f.title]))
 const TERRITORY_BY_IMG = new Map(Object.values(TERRITORIES).flat().filter(t => t.flagUrl && !t.noFlag).map(t => [t.flagUrl, t]))
 const { fp } = await data('flagUrl.ts')
 const { stripFlagOf, splitParen } = await data('codexGalleries.ts')
@@ -226,6 +230,15 @@ function source(key) {
     if (!h) throw new Error(`${key}: no such flag in ${nation}'s history`)
     return { code: `uk-${slug(nation)}-${slug(label)}`, name: h.label, category: 'historical', label: `Historic flag of ${nation}`, img: h.flagUrl, note: h.note }
   }
+  if (src === 'wcity') {
+    const c = EUROPE_CITY_FLAGS.find(x => x.id === id)
+    if (!c) throw new Error(`${key}: no such city flag`)
+    return {
+      code: `wcity-${c.id}`, name: CODEX_TITLE.get(c.flagUrl) ?? c.name, category: 'city',
+      label: `${c.capital ? 'Capital' : 'City'} of ${theName(COUNTRY_NAME.get(c.country) ?? c.country)}`,
+      img: c.flagUrl, ...(c.description ? { note: firstSentence(c.description) } : {}),
+    }
+  }
   throw new Error(`${key}: unknown source "${src}"`)
 }
 
@@ -258,6 +271,13 @@ export function entries() {
   if (extra.length) throw new Error(`checked.mjs has lines for unknown codes: ${extra.join(', ')}`)
   const countries = FLAGS.map(f => ({ code: f.code, name: f.name, category: 'country', label: 'Country', ...parseLine(f.code, CHECKED[f.code]) }))
   const all = [...countries, ...Object.keys(LINES).map(moreEntry)]
+  // A city the Codex doesn't list under its own name (it keeps one flag per
+  // name: Brest in France beside Brest in Belarus) gets its country added.
+  const taken = new Set(all.filter(e => !e.code.startsWith('wcity-')).map(e => e.name.toLowerCase()))
+  for (const e of all.filter(x => x.code.startsWith('wcity-'))) {
+    if (taken.has(e.name.toLowerCase())) e.name = `${e.name.replace(/ \(city\)$/, '')} (${COUNTRY_NAME.get(EUROPE_CITY_FLAGS.find(c => `wcity-${c.id}` === e.code).country)})`
+    taken.add(e.name.toLowerCase())
+  }
   // One entry per flag: a code or an image twice means the same flag was added twice.
   for (const field of ['code', 'img']) {
     const seen = new Map()
@@ -346,10 +366,6 @@ ${others.map(([n]) => `  ...${n},`).join('\n')}
 if (import.meta.url === pathToFileURL(process.argv[1]).href) {
   const all = entries()
   for (const [file, text] of Object.entries(render())) fs.writeFileSync(file, text)
-  // World city flags (src/data/cityFlags.ts, from another branch) aren't described yet.
-  if (fs.existsSync(path.join(ROOT, 'src/data/cityFlags.ts'))) {
-    console.log('[flag-identifier] src/data/cityFlags.ts is here: add a wcity: source above and describe its flags in codex.mjs')
-  }
   const counts = IDENTIFY_CATEGORIES.map(c => `${all.filter(e => e.category === c.id).length} ${c.id}`).join(', ')
   console.log(`[flag-identifier] wrote ${path.relative(ROOT, OUT)} and ${path.relative(ROOT, COUNTRIES_OUT)} (${all.length} flags: ${counts})`)
   if (process.env.REPORT) {
