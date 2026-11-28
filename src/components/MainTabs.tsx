@@ -883,7 +883,7 @@ function MiniTile({ e, accent, onClick }: { e: Entry; accent: string; onClick: (
       style={{ minWidth: 0, display: "flex", flexDirection: "column", alignItems: "stretch", gap: 5, padding: 0, background: "transparent", border: "none", textAlign: "center", cursor: "pointer" }}>
       <span style={{ position: "relative", display: "block", width: "100%", aspectRatio: "1 / 1", borderRadius: 14, overflow: "hidden",
         border: `1px solid ${T.line}`, background: tint(accent, 0.08) }}>
-        <GamePoster id={e.id} accent={accent} />
+        <GamePoster id={e.id} accent={accent} variant="square" />
       </span>
       <span className="geo-display" style={{ color: T.text, fontWeight: 600, fontSize: 11, lineHeight: 1.15,
         display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical", overflow: "hidden", overflowWrap: "anywhere" }}>{e.title}</span>

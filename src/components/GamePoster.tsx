@@ -148,12 +148,12 @@ function PosterPie({ size }: { size: number }) {
   )
 }
 
-function Versus({ a, b, accent, hero, arrows = false }: { a: string; b: string; accent: string; hero: boolean; arrows?: boolean }) {
+function Versus({ a, b, accent, hero, arrows = false, focusB }: { a: string; b: string; accent: string; hero: boolean; arrows?: boolean; focusB?: string }) {
   const badge: CSSProperties = { position: "absolute", top: "8%", borderRadius: 999, padding: hero ? 4 : 2, display: "flex", background: `${T.surface}F0`, boxShadow: `0 2px 6px -2px ${tint(T.text, 0.6)}` }
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", gap: 2, background: T.line }}>
       <div style={{ flex: 1, overflow: "hidden" }}>{flag(a)}</div>
-      <div style={{ flex: 1, overflow: "hidden" }}>{flag(b)}</div>
+      <div style={{ flex: 1, overflow: "hidden" }}>{flag(b, focusB ? { objectPosition: focusB } : {})}</div>
       {arrows && (
         <>
           <span style={{ ...badge, left: "7%" }}><ArrowUp size={hero ? 16 : 12} color={T.green} strokeWidth={2.4} /></span>
@@ -166,7 +166,18 @@ function Versus({ a, b, accent, hero, arrows = false }: { a: string; b: string; 
 }
 
 // Three items in sequence with connectors (lineage / timeline).
-function FlagRow({ items, accent, hero }: { items: { code?: string; src?: string }[]; accent: string; hero: boolean }) {
+function FlagRow({ items, accent, hero, sq = false }: { items: { code?: string; src?: string }[]; accent: string; hero: boolean; sq?: boolean }) {
+  // A square tile is too narrow for three flags side by side: stack them.
+  if (sq) return (
+    <div style={{ position: "absolute", inset: 0, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", gap: 2, background: `radial-gradient(120% 120% at 50% 22%, ${tint(accent, 0.2)}, ${tint(accent, 0.06)})` }}>
+      {items.map((it, i) => (
+        <div key={i} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 2, width: "34%" }}>
+          {i > 0 && <span style={{ width: 2, height: 3, background: tint(accent, 0.6) }} />}
+          <MiniFlag code={it.code} src={it.src} style={{ width: "100%" }} />
+        </div>
+      ))}
+    </div>
+  )
   return (
     <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", gap: hero ? 8 : 4, padding: hero ? "0 14px" : "0 7px", background: `radial-gradient(120% 120% at 50% 22%, ${tint(accent, 0.2)}, ${tint(accent, 0.06)})` }}>
       {items.map((it, i) => (
@@ -258,7 +269,8 @@ function AbroadStamps({ id }: { id: string }) {
 
 // id → scene. `bleed` scenes get the framed inset stage in the hero variant so
 // the flag's edges always show; composed scenes already frame themselves.
-function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode; bleed: boolean } {
+// sq: the All page's square tile, which crops wide art at the sides.
+function buildArt(id: string, accent: string, hero: boolean, sq = false): { node: ReactNode; bleed: boolean } {
   const wash = `radial-gradient(120% 120% at 50% 22%, ${tint(accent, 0.22)}, ${tint(accent, 0.07)})`
   const box: CSSProperties = { position: "absolute", inset: 0 }
 
@@ -621,7 +633,7 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
       ) }
     case "statclash":
       // Largest country vs smallest.
-      return { bleed: true, node: <Versus a="ru" b="va" accent={accent} hero={hero} /> }
+      return { bleed: true, node: <Versus a="ru" b="va" accent={accent} hero={hero} focusB="78% 50%" /> }
     case "higherlower":
       return { bleed: true, node: <Versus a="cn" b="in" accent={accent} hero={hero} arrows /> }
 
@@ -630,7 +642,7 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
       // Someone speaking; the bubble holds candidate flags and a mystery.
       return { bleed: false, node: (
         <div style={{ ...box, background: wash, display: "flex", alignItems: "center", justifyContent: "center", gap: hero ? 12 : 7 }}>
-          <Speech size={hero ? 36 : 24} color={accent} strokeWidth={1.5} />
+          {!sq && <Speech size={hero ? 36 : 24} color={accent} strokeWidth={1.5} />}
           <div style={{ position: "relative", display: "flex", alignItems: "center", gap: hero ? 6 : 4, padding: hero ? "8px 12px" : "5px 8px", borderRadius: 12, background: T.surface, border: `1px solid ${T.line}`, boxShadow: `0 2px 6px -3px ${tint(T.text, 0.5)}` }}>
             <span style={{ position: "absolute", left: -5, top: "50%", width: 9, height: 9, transform: "translateY(-50%) rotate(45deg)", background: T.surface, borderLeft: `1px solid ${T.line}`, borderBottom: `1px solid ${T.line}` }} />
             <MiniFlag code="it" style={{ width: hero ? 26 : 18, boxShadow: "none" }} />
@@ -646,8 +658,8 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
       return { bleed: false, node: (
         // On a tile the art keeps left and low, clear of the favourite star,
         // and the labels drop their shares.
-        <div style={{ ...box, background: wash, display: "flex", alignItems: hero ? "center" : "flex-end", justifyContent: hero ? "center" : "flex-start",
-          gap: hero ? 16 : 6, padding: hero ? 0 : "0 0 8px 10px" }}>
+        <div style={{ ...box, background: wash, display: "flex", flexDirection: sq ? "column" : "row", alignItems: hero || sq ? "center" : "flex-end", justifyContent: hero || sq ? "center" : "flex-start",
+          gap: hero ? 16 : 6, padding: hero || sq ? 0 : "0 0 8px 10px" }}>
           <PosterPie size={hero ? 76 : 40} />
           <div style={{ display: "flex", flexDirection: "column", gap: hero ? 4 : 2 }}>
             {POSTER_PIE.filter(p => p.label).map(p => (
@@ -711,7 +723,7 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
       // The Soviet flag — the canonical "vanished" flag.
       return { bleed: true, node: (
         <div style={{ ...box, background: "#8a1f1f" }}>
-          {urlImg(SOVIET)}
+          {urlImg(SOVIET, { objectPosition: "0% 50%" })}
           <div style={{ position: "absolute", right: hero ? 10 : 5, bottom: hero ? 8 : 4, color: T.muted, background: `${T.surface}F0`, borderRadius: 999, padding: hero ? 6 : 4, display: "flex", border: `1px solid ${T.line}` }}>
             <LineIcon name="deadoralive" size={hero ? 18 : 12} color={T.muted} />
           </div>
@@ -720,10 +732,10 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
     }
     case "timeline":
       // One country, three eras: Russian Empire → Soviet Union → Russia.
-      return { bleed: false, node: <FlagRow items={[{ src: RUSSIAN_EMPIRE }, { src: SOVIET }, { code: "ru" }]} accent={accent} hero={hero} /> }
+      return { bleed: false, node: <FlagRow items={[{ src: RUSSIAN_EMPIRE }, { src: SOVIET }, { code: "ru" }]} accent={accent} hero={hero} sq={sq} /> }
     case "lineage":
       // A real family tree: the Union Jack and its descendants.
-      return { bleed: false, node: <FlagRow items={[{ code: "gb" }, { code: "au" }, { code: "nz" }]} accent={accent} hero={hero} /> }
+      return { bleed: false, node: <FlagRow items={[{ code: "gb" }, { code: "au" }, { code: "nz" }]} accent={accent} hero={hero} sq={sq} /> }
 
     // ── Challenge ──
     case "gauntlet":
@@ -871,9 +883,9 @@ function buildArt(id: string, accent: string, hero: boolean): { node: ReactNode;
 }
 
 export function GamePoster({ id, accent, variant = "tile" }:
-  { id: string; accent: string; variant?: "tile" | "hero" }) {
+  { id: string; accent: string; variant?: "tile" | "hero" | "square" }) {
   const hero = variant === "hero"
-  const { node, bleed } = buildArt(id, accent, hero)
+  const { node, bleed } = buildArt(id, accent, hero, variant === "square")
   if (hero && bleed) {
     // Inset stage: the flag art floats framed on the wash, edges fully visible.
     return (
