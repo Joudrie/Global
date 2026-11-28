@@ -41,7 +41,7 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
   const { EXTINCT_STATES } = await src('data/extinctStates.ts')
   const { HISTORICAL_FLAGS } = await src('data/historicalFlags.ts')
   const { ORG_FLAGS } = await src('data/orgFlags.ts')
-  const { US_CITY_FLAGS } = await src('data/usCityFlags.ts')
+  const { ALL_ATLAS_CITIES } = await src('data/cityAtlas.ts')
   const { ALL_FLAGS_AZ } = await src('data/megaCodex.ts')
   const { COATS_OF_ARMS } = await src('data/coatsOfArms.ts')
   const inCat = c => IDENTITY_FLAGS.filter(f => f.category === c).length
@@ -51,7 +51,7 @@ test('CODEX_COUNTS match the Codex galleries', async () => {
     identity: IDENTITY_CATEGORIES.filter(g.isIdentityMain).map(c => [c, inCat(c)]),
     micronations: inCat('Micronations'),
     extinct: g.rowCount(g.extinctRegions(EXTINCT_STATES, HISTORICAL_FLAGS)),
-    usCities: US_CITY_FLAGS.length,
+    cities: ALL_ATLAS_CITIES.length,
     orgs: g.rowCount(g.orgRegions(ORG_FLAGS)),
     signal: SIGNAL_FLAGS.length,
     arms: COATS_OF_ARMS.length,

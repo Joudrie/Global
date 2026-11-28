@@ -36,7 +36,6 @@ function useData<V>(data: LazyData<V>, when: boolean): V | undefined {
 const loadCountry = () => import('./CodexCountry')
 const CountryDetail = lazy(loadCountry)
 const IDENTITY = lazyData(() => import('../data/identityFlags'))
-const US_CITIES = lazyData(() => import('../data/usCityFlags').then(m => [...m.US_CITY_FLAGS].sort((a, b) => a.name.localeCompare(b.name))))
 const PEOPLES = lazyData(() => Promise.all([import('../data/codexGalleries'), import('../data/ethnicFlags'), import('../data/identityFlags')])
   .then(([g, e, i]) => g.peoplesRegions(e.ETHNIC_FLAGS, i.IDENTITY_FLAGS)))
 const EXTINCT = lazyData(() => Promise.all([import('../data/codexGalleries'), import('../data/extinctStates'), import('../data/historicalFlags')])
@@ -47,6 +46,9 @@ const ALL_FLAGS = lazyData(() => import('../data/megaCodex').then(m => m.ALL_FLA
 // (its own chunk) when a row opens. The images are fetched by the rows.
 const ARMS = lazyData(() => import('../data/coatsOfArms').then(m => m.COATS_OF_ARMS))
 const ArmsDetail = lazy(() => import('./CodexArms'))
+// City flags (beta): continents, countries and cities, with their data, in one
+// chunk loaded when the section opens.
+const CitiesBrowser = lazy(() => import('./CodexCities'))
 
 // Etched line icon per continent — cartographer style, never emoji.
 const REGION_ICONS: Record<string, typeof Castle> = {
@@ -301,8 +303,8 @@ export default function CodexScreen({ onBack, initialCode, embedded = false, onB
         {!isSearching && <MicronationsCodexSection />}
         {/* Extinct states — the Commons "Flags of extinct states" gallery */}
         {!isSearching && <ExtinctStatesCodexSection />}
-        {/* American city flags — beta, lots of municipal flags */}
-        {!isSearching && <AmericanCitiesCodexSection />}
+        {/* City flags (beta) — by continent and country; the U.S. under North America */}
+        {!isSearching && <CityFlagsCodexSection />}
         {/* International organizations — UN, NATO, EU, AU, FIFA, IOC… */}
         {!isSearching && <OrgCodexSection />}
         {/* Maritime / signal alphabet — last of the themed sections */}
@@ -469,51 +471,28 @@ function IdentityCodexSection() {
   )
 }
 
-// ── American city flags (Beta) — lots of municipal flags ──
-function AmericanCitiesCodexSection() {
+// ── City flags (Beta): continent → country → its cities, biggest first ──
+function CityFlagsCodexSection() {
+  const color = T.chartreuse
   const [open, setOpen] = useState(false)
-  const [openFlag, setOpenFlag] = useState<string | null>(null)
-  const cities = useData(US_CITIES, open)
   return (
-    <div className="mt-5">
-      <button
-        onClick={() => setOpen(o => !o)}
+    <div className="mt-5" id="codex-cities">
+      <button onClick={() => setOpen(o => !o)} aria-expanded={open}
         className="geo-tap w-full flex items-center justify-between px-1 py-3 transition-all active:scale-[0.99]"
-        style={{ background: 'transparent', borderBottom: `1px solid ${open ? tint(T.chartreuse, 0.45) : T.line}` }}>
+        style={{ background: 'transparent', borderBottom: `1px solid ${open ? tint(color, 0.45) : T.line}` }}>
         <div className="text-left">
-          <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2" style={{ color: T.chartreuse }}>
-            <Building2 size={15} color={T.chartreuse} strokeWidth={1.6} absoluteStrokeWidth /> American Cities <span style={{ color: tint(T.chartreuse, 0.6), fontSize: 10 }}>(Beta)</span>
+          <h3 className="text-sm font-bold uppercase tracking-widest flex items-center gap-2" style={{ color }}>
+            <Building2 size={15} color={color} strokeWidth={1.6} absoluteStrokeWidth /> City Flags <span style={{ color: tint(color, 0.6), fontSize: 10 }}>(Beta)</span>
           </h3>
-          <p className="text-xs" style={{ color: T.dim }}>{CODEX_COUNTS.usCities} U.S. municipal flags</p>
+          <p className="text-xs" style={{ color: T.dim }}>{CODEX_COUNTS.cities.toLocaleString('en-US')} city flags · Europe and the U.S. so far</p>
         </div>
-        <ChevronDown size={17} color={T.chartreuse} strokeWidth={1.6} absoluteStrokeWidth
-        style={{ transition: 'transform 0.2s', transform: open ? 'rotate(180deg)' : 'rotate(0deg)', flexShrink: 0 }} />
+        <ChevronDown size={17} color={color} strokeWidth={1.6} absoluteStrokeWidth className="codex-chev"
+          style={{ transform: open ? 'rotate(180deg)' : 'rotate(0deg)' }} />
       </button>
-      {open && cities && (
-        <div className="mt-1.5 space-y-1.5">
-          {cities.map(f => {
-            const showNote = openFlag === f.id
-            return (
-              <button key={f.id} onClick={() => setOpenFlag(o => o === f.id ? null : f.id)}
-                className="geo-tap w-full px-1.5 py-2.5 rounded-lg transition-all active:scale-[0.99] text-left"
-                style={{ background: showNote ? tint(T.chartreuse, 0.07) : 'transparent', borderBottom: `1px solid ${tint(T.line, 0.55)}` }}>
-                <div className="flex items-center gap-3">
-                  <img src={f.flagUrl} alt={f.name}
-                    style={{ width: 46, height: 30, objectFit: 'contain', borderRadius: 5, border: `1px solid ${T.line}`, flexShrink: 0, background: T.surfaceHi }}
-                    onError={e => { (e.target as HTMLImageElement).style.opacity = '0.3' }} />
-                  <div className="flex-1 min-w-0">
-                    <div className="font-semibold text-sm truncate" style={{ color: T.text }}>{f.name}</div>
-                    <div className="text-xs" style={{ color: T.dim }}>{f.state}</div>
-                  </div>
-                  <span style={{ color: T.chartreuse, fontSize: 16, transition: 'transform 0.2s', transform: showNote ? 'rotate(90deg)' : 'rotate(0deg)' }}>›</span>
-                </div>
-                {showNote && (
-                  <p className="text-xs leading-relaxed mt-2.5" style={{ color: T.muted, lineHeight: 1.65 }}>{f.note}</p>
-                )}
-              </button>
-            )
-          })}
-        </div>
+      {open && (
+        <Suspense fallback={<p className="text-xs px-1 py-3" role="status" style={{ color: T.dim }}>Loading city flags…</p>}>
+          <CitiesBrowser color={color} />
+        </Suspense>
       )}
     </div>
   )

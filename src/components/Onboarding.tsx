@@ -50,7 +50,7 @@ const SLIDES: Slide[] = [
     left: <img src={ESTELADA} alt="" style={FLANK} />,
     right: <img src={KANAKA} alt="" style={FLANK} />,
     title: "Explore the Codex",
-    body: "Search 4,500+ flags — countries, historical states, regions, peoples and more. Tap any flag to learn its story.",
+    body: "Search 5,000+ flags — countries, historical states, regions, peoples and more. Tap any flag to learn its story.",
   },
 ]
 

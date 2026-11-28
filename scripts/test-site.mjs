@@ -12,7 +12,7 @@ if (!BASE || !BASE.startsWith('/') || !BASE.endsWith('/')) throw new Error('Set 
 const DIST = path.resolve('dist')
 const PAGES_ORIGIN = process.env.PAGES_ORIGIN ?? 'https://joudrie.github.io'
 
-const ROOTS = 'cf|flags|emblems|arms|fusion|studio-flags|flag-maker|flag-identifier|whats-new|fakes|identity|historical|games|privacy|contact|about|terms|favicon|manifest|logo|icon-|apple-touch|world-map|\\?play'
+const ROOTS = 'cf|flags|emblems|arms|city-flags|fusion|studio-flags|flag-maker|flag-identifier|whats-new|fakes|identity|historical|games|privacy|contact|about|terms|favicon|manifest|logo|icon-|apple-touch|world-map|\\?play'
 const rootPath = new RegExp(`(["'\`(])/(${ROOTS})`, 'g')
 
 function walk(dir) {

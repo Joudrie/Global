@@ -37,7 +37,7 @@ const CODEX_DECKS: { id: CodexDeckId; title: string; beta?: boolean; icon: Lucid
   { id: 'civic',        title: 'Civic & Ideological',         icon: Vote,      color: T.chartreuse, blurb: 'Causes, faiths and world bodies' },
   { id: 'micronations', title: 'Micronations',                icon: Crown,     color: T.green,      blurb: 'Self-declared nations' },
   { id: 'extinct',      title: 'Extinct & Former States',     icon: Landmark,  color: T.cyan,       blurb: 'Vanished states, by continent' },
-  { id: 'uscities',     title: 'American Cities', beta: true, icon: Building2, color: T.chartreuse, blurb: 'U.S. city flags' },
+  { id: 'cities',       title: 'City Flags',      beta: true, icon: Building2, color: T.chartreuse, blurb: 'City flags, by country' },
   { id: 'orgs',         title: 'International Organizations', icon: Building2, color: T.green,      blurb: 'UN, NATO, the Olympics, FIFA…' },
   { id: 'signal',       title: 'Signal & Maritime Flags',     icon: Anchor,    color: T.cyan,       blurb: 'Code flags, Alpha to Zulu' },
 ]
