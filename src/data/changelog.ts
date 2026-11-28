@@ -5,6 +5,15 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-27",
+    title: "City flags in the Codex (beta)",
+    items: [
+      "A new City Flags section lists cities by continent, then by country: open France and you'll find its 24 cities from Paris down, each with its flag, population and, for well-known flags, a line on what it shows.",
+      "Europe comes first, with 491 cities across 44 countries. The 124 American city flags now sit under North America → United States, sorted by size.",
+      "All of them are in the Mega Codex, which now holds over 5,000 flags, and in a new City Flags deck in Flashcards.",
+    ],
+  },
+  {
+    date: "2026-11-27",
     title: "Small fixes",
     items: [
       "Links to Globalio now show the tan globe logo in previews instead of an old map.",

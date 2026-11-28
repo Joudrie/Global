@@ -83,6 +83,33 @@ Left to do:
   the order of stripes (so tricolours in the same colours tie).
 
 ## Notes / smaller follow-ups
+- **City flags (Codex, beta).** The Codex's "City Flags" section lists cities by
+  continent, then country, biggest first: 491 cities in 44 European countries
+  (built by `scripts/cities/build.mjs` from Wikidata, English Wikipedia and
+  Wikimedia Commons; `--offline` rebuilds from its cache, `--selection` prints
+  what it picked and why the rest was left out) and the 124 U.S. cities of
+  `usCityFlags.ts` under North America. Each European country has its capital,
+  every place of 100,000 or more (at most 25), and at least 10 where it has
+  that many. Still to do:
+  - Other continents, one at a time, with the same rule: the rest of North
+    America (Canada, Mexico, the Caribbean), South America, Asia, Africa,
+    Oceania. Each needs a pass of `FLAG`/`DROP`
+    checks on contact sheets (logos and coats of arms filed as flags) and a
+    `LANGS` entry per country.
+  - A city flag game: "Which city?" (a flag, four cities of the same country),
+    built on `CITY_ATLAS` (`src/data/cityAtlas.ts`), with the U.S. City Flags
+    game folded in as its United States round. Flag Bracket could take a
+    "European cities" set the same way.
+  - Gaps on Wikidata: big cities with no flag image or no dated population
+    there (London and Athens have no flag at all; Linz, Espoo, Cluj-Napoca,
+    Timișoara, Manchester, Leeds…), Lyon (its only file is GFDL), and
+    Copenhagen and Luxembourg City (their files are logos).
+    Add them by hand in `FLAG`/`EXTRA` once a free file is on Commons.
+  - Descriptions: only the 35 cities whose flag has its own English Wikipedia
+    article have one. Other-language articles (de, fr, it, pl) would cover many
+    more, checked by hand.
+  - Smaller places with famous flags under the 100,000 line (Siena; Bruges is
+    already in) were left out on purpose; add them only by hand, with a reason.
 - **Coats of arms (Codex, beta).** The Codex's "Coats of arms" section (below
   "Browse all 4,500+ flags") covers every country: 192 current coats of arms,
   emblems and seals, 160 with former ones (479 images, 32 of them undated), and

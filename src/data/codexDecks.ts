@@ -1,6 +1,6 @@
 import type { GRegion } from "./codexGalleries"
 import type { IdentityCategory, IdentityFlag } from "./identityFlags"
-import type { CityFlag } from "./usCityFlags"
+import type { AtlasContinent } from "./cityAtlas"
 import type { MegaFlag } from "./megaCodex"
 import type { CountryArms } from "./coatsOfArms"
 import type { FlagRecord } from "./flags"
@@ -16,7 +16,7 @@ import type { FlagRecord } from "./flags"
 
 export type CodexDeckId =
   | "mega" | "peoples" | "pride" | "separatist" | "civic" | "micronations"
-  | "extinct" | "uscities" | "orgs" | "signal" | "arms"
+  | "extinct" | "cities" | "orgs" | "signal" | "arms"
 
 export interface DeckCard {
   key: string; flagUrl: string; name: string; subtitle: string; note?: string
@@ -29,21 +29,21 @@ export interface DeckGroup { label: string; cards: DeckCard[] }
 /** Cards in each deck, shown before its data loads. scripts/bundle.test.mjs
  *  checks these match the decks: update them when the Codex galleries change. */
 export const DECK_COUNTS: Record<CodexDeckId, number> = {
-  mega: 4573,
+  mega: 5017,
   peoples: 1148,
   pride: 44,
   separatist: 142,
   civic: 42,
   micronations: 50,
   extinct: 570,
-  uscities: 124,
+  cities: 615,
   orgs: 65,
   signal: 27,
   arms: 192,
 }
 
 /** Decks split into regions, like their Codex sections: pick one, or all. */
-export const DECK_REGIONS: CodexDeckId[] = ["peoples", "extinct", "orgs", "arms"]
+export const DECK_REGIONS: CodexDeckId[] = ["peoples", "extinct", "orgs", "cities", "arms"]
 
 /** The Mega Codex holds every flag in the app; a session draws this many at random. */
 export const MEGA_SESSION = 50
@@ -85,8 +85,12 @@ export function galleryDeck(regions: GRegion[], id: CodexDeckId, subtitle?: stri
   }).filter(g => g.cards.length > 0)
 }
 
-export function cityDeck(cities: CityFlag[]): DeckGroup[] {
-  return [{ label: "", cards: cities.map(f => ({ key: f.id, flagUrl: f.flagUrl, name: f.name, subtitle: f.state, note: f.note })) }]
+/** City Flags: one group per country, biggest city first, as in the Codex section. */
+export function cityDeck(atlas: AtlasContinent[]): DeckGroup[] {
+  return atlas.flatMap(c => c.countries.map(k => ({
+    label: k.name,
+    cards: k.cities.map(f => ({ key: f.key, flagUrl: f.flagUrl, name: f.name, subtitle: f.state ?? k.name, note: f.note })),
+  })))
 }
 
 export function megaDeck(all: MegaFlag[]): DeckGroup[] {
@@ -127,8 +131,8 @@ export function loadCodexDeck(id: CodexDeckId): Promise<DeckGroup[]> {
     case "orgs":
       return Promise.all([import("./codexGalleries"), import("./orgFlags")])
         .then(([g, o]) => galleryDeck(g.orgRegions(o.ORG_FLAGS), id, "International Organizations"))
-    case "uscities":
-      return import("./usCityFlags").then(m => cityDeck([...m.US_CITY_FLAGS].sort((a, b) => a.name.localeCompare(b.name))))
+    case "cities":
+      return import("./cityAtlas").then(m => cityDeck(m.CITY_ATLAS))
     case "arms":
       return Promise.all([import("./coatsOfArms"), import("./flags")]).then(([a, f]) => armsDeck(a.COATS_OF_ARMS, f.FLAGS))
     case "signal":

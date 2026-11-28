@@ -9,6 +9,8 @@ import { ORG_FLAGS } from "./orgFlags"
 import { HISTORICAL_FLAGS } from "./historicalFlags"
 import { IDENTITY_FLAGS } from "./identityFlags"
 import { US_CITY_FLAGS } from "./usCityFlags"
+import { EUROPE_CITY_FLAGS } from "./cityFlags"
+import { formatPopulation } from "./cityAtlas"
 import { SUB_FLAGS } from "./subdivisions"
 import { stripFlagOf, splitParen } from "./codexGalleries"
 import { curatedFact, pickPhrase } from "./curatedFacts"
@@ -16,7 +18,7 @@ import { curatedFact, pickPhrase } from "./curatedFacts"
 // Every flag in the app for the Codex's Mega Codex wall and its search: it
 // needs all the data, so the Codex loads it only when either is used.
 // Aggregated once at module load: countries, identity, cities, ethnic, extinct,
-// org and historical flags, deduped by display name.
+// org and historical flags, then Europe's city flags, deduped by display name.
 export interface MegaFlag { title: string; url: string; fact: string }
 function gatherAllFlags(): MegaFlag[] {
   const seen = new Set<string>()
@@ -112,6 +114,18 @@ function gatherAllFlags(): MegaFlag[] {
   Object.values(TERRITORIES).forEach(list => list.forEach(t => { if (t.flagUrl && !t.noFlag) push(t.name, t.flagUrl, t.note) }))
   // UK constituent nations + their flag histories (England, Scotland, …).
   UK_NATIONS.forEach(n => { const first = n.flagHistory[0]; if (first) push(n.name, first.flagUrl, first.note); n.flagHistory.forEach(h => push(h.label, h.flagUrl, h.note)) })
+  // City flags of Europe (cityFlags.ts), last. A city named like a flag above
+  // is the same flag (Vienna, the city and the state) and skipped, or another
+  // one (Madrid, the city and the region) and called "Madrid (city)".
+  const urlOf = new Map(all.map(f => [f.title.toLowerCase(), f.url]))
+  const countryName = new Map(FLAGS.map(f => [f.code, /^(Netherlands|United |Czech Republic)/.test(f.name) ? `the ${f.name}` : f.name]))
+  EUROPE_CITY_FLAGS.forEach(c => {
+    const prev = urlOf.get(c.name.toLowerCase())
+    const file = decodeURIComponent(c.commons.replace(/^.*\/File:/, "")).replace(/_/g, " ")
+    if (prev && (prev === c.flagUrl || prev === fp(file))) return
+    const city = `A city in ${countryName.get(c.country)}, home to ${formatPopulation(c.population)} people (${c.year}).`
+    push(prev ? `${c.name} (city)` : c.name, c.flagUrl, c.description ? `${city} ${c.description}` : city)
+  })
   return all
 }
 export const ALL_FLAGS_AZ = gatherAllFlags()

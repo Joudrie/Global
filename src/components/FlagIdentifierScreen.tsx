@@ -63,7 +63,7 @@ const TOTAL = IDENTIFY_FLAGS.length.toLocaleString("en-US")   // "1,192"
 // The Codex's whole collection, as the Codex and home screen put it ("Browse
 // all 4,500+ flags"). The identifier covers part of it so far, and says so,
 // so it never reads as if it searched everything.
-const CODEX_TOTAL = "4,500+"
+const CODEX_TOTAL = "5,000+"
 const SO_FAR = `${TOTAL} of the Codex's ${CODEX_TOTAL} flags so far`
 // Only the kinds that have flags yet: a kind with none would be a dead choice.
 const KINDS = IDENTIFY_CATEGORIES

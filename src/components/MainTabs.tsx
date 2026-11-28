@@ -224,7 +224,7 @@ function TodayTab({ state, today, dailyDone, launch, onNavigate, onGoCodex, onGo
         { accent: ACCENT.challenge, eyebrow: "The Arcade", title: `${gameCount} games await`,
           body: "A swipeable trending deck, fresh picks daily, every shelf one tap from play.",
           cta: "Open the Arcade", onClick: onGoPlay, art: flagFan },
-        { accent: T.cyan, eyebrow: "The Codex", title: "Explore 4,500+ flags",
+        { accent: T.cyan, eyebrow: "The Codex", title: "Explore 5,000+ flags",
           body: "Every country, region, historical and identity flag — tap any one to dig into its story.",
           cta: "Open the Codex", onClick: () => onGoCodex(),
           art: (
