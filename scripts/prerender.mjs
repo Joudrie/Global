@@ -565,7 +565,7 @@ const GAME_DESC = {
   thecrop: 'Start from a tight crop of a flag and zoom out until you can name it.',
   thepeel: 'Scratch away the cover to reveal a flag bit by bit, and guess it as early as you can.',
   composer: 'A flag is hidden under a grid of tiles. Each guess flips a tile, and closer guesses reveal better ones. Solve it and the next level hides the next flag under more, smaller tiles, from 3×3 up to 7×5.',
-  flagidentifier: 'Saw a flag you can\'t name? Describe its shape, its colours and anything on it, like a star or a sun, and see every flag that fits, best match first: countries, US states and provinces, cities, pride flags and more.',
+  flagidentifier: 'Saw a flag you can\'t name? Describe its shape, its colours and anything on it, like a star or a sun, and see every flag that fits, best match first: countries, US states and provinces, cities, historical flags, pride flags and more.',
   flagstudio: 'Make your own flag. Start from any real flag or a blank layout, recolour any part, add stars, suns and crescents, then download it as a PNG or share a link.',
   buildflag: 'Put a flag together from its stripes and bands in the right order. Every colour can be used as many times as you need, so the palette never gives the answer away.',
   geopaint: 'Colour in a blank flag and see how close you got to the real thing.',
@@ -744,7 +744,7 @@ const IDENTIFIER_URL = '/?play=flagidentifier'
 const IDENTIFIER_FAQ = [
   ['How does it work?', 'Answer up to four questions: what kind of flag you think it is, its layout, its colours and anything on it, like stars, a sun or a coat of arms. Every flag is ranked by how well it fits, and the list is there at every step.'],
   ['What if I remember a colour wrong?', 'It still shows up. Flags are ranked, not filtered: one wrong colour or detail moves a flag into the "close" list instead of hiding it, and light blue for blue only counts half.'],
-  ['Which flags can it find?', `All ${FLAGS.length} country flags, plus ${IDENTIFY_ALL.length - FLAGS.length} more: US states, Canadian provinces and other states and regions, US cities, pride and identity flags, separatist and regional movements, and international organizations. More are added category by category.`],
+  ['Which flags can it find?', `All ${FLAGS.length} country flags, plus ${IDENTIFY_ALL.length - FLAGS.length} more: US states, Canadian provinces, Japanese prefectures and other states and regions, US cities, historical flags like the Soviet Union's, pride and identity flags, separatist movements, micronations and international organizations. More are added category by category.`],
   ['What if I don\'t know what kind of flag it is?', 'Leave it on "Not sure". If you do pick a kind, say a pride flag or a US state, those flags come first, and every other flag that fits is still listed below, in case it was something else.'],
   ['Is it free?', 'Yes. No account needed, and nothing you pick leaves your device.'],
 ]
@@ -807,7 +807,7 @@ function identifierPage() {
 <h1>Flag identifier</h1>
 <p class="lead">Saw a flag and don't know whose it is? Describe it: its layout, its colours and anything
 on it, like a star or a sun. Globalio lists every flag that fits, best match first: countries, US states and
-provinces, cities, pride flags, regional movements and more.</p>
+provinces, cities, historical flags, pride flags, regional movements and more.</p>
 <a class="cta" href="${IDENTIFIER_URL}">Identify a flag</a>
 
 <h2>How it works</h2>
@@ -815,7 +815,7 @@ provinces, cities, pride flags, regional movements and more.</p>
   <div><b>1 · Kind</b><span>A country, a state, a city, a pride flag… or not sure</span></div>
   <div><b>2 · Shape</b><span>Stripes, a cross, a triangle at the pole…</span></div>
   <div><b>3 · Colours</b><span>Every colour you remember</span></div>
-  <div><b>4 · Details</b><span>Stars, a sun, a coat of arms, writing</span></div>
+  <div><b>4 · Details</b><span>Stars, a sun, a coat of arms, a fleur-de-lis, writing</span></div>
   <div><b>5 · Matches</b><span>Every flag that fits, best first</span></div>
 </div>
 <p>It ranks rather than filters, so one colour remembered wrong doesn't hide the answer: that flag moves to
@@ -853,14 +853,14 @@ ${IDENTIFIER_FAQ.map(([q, a]) => `<details><summary>${esc(q)}</summary><p>${esc(
 `
   return page({
     title: "Flag Identifier: find any flag by its colours and shapes | Globalio",
-    description: clip(`Saw a flag you can't name? Describe its layout, colours and symbols and see which of ${IDENTIFY_ALL.length} country, state, city, pride and regional flags fit, best match first.`),
+    description: clip(`Saw a flag you can't name? Describe its layout, colours and symbols and see which of ${IDENTIFY_ALL.length} country, state, city, historical and pride flags fit, best match first.`),
     canonical: `${ORIGIN}/flag-identifier/`,
     jsonLd: [
       {
         '@context': 'https://schema.org', '@type': 'WebApplication', name: 'Flag Identifier', url: `${ORIGIN}${IDENTIFIER_URL}`,
         applicationCategory: 'ReferenceApplication', operatingSystem: 'Any (web browser)',
         offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-        description: 'Describe a flag by its layout, colours and symbols and see which country, state, city, pride and regional flags fit, best match first.',
+        description: 'Describe a flag by its layout, colours and symbols and see which country, state, city, historical, pride and regional flags fit, best match first.',
       },
       crumbs([['Home', '/'], ['Flag identifier', '/flag-identifier/']]),
       {

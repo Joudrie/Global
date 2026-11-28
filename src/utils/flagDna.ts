@@ -11,13 +11,13 @@
 // USA says nothing about green.
 //
 // Traits come from the Flag Identifier's hand-checked descriptions
-// (data/flagIdentify.ts, checked against the drawn flags). Only the main
+// (data/flagIdentifyCountries.ts, checked against the drawn flags). Only the main
 // parts count: a "?" (small or arguable, like a colour that only shows
 // inside a coat of arms) is left out, so every trait can be seen on the flag
 // at a glance. Colours are folded into seven (maroon is red, light blue is
 // blue): a guess can't tell Latvia's maroon from Austria's red by name.
 // Pure: no storage, no randomness.
-import { IDENTIFY_FLAGS } from "../data/flagIdentify"
+import { IDENTIFY_COUNTRIES } from "../data/flagIdentifyCountries"
 import type { IdentifyEntry } from "./flagIdentify"
 import { FLAGS } from "../data/flags"
 import type { FlagRecord } from "../data/flags"
@@ -143,7 +143,7 @@ export interface DnaFlag {
 
 const REGION_OF = new Map(FLAGS.map(f => [f.code, f.region]))
 
-export const DNA: Record<string, DnaFlag> = Object.fromEntries(IDENTIFY_FLAGS
+export const DNA: Record<string, DnaFlag> = Object.fromEntries(IDENTIFY_COUNTRIES
   .filter(e => REGION_OF.has(e.code))
   .map(e => {
     const traits = traitsOf(e)
