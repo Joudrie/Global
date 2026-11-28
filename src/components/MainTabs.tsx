@@ -159,7 +159,7 @@ export default function MainTabs({ state, tab, onTab, onNavigate, onQuickPlay, o
         {tab === "play" && <PlayTab launch={launch} state={state} today={today} />}
         {tab === "codex" && (
           <Suspense fallback={<div style={{ padding: 48, textAlign: "center", color: T.dim, fontSize: 13 }}>Opening the codex…</div>}>
-            <CodexScreenLazy embedded initialCode={codexCode} onBrowseAll={() => onNavigate("megacodex")} />
+            <CodexScreenLazy embedded initialCode={codexCode} />
           </Suspense>
         )}
         {tab === "you" && <YouTab state={state} onNavigate={onNavigate} onSetUsername={onSetUsername} onOpenPlayer={onOpenPlayer} />}

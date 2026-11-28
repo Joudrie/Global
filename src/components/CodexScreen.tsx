@@ -68,8 +68,6 @@ interface Props {
   /** Rendered inside the dashboard's Codex tab: no back button on the list
    *  view (the bottom tab bar is the navigation). */
   embedded?: boolean
-  /** "See every flag on one wall" at the bottom: the Mega Codex wall. */
-  onBrowseAll?: () => void
 }
 
 const CAPITAL_BY_CODE = new Map(CAPITALS.map(c => [c.code, c.capital]))
@@ -99,7 +97,7 @@ function scrollParent(el: HTMLElement | null): HTMLElement | null {
 }
 const rowId = (code: string) => `codex-${code}`
 
-export default function CodexScreen({ onBack, initialCode, embedded = false, onBrowseAll }: Props) {
+export default function CodexScreen({ onBack, initialCode, embedded = false }: Props) {
   // A deep link (Flag of the Day → its entry) opens on that country; otherwise
   // the embedded Codex restores the reader's last view.
   const [saved] = useState(() => (embedded && initialCode == null ? loadView() : null))
@@ -309,15 +307,9 @@ export default function CodexScreen({ onBack, initialCode, embedded = false, onB
         {!isSearching && <OrgCodexSection />}
         {/* Maritime / signal alphabet — last of the themed sections */}
         {!isSearching && <SignalCodexSection />}
-        {/* Every flag on one wall (the Mega Codex) */}
-        {!isSearching && onBrowseAll && (
-          <button type="button" onClick={onBrowseAll} className="geo-tap"
-            style={{ width: "100%", minHeight: 48, marginTop: 24, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600,
-              display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
-              background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
-            <LineIcon name="codex" size={14} color={T.muted} /> See every flag on one wall
-          </button>
-        )}
+        {/* The Mega Codex again at the bottom: every flag, A–Z / Z–A / Shuffle,
+            tap a flag for its description */}
+        {!isSearching && <MegaCodexButton />}
         {/* Coats of arms (beta) — national emblems by region */}
         {!isSearching && <ArmsCodexSection />}
         {/* Ad box — dormant until a publisher ID is set in src/ads.ts */}
@@ -960,6 +952,24 @@ function MegaCodexWall({ all, onClose, initialSort = 'az' }: { all: MegaFlag[]; 
       </div>
     </div>,
     document.body
+  )
+}
+
+// The "Mega Codex" button at the bottom of the Codex: opens the same Mega
+// Codex wall as the entry up top (sort and shuffle, tap a flag to read it).
+function MegaCodexButton() {
+  const [open, setOpen] = useState(false)
+  const all = useData(ALL_FLAGS, open)
+  return (
+    <>
+      <button type="button" onClick={() => setOpen(true)} className="geo-tap"
+        style={{ width: "100%", minHeight: 48, marginTop: 24, padding: "12px 16px", borderRadius: 12, fontSize: 14, fontWeight: 600,
+          display: "flex", alignItems: "center", justifyContent: "center", gap: 8, cursor: "pointer",
+          background: T.surface, border: `1px solid ${T.line}`, color: T.text }}>
+        <LineIcon name="codex" size={14} color={T.muted} /> Mega Codex
+      </button>
+      {open && all && <MegaCodexWall all={all} onClose={() => setOpen(false)} />}
+    </>
   )
 }
 
