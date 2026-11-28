@@ -4,7 +4,7 @@ import { REGISTRY } from "../ui/registry"
 import { T, ACCENT, FONT, tint } from "../ui/tokens"
 import { ScreenHeader } from "./ui"
 import { LineIcon } from "./icons"
-import { gameFor, groupPatches, loadSeen, markAllSeen, plural, shortDate, unseenFlags } from "../utils/patchNotes"
+import { gameFor, groupPatches, itemGame, loadSeen, markAllSeen, openByDefault, plural, shortDate, unseenFlags, weekStart } from "../utils/patchNotes"
 
 // Screens an entry can link to: everything opened by its id (not the quiz launches).
 const LINKABLE = REGISTRY.filter(r => !r.action)
@@ -26,15 +26,21 @@ function Chevron({ open }: { open: boolean }) {
   )
 }
 
-/* ── Patch notes: the changelog grouped by day, newest first. The newest day
-   is open; tap an entry for its details. Entries the player hadn't read when
-   the screen opened say New, and opening it counts as reading them all. ──── */
+/* ── Patch notes: the changelog grouped by day, newest first. The newest week
+   (and any day with something unread) is open with every entry's details
+   showing, so each game's changes can be read without tapping; older days
+   fold. Entries the player hadn't read when the screen opened say New, and
+   opening it counts as reading them all. A bullet that starts with a game's
+   name ("Flag Bracket: …") links to that game. ───────────────────────────── */
 export default function PatchNotesScreen({ onBack, onPlay }: { onBack: () => void; onPlay: (id: string) => void }) {
   const [unseen] = useState(() => unseenFlags(CHANGELOG, loadSeen()))
   useEffect(() => { markAllSeen(CHANGELOG) }, [])
   const patches = groupPatches(CHANGELOG)
-  const [openDays, setOpenDays] = useState<Set<string>>(() => new Set(patches.slice(0, 1).map(p => p.date)))
-  const [openEntries, setOpenEntries] = useState<Set<number>>(() => new Set())
+  const [openDays, setOpenDays] = useState<Set<string>>(() => openByDefault(CHANGELOG, unseen))
+  const [openEntries, setOpenEntries] = useState<Set<number>>(() => {
+    const from = weekStart(CHANGELOG)
+    return new Set(CHANGELOG.flatMap((e, i) => (e.date >= from || unseen[i] ? [i] : [])))
+  })
   const flip = <K,>(set: Set<K>, k: K) => { const next = new Set(set); if (!next.delete(k)) next.add(k); return next }
   const fresh = unseen.filter(Boolean).length
 
@@ -78,7 +84,21 @@ export default function PatchNotesScreen({ onBack, onPlay }: { onBack: () => voi
                           <div style={{ padding: "0 16px 16px" }}>
                             <ul style={{ listStyle: "disc", margin: 0, paddingLeft: 16, display: "flex", flexDirection: "column", gap: 8,
                               color: T.muted, fontSize: 13, lineHeight: 1.55 }}>
-                              {entry.items.map((item, k) => <li key={k}>{item}</li>)}
+                              {entry.items.map((item, k) => {
+                                const about = itemGame(item, LINKABLE)
+                                if (!about) return <li key={k}>{item}</li>
+                                return (
+                                  <li key={k}>
+                                    <strong style={{ color: T.text, fontWeight: 600 }}>{about.name}:</strong> {about.rest}{" "}
+                                    <button onClick={() => onPlay(about.game.id)} className="geo-tap"
+                                      aria-label={`${about.game.tool || about.game.tab === "you" ? "Open" : "Play"} ${about.game.title}`}
+                                      style={{ display: "inline", padding: 0, border: "none", background: "none", cursor: "pointer",
+                                        fontWeight: 600, fontSize: 13, color: ACCENT[about.game.accent], textDecoration: "underline" }}>
+                                      {about.game.tool || about.game.tab === "you" ? "Open" : "Play"}<span aria-hidden> →</span>
+                                    </button>
+                                  </li>
+                                )
+                              })}
                             </ul>
                             {game && (
                               <button onClick={() => onPlay(game.id)} className="geo-tap"

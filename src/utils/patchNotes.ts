@@ -180,3 +180,27 @@ export function gameFor<G extends { title: string }>(title: string, games: G[]):
   const distinct = named.filter(g => !named.some(o => o !== g && o.title.includes(g.title)))
   return distinct.length === 1 ? distinct[0] : null
 }
+
+/**
+ * The game one bullet is about, when it starts with that game's name and a
+ * colon ("Flag Bracket: pick any mix…" → Flag Bracket), with the name and the
+ * rest split so the screen can bold the name and link the game.
+ */
+export function itemGame<G extends { title: string }>(item: string, games: G[]): { game: G; name: string; rest: string } | null {
+  const m = /^([^:]{2,48}):\s+(.*)$/s.exec(item)
+  if (!m) return null
+  const game = gameFor(m[1], games)
+  // The name, give or take a word ("Flag Bracket", "Tile Flipper now"), not a
+  // sentence that happens to mention the game before a colon.
+  if (!game || m[1].split(/\s+/).length > game.title.split(/\s+/).length + 1) return null
+  return { game, name: m[1], rest: m[2] }
+}
+
+/** The days a reader sees open: the newest week, and any day with an unread entry. */
+export function openByDefault(entries: ChangelogEntry[], unseen: boolean[]): Set<string> {
+  const from = weekStart(entries)
+  const days = new Set<string>()
+  entries.forEach((e, i) => { if (e.date >= from || unseen[i]) days.add(e.date) })
+  return days
+}
+

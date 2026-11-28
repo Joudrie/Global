@@ -149,3 +149,24 @@ test('patch notes open from Today, Settings and ?play=patchnotes, and are not a 
   assert.match(read('src/components/SettingsScreen.tsx'), /onClick=\{onPatchNotes\}/)
   assert.match(read('src/components/PatchNotesScreen.tsx'), /href="\/whats-new\/"/)
 })
+
+test('the newest week opens, and a bullet that starts with a game links to it', () => {
+  const entries = [
+    { date: '2026-11-28', title: 'B', items: ['x'] },
+    { date: '2026-11-27', title: 'A', items: ['y'] },
+    { date: '2026-11-10', title: 'Old', items: ['z'] },
+    { date: '2026-10-01', title: 'Older', items: ['w'] },
+  ]
+  const days = P.openByDefault(entries, [false, false, false, true])
+  assert.ok(days.has('2026-11-28') && days.has('2026-11-27'), 'every day of the newest week opens')
+  assert.ok(!days.has('2026-11-10'), 'an older, read day stays folded')
+  assert.ok(days.has('2026-10-01'), 'an older day with something unread opens')
+  const games = [{ title: 'Flag Bracket', id: 'flagbracket' }, { title: 'Frankenflag', id: 'frankenflag' }]
+  const hit = P.itemGame('Flag Bracket: pick any mix of continents.', games)
+  assert.equal(hit.game.id, 'flagbracket')
+  assert.equal(hit.name, 'Flag Bracket')
+  assert.equal(hit.rest, 'pick any mix of continents.')
+  assert.equal(P.itemGame('Typed a country slightly wrong? Thirteen games now help.', games), null)
+  assert.equal(P.itemGame('Easy: no game here', games), null)
+  assert.equal(P.itemGame('Flag Bracket now covers most of the Codex: lots more.', games), null, 'a sentence, not a name')
+})
