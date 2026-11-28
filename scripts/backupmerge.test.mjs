@@ -252,7 +252,7 @@ test('best scores: the higher one, per tier when there are several', () => {
     assert.deepEqual(both(key, '4', '11'), ['11', '11'], key)
     assert.equal(ruleFor(key).rule, 'max', key)
   }
-  for (const id of ['flagfusion', 'citiesabroad', 'countriesabroad', 'nativenames', 'demonyms']) {
+  for (const id of ['flagfusion', 'citiesabroad', 'countriesabroad', 'nativenames', 'demonyms', 'spoken']) {
     const [ab, ba] = both(`globalio_${id}_best`, S({ easy: 5, hard: 50 }), S({ easy: 9, medium: 1 }))
     assert.equal(ab, ba)
     assert.deepEqual(P(ab), { easy: 9, hard: 50, medium: 1 })

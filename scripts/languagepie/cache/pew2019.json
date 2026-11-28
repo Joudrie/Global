@@ -1,0 +1,23 @@
+{
+  "source": "Pew Research Center, Spring 2019 Global Attitudes Survey, topline questionnaire (released 6 January 2020), Q72: What language do you speak at home?",
+  "url": "https://www.pewresearch.org/wp-content/uploads/2020/01/FT_01.06.20_languages_topline.pdf",
+  "note": "Transcribed from the PDF. Percent of adults; DK/Refused as Not stated. Ukraine's question (Q73) allowed two answers and shows only the first.",
+  "countries": {
+    "BG": { "Bulgarian": 80, "Turkish": 14, "Romani": 6, "Other": 0 },
+    "CZ": { "Czech": 94, "Slovak": 2, "German": 0, "Polish": 0, "Romani": 2, "Other": 1, "Not stated": 0 },
+    "FR": { "French": 97, "Italian": 0, "Basque": 0, "Occitan": 0, "Arabic": 1, "Other": 2 },
+    "DE": { "German": 90, "Turkish": 2, "French": 0, "Italian": 0, "Arabic": 1, "Other": 6, "Not stated": 0 },
+    "GR": { "Greek": 98, "Albanian": 1, "Other": 1 },
+    "HU": { "Hungarian": 97, "German": 0, "Romani": 2, "Romanian": 0 },
+    "IT": { "Italian": 96, "Albanian": 0, "Other": 4 },
+    "LT": { "Lithuanian": 90, "Russian": 6, "Polish": 4, "Other": 0, "Not stated": 0 },
+    "NL": { "Dutch": 93, "Frisian": 1, "Turkish": 0, "Arabic": 1, "Other": 5, "Not stated": 0 },
+    "PL": { "Polish": 100, "Ukrainian": 0 },
+    "RU": { "Russian": 92, "Tatar": 4, "Ukrainian": 0, "Chuvash": 0, "Mordovian": 0, "Chechen": 2, "Other": 2 },
+    "SK": { "Slovak": 89, "Romani": 1, "Ukrainian": 0, "Hungarian": 9, "Ruthenian": 1, "Czech": 0, "Other": 0 },
+    "ES": { "Spanish": 81, "Galician": 3, "Catalan": 12, "Basque": 1, "French": 0, "Italian": 0, "Portuguese": 0, "Arabic": 0, "Other": 2, "Not stated": 1 },
+    "SE": { "Swedish": 94, "Finnish": 0, "Arabic": 0, "Other": 5, "Not stated": 0 },
+    "GB": { "English": 91, "Welsh": 0, "Other": 8, "Not stated": 0 },
+    "UA": { "Ukrainian": 55, "Russian": 44, "Other": 1 }
+  }
+}

@@ -215,7 +215,7 @@ test('the answer box never mentions a name, so iOS offers no contact AutoFill', 
   assert.doesNotMatch(screen, /<input\b/, 'the shared screen draws the box')
 })
 
-test('Demonyms sits after the Abroad games on Sharp Recall, and every count says 56', () => {
+test('Demonyms sits after the Abroad games on Sharp Recall, and every count says 57', () => {
   const ids = REGISTRY.map(e => e.id)
   assert.equal(ids[ids.indexOf('nativenames') + 1], 'demonyms')
   const e = REGISTRY.find(x => x.id === 'demonyms')
@@ -224,12 +224,12 @@ test('Demonyms sits after the Abroad games on Sharp Recall, and every count says
   assert.equal(e.group, 'Sharp Recall')
   assert.equal(e.tab, 'play')
   assert.ok(!e.sandbox && !e.tool)
-  assert.equal(GAME_COUNT, 56)
+  assert.equal(GAME_COUNT, 57)
   const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8')
   assert.match(read('src/App.tsx'), /screen === "demonyms"/)
   assert.match(read('src/components/icons.tsx'), /demonyms: \w+/)
   assert.match(read('src/components/GamePoster.tsx'), /case "demonyms":/)
   const desc = read('scripts/prerender.mjs').match(/demonyms: '([^']*)'/)?.[1] ?? assert.fail('no prerender description')
   assert.match(desc, new RegExp(`\\b${DEMONYMS.length} cities, regions and countries`), 'the place count matches the data')
-  for (const f of ['index.html', 'public/manifest.webmanifest']) assert.doesNotMatch(read(f), /\b5[57] (free )?(flag and geography )?(games|ways)/, f)
+  for (const f of ['index.html', 'public/manifest.webmanifest']) assert.doesNotMatch(read(f), /\b5[68] (free )?(flag and geography )?(games|ways)/, f)
 })

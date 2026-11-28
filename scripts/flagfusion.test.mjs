@@ -257,7 +257,7 @@ test('no input mentions a name, so iOS offers no contact AutoFill', () => {
   for (const label of [...screen.matchAll(/aria-label=\{`\$\{PART_LABEL\[part\]\} ([^`]*)`\}/g)]) assert.doesNotMatch(label[1], /name/i)
 })
 
-test('Flag Fusion leads the One Glance shelf, Popular and Top games, and every count says 56', () => {
+test('Flag Fusion leads the One Glance shelf, Popular and Top games, and every count says 57', () => {
   const ids = REGISTRY.map(e => e.id)
   const shelf = REGISTRY.filter(x => x.group === 'One Glance').map(x => x.id)
   assert.equal(shelf[0], 'flagfusion', 'first on its shelf')
@@ -272,7 +272,7 @@ test('Flag Fusion leads the One Glance shelf, Popular and Top games, and every c
   assert.equal(e.group, 'One Glance')
   assert.equal(e.tab, 'play')
   assert.ok(!e.sandbox && e.featured)
-  assert.equal(GAME_COUNT, 56)
+  assert.equal(GAME_COUNT, 57)
   const read = f => fs.readFileSync(path.join(ROOT, f), 'utf8')
   assert.match(read('scripts/prerender.mjs'), /flagfusion: '/)
   assert.match(read('src/App.tsx'), /screen === "flagfusion"/)

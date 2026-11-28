@@ -57,7 +57,7 @@ export const RULES: Rule[] = [
   // Best scores: a number ("12"), or one per tier/mode ({ "easy-type": 340 }).
   // Covers hl, doa, realorbot, forgery, spoterror (best streak), statclash, prideroulette (and _best_<n>),
   // flagfusion, citiesabroad and countriesabroad (Abroad's two switches),
-  // nativenames, demonyms,
+  // nativenames, demonyms, spoken (Spoken Here: { "easy-choice": 120 }),
   // frankenflag (pieces named in a game), composer (Tile Flipper: { level,
   // score }), thepeel ({ streak, points }), flagdna ({ streak }, the best
   // run of wins), provinceroulette ({ world: 14,

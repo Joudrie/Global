@@ -5,6 +5,22 @@ export interface ChangelogEntry { date: string; title: string; items: string[] }
 export const CHANGELOG: ChangelogEntry[] = [
   {
     date: "2026-11-28",
+    title: "New game: Spoken Here",
+    items: [
+      "Each round is a pie chart of one country's languages from its latest census or survey, with the year it's from (\u201cMother tongue, 2021 census\u201d, and \u201cFrom 2001, 25 years ago\u201d when the figures are old). Name the country from four choices, or type it for double points.",
+      "Easy and medium name the languages; hard shows only their families, from Romance and Bantu to Turkic and Austronesian. After each answer you see the flag, every language counted and where the figures come from. 100 countries.",
+    ],
+  },
+  {
+    date: "2026-11-28",
+    title: "Coats of arms for every country, and a Coats of Arms flashcard deck",
+    items: [
+      "The Codex's Coats of Arms section now covers every country: 192 national emblems by region, and the ones that came before for 160 of them.",
+      "Flashcards has a new Coats of Arms deck in the Codex tab: the emblem on the front, the country and what it shows on the back.",
+    ],
+  },
+  {
+    date: "2026-11-28",
     title: "Flag Identifier now finds 1,192 flags, historical ones included",
     items: [
       "Flag Identifier adds 206 historical flags (the USSR and its republics, Yugoslavia, the Ottoman Empire, Austria-Hungary, Rhodesia and more), Japan's 47 prefectures, Argentina's provinces, Russia's regions, UK county flags, and over a hundred more movements and micronations.",
